@@ -1,7 +1,7 @@
 # # Uniaxial extension problem
 #
 
-using FEMAssembler
+using ONSAS
 
 # scalar parameters
 E  = 1.0 # Young modulus in Pa
