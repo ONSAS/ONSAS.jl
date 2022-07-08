@@ -23,7 +23,7 @@ function assembler( nodalCoords, elemNodalConnec, MEBIValsMat, MEBIVec, material
     vals_vector = Vector{Float64}()
 
     # start assemblage
-    for elem in (1:nElems);
+    for elem in (1:numElems)
 
         verbosityBool && println( "element #: ", elem )
 
@@ -65,7 +65,7 @@ function assembler( nodalCoords, elemNodalConnec, MEBIValsMat, MEBIVec, material
 
     end
 
-    KG = sparse( row_indexes, col_indexes, vals_vector, 6*nNodes, 6*nNodes )
+    KG = sparse( row_indexes, col_indexes, vals_vector, 6*numNodes, 6*numNodes )
 
     FG, neumDofs = assemble_fext( nodalCoords, elemNodalConnec, MEBIValsMat, MEBIVec, BCsData )
 
@@ -81,12 +81,12 @@ end
 
 function assemble_fext( nodalCoords, elemNodalConnec, MEBIValsMat, MEBIVec, BCsData )
 
-    nNodes     = size( nodalCoords,     1)
+    numNodes     = size( nodalCoords,     1)
     
-    neumDofs = computeNeumDofs( nNodes )
+    neumDofs = computeNeumDofs( numNodes )
     
     print("neumdofs", neumDofs)
-    FG = zeros( 6*nNodes ) ;
+    FG = zeros( 6*numNodes ) ;
     elementsBC = computeElemsByMEBI( MEBIValsMat[:,3], MEBIVec )
     for indBC in (1:length(BCsData))
         print("indBC", indBC)

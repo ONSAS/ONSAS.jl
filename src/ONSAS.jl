@@ -1,4 +1,4 @@
-module FEMAssembler
+module ONSAS
 
     # load packages
     include("init.jl")

@@ -3,6 +3,11 @@ uuid = "7d8da659-23aa-453a-9a19-a3d1f6c795f5"
 authors = ["Jorge Pérez Zerpa"]
 version = "0.1.0"
 
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MshReader = "64cd2da2-d71d-431a-81e3-4cf84ef169dd"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+
 [compat]
 julia = "1"
 

@@ -1,5 +1,5 @@
 
-using FEMAssembler
+using ONSAS
 
 ## scalar parameters
 E  = 2e11  # Young modulus in Pa
@@ -37,7 +37,7 @@ BCs = [ BoundaryCondsData([ 1, 3, 5],[0, 0, 0],[     ], [ ]       ) ,
         BoundaryCondsData([ 3    ]  ,[0      ],[1, 5 ], [Fx, Fy ] ) ]
 
 # assemble the sitiffness equation
-KG, FG, Kmatrices, neumDofs = assembler( nodalCoords, elemNodalConnec, MEBIValsMat, MEBIVec, [steel1, steel2], [[],section], BCs, [] ) ;
+KG, FG, Kmatrices, neumDofs = assembler( nodalCoords, elemNodalConnec, MEBIValsMat, MEBIVec, [steel1, steel2], [[],section], BCs )
 
 print("KG:\n")
 display(KG)
@@ -47,7 +47,6 @@ print("\n")
 
 KGred = copy( KG )
 FGred = copy( FG )
-
 
 KGred = KGred[ neumDofs, neumDofs ]
 FGred = FGred[ neumDofs           ]
