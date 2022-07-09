@@ -9,6 +9,7 @@ MshReader = "64cd2da2-d71d-431a-81e3-4cf84ef169dd"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
+MshReader = "0.1"
 julia = "1"
 
 [extras]
