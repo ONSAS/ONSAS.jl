@@ -1,3 +1,7 @@
+
+"""
+test materials struct docstring
+"""
 mutable struct MaterialsData{T}
     youngModulus::T
     poissonRatio::T
