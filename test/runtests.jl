@@ -1,7 +1,7 @@
 using ONSAS
 using Test
 
-using  LinearAlgebra
+using LinearAlgebra
 
 
 @testset "ONSAS.jl" begin
