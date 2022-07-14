@@ -1,4 +1,12 @@
 export  Material,
         CrossSection,
-        ElementGeometry,
-        BoundaryCond
+        Geometry,
+        BoundaryCondition,
+        InitialCondition,
+        Mesh,
+        AnalysisSettings,
+        ONSAS_init,
+        ModelSolution,
+        ModelProperties
+        
+        
