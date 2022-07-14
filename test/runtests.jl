@@ -1,10 +1,11 @@
-using ONSAS
+
 using Test
 
-using LinearAlgebra
-
+#using LinearAlgebra
 
 @testset "ONSAS.jl" begin
+
+    using ONSAS
     @testset "Test: linear von mises problem" begin
         include( joinpath( "..", "examples", "vonMisesTruss", "vonMisesTruss.jl" ) )
     
