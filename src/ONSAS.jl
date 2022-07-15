@@ -13,6 +13,7 @@ module ONSAS
     include("mesh/dofs_computations.jl")
 
     include("core/ONSAS_init.jl")
+    include("core/ONSAS_solve.jl")
     include("core/assembler.jl")
 
     # exports

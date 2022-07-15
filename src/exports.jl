@@ -1,3 +1,4 @@
+
 export  Material,
         CrossSection,
         Geometry,
@@ -6,6 +7,7 @@ export  Material,
         Mesh,
         AnalysisSettings,
         ONSAS_init,
+        ONSAS_solve,
         ModelSolution,
         ModelProperties
         

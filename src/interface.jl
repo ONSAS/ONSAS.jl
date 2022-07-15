@@ -36,7 +36,7 @@ mutable struct CrossSection
     Inertia_z::Float64
 end
 
-
+# constructor with missing fields
 function CrossSection(type; width_y = nothing, width_z = nothing )
     if cmp( type, "square") == 0 || cmp( type, "rectangle") == 0
         
@@ -76,6 +76,7 @@ struct Geometry
     cross_section
 end
 
+# constructor with missing fields
 function Geometry( type::String )
     return Geometry( type, nothing )
 end
@@ -106,7 +107,7 @@ end
 # ======================================================================
 
 struct Mesh
-    nodes_coords::Matrix{Float64}
+    nodal_coords::Matrix{Float64}
     elem_nodal_connec::Vector{Vector{Int}}
     MGBI_mat::Matrix{Int}
     MGBI_vec::Vector{Int}
@@ -115,12 +116,17 @@ end
 
 struct AnalysisSettings
     numerical_method::String
+    delta_time::Float64
+    final_time::Float64
 end
-
 
 struct ModelSolution
     time::Float64
+    displacements::Vector{Float64}
+    velocities::Vector{Float64}
+    accelerations::Vector{Float64}
 end
+
 
 struct ModelProperties
     mesh::Mesh

@@ -78,13 +78,14 @@ my_mesh = Mesh( nodalCoords, elemNodalConnec, MGBIValsMat, MGBIVec )
 
 # -------------------------------
 # AnalysisSettings
-
-analysis_settings = AnalysisSettings( "newton_raphson" )
+analysis_settings = AnalysisSettings( "newton_raphson", 1.0, 2.0 )
 # -------------------------------
 
 
-model_solution, model_properties = ONSAS_init( materials, geometries, boundary_conditions, initial_conditions, my_mesh, analysis_settings )
+initial_solution, model_properties = ONSAS_init( materials, geometries, boundary_conditions, initial_conditions, my_mesh, analysis_settings )
 
+
+solutions = ONSAS_solve( model_properties, initial_solution, verbosity=true )
 
 
 # print("KG:\n")
