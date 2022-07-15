@@ -1,5 +1,5 @@
 """
-assembler is the functions in charge of the construction of the tangent matrix and the RHS vector of the main FEM iteration system 
+assembler is the function in charge of the construction of the tangent matrix and the RHS vector of the main FEM iteration system 
 
 The inputs are:
  - nodalCoords: a matrix that in the i-th colum contains the x, y and z coordinates as a column vector, for the i-th node of the mesh.
@@ -7,10 +7,13 @@ The inputs are:
  - MEBIValsMat: a matrix of indexes, at each column contains the the four MEBI parameters
  - 
 """
-function assembler( nodalCoords, elemNodalConnec, MEBIValsMat, MEBIVec, materialsData, elementsData, BCsData; currSol=[],  verbosityBool=false )
+function assembler( materials, geometries, mesh, solution; verbosityBool=false )
 
-    numElems = length( elemNodalConnec )
-    numNodes = size( nodalCoords,     2)
+    elem_nodal_connec = mesh.elem_nodal_connec
+    nodal_coords      = mesh.nodal_coords
+
+    num_elems = length( elem_nodal_connec )
+    num_nodes = size(   nodal_coords,    2)
 
     if isempty( currSol )
         currSol = zeros( 6*numNodes )
@@ -31,20 +34,19 @@ function assembler( nodalCoords, elemNodalConnec, MEBIValsMat, MEBIVec, material
         elemMEBIEntry = MEBIVec[ elem ]
 
         elemMat = MEBIValsMat[ elemMEBIEntry, 1 ]
-        elemEle = MEBIValsMat[ elemMEBIEntry, 2 ]
+        elemGeo = MEBIValsMat[ elemMEBIEntry, 2 ]
 
         verbosityBool && println( "  elemMebi entry", elemMEBIEntry )
 
-        
         if elemMat > 0  # if it has a material
 
             nodesOfThisElem = elemNodalConnec[ elem ] ;
             dofsElem = nodes2dofs( nodesOfThisElem , 6 ) ;
             
-            if cmp( elementsData[elemEle].type, "truss" ) == 0
+            if cmp( geometries[elemEle].type, "truss" ) == 0
 
                 dofsElem = dofsElem[ [1,5,7,11]]
-                fintelem, Kelem = linear_truss( materialsData[elemMat], elementsData[elemEle], nodalCoords[ nodesOfThisElem, : ], currSol[dofsElem] );
+                fintelem, Kelem = linear_truss( materialsData, elements_Geometry[elemEle], nodalCoords[ nodesOfThisElem, : ], currSol[dofsElem] );
 
             elseif cmp( elementsData[elemEle].type, "tetrahedron" ) == 0
 

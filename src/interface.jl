@@ -30,10 +30,10 @@ mutable struct CrossSection
     diameter
     width_y
     width_z
-    Area::Float64
-    Inertia_x::Float64
-    Inertia_y::Float64
-    Inertia_z::Float64
+    area::Float64
+    inertia_x::Float64
+    inertia_y::Float64
+    inertia_z::Float64
 end
 
 # constructor with missing fields
@@ -49,18 +49,18 @@ function CrossSection(type; width_y = nothing, width_z = nothing )
             end
         end
 
-        Area      = width_y * width_z 
+        area      = width_y * width_z 
 
-        Inertia_y = width_y * width_z^3 / 12
-        Inertia_z = width_z * width_y^3 / 12
+        inertia_y = width_y * width_z^3 / 12
+        inertia_z = width_z * width_y^3 / 12
 
         # torsional constant from table 10.1 from Roark's Formulas for Stress and Strain 7th ed.
         a = 0.5 * max( width_y, width_z )
         b = 0.5 * min( width_y, width_z )
             
-        Inertia_x = a * b^3 * ( 16/3. - 3.36 * b/a * ( 1. - b^4 / ( 12*a^4 ) ) )
+        inertia_x = a * b^3 * ( 16/3. - 3.36 * b/a * ( 1. - b^4 / ( 12*a^4 ) ) )
         
-        return CrossSection( type, nothing, width_y, width_z, Area, Inertia_x, Inertia_y, Inertia_z )
+        return CrossSection( type, nothing, width_y, width_z, area, inertia_x, inertia_y, inertia_z )
     else
       error(" cross section type ", type, " not implemented yet, please create an issue!")
     end
@@ -114,21 +114,56 @@ struct Mesh
 end
 
 
+# ======================================================================
+# AnalysisSettings
+# ======================================================================
+
 struct AnalysisSettings
-    numerical_method::String
+
+    method::String
     delta_time::Float64
     final_time::Float64
+
+#    delta_time > final_time && error("delta_time must be lower than final_time")
+
+    stop_tol_disps::Float64
+    stop_tol_force::Float64
+    stop_tol_iters::Int
 end
 
-struct ModelSolution
+function AnalysisSettings( method::String, delta_time::Float64, final_time::Float64 )
+    return AnalysisSettings( method, delta_time, final_time, 1.0e-6, 1.0e-6, 20 )
+end
+
+mutable struct ModelSolution
     time::Float64
-    displacements::Vector{Float64}
-    velocities::Vector{Float64}
-    accelerations::Vector{Float64}
+    U::Vector{Float64}       # displacements
+    Udot::Vector{Float64}    # velocities
+    Udotdot::Vector{Float64} # accelerations
+    system_matrix
+    system_rhs
+end
+
+# function ModelSolution( time, U, Udot, Udotdot )
+#     return ModelSolution(time, U, Udot, Udotdot, nothing, nothing )
+# end
+
+"""
+    displacements(sol::ModelSolution)
+Return the vector of displacements of the given solution.
+"""
+displacements( sol::ModelSolution ) = sol.U
+
+function unwrap( sol::ModelSolution )
+    return sol.time, sol.U, sol.Udot, sol.Udotdot 
 end
 
 
 struct ModelProperties
+    materials::Vector{Material}
+    geometries::Vector{Geometry}
+    boundary_conditions::Vector{BoundaryCondition}
+    neum_dofs::Vector{Int}
     mesh::Mesh
     analysis_settings::AnalysisSettings
 end
