@@ -76,7 +76,8 @@ my_mesh = Mesh( nodal_coords, elem_nodal_connec, MGBIValsMat, MGBIVec )
 
 
 
-fixed_node = Node( fixed_support )
+#fixed_node = Node( fixed_support )
+#fixed_node = Node( fixed_support )
 
 loaded_node = Truss( steel2, square_section, load_and_support )
 
@@ -86,7 +87,7 @@ indices = [1,2]
 
 for j in indices
     print("j ", j,"\n")
-    push!(elementos, fixed_node )
+    push!(elementos, Node( fixed_support ) )
     print(elementos,"\n")
 end
 
