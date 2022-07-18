@@ -31,7 +31,6 @@ truss_geometry = Geometry( "truss", square_section )
 geometries = [ node_geometry, truss_geometry ]
 # -------------------------------
 
-
 # -------------------------------
 # BoundaryConditions
 fixed_support    = BoundaryCondition( [1,3,5], zeros(3), "" )
@@ -58,11 +57,11 @@ initial_conditions = []
 # Mesh
 
 # The coordinate matrix is given by
-nodalCoords = [  0.  0.  0. ;
+nodal_coords = [  0.  0.  0. ;
                  d   0.  h  ;
                 2d   0.  0. ]
 
-elemNodalConnec = [ [ 1 ],  [ 2 ], [ 3 ], [ 1, 2],  [ 2, 3] ]
+elem_nodal_connec = [ [ 1 ],  [ 2 ], [ 3 ], [ 1, 2],  [ 2, 3] ]
 
 # matrix with MGBI indexes of each element (on each row)
 MGBIValsMat = [ 0 1 1 0  ; # no material / first element / first BC / no IC
@@ -72,17 +71,49 @@ MGBIValsMat = [ 0 1 1 0  ; # no material / first element / first BC / no IC
 
 MGBIVec     = [ 1, 2, 1, 3, 4 ]
 
-my_mesh = Mesh( nodalCoords, elemNodalConnec, MGBIValsMat, MGBIVec )
+my_mesh = Mesh( nodal_coords, elem_nodal_connec, MGBIValsMat, MGBIVec )
 # -------------------------------
 
+
+
+fixed_node = Node( fixed_support )
+
+loaded_node = Truss( steel2, square_section, load_and_support )
+
+elementos = AbstractElement[]
+
+indices = [1,2]
+
+for j in indices
+    print("j ", j,"\n")
+    push!(elementos, fixed_node )
+    print(elementos,"\n")
+end
+
+print("\n\nvalor ",  elementos[1],"\n")
+print("\n\nTYPEOF ", typeof( elementos[1]),"\n")
+
+elementos[1].connectivity = [ 4]
+print("PRUEBA ",  elementos,"\n")
+
+elementos[2].connectivity = [ 3]
+print("PRUEBA 2 ",  elementos,"\n")
+
+mallab = MeshB( nodal_coords, elementos)
+
+print( "\n\n mallabb", mallab,"\n")
+#print(" inertia: ", mallab.elements[2].cross_section.inertia_y )
 
 # -------------------------------
 # AnalysisSettings
-analysis_settings = AnalysisSettings( "newton_raphson", 1.0, 2.0 )
+analysis_settings = AnalysisSettings( "newton_raphson", 1.0, 2.0 );
 # -------------------------------
 
+#print("type truss:", typeof(Truss2)==Symbol("Truss") )
 
-initial_solution, model_properties = ONSAS_init( materials, geometries, boundary_conditions, initial_conditions, my_mesh, analysis_settings )
+#mallab = lector_msh( materiales, cross_section, boundary_conditions, initial_conditions )
+
+#initial_solution, model_properties = ONSAS_init( materials, geometries, boundary_conditions, initial_conditions, my_mesh, analysis_settings )
 
 
 #solutions = ONSAS_solve( initial_solution, model_properties, verbosity=true )
@@ -102,7 +133,7 @@ initial_solution, model_properties = ONSAS_init( materials, geometries, boundary
 
 # print("KGred", KGred,"\n")
 # # the system is solved.
-# UGred = KGred \ FGred 
+# UGred = KGred \ FGred
 
 # UG = zeros( size( FG ) )
-# UG[  neumDofs ] = UGred 
+# UG[  neumDofs ] = UGred

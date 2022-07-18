@@ -9,6 +9,8 @@ function mshRead( msh_filename )
 
     MEBIValsMat = parse_physicalNames( physicalNames )
 
+
+
     return nodesCoordMat, connectivity, MEBIValsMat, MEBIVec
 end
 
