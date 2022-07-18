@@ -9,12 +9,11 @@ Struct with information of the material.
 mutable struct Material{T}
     type::String
     constitutive_params::Vector{T}
-    density::Float64
-end
-
-# constructor for missing density
-function Material(type, constitutive_params)
-    return Material(type, constitutive_params, 0.0) # default density: zero
+    density::Union{Float64, Nothing}
+    # define constructor with  no density by default
+    function Material(type::String, constitutive_params::Vector{T}, density=nothing::Union{Float64, Nothing}) where T
+        new{T}(type, constitutive_params, density) # default density: zero
+    end
 end
 
 
@@ -70,13 +69,11 @@ Struct with information of the geometry of the element:
 struct Geometry
     type::String
     cross_section
+    # define constructor with no cross section by default
+    function Geometry( type::String, cross_section = nothing  )
+        new( type, cross_section )
+    end
 end
-
-# constructor with missing fields
-function Geometry( type::String )
-    return Geometry( type, nothing )
-end
-
 
 # ======================================================================
 # Boundary Conditions
@@ -113,12 +110,23 @@ abstract type AbstractElement end
 
 mutable struct Node <: AbstractElement
     boundary_condition::BoundaryCondition
-    connectivity
-    mass
-end
-
-function Node( boundary_condition)
-    return Node( boundary_condition, [], nothing )
+    mass::Vector{Float64}
+    connectivity::Vector{Int}
+    # empty constructor
+    Node() = new()
+    # only boundary_condition condition constructor
+    function Node(boundary_condition::BoundaryCondition)
+        node = Node()
+        node.boundary_condition = boundary_condition
+        return node
+    end
+    # boundary condition and nodal mass constructor
+    function Node(boundary_condition::BoundaryCondition, mass::Vector{Float64})
+        node = Node()
+        node.boundary_condition = boundary_condition
+        node.mass = mass
+        return node
+    end
 end
 
 mutable struct Truss <: AbstractElement
@@ -147,10 +155,10 @@ struct AnalysisSettings
     stop_tol_disps::Float64
     stop_tol_force::Float64
     stop_tol_iters::Int
-end
+    function AnalysisSettings( method::String, delta_time::Float64, final_time::Float64, stop_tol_disps=1e-6::Float64, stop_tol_force=1e-6::Float64, stop_tol_iters=20::Integer )
+        new( method, delta_time, final_time, stop_tol_disps, stop_tol_force, stop_tol_iters )
+    end
 
-function AnalysisSettings( method::String, delta_time::Float64, final_time::Float64 )
-    return AnalysisSettings( method, delta_time, final_time, 1.0e-6, 1.0e-6, 20 )
 end
 
 mutable struct ModelSolution
