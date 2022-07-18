@@ -23,16 +23,6 @@ function computeElemsByMEBI( MEBIVals, MEBIVec )
 end
 
 
-function computeNeumDofs( nNodes )
-
-    neumDofs = nodes2dofs( (1:nNodes), 6 )
-
-    neumDofs[2:2:end] .= 0
-    
-    return neumDofs
-
-end
-
 """
 nodes2dofs computes the vector of dofs for an input vector of nodes
 """
@@ -70,3 +60,16 @@ function compute_sparse_indexes( matrix, dofsElem )
 
     return row_indexes, col_indexes, vals_vector
 end
+
+
+
+
+
+
+
+
+
+
+
+
+

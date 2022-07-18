@@ -1,13 +1,16 @@
-function linear_truss( matProps, elemProps, nodalCoords, u  )
+"""
+function to linear truss element
+"""
+function linear_truss( material, geometry, nodalCoords, u  )
 
-  E = matProps.youngModulus
-  A = elemProps.crossSectionArea
+  E = material.constitutive_params[1]
+  A = geometry.area
 
-  diff = nodalCoords[ 2, : ] - nodalCoords[ 1, : ] ;
+  diff = nodalCoords[ 2, : ] - nodalCoords[ 1, : ]
 
-  length   = sqrt( diff' * diff ) ;
-  c        = diff[1] / length ;
-  s        = diff[3] / length ;
+  length   = sqrt( diff' * diff )
+  c        = diff[1] / length 
+  s        = diff[3] / length 
 
   Qloc2glo = [  c -s 0  0 ;
                 s  c 0  0 ;
@@ -18,9 +21,15 @@ function linear_truss( matProps, elemProps, nodalCoords, u  )
                             0  0  0 0 ;
                             -1 0  1 0 ;
                             0  0  0 0 ] ;
-  Kglo     = Qloc2glo * Kloc * transpose(Qloc2glo) ;
+
+  Kglo     = Qloc2glo * Kloc * transpose(Qloc2glo)
 
   fint = Kglo * u
-  return fint, Kglo
+
+  
+  force_vectors    = [ fint ]
+  tangent_matrices = [ Kglo ]
+
+  return force_vectors, tangent_matrices
+
 end
-#

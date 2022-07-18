@@ -1,3 +1,4 @@
+## Von Mises truss example problem
 
 using ONSAS
 
@@ -6,54 +7,133 @@ E  = 2e11  # Young modulus in Pa
 A  = 5e-3  # Cross-section area in m^2
 d  = 1.0   # horizontal distance in m
 h  = 1.0   # height in m
-Fx = 0     # horizontal load in N
-Fy = -1e3  # vertical   load in N
+# Fx = 0     # horizontal load in N
+# Fy = -1e3  # vertical   load in N
 
 ## set structs
 E1 = E
 E2 = E
 
-steel1  = MaterialsData( E1, 0.3 )
-steel2  = MaterialsData( E2, 0.3 )
-section = ElementsData("truss", A)
+# -------------------------------
+# Materials
+steel1  = Material( "LinearElastic", [ E1 ] )
+steel2  = Material( "LinearElastic", [ E2 ] )
+
+materials = [steel1, steel2]
+# -------------------------------
+
+# -------------------------------
+# Geometries
+node_geometry  = Geometry( "node" )
+square_section = CrossSection( "square", width_y = sqrt(A) )
+truss_geometry = Geometry( "truss", square_section )
+
+geometries = [ node_geometry, truss_geometry ]
+# -------------------------------
+
+# -------------------------------
+# BoundaryConditions
+fixed_support    = BoundaryCondition( [1,3,5], zeros(3), "" )
+load_and_support = BoundaryCondition( [3    ], [0.0   ], "my_nodal_load" )
+
+function my_nodal_load( solution::ModelSolution, properties::ModelProperties)
+    num_nodes = size( properties.mesh.nodes_coords, 1 )
+    f_ext = zeros( 6*num_nodes )
+    f_ext[6+5] = - 1e3 * solution.time
+    return f_ext
+end
+
+boundary_conditions = [ fixed_support, load_and_support ]
+# -------------------------------
+
+
+# -------------------------------
+# InitialConditions
+initial_conditions = []
+# -------------------------------
+
+
+# -------------------------------
+# Mesh
 
 # The coordinate matrix is given by
-nodalCoords = [  0.  0.  0. ;
+nodal_coords = [  0.  0.  0. ;
                  d   0.  h  ;
                 2d   0.  0. ]
 
-# matrix with MEBI indexes of each element (on each row)
-# MEBI = Materials / Elements / BoundaryConditions / InitialConditions
-MEBIValsMat = [ 0 1 1 0  ; # no material / first element / first BC / no IC
-0 1 2 0  ;
-1 2 0 0  ;
-2 2 0 0 ] ;
+elem_nodal_connec = [ [ 1 ],  [ 2 ], [ 3 ], [ 1, 2],  [ 2, 3] ]
 
-# the connectivity matrix is given by a vector of vectors.
-elemNodalConnec = [ [ 1 ],  [ 2 ], [ 3 ], [ 1, 2],  [ 2, 3] ]
-MEBIVec         = [     1,      2,     1,       3,       4  ] 
+# matrix with MGBI indexes of each element (on each row)
+MGBIValsMat = [ 0 1 1 0  ; # no material / first element / first BC / no IC
+                0 1 2 0  ;
+                1 2 0 0  ;
+                2 2 0 0 ]
 
-BCs = [ BoundaryCondsData([ 1, 3, 5],[0, 0, 0],[     ], [ ]       ) ,
-        BoundaryCondsData([ 3    ]  ,[0      ],[1, 5 ], [Fx, Fy ] ) ]
+MGBIVec     = [ 1, 2, 1, 3, 4 ]
 
-# assemble the sitiffness equation
-KG, FG, Kmatrices, neumDofs = assembler( nodalCoords, elemNodalConnec, MEBIValsMat, MEBIVec, [steel1, steel2], [[],section], BCs )
+my_mesh = Mesh( nodal_coords, elem_nodal_connec, MGBIValsMat, MGBIVec )
+# -------------------------------
 
-print("KG:\n")
-display(KG)
-display(FG)
-print("neumDofs", neumDofs)
-print("\n")
 
-KGred = copy( KG )
-FGred = copy( FG )
 
-KGred = KGred[ neumDofs, neumDofs ]
-FGred = FGred[ neumDofs           ]
+fixed_node = Node( fixed_support )
 
-print("KGred", KGred,"\n")
-# the system is solved.
-UGred = KGred \ FGred 
+loaded_node = Truss( steel2, square_section, load_and_support )
 
-UG = zeros( size( FG ) )
-UG[  neumDofs ] = UGred 
+elementos = AbstractElement[]
+
+indices = [1,2]
+
+for j in indices
+    print("j ", j,"\n")
+    push!(elementos, fixed_node )
+    print(elementos,"\n")
+end
+
+print("\n\nvalor ",  elementos[1],"\n")
+print("\n\nTYPEOF ", typeof( elementos[1]),"\n")
+
+elementos[1].connectivity = [ 4]
+print("PRUEBA ",  elementos,"\n")
+
+elementos[2].connectivity = [ 3]
+print("PRUEBA 2 ",  elementos,"\n")
+
+mallab = MeshB( nodal_coords, elementos)
+
+print( "\n\n mallabb", mallab,"\n")
+#print(" inertia: ", mallab.elements[2].cross_section.inertia_y )
+
+# -------------------------------
+# AnalysisSettings
+analysis_settings = AnalysisSettings( "newton_raphson", 1.0, 2.0 );
+# -------------------------------
+
+#print("type truss:", typeof(Truss2)==Symbol("Truss") )
+
+#mallab = lector_msh( materiales, cross_section, boundary_conditions, initial_conditions )
+
+#initial_solution, model_properties = ONSAS_init( materials, geometries, boundary_conditions, initial_conditions, my_mesh, analysis_settings )
+
+
+#solutions = ONSAS_solve( initial_solution, model_properties, verbosity=true )
+
+
+# print("KG:\n")
+# display(KG)
+# display(FG)
+# print("neumDofs", neumDofs)
+# print("\n")
+
+# KGred = copy( KG )
+# FGred = copy( FG )
+
+# KGred = KGred[ neumDofs, neumDofs ]
+# FGred = FGred[ neumDofs           ]
+
+# print("KGred", KGred,"\n")
+# # the system is solved.
+# UGred = KGred \ FGred
+
+# UG = zeros( size( FG ) )
+# UG[  neumDofs ] = UGred
