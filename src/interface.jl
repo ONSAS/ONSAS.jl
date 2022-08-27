@@ -18,9 +18,6 @@ end
 
 
 
-
-
-
 # ======================================================================
 # geometry
 # ======================================================================
@@ -83,14 +80,20 @@ end
 
 
 # ======================================================================
-# Boundary Conditions
+# boundary conditions
 # ======================================================================
 
 mutable struct BoundaryCondition
     imposed_disp_dofs::Vector{Int}
     imposed_disp_vals::Vector{Float64}
-    user_load_function::String
+    user_load_function
 end
+
+# constructor with missing fields
+function BoundaryCondition( imposed_disp_dofs, imposed_disp_vals )
+    return BoundaryCondition( imposed_disp_dofs, imposed_disp_vals, nothing )
+end
+
 
 # ======================================================================
 # Initial Conditions

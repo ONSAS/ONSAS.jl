@@ -1,7 +1,7 @@
 name = "ONSAS"
 uuid = "7d8da659-23aa-453a-9a19-a3d1f6c795f5"
 authors = ["Jorge Pérez Zerpa"]
-version = "0.1.0"
+version = "0.0.0"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
