@@ -9,6 +9,8 @@ export  Material,
         ONSAS_init,
         ONSAS_solve,
         ModelSolution,
-        ModelProperties
-        
-        
+        ModelProperties,
+        Node,
+        Truss,
+        MeshB,
+        AbstractElement
