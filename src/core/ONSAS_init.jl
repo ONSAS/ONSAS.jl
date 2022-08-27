@@ -94,3 +94,8 @@ function compute_neum_dofs( mesh, boundary_conditions)
     return neum_dofs
 end
 
+
+function [ Conec, Nodes, factorLoadsFextCell, loadFactorsFuncCell, diriDofs, neumDofs, KS, userLoadsFilename ] ...
+  = boundaryCondsProcessing( mesh, materials, elements, boundaryConds, analysisSettings ) ;
+
+end

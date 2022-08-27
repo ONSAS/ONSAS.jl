@@ -77,13 +77,11 @@ end
 # ======================================================================
 # boundary conditions
 # ======================================================================
-
 mutable struct BoundaryCondition
     imposed_disp_dofs::Vector{Int}
     imposed_disp_vals::Vector{Float64}
     user_load_function
 end
-
 # constructor with missing fields
 function BoundaryCondition( imposed_disp_dofs, imposed_disp_vals )
     return BoundaryCondition( imposed_disp_dofs, imposed_disp_vals, nothing )
@@ -93,7 +91,6 @@ end
 # ======================================================================
 # Initial Conditions
 # ======================================================================
-
 struct InitialCondition
     dofs::Vector{Int}
     vals::Vector{Float64}
@@ -103,47 +100,13 @@ end
 # ======================================================================
 # Mesh
 # ======================================================================
-
 struct Mesh
     nodal_coords::Matrix{Float64}
-    elem_nodal_connec::Vector{Vector{Int}}
-    MGBI_mat::Matrix{Int}
-    MGBI_vec::Vector{Int}
+    elem_nodal_connec::Vector{Vector{Int64}}
+    MGBI_mat::Matrix{Int64}
+    MGBI_vec::Vector{Int64}
 end
 
-abstract type AbstractElement end
-
-mutable struct Node <: AbstractElement
-    boundary_condition::BoundaryCondition
-    mass::Vector{Float64}
-    connectivity::Vector{Int}
-    # empty constructor
-    Node() = new()
-    # only boundary_condition condition constructor
-    function Node(boundary_condition::BoundaryCondition)
-        node = Node()
-        node.boundary_condition = boundary_condition
-        return node
-    end
-    # boundary condition and nodal mass constructor
-    function Node(boundary_condition::BoundaryCondition, mass::Vector{Float64})
-        node = Node()
-        node.boundary_condition = boundary_condition
-        node.mass = mass
-        return node
-    end
-end
-
-mutable struct Truss <: AbstractElement
-    material::Material
-    cross_section::CrossSection
-    boundary_condition::BoundaryCondition
-end
-
-mutable struct MeshB
-    nodal_coords::Matrix{Float64}
-    elem_properties::Vector{AbstractElement}
-end
 
 # ======================================================================
 # AnalysisSettings
@@ -155,53 +118,15 @@ struct AnalysisSettings
     delta_time::Float64
     final_time::Float64
 
-#    delta_time > final_time && error("delta_time must be lower than final_time")
+    #delta_time > final_time && error("delta_time must be lower than final_time")
 
     stop_tol_disps::Float64
     stop_tol_force::Float64
     stop_tol_iters::Int
-    function AnalysisSettings( method::String, delta_time::Float64, final_time::Float64, stop_tol_disps=1e-6::Float64, stop_tol_force=1e-6::Float64, stop_tol_iters=20::Integer )
+
+    function AnalysisSettings(  method::String, delta_time::Float64, final_time::Float64, 
+                                stop_tol_disps=1e-6::Float64, stop_tol_force=1e-6::Float64, stop_tol_iters=20::Integer )
         new( method, delta_time, final_time, stop_tol_disps, stop_tol_force, stop_tol_iters )
     end
 
-end
-
-mutable struct ModelSolution
-    time::Float64
-    U::Vector{Float64}       # displacements
-    Udot::Vector{Float64}    # velocities
-    Udotdot::Vector{Float64} # accelerations
-    system_matrix
-    system_rhs
-end
-
-# function ModelSolution( time, U, Udot, Udotdot )
-#     return ModelSolution(time, U, Udot, Udotdot, nothing, nothing )
-# end
-
-"""
-    displacements(sol::ModelSolution)
-Return the vector of displacements of the given solution.
-"""
-displacements( sol::ModelSolution ) = sol.U
-
-function unwrap( sol::ModelSolution )
-    return sol.time, sol.U, sol.Udot, sol.Udotdot
-end
-
-
-struct ModelProperties
-    materials::Vector{Material}
-    geometries::Vector{Geometry}
-    boundary_conditions::Vector{BoundaryCondition}
-    neum_dofs::Vector{Int}
-    mesh::Mesh
-    analysis_settings::AnalysisSettings
-end
-
-
-
-
-struct SystemMatrix{T}
-    matrix::T
 end
