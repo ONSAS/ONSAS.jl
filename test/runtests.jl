@@ -1,11 +1,10 @@
 
 using Test
+using ONSAS
 
 #using LinearAlgebra
-
 @testset "ONSAS.jl" begin
 
-    using ONSAS
     @testset "Test: linear von mises problem" begin
         include( joinpath( "..", "examples", "vonMisesTruss", "vonMisesTruss.jl" ) )
     
@@ -28,6 +27,5 @@ using Test
     
         @test maximum( abs.( [ delta12Num-delta12Analy, delta12Num-delta12Analy ] ) ) < 1e-8
     end
-
     
 end

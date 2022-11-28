@@ -3,9 +3,7 @@ Function used to solve the problem and generate a vector of ModelSolution
 """
 function ONSAS_solve( model_properties, initial_solution; verbosity=false )
 
-
     solutions = [ initial_solution ]
-
 
     curr_solution = initial_solution
     curr_time     = curr_solution.time

@@ -47,7 +47,7 @@ function compute_neum_dofs( mesh, boundary_conditions)
     num_nodes = size( mesh.nodal_coords, 1)
     
     # keep non-zero boundary conds indexes
-    boundary_types = sort( unique( mesh.MGBIValsMat[:,3]) )
+    boundary_types = sort( unique( mesh.MGBI_mat[:,3] ) )
     boundary_types[1] == 0 && popat!( boundary_types, 1)
 
     for BCnum in boundary_types

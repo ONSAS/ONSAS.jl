@@ -64,7 +64,7 @@ nodal_coords = [  0.  0.  0. ;
 elem_nodal_connec = [ [ 1 ],  [ 2 ], [ 3 ], [ 1, 2],  [ 2, 3] ]
 
 # matrix with MGBI indexes of each element (on each row)
-MGBIValsMat = [ 0 1 1 0  ; # no material / first element / first BC / no IC
+MGBIValsMat = [ 0 1 1 0  ; # no material / first geometry / first BC / no IC
                 0 1 2 0  ;
                 1 2 0 0  ;
                 2 2 0 0 ]
@@ -78,31 +78,30 @@ my_mesh = Mesh( nodal_coords, elem_nodal_connec, MGBIValsMat, MGBIVec )
 
 #fixed_node = Node( fixed_support )
 #fixed_node = Node( fixed_support )
+#loaded_node = Truss( steel2, square_section, load_and_support )
 
-loaded_node = Truss( steel2, square_section, load_and_support )
+# elementos = AbstractElement[]
 
-elementos = AbstractElement[]
+# indices = [1,2]
 
-indices = [1,2]
+# for j in indices
+#     print("j ", j,"\n")
+#     push!(elementos, Node( fixed_support ) )
+#     print(elementos,"\n")
+# end
 
-for j in indices
-    print("j ", j,"\n")
-    push!(elementos, Node( fixed_support ) )
-    print(elementos,"\n")
-end
+# print("\n\nvalor ",  elementos[1],"\n")
+# print("\n\nTYPEOF ", typeof( elementos[1]),"\n")
 
-print("\n\nvalor ",  elementos[1],"\n")
-print("\n\nTYPEOF ", typeof( elementos[1]),"\n")
+# elementos[1].connectivity = [ 4]
+# print("PRUEBA ",  elementos,"\n")
 
-elementos[1].connectivity = [ 4]
-print("PRUEBA ",  elementos,"\n")
+# elementos[2].connectivity = [ 3]
+# print("PRUEBA 2 ",  elementos,"\n")
 
-elementos[2].connectivity = [ 3]
-print("PRUEBA 2 ",  elementos,"\n")
+# mallab = MeshB( nodal_coords, elementos)
 
-mallab = MeshB( nodal_coords, elementos)
-
-print( "\n\n mallabb", mallab,"\n")
+# print( "\n\n mallabb", mallab,"\n")
 #print(" inertia: ", mallab.elements[2].cross_section.inertia_y )
 
 # -------------------------------
@@ -114,10 +113,11 @@ analysis_settings = AnalysisSettings( "newton_raphson", 1.0, 2.0 );
 
 #mallab = lector_msh( materiales, cross_section, boundary_conditions, initial_conditions )
 
-#initial_solution, model_properties = ONSAS_init( materials, geometries, boundary_conditions, initial_conditions, my_mesh, analysis_settings )
+initial_solution, model_properties = ONSAS_init( materials, geometries, boundary_conditions, initial_conditions, my_mesh, analysis_settings )
 
+print("initial solution", initial_solution)
 
-#solutions = ONSAS_solve( initial_solution, model_properties, verbosity=true )
+#solutions = ONSAS_solve( model_properties, initial_solution, verbosity=true )
 
 
 # print("KG:\n")
