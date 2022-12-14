@@ -46,16 +46,18 @@ function nodes2dofs_4(nodes, ndofs)
 end
 
 function nodes2dofs_5(nodes, ndofs)
+    n = length(nodes)
     gdl = reduce(vcat, [collect((nodes[i] - 1) * ndofs .+ (1:ndofs)) for i = 1:n])
     return gdl
 end
 
 function nodes2dofs_6(nodes, ndofs)
+    n = length(nodes)
     gdl = reduce(vcat, [(nodes[i] - 1) * ndofs .+ (1:ndofs) for i = 1:n])
     return gdl
 end
 
-nodes = [1, 2, 3, 4]
+nodes = collect((1:300))
 ndofs = 6
 
 @btime nodes2dofs($nodes, $ndofs)
@@ -63,5 +65,5 @@ ndofs = 6
 @btime nodes2dofs_3($nodes, $ndofs)
 @btime nodes2dofs_4($nodes, $ndofs)
 @btime nodes2dofs_5($nodes, $ndofs)
-@btime nodes2dofs_6($nodes, $ndofs)
+@btime nodes2dofs_6($nodes, $ndofs);
 
