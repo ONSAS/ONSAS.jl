@@ -171,8 +171,8 @@ function linear_truss3(material, geometry, nodalCoords::Matrix, u::Vector)
 
     fint = Kglo * u
 
-    force_vectors = [fint]
-    tangent_matrices = [Kglo]
+    force_vectors = [fint ]
+    tangent_matrices = [Kglo ]
 
     return force_vectors, tangent_matrices
 
