@@ -57,6 +57,19 @@ function nodes2dofs_6(nodes, ndofs)
     return gdl
 end
 
+function nodes2dofs_7(nodes::Vector{Int}, ndofs::Int)
+    n = length(nodes)
+    gdl = Vector{Int}(undef, n * ndofs)
+    @inbounds for i in 1:n
+        α = (nodes[i] - 1) * ndofs
+        for j in 1:ndofs
+            β = (i - 1) * ndofs
+            gdl[β+j] = α + j
+        end
+    end
+    return gdl
+end
+
 nodes = collect((1:300))
 ndofs = 6
 
@@ -65,5 +78,6 @@ ndofs = 6
 @btime nodes2dofs_3($nodes, $ndofs)
 @btime nodes2dofs_4($nodes, $ndofs)
 @btime nodes2dofs_5($nodes, $ndofs)
-@btime nodes2dofs_6($nodes, $ndofs);
+@btime nodes2dofs_6($nodes, $ndofs)
+@btime nodes2dofs_7($nodes, $ndofs)
 
