@@ -142,7 +142,6 @@ function linear_truss2(material, geometry, nodalCoords::Matrix, u::Vector)
 
 end
 
-
 function linear_truss3(material, geometry, nodalCoords::Matrix, u::Vector)
 
     # E = material.constitutive_params[1]
@@ -192,6 +191,42 @@ nodalCoords = [[1 2 3]; [3 4 5]]
 @btime linear_truss($nothing, $nothing, $nodalCoords, $u)
 @btime linear_truss2($nothing, $nothing, $nodalCoords, $u)
 @btime linear_truss3($nothing, $nothing, $nodalCoords, $u)
+
+function nodes2dofs_5(nodes, ndofs)
+    n = length(nodes)
+    gdl = reduce(vcat, [collect((nodes[i] - 1) * ndofs .+ (1:ndofs)) for i = 1:n])
+    return gdl
+end
+
+function nodes2dofs_6(nodes, ndofs)
+    n = length(nodes)
+    gdl = reduce(vcat, [(nodes[i] - 1) * ndofs .+ (1:ndofs) for i = 1:n])
+    return gdl
+end
+
+function nodes2dofs_7(nodes::Vector{Int}, ndofs::Int)
+    n = length(nodes)
+    gdl = Vector{Int}(undef, n * ndofs)
+    @inbounds for i in 1:n
+        α = (nodes[i] - 1) * ndofs
+        for j in 1:ndofs
+            β = (i - 1) * ndofs
+            gdl[β+j] = α + j
+        end
+    end
+    return gdl
+end
+
+nodes = collect((1:300))
+ndofs = 6
+
+@btime nodes2dofs($nodes, $ndofs)
+@btime nodes2dofs_2($nodes, $ndofs)
+@btime nodes2dofs_3($nodes, $ndofs)
+@btime nodes2dofs_4($nodes, $ndofs)
+@btime nodes2dofs_5($nodes, $ndofs)
+@btime nodes2dofs_6($nodes, $ndofs)
+@btime nodes2dofs_7($nodes, $ndofs)
 
 a, b = linear_truss(nothing, nothing, nodalCoords, u)
 a3, b3 = linear_truss3(nothing, nothing, nodalCoords, u)
