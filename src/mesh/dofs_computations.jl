@@ -31,8 +31,8 @@ function nodes2dofs(nodes::Vector{Int}, ndofs::Int)
     gdl = Vector{Int}(undef, n * ndofs)
     @inbounds for i in 1:n
         α = (nodes[i] - 1) * ndofs
+        β = (i - 1) * ndofs
         for j in 1:ndofs
-            β = (i - 1) * ndofs
             gdl[β+j] = α + j
         end
     end
