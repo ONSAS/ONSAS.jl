@@ -15,14 +15,14 @@ function ONSAS_init(Materials, Geometries, Boundary_conditions, Initial_conditio
     nnodes = size(Mesh.nodal_coords, 1)
 
     U = zeros(6 * nnodes)
-    Udot = zeros(6 * nnodes)
-    Udotdot = zeros(6 * nnodes) # TO DO compute acceleration 
+    U̇ = zeros(6 * nnodes)
+    Ü = zeros(6 * nnodes) # TO DO compute acceleration 
 
-    # system_matrix, system_rhs = assemble_system( Properties, Unp1k, neum_dofs  )
+    # system_matrix, system_rhs = assemble_system(Properties, Unp1k, neum_dofs)
+    system_matrix, system_rhs = assemble_system(Properties, U, neum_dofs)
     # Solution = ModelSolution( 0.0, U, Udot, Udotdot, system_matrix, system_rhs )
     Solution = 1
     # ---------------------------------------
-
 
     return Solution, Properties
 end

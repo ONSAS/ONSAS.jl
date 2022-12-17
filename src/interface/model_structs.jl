@@ -17,20 +17,21 @@ end
     displacements(sol::ModelSolution)
 Return the vector of displacements of the given solution.
 """
-displacements( sol::ModelSolution ) = sol.U
+displacements(sol::ModelSolution) = sol.U
 
-function unwrap( sol::ModelSolution )
+function unwrap(sol::ModelSolution)
     return sol.time, sol.U, sol.Udot, sol.Udotdot
 end
 
 
 struct ModelProperties
-    materials::Vector{Material}
-    geometries::Vector{Geometry}
-    boundary_conditions::Vector{BoundaryCondition}
+    Materials::Vector{Material}
+    Geometries::Vector{Geometry}
+    Boundary_Conditions::Vector{BoundaryCondition}
     neum_dofs::Vector{Int}
-    mesh::Mesh
-    analysis_settings::AnalysisSettings
+    Mesh::Mesh
+    Analysis_Settings::AnalysisSettings
+    Algorithm::AbstractAlgorithm
 end
 
 

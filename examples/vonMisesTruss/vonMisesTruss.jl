@@ -69,10 +69,10 @@ nodal_coords = [0.0 0.0 0.0
 elem_nodal_connec = [[1], [2], [3], [1, 2], [2, 3]]
 
 # matrix with MGBI indexes of each element (on each row)
-MGBIValsMat = [0 1 1 0 # no material / first geometry / first BC / no IC
-    0 1 2 0
-    1 2 0 0
-    2 2 0 0]
+MGBIValsMat = [0 1 0 1 0 # no material / first geometry / load BC / supportBC /no IC
+    0 1 1 2 0
+    1 2 0 0 0
+    2 2 0 0 0]
 
 MGBIVec = [1, 2, 1, 3, 4]
 

@@ -36,9 +36,6 @@ struct CrossSection
     Ix::Float64
     Iy::Float64
     Iz::Float64
-    # function CrossSection(nothing)
-    #     new()
-    # end
 end
 
 function CrossSection() end
@@ -68,22 +65,6 @@ function CrossSection(section::Circle)
     Ix = Iy + Iz
 
     return CrossSection(section, A, Ix, Iy, Iz)
-end
-
-
-struct joya end
-
-struct pr
-    a::joya
-    b::Float64
-end
-
-function pr()
-
-end
-
-function pr(c::joya)
-    return pr(c, 1)
 end
 
 """
@@ -128,11 +109,13 @@ end
 mutable struct BoundaryCondition
     imposed_disp_dofs::Vector{Int}
     imposed_disp_vals::Vector{Float64}
-    user_load_function
+    loadsBaseVals::Vector
+    loadsTimeFactor::float
+    user_load_function::Function
 end
 # constructor with missing fields
-function BoundaryCondition(imposed_disp_dofs, imposed_disp_vals)
-    return BoundaryCondition(imposed_disp_dofs, imposed_disp_vals, nothing)
+function BoundaryCondition(imposed_disp_dofs, imposed_disp_vals, loadsBaseVals)
+    return BoundaryCondition(imposed_disp_dofs, imposed_disp_vals, loadsBaseVals, 1.0, nothing)
 end
 
 
