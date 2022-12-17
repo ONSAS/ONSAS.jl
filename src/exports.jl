@@ -1,8 +1,8 @@
 
 # Input Structs 
 export Material,
-    CrossSection,
-    Geometry,
+    Rectangle, Cricle, CrossSection,
+    Node, Truss, Frame, Triangle, Tetrahedron, Geometry,
     BoundaryCondition,
     InitialCondition,
     Mesh,
@@ -15,7 +15,4 @@ export ModelSolution,
 # Functions
 export ONSAS_init,
     ONSAS_solve,
-    Node,
-    Truss,
-    MeshB,
-    AbstractElement
+    MeshB
