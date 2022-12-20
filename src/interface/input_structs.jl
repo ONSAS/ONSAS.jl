@@ -104,26 +104,47 @@ struct Geometry
 end
 
 # ======================================================================
-# boundary conditions
+# Loads Boundary Conditions
 # ======================================================================
-mutable struct BoundaryCondition
-    imposed_disp_dofs::Vector{Int}
-    imposed_disp_vals::Vector{Float64}
+abstract type AbstractLoads end
+
+struct LoadsBoundaryCondition <: AbstractLoads
     loadsBaseVals::Vector
-    loadsTimeFactor::float
-    user_load_function::Function
+    loadsCoordSystem::String
+    loadsTimeFactor::Float64
 end
 # constructor with missing fields
-function BoundaryCondition(imposed_disp_dofs, imposed_disp_vals, loadsBaseVals)
-    return BoundaryCondition(imposed_disp_dofs, imposed_disp_vals, loadsBaseVals, 1.0, nothing)
+function LoadsBoundaryCondition(loadsBaseVals::Vector, loadsCoordSystem::String)
+    return LoadsBoundaryCondition(loadsBaseVals, loadsCoordSystem, 1.0)
 end
 
+function LoadsBoundaryCondition(loadsBaseVals=nothing, loadsCoordSystem=nothing, loadsTimeFactor=nothing)
+    return LoadsBoundaryCondition([], "", 1.0)
+end
+
+struct UserLoadsBoundaryCondition <: AbstractLoads
+    user_load_function::Function
+end
+
+# ======================================================================
+# Dofs Boundary Conditions - Springs and imposed displacements (zero & nonzero)
+# ======================================================================
+abstract type AbstractDofs end
+
+struct DispsBoundaryCondition <: AbstractDofs
+    imposed_disp_dofs::Vector{Integer}
+    imposed_disp_vals::Vector{Float64}
+end
+
+struct SpringsBoundaryCondition <: AbstractDofs
+    # to do
+end
 
 # ======================================================================
 # Initial Conditions
 # ======================================================================
 struct InitialCondition
-    dofs::Vector{Int}
+    dofs::Vector{Integer}
     vals::Vector{Float64}
 end
 
@@ -156,7 +177,7 @@ abstract type AbstractAlgorithm end
 Struct to define convergence tolerances.
 
 """
-struct AnalysisSettings # Cambiar a Convergence settings
+struct ConvergenceSettings
 
     # method::String
     # delta_time::Float64
@@ -173,7 +194,7 @@ struct AnalysisSettings # Cambiar a Convergence settings
     #     new(method, delta_time, final_time, stop_tol_disps, stop_tol_force, stop_tol_iters)
     # end
 
-    function AnalysisSettings(stop_tol_disps=1e-6::Float64, stop_tol_force=1e-6::Float64, stop_tol_iters=20::Int)
+    function ConvergenceSettings(stop_tol_disps=1e-6::Float64, stop_tol_force=1e-6::Float64, stop_tol_iters=20::Int)
         new(stop_tol_disps, stop_tol_force, stop_tol_iters)
     end
 

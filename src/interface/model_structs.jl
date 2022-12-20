@@ -27,11 +27,12 @@ end
 struct ModelProperties
     Materials::Vector{Material}
     Geometries::Vector{Geometry}
-    Boundary_Conditions::Vector{BoundaryCondition}
-    neum_dofs::Vector{Int}
+    LoadsBC::Vector{LoadsBoundaryCondition}
+    DofsBC::Vector{DispsBoundaryCondition}
     Mesh::Mesh
-    Analysis_Settings::AnalysisSettings
+    ConvSettings::ConvergenceSettings
     Algorithm::AbstractAlgorithm
+    neum_dofs::Vector{Int}
 end
 
 

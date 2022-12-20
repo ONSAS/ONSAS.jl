@@ -1,3 +1,9 @@
+struct NewtonRaphson <: AbstractAlgorithm
+    Δt::Float64
+    final_time::Float64
+end
+
+
 """
 Function used to solve the problem and generate a vector of ModelSolution
 """

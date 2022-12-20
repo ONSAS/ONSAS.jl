@@ -1,13 +1,18 @@
 """
 Function used to initialize the model solution and properties structs. 
 """
-function ONSAS_init(Materials, Geometries, Boundary_conditions, Initial_conditions, Mesh, Analysis_settings)
+function ONSAS_init(Materials, Geometries, LoadsBC, DofsBC, Initial_conditions, Mesh, ConvergenceSettings, Algorithm)
 
     # ---------------------------------------
     # create properties
-    neum_dofs = compute_neum_dofs(Mesh, Boundary_conditions)
+    # neum_dofs = compute_neum_dofs(Mesh, Boundary_conditions)
+    neum_dofs = []
+    Properties = ModelProperties(Materials, Geometries, LoadsBC, DofsBC, Mesh, ConvergenceSettings, Algorithm, neum_dofs)
+    # ---------------------------------------
 
-    Properties = ModelProperties(Materials, Geometries, Boundary_conditions, neum_dofs, Mesh, Analysis_settings)
+    # ---------------------------------------
+    # boundary conds
+    Conec = boundary_cond_processing(Materials, Geometries, Mesh, LoadsBC, DofsBC)
     # ---------------------------------------
 
     # ---------------------------------------

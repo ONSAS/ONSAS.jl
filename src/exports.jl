@@ -3,10 +3,11 @@
 export Material,
     Rectangle, Cricle, CrossSection,
     Node, Truss, Frame, Triangle, Tetrahedron, Geometry,
-    BoundaryCondition,
+    LoadsBoundaryCondition, DispsBoundaryCondition,
     InitialCondition,
     Mesh,
-    AnalysisSettings
+    ConvergenceSettings,
+    NewtonRaphson
 
 # Model structs
 export ModelSolution,
@@ -15,4 +16,5 @@ export ModelSolution,
 # Functions
 export ONSAS_init,
     ONSAS_solve,
+    nodes2dofs,
     MeshB

@@ -19,7 +19,7 @@ E2 = E
 steel1 = Material("LinearElastic", [E1])
 steel2 = Material("LinearElastic", [E2])
 
-materials = [steel1, steel2]
+Materials = [steel1, steel2]
 # -------------------------------
 
 # -------------------------------
@@ -33,13 +33,14 @@ Square_section = CrossSection(Section)
 node_geometry = Geometry(Node())
 truss_geometry = Geometry(Truss(), Square_section)
 
-geometries = [node_geometry, truss_geometry]
+Geometries = [node_geometry, truss_geometry]
 # -------------------------------
 
 # -------------------------------
 # BoundaryConditions
-fixed_support = BoundaryCondition([1, 3, 5], zeros(3), "")
-load_and_support = BoundaryCondition([3], [0.0], "my_nodal_load")
+fixed_support = DispsBoundaryCondition([1, 3, 5], zeros(3))
+y_support = DispsBoundaryCondition([3], [0.0])
+# load_and_support = DispsBoundaryCondition([3], [0.0], "my_nodal_load")
 
 function my_nodal_load(solution::ModelSolution, properties::ModelProperties)
     num_nodes = size(properties.mesh.nodes_coords, 1)
@@ -48,13 +49,18 @@ function my_nodal_load(solution::ModelSolution, properties::ModelProperties)
     return f_ext
 end
 
-boundary_conditions = [fixed_support, load_and_support]
+Fz = -1e3
+loadsBaseVals = [0, 0, 0, 0, -1e3, 0]
+loadsCoordSystem = "Global"
+LoadsBC = [LoadsBoundaryCondition(loadsBaseVals, loadsCoordSystem)]
+
+DofsBC = [fixed_support, y_support]
 # -------------------------------
 
 
 # -------------------------------
 # InitialConditions
-initial_conditions = []
+IC = []
 # -------------------------------
 
 
@@ -76,9 +82,14 @@ MGBIValsMat = [0 1 0 1 0 # no material / first geometry / load BC / supportBC /n
 
 MGBIVec = [1, 2, 1, 3, 4]
 
-my_mesh = Mesh(nodal_coords, elem_nodal_connec, MGBIValsMat, MGBIVec)
+StrMesh = Mesh(nodal_coords, elem_nodal_connec, MGBIValsMat, MGBIVec)
 # -------------------------------
+StrConvergenceSettings = ConvergenceSettings()
+Algorithm = NewtonRaphson(1.0, 1.0)
 
+initial_solution, model_properties = ONSAS_init(Materials, Geometries, LoadsBC, DofsBC, IC, StrMesh, StrConvergenceSettings, Algorithm)
+stop
+print("initial solution \n", initial_solution)
 
 
 #fixed_node = Node( fixed_support )

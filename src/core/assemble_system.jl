@@ -56,10 +56,6 @@ function assemble_system(Model_properties::ModelProperties, U::Vector, neum_dofs
     return systemΔuMatrix, rhs
 end
 
-struct NewtonRaphson
-    Δt::Float64
-    final_time::Float64
-end
 
 function systemMatrices(Algorithm::NewtonRaphson, KT::MAtrix, Fint::Vector, BCsData, neum_dofs)
 
