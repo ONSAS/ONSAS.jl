@@ -25,7 +25,7 @@ end
 
 
 struct ModelProperties
-    Materials::Vector{Material}
+    Materials::Vector{<:AbstractMaterial}
     Geometries::Vector{Geometry}
     LoadsBC::Vector{LoadsBoundaryCondition}
     DofsBC::Vector{DispsBoundaryCondition}
