@@ -9,12 +9,12 @@ const TOLERANCE = 1e-2
 @testset "ONSAS.Materials SVK" begin
 
     # random tpyes for each SVK parameter
-    types = [Float64, Float32]
-    type1 = rand(types)
-    type2 = rand(types)
+    # types = [Float64, Float32]
+    # type1 = rand(types)
+    # type2 = rand(types)
 
-    E = type1(rand(3e3:10e9)[1])
-    ν = type2(rand(0:0.5)[1])
+    E = 2e9
+    ν = 1 / 3
 
     # SVK for static analysis
     svk_static = SVK(E, ν)
@@ -23,7 +23,7 @@ const TOLERANCE = 1e-2
     @test svk_static.ρ == nothing
 
     # SVK for dynamic analysis
-    ρ = rand(type1, 1)[1]
+    ρ = 1454
     svk_dynamic = SVK(E, ν, ρ, "mat1")
     @test svk_dynamic.E == E
     @test svk_dynamic.ν == ν

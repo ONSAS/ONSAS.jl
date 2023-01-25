@@ -10,7 +10,7 @@ import ONSAS: nodes2dofs
 # Material tests #
 ##################
 
-@safetestset "ONSAS.Materials Interface" begin
+@safetestset "ONSAS.Materials" begin
     include("materials.jl")
 end
 
