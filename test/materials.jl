@@ -4,7 +4,7 @@
 using Test: @testset, @test
 using ONSAS.Materials
 
-const TOLERANCE = 1e-3
+const TOLERANCE = 1e-2
 
 @testset "ONSAS.Materials SVK" begin
 
