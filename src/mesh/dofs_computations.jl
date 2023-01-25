@@ -26,7 +26,7 @@ end
 """
 nodes2dofs computes the vector of dofs for an input vector of nodes
 """
-function nodes2dofs(nodes::Vector{Int}, ndofs::Int)
+function nodes2dofs(nodes::Vector{<:Integer}, ndofs::Int)
     n = length(nodes)
     gdl = Vector{Int}(undef, n * ndofs)
     @inbounds for i in 1:n
@@ -38,6 +38,22 @@ function nodes2dofs(nodes::Vector{Int}, ndofs::Int)
     end
     return gdl
 end
+
+
+function nodes2dofs(nodes::Number, ndofs::Int)
+    n = length(nodes)
+    gdl = Vector{Int}(undef, n * ndofs)
+    @inbounds for i in 1:n
+        α = (nodes[i] - 1) * ndofs
+        β = (i - 1) * ndofs
+        for j in 1:ndofs
+            gdl[β+j] = α + j
+        end
+    end
+    return gdl
+end
+
+
 
 
 

@@ -38,6 +38,8 @@ struct CrossSection
     Iz::Float64
 end
 
+function CrossSection() end
+
 function CrossSection(section::Rectangle)
     width_y = section.width_y
     width_z = section.width_z
@@ -65,41 +67,84 @@ function CrossSection(section::Circle)
     return CrossSection(section, A, Ix, Iy, Iz)
 end
 
+"""
+    AbstractElement
+
+Abstract type to define finite element types.\\
+
+Available types:
+
+* `Node`: 
+* `Truss`: 
+* `Frame`: 
+* `Triangle`: 
+* `Tetrahedron`: 
 
 
+"""
+abstract type AbstractElement end
+
+struct Node <: AbstractElement end
+struct Truss <: AbstractElement end
+struct Frame <: AbstractElement end
+struct Triangle <: AbstractElement end
+struct Tetrahedron <: AbstractElement end
 
 """
 Struct with information of the geometry of the element:
- - element_type: a string with: `node`, `truss`, `frame``, `triangle` or `tetrahedron`.
+ - element_type: a struct with: `node`, `truss`, `frame``, `triangle` or `tetrahedron`.
 """
 struct Geometry
-    type::String
+    type::AbstractElement
     cross_section
     # define constructor with no cross section by default
-    function Geometry(type::String, cross_section=nothing)
-        new(type, cross_section)
+    function Geometry(type::AbstractElement, cross_section=nothing)
+        new(type, CrossSection())
     end
 end
 
 # ======================================================================
-# boundary conditions
+# Loads Boundary Conditions
 # ======================================================================
-mutable struct BoundaryCondition
-    imposed_disp_dofs::Vector{Int}
-    imposed_disp_vals::Vector{Float64}
-    user_load_function
+abstract type AbstractLoads end
+
+struct LoadsBoundaryCondition <: AbstractLoads
+    loadsBaseVals::Vector
+    loadsCoordSystem::String
+    loadsTimeFactor::Function
 end
 # constructor with missing fields
-function BoundaryCondition(imposed_disp_dofs, imposed_disp_vals)
-    return BoundaryCondition(imposed_disp_dofs, imposed_disp_vals, nothing)
+function LoadsBoundaryCondition(loadsBaseVals::Vector, loadsCoordSystem::String)
+    return LoadsBoundaryCondition(loadsBaseVals, loadsCoordSystem, 1.0)
 end
 
+function LoadsBoundaryCondition(loadsBaseVals=nothing, loadsCoordSystem=nothing, loadsTimeFactor=nothing)
+    return LoadsBoundaryCondition([], "", 1.0)
+end
+
+struct UserLoadsBoundaryCondition <: AbstractLoads
+    user_load_function::Function
+end
+
+# ======================================================================
+# Dofs Boundary Conditions - Springs and imposed displacements (zero & nonzero)
+# ======================================================================
+abstract type AbstractDofs end
+
+struct DispsBoundaryCondition <: AbstractDofs
+    imposed_disp_dofs::Vector{Integer}
+    imposed_disp_vals::Vector{Float64}
+end
+
+struct SpringsBoundaryCondition <: AbstractDofs
+    # to do
+end
 
 # ======================================================================
 # Initial Conditions
 # ======================================================================
 struct InitialCondition
-    dofs::Vector{Int}
+    dofs::Vector{Integer}
     vals::Vector{Float64}
 end
 
@@ -118,12 +163,25 @@ end
 # ======================================================================
 # AnalysisSettings
 # ======================================================================
+"""
+    AbstractAlgorithm
 
-struct AnalysisSettings
+Abstract type to define numerical method algorithms.
 
-    method::String
-    delta_time::Float64
-    final_time::Float64
+"""
+abstract type AbstractAlgorithm end
+
+"""
+    AnalysisSettings
+
+Struct to define convergence tolerances.
+
+"""
+struct ConvergenceSettings
+
+    # method::String
+    # delta_time::Float64
+    # final_time::Float64
 
     #delta_time > final_time && error("delta_time must be lower than final_time")
 
@@ -131,9 +189,13 @@ struct AnalysisSettings
     stop_tol_force::Float64
     stop_tol_iters::Int
 
-    function AnalysisSettings(method::String, delta_time::Float64, final_time::Float64,
-        stop_tol_disps=1e-6::Float64, stop_tol_force=1e-6::Float64, stop_tol_iters=20::Integer)
-        new(method, delta_time, final_time, stop_tol_disps, stop_tol_force, stop_tol_iters)
+    # function AnalysisSettings(method::String, delta_time::Float64, final_time::Float64,
+    #     stop_tol_disps=1e-6::Float64, stop_tol_force=1e-6::Float64, stop_tol_iters=20::Integer)
+    #     new(method, delta_time, final_time, stop_tol_disps, stop_tol_force, stop_tol_iters)
+    # end
+
+    function ConvergenceSettings(stop_tol_disps=1e-6::Float64, stop_tol_force=1e-6::Float64, stop_tol_iters=20::Int)
+        new(stop_tol_disps, stop_tol_force, stop_tol_iters)
     end
 
 end
