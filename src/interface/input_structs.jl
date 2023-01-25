@@ -111,7 +111,7 @@ abstract type AbstractLoads end
 struct LoadsBoundaryCondition <: AbstractLoads
     loadsBaseVals::Vector
     loadsCoordSystem::String
-    loadsTimeFactor::Float64
+    loadsTimeFactor::Function
 end
 # constructor with missing fields
 function LoadsBoundaryCondition(loadsBaseVals::Vector, loadsCoordSystem::String)
