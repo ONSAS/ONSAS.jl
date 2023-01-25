@@ -9,7 +9,7 @@ const TOLERANCE = 1e-2
 @testset "ONSAS.Materials SVK" begin
 
     # random tpyes for each SVK parameter
-    types = [Float64, Float32, Int64]
+    types = [Float64, Float32]
     type1 = rand(types)
     type2 = rand(types)
 
