@@ -2,7 +2,7 @@
 Module defining geometric entities interface.
 """
 
-module Geometry
+module Geometries
 
 export AbstractCrossSection, area, Ixx, Iyy, Izz, Ixy, Iyz, I_tensor_xyz
 export Rectangle, Square, Circle, GenericCrossSection
