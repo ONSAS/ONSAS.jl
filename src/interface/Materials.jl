@@ -40,7 +40,7 @@ const DEFAULT_LABEL = :label_no_assignned
 - `E` -- Elasticity modulus.
 - `ν` -- Poisson's ratio.
 - `ρ` -- Density (`nothing` for static cases).
-- `label` -- Label to recognize material
+- `label` -- Label of the material
 
 """
 struct SVK <: AbstractMaterial
