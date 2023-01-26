@@ -1,7 +1,6 @@
 
 # Input Structs 
-export Material,
-    Rectangle, Cricle, CrossSection,
+export Rectangle, Cricle, CrossSection,
     Node, Truss, Frame, Triangle, Tetrahedron, Geometry,
     LoadsBoundaryCondition, DispsBoundaryCondition,
     InitialCondition,
