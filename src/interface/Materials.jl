@@ -39,7 +39,7 @@ const DEFAULT_LABEL = :label_no_assignned
 ### Fields:
 - `E` -- Elasticity modulus.
 - `ν` -- Poisson's ratio.
-- `ρ` -- Density (`nothing` for dynamic cases).
+- `ρ` -- Density (`nothing` for static cases).
 - `label` -- Label to recognize material
 
 """
