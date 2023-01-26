@@ -26,7 +26,7 @@ function parameters(m::T) where {T<:AbstractMaterial}
     Tuple([getfield(f, n) for n in fieldlabels(T) if fieldtype(T, n) isa Number])
 end
 
-"Returns material `m` label."
+"Returns the material with label `m`."
 label(m::AbstractMaterial) = "no label is implemented, please overload this method."
 
 const DEFAULT_LABEL = :label_no_assignned
