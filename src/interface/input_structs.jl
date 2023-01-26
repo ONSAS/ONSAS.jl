@@ -1,20 +1,9 @@
+# =========
+# Materials
+# =========
+include("./Materials.jl")
+@reexport using .Materials
 
-# ======================================================================
-# material
-# ======================================================================
-
-"""
-Struct with information of the material.
-"""
-mutable struct Material{T}
-    type::String
-    constitutive_params::Vector{T}
-    density::Union{Float64,Nothing}
-    # define constructor with  no density by default
-    function Material(type::String, constitutive_params::Vector{T}, density=nothing::Union{Float64,Nothing}) where {T}
-        new{T}(type, constitutive_params, density) # default density: zero
-    end
-end
 
 # ======================================================================
 # geometry

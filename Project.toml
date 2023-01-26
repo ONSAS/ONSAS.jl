@@ -6,11 +6,14 @@ version = "0.0.0"
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MshReader = "64cd2da2-d71d-431a-81e3-4cf84ef169dd"
+Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 MshReader = "0.1"
+StaticArrays = "1"
 julia = "1"
 
 [extras]
