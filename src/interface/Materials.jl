@@ -54,7 +54,7 @@ struct SVK <: AbstractMaterial
     end
 end
 
-"Constructor with lamé parameter λ and G"
+"Constructor with lamé parameters λ and G"
 function SVK(; λ, G, ρ, label)
 
     # Compute E and ν given Lamé parameters λ and μ (μ = G)
@@ -80,7 +80,7 @@ function lame_parameters(svk::SVK)
     E = svk.E
     ν = svk.ν
 
-    # Compute Lamé parameters λ and μ (μ = G)
+    # Compute Lamé parameters λ and G
     G = E / (2(1 + ν))
     λ = E * ν / ((1 + ν) * (1 - 2 * ν))
 
