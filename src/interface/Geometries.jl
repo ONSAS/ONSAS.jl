@@ -15,7 +15,7 @@ export Rectangle, Square, Circle, GenericCrossSection
 The following methods are provided by the interface:
 - `area (cs)`        -- returns the cross-section area.
 - `Ixx (cs)`         -- returns the second moment of area respect to the `x` axis.
-- `Iyy (cs)`         -- returns the second moment of area respect to the `y` axis.
+- `Iyy (cs)`         -- returns the second moment of inertia respect to the `y` axis.
 - `Izz (cs)`         -- returns the second moment of area respect to the `z` axis.
 - `Ixy (cs)`         -- returns the product moment of area respect to the `x-y` axes.
 - `Ixz (cs)`         -- returns the product moment of area respect to the `x-z` axes.
