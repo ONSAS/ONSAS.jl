@@ -40,7 +40,7 @@ Base.values(bc::AbstractBoundaryCondition) = bc.values
 # Displacements Boundary Conditions #
 #####################################
 
-""" General displacement boundary condition struct.
+""" Generalized displacement boundary condition struct.
 ### Fields:
 - `dofs`    -- Degrees of freedom where the boundary condition is imposed. 
 - `values`  -- Values imposed. 
