@@ -1,9 +1,10 @@
-# =========
-# Materials
-# =========
+
 include("./Materials.jl")
 @reexport using .Materials
 
+
+include("./BoundaryConditions.jl")
+@reexport using .BoundaryConditions
 
 # ======================================================================
 # geometry
@@ -92,42 +93,13 @@ struct Geometry
     end
 end
 
-# ======================================================================
-# Loads Boundary Conditions
-# ======================================================================
-abstract type AbstractLoads end
 
-struct LoadsBoundaryCondition <: AbstractLoads
-    loadsBaseVals::Vector
-    loadsCoordSystem::String
-    loadsTimeFactor::Function
-end
-# constructor with missing fields
-function LoadsBoundaryCondition(loadsBaseVals::Vector, loadsCoordSystem::String)
-    return LoadsBoundaryCondition(loadsBaseVals, loadsCoordSystem, 1.0)
-end
-
-function LoadsBoundaryCondition(loadsBaseVals=nothing, loadsCoordSystem=nothing, loadsTimeFactor=nothing)
-    return LoadsBoundaryCondition([], "", 1.0)
-end
-
-struct UserLoadsBoundaryCondition <: AbstractLoads
-    user_load_function::Function
-end
 
 # ======================================================================
 # Dofs Boundary Conditions - Springs and imposed displacements (zero & nonzero)
 # ======================================================================
 abstract type AbstractDofs end
 
-struct DispsBoundaryCondition <: AbstractDofs
-    imposed_disp_dofs::Vector{Integer}
-    imposed_disp_vals::Vector{Float64}
-end
-
-struct SpringsBoundaryCondition <: AbstractDofs
-    # to do
-end
 
 # ======================================================================
 # Initial Conditions
