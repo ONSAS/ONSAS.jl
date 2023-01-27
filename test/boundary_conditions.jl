@@ -17,7 +17,6 @@ using ONSAS.BoundaryConditions: DEFAULT_LABEL, DEFAULT_LOAD_FACTOR_FUNC
     generic_bc_label = :bc_generic
     generic_bc = DisplacementBoundaryCondition(generic_fixed_dofs, generic_fixed_values, generic_bc_label)
 
-    # Accessors 
     @test dofs(generic_bc) == generic_fixed_dofs
     @test values(generic_bc) == generic_fixed_values
     @test label(generic_bc) == generic_bc_label
@@ -59,7 +58,6 @@ end
         generic_load_dofs, generic_values, load_fact_generic, generic_bc_label
     )
 
-    # Accessors 
     @test dofs(generic_bc) == generic_load_dofs
     @test values(generic_bc) == generic_values
     @test load_factor_function(generic_bc) == load_fact_generic
