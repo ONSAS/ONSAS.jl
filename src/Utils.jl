@@ -6,7 +6,7 @@ module Utils
 
 export label, solve
 
-"Empty function to extract the object label"
+"Empty function to extract the label of an object."
 function label end
 
 "Empty function to solve a problem"
