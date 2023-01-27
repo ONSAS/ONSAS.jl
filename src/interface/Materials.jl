@@ -8,8 +8,13 @@ Each material consists of a data type with one or more parameters into its field
 """
 module Materials
 
-export AbstractMaterial, model, label, parameters
+using Reexport: @reexport
+
+@reexport import ..Utils: label
+
+export AbstractMaterial, model, parameters
 export SVK, lame_parameters
+
 
 """ Abstract supertype for a material.
 The following methods are provided by the interface:
