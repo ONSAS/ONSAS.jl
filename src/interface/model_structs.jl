@@ -24,16 +24,16 @@ function unwrap(sol::ModelSolution)
 end
 
 
-struct ModelProperties
-    Materials::Vector{<:AbstractMaterial}
-    Geometries::Vector{Geometry}
-    LoadsBC::Vector{LoadsBoundaryCondition}
-    DofsBC::Vector{DispsBoundaryCondition}
-    Mesh::Mesh
-    ConvSettings::ConvergenceSettings
-    Algorithm::AbstractAlgorithm
-    neum_dofs::Vector{Int}
-end
+# struct ModelProperties
+#     Materials::Vector{<:AbstractMaterial}
+#     Geometries::Vector{Geometry}
+#     LoadsBC::Vector{LoadsBoundaryCondition}
+#     DofsBC::Vector{DispsBoundaryCondition}
+#     Mesh::Mesh
+#     ConvSettings::ConvergenceSettings
+#     Algorithm::AbstractAlgorithm
+#     neum_dofs::Vector{Int}
+# end
 
 
 

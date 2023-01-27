@@ -6,13 +6,14 @@ using SafeTestsets
 import ONSAS: nodes2dofs
 
 
-##################
-# Material tests #
-##################
-
 @safetestset "ONSAS.Materials" begin
     include("materials.jl")
 end
+
+@safetestset "ONSAS.BoundaryConditions" begin
+    include("boundary_conditions.jl")
+end
+
 
 #using LinearAlgebra
 @testset "ONSAS.jl" begin
