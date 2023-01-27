@@ -115,10 +115,10 @@ label(pbc::PinnedDisplacementBoundaryCondition) = label(pbc.bc)
 
 const DEFAULT_LOAD_FACTOR_FUNC = (t) -> 1.0
 
-""" Load boundary condition imposed in local coordinates of the element.
+""" Generalized load boundary condition imposed in local coordinates of the element.
 ### Fields:
 - `dofs`        -- Degrees of freedom where the boundary condition is imposed. 
-- `vals`        -- Values imposed. 
+- `values`      -- Values imposed. 
 - `load_factor` -- Function to compute at each time step the load factor.
 - `label`       -- Boundary condition label.
 """
