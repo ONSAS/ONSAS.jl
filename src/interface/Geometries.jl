@@ -1,8 +1,7 @@
 """
 Module defining geometric entities interface.
 """
-
-module Geometries
+module CrossSections
 
 export AbstractCrossSection, area, Ixx, Iyy, Izz, Ixy, Iyz, I_tensor_xyz
 export Rectangle, Square, Circle, GenericCrossSection
@@ -142,62 +141,12 @@ struct GenericCrossSection <: AbstractCrossSection
     Iyz::Number
 end
 
-"Constructor for cross-sections in the princal axes system."
+"Constructor for cross-sections in the principal axes system."
 GenericCrossSection(A, Ixx, Iyy, Izz) = GenericCrossSection(A, Ixx, Iyy, Izz, 0.0, 0.0, 0.0)
 
 # Create accessors methods
 for f in fieldnames(GenericCrossSection)
     @eval $f(gcs::GenericCrossSection) = gcs.$f
 end
-
-
-# ======================
-# Abstract Mesh
-# ======================
-
-""" Abstract supertype for all meshes.
-
-The following methods are provided by the interface:
-- `element_types`    -- returns the element types that are present in the mesh. 
-- `dimension`        -- returns the dimension of the mesh (1D, 2D or 3D). 
-- `nodes_coordinates` -- returns a matrix with the nodes coordinates. 
-- `connectivity`      -- returns the mesh connectivity. 
-- `node_type (m)`    -- returns the node coordinates type.
-"""
-
-abstract type AbstractMesh{D,E,T} end
-
-const ERROR_MESH = :("This method is not available for this mesh type. Please implement it")
-
-" Returns the nodes data type "
-node_type(::AbstractMesh{D,E,T}) = T
-
-" Returns the mesh dimension "
-dimension(::AbstractMesh{D}) where {D} = D
-
-" Returns the element types "
-element_types(::AbstractMesh{D,E}) where {D,E} = E
-
-"Returns nodes coordinates matrix"
-nodal_coordinates(::AbstractMesh) = error(ERROR_MESH)
-
-"Returns the mesh connectivity"
-connectivity(::AbstractMesh) = error(ERROR_MESH)
-
-""" Mesh.
-### Fields:
-- `nodal_coords` -- Nodal coordinates matrix.
-- `elements` -- Set of elements used .
-"""
-struct Mesh{D,E,T,C} <: AbstractMesh{D,E,T} where {D,E,T}
-    nodal_coordinates::Tuple{NTuple{D,T}}
-    elements::E
-    connectivity::C
-    MGBI_mat::Matrix{Int64}
-    MGBI_vec::Vector{Int64}
-end
-
-nodal_coordinates(m::Mesh{D,E,T,C}) = m.nodal_coordinates
-connectivity(m::Mesh{D,E,T,C}) = m.connectivity
 
 end # module

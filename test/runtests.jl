@@ -14,6 +14,11 @@ end
     include("boundary_conditions.jl")
 end
 
+@safetestset "ONSAS.Mesh" begin
+    include("mesh.jl")
+end
+
+
 
 #using LinearAlgebra
 @testset "ONSAS.jl" begin
