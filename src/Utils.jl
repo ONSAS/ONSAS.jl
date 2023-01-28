@@ -16,7 +16,7 @@ function solve end
 function index end
 
 
-"Scalar mutable struct to avoid making mutable larger structs"
+"Scalar mutable struct to avoid using larger mutable structs"
 mutable struct Index
     id::Integer
 end
