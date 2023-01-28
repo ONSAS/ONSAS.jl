@@ -6,8 +6,11 @@ include("./Materials.jl")
 include("./BoundaryConditions.jl")
 @reexport using .BoundaryConditions
 
-include("./Mesh.jl")
-@reexport using .Mesh
+include("./CrossSections.jl")
+@reexport using .CrossSections
+
+include("./Meshes.jl")
+@reexport using .Meshes
 
 
 """
@@ -28,7 +31,7 @@ Available types:
 abstract type AbstractElement end
 
 # struct Node <: AbstractElement end
-struct Truss <: AbstractElement end
+# struct Truss <: AbstractElement end
 struct Frame <: AbstractElement end
 struct Triangle <: AbstractElement end
 struct Tetrahedron <: AbstractElement end
