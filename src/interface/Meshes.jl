@@ -163,7 +163,7 @@ function connectivity_matrix(m::Mesh{D,E,T}) where {D,E,T}
     for e in elements(m)
 
         # TO BE DONE
-
+    end
     return C
 end
 
