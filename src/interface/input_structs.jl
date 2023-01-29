@@ -6,56 +6,12 @@ include("./Materials.jl")
 include("./BoundaryConditions.jl")
 @reexport using .BoundaryConditions
 
-# ======================================================================
-# geometry
-# ======================================================================
-abstract type AbstractSection end
+include("./CrossSections.jl")
+@reexport using .CrossSections
 
-struct Rectangle <: AbstractSection
-    width_y::Float64
-    width_z::Float64
-end
+include("./Meshes.jl")
+@reexport using .Meshes
 
-struct Circle <: AbstractSection
-    dia::Float64
-end
-
-struct CrossSection
-    section::AbstractSection
-    A::Float64
-    Ix::Float64
-    Iy::Float64
-    Iz::Float64
-end
-
-function CrossSection() end
-
-function CrossSection(section::Rectangle)
-    width_y = section.width_y
-    width_z = section.width_z
-
-    A = width_y * width_z
-
-    a = 0.5 * max(width_y, width_z)
-    b = 0.5 * min(width_y, width_z)
-
-    Ix = a * b^3 * (16 / 3.0 - 3.36 * b / a * (1.0 - b^4 / (12 * a^4)))
-    Iy = width_y * width_z^3 / 12
-    Iz = width_z * width_y^3 / 12
-    return CrossSection(section, A, Ix, Iy, Iz)
-end
-
-function CrossSection(section::Circle)
-    dia = section.dia
-
-    A = pi * dia^2 / 4
-
-    Iy = pi * dia^4 / 64
-    Iz = pi * dia^4 / 64
-    Ix = Iy + Iz
-
-    return CrossSection(section, A, Ix, Iy, Iz)
-end
 
 """
     AbstractElement
@@ -74,8 +30,8 @@ Available types:
 """
 abstract type AbstractElement end
 
-struct Node <: AbstractElement end
-struct Truss <: AbstractElement end
+# struct Node <: AbstractElement end
+# struct Truss <: AbstractElement end
 struct Frame <: AbstractElement end
 struct Triangle <: AbstractElement end
 struct Tetrahedron <: AbstractElement end
@@ -113,12 +69,12 @@ end
 # ======================================================================
 # Mesh
 # ======================================================================
-struct Mesh
-    nodal_coords::Matrix{Float64}
-    elem_nodal_connec::Vector{Vector{Int64}}
-    MGBI_mat::Matrix{Int64}
-    MGBI_vec::Vector{Int64}
-end
+# struct Mesh
+#     nodal_coords::Matrix{Float64}
+#     elem_nodal_connec::Vector{Vector{Int64}}
+#     MGBI_mat::Matrix{Int64}
+#     MGBI_vec::Vector{Int64}
+# end
 
 
 # ======================================================================
