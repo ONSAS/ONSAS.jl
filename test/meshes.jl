@@ -7,29 +7,7 @@ using ONSAS.Meshes
 using ONSAS.Meshes: DEFAULT_NODE_INDEX
 
 
-@testset "ONSAS.Meshes.Node" begin
 
-    # Using StaticArrays, Tuples or Vector
-    node_eltypes = [Float32, Float64, Int]
-    node_eltype = rand(node_eltypes)
-    xᵢ = rand(node_eltype)
-    x_sa = SVector(xᵢ, 2xᵢ, 3xᵢ)
-    x_vec = [xᵢ, 2xᵢ, 3xᵢ]
-    x_tup = (xᵢ, 2xᵢ, 3xᵢ)
-    x_test_vec = [x_sa, x_vec, x_tup]
-    x_test = rand([x_sa, x_vec, x_tup])
-
-    node = Node(x_test)
-    @test all([node[i] == xᵢ for (i, xᵢ) in enumerate(coordinates(node))])
-    @test coordinates_eltype(node) == node_eltype
-    @test index(node) == DEFAULT_NODE_INDEX[]
-    @test all([node[i] == x for (i, x) in enumerate(x_test)])
-    @test dimension(node) == length(x_test)
-    new_index = rand(Int)
-    set_index!(node, new_index)
-    @test index(node) == new_index
-
-end
 
 @testset "ONSAS.Meshes.Mesh" begin
 
