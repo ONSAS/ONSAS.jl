@@ -1,7 +1,8 @@
 ## Von Mises truss example problem
 
 using ONSAS
-
+using StaticArrays: SVector, SMatrix
+using SparseArrays
 ## scalar parameters
 E = 2e11  # Young modulus in Pa
 ν = 0.0  # Poisson's modulus
@@ -10,7 +11,6 @@ ang = 65 # truss angle in degrees
 L = 2 # Length in m 
 d = L * cos(deg2rad(65))   # vertical distance in m
 h = L * sin(deg2rad(65))
-d = 0.0  # horizontal distance in m
 # Fx = 0     # horizontal load in N
 Fⱼ = -3e8  # vertical   load in N
 # -------------------------------
@@ -25,9 +25,10 @@ materials = [steel]
 dim = sqrt(A)
 s = Square(dim)
 ## Nodes
-n₁ = Node((0.0, 0.0))
-n₂ = Node((d, h))
-n₃ = Node((2d, 0.0))
+z = 0.0
+n₁ = Node((0.0, 0.0, z))
+n₂ = Node((d, h, z))
+n₃ = Node((2d, 0.0, z))
 # -------------------------------
 # Boundary conditions
 # -------------------------------
@@ -39,12 +40,33 @@ push!([n₂], bc₂)
 # Elements
 # -------------------------------
 t₁ = Truss([n₁, n₂], steel, s)
+t₂ = Truss([n₂, n₃], steel, s)
+elements = [t₁, t₂]
 # -------------------------------
 # Test internal force
 # -------------------------------
-u_e = [[0, 0], [0, 0]]
-@show K₁ = stiffness_matrix(t₁, u_e)
-@show f₁ = internal_force(t₁, u_e)
+dim = dimension(n₁)
+
+if dim == 3
+    # global ue
+    u_e = [SVector{6}(zeros(6)), SVector{6}(zeros(6)), SVector{6}(zeros(6))]
+    # global fext
+    fext = [SVector{6}(zeros(6)), SVector{6}(zeros(6)), SVector{6}(zeros(6))]
+    # dofs per node 
+    dofs_per_node(t₁)
+
+
+    # global K
+    KG = SMatrix{18,18}(zeros(18, 18))
+end
+# -------------------------------
+# External assemble
+# -------------------------------
+# for e in elements
+# fe = internal_force(t₁, u_e)
+# Ke = stiffness_matrix(t₁, u_e)
+# dofs = dofs(e)
+
 
 
 

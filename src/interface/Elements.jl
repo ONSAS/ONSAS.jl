@@ -7,7 +7,7 @@ Module defining the elements implemented.
 """
 module Elements
 
-using ..Materials: AbstractMaterial, SVK
+using ..Materials: AbstractMaterial
 using ..CrossSections: AbstractCrossSection, area
 using ..BoundaryConditions: AbstractBoundaryCondition
 using ..Utils: ScalarWrapper
@@ -227,9 +227,9 @@ The following methods can be implemented to provide additional functionality:
 
 """
 
-coordinates(e::AbstractElement) = vcat(coordinates.(nodes(e)))
+coordinates(e::AbstractElement) = row_vector(coordinates.(nodes(e)))
 
-dofs(e::AbstractElement) = vcat(dofs.(nodes(e)))
+dofs(e::AbstractElement) = row_vector(dofs.(nodes(e)))
 
 "Returns element number of dofs per element"
 dofs_per_node(e::AbstractElement) = length(dofs(first(nodes(e))))
@@ -271,85 +271,7 @@ function inertial_force(e::AbstractElement, args...; kwargs...) end
 "Returns the inertial tangent matrices of the element."
 function mass_matrices(e::AbstractElement, args...; kwargs...) end
 
-
-"""
-A `Truss` represents a 2D element that transmits axial force only.
-### Fields:
-- `nodes` -- stores truss nodes.
-- `material`  -- stores truss material.
-- `geometry` -- stores the truss cross-section properties.
-"""
-struct Truss{dim,M,G} <: AbstractElement{dim,M}
-    nodes::Vector{<:AbstractNode{dim,<:Number}}
-    material::M
-    geometry::G
-    function Truss(nodes::Vector{<:AbstractNode{dim}}, material::M, geometry::G) where {dim,M<:AbstractMaterial,G<:AbstractCrossSection}
-        length(nodes) == 2 || throw(ArgumentError("A `Truss` element must have 2 nodes."))
-        new{dim,M,G}(nodes, material, geometry)
-    end
-end
-
-num_nodes(::Truss) = 2
-dofs_per_node(::Truss{2}) = [Dof(:uₓ, 1), Dof(:uⱼ, 2)]
-
-"Returns the relative coordinates of node 2 respect to 1 [(X₂+ U₂)  - (X₁+ U₁)] in a matrix."
-function _relative_coords_mat(e::Truss{dim}, u_e::AbstractVector) where {dim}
-    X_e = coordinates(e)
-    X_def_mat = mapreduce(permutedims, vcat, X_e + u_e)
-    diff = SVector{dim}(X_def_mat[2, :]) - SVector{dim}(X_def_mat[1, :])
-end
-
-"Returns the deformed length of a truss element."
-function _def_length(e::Truss{dim}, u_e::AbstractVector) where {dim}
-    diff = _relative_coords_mat(e, u_e)
-    length = sqrt(diff' * diff) # Element length
-end
-
-"Returns the stiffness matrix in local coordinates."
-function _local_stiffness_matrix(e::Truss{dim,SVK}, length::Number) where {dim}
-
-    E = material(e).E
-    A = area(geometry(e))
-
-    K_loc = E * A / length * SMatrix{4,4}([
-        1 0 -1 0
-        0 0 0 0
-        -1 0 1 0
-        0 0 0 0
-    ])
-end
-
-"Returns the rotation matrix from global to local."
-function R_local2global(diff, length)
-    (c, s) = (diff[1], diff[end]) ./ length # Element orientation (cosine and sin respecto to dim 1 axis)
-
-    # Rotation matrix 
-    R_local2global = SMatrix{4,4}(
-        [
-            c -s 0 0
-            s c 0 0
-            0 0 c -s
-            0 0 s c
-        ]
-    )
-end
-
-function stiffness_matrix(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
-    l_def = _def_length(e, u_e)
-    K_loc = _local_stiffness_matrix(e, l_def)
-    X_rel = _relative_coords_mat(e, u_e)
-    Rot_mat = R_local2global(X_rel, l_def)
-    K_glob = Rot_mat * K_loc * Rot_mat'
-end
-
-
-function internal_force(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
-    K_e = stiffness_matrix(e, u_e)
-    u_e = mapreduce(permutedims, hcat, u_e)'
-    internal_force_vector = K_e * u_e
-end
-
-
+include("./../elements/Truss.jl")
 
 end # module
 
