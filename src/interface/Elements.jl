@@ -7,16 +7,17 @@ Module defining the elements implemented.
 """
 module Elements
 
-using ..Materials
-using ..CrossSections
+using ..Materials: AbstractMaterial, SVK
+using ..CrossSections: AbstractCrossSection, area
+using ..BoundaryConditions: AbstractBoundaryCondition
 using ..Utils: ScalarWrapper
 using Reexport: @reexport
-using StaticArrays: SVector, @SMatrix
+using StaticArrays: SVector, SMatrix
 
 @reexport import ..Utils: Index, index, dofs, set_index!
 
 export Dof, symbol, is_fixed, fix!
-export AbstractNode, Node, coordinates, coordinates_eltype, dimension, set_dof_index!
+export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, dimension, set_dof_index!
 export AbstractElement, nodes, num_nodes, dofs_per_node, geometry, material, material_model
 export Truss, internal_force, stiffness_matrix
 
@@ -69,6 +70,7 @@ An `AbstractNode` object is a point in space.
 
 **Common methods:**
 
+* [`boundary_conditions`](@ref)
 * [`coordinates`](@ref)
 * [`coordinates_eltype`](@ref)
 * [`index`](@ref)
@@ -76,7 +78,13 @@ An `AbstractNode` object is a point in space.
 * [`dofs`](@ref)
 """
 
-"Returns coordinates of an entity."
+"Returns the node boundary conditions."
+boundary_conditions(n::AbstractNode) = n.bc
+
+Base.push!(n::AbstractNode, bc::AbstractBoundaryCondition) = push!(n.bc, bc)
+Base.push!(n::AbstractNode, vbc::Vector{<:AbstractBoundaryCondition}) = [push!(n, bc) for bc in vbc]
+Base.push!(vn::Vector{<:AbstractNode}, bc::AbstractBoundaryCondition) = [push!(n.bc, bc) for n in vn]
+
 coordinates(n::AbstractNode) = n.x
 
 "Returns coordinate's type of an entity."
@@ -111,7 +119,7 @@ fix!(n::AbstractNode) = [fix!(dof) for dof in dofs(n)]
 
 #TODO: generalize to any field type and dimension (:u, dim)
 "Maps dimension of the node to local degrees of freedom."
-function _dim_to_local_dofs(dim::Int)
+function _dim_to_nodal_dofs(dim::Int)
     dofs = if dim == 1
         [Dof(:uₓ, 1)]
     elseif dim == 2
@@ -134,19 +142,23 @@ A `Node` is a point in space.
 - `dofs`  -- stores the node degrees of freedom.
 - `index` -- stores the node index in the mesh.
 """
-struct Node{dim,T} <: AbstractNode{dim,T}
+mutable struct Node{dim,T} <: AbstractNode{dim,T}
     x::AbstractArray{T}
     dofs::Vector{<:Dof}
     index::Index
-    function Node(x::AbstractArray{T}, dofs::Vector{<:Dof}, index::Index) where {T}
-        new{length(x),T}(x, dofs, index)
+    bc::Vector{<:AbstractBoundaryCondition}
+    function Node(x::AbstractArray{T}, dofs::Vector{<:Dof}, index::Index, bc::Vector{<:AbstractBoundaryCondition}) where {T}
+        new{length(x),T}(x, dofs, index, bc)
     end
 end
 
-Node(x::NTuple{dim,T}, index::Index) where {dim,T} = Node(SVector(x), _dim_to_local_dofs(length(x)), index)
-Node(x::NTuple{dim,T}, index::Integer=_DEFAULT_INDEX_INT) where {dim,T} = Node(SVector(x), _dim_to_local_dofs(length(x)), Index(index))
-Node(x::AbstractArray{T}, index::Index) where {T} = Node(x, _dim_to_local_dofs(length(x)), index)
-Node(x::AbstractArray{T}, index::Integer=_DEFAULT_INDEX_INT) where {T} = Node(x, _dim_to_local_dofs(length(x)), Index(index))
+Node(x::NTuple{dim,T}, index::Integer, bc::Vector{<:AbstractBoundaryCondition}) where {dim,T} = Node(SVector(x), _dim_to_nodal_dofs(length(x)), Index(index), bc)
+# Empty bc constructors
+empty_bc = Vector{AbstractBoundaryCondition}()
+Node(x::NTuple{dim,T}, index::Index) where {dim,T} = Node(SVector(x), _dim_to_nodal_dofs(length(x)), index, empty_bc)
+Node(x::NTuple{dim,T}, index::Integer=_DEFAULT_INDEX_INT) where {dim,T} = Node(SVector(x), _dim_to_nodal_dofs(length(x)), Index(index), empty_bc)
+Node(x::AbstractArray{T}, index::Index) where {T} = Node(x, _dim_to_nodal_dofs(length(x)), index, empty_bc)
+Node(x::AbstractArray{T}, index::Integer=_DEFAULT_INDEX_INT) where {T} = Node(x, _dim_to_nodal_dofs(length(x)), Index(index), empty_bc)
 
 
 # =================
@@ -179,10 +191,10 @@ An `AbstractElement` object facilitates the process of evaluating:
 * [`material_model`](@ref)
 * [`set_material!`](@ref)
 
-* [`internal_force`](@ref)
+* [`internal_forces`](@ref)
 * [`stiffness_matrix`](@ref)
-* [`inertial_force`](@ref)
-* [`mass_matrices`](@ref)
+* [`inertial_forces`](@ref)
+* [`inertial_tangents`](@ref)
 
 * [`strain`](@ref)
 * [`stresses`](@ref)
@@ -196,6 +208,7 @@ An `AbstractElement` object facilitates the process of evaluating:
 **Hard contracts:**
 
 * [`num_nodes`](@ref)  - defines the number of nodes per element.
+* [`local_dofs`](@ref)  - defines the local dofs of the element.
 
 For static cases the following methods are required:
 
@@ -203,8 +216,8 @@ For static cases the following methods are required:
 * [`stiffness_matrix`](@ref) - function that returns the internal stiffness matrix.
 
 For dynamic cases the following methods are required:
-* [`inertial_force`](@ref) - function that returns the inertial force vector.
-* [`mass_matrices`](@ref)  - function that returns the inertial stiffness matrices.
+* [`inertial_forces`](@ref) - function that returns the inertial force vector.
+* [`inertial_tangents`](@ref)  - function that returns the inertial stiffness matrices.
 
 **Soft contracts:**
 The following methods can be implemented to provide additional functionality:
@@ -216,7 +229,7 @@ The following methods can be implemented to provide additional functionality:
 
 coordinates(e::AbstractElement) = vcat(coordinates.(nodes(e)))
 
-dofs(e::AbstractElement) = vact(dofs.(nodes(e)))
+dofs(e::AbstractElement) = vcat(dofs.(nodes(e)))
 
 "Returns element number of dofs per element"
 dofs_per_node(e::AbstractElement) = length(dofs(first(nodes(e))))
@@ -246,7 +259,6 @@ material_model(::AbstractElement{dim,M}) where {dim,M} = M
 "Sets a material to the element."
 set_material!(e::AbstractElement, m::AbstractMaterial) = e.material = m
 
-
 "Returns the internal force vector of the element."
 function internal_force(e::AbstractElement, args...; kwargs...) end
 
@@ -271,53 +283,70 @@ struct Truss{dim,M,G} <: AbstractElement{dim,M}
     nodes::Vector{<:AbstractNode{dim,<:Number}}
     material::M
     geometry::G
-    function Truss(nodes::Vector{<:AbstractNode{dim}}, material::M, geometry::G) where {dim,M,G}
+    function Truss(nodes::Vector{<:AbstractNode{dim}}, material::M, geometry::G) where {dim,M<:AbstractMaterial,G<:AbstractCrossSection}
         length(nodes) == 2 || throw(ArgumentError("A `Truss` element must have 2 nodes."))
         new{dim,M,G}(nodes, material, geometry)
     end
 end
 
 num_nodes(::Truss) = 2
-Truss() = Truss([Node([0, 0]), Node([1, 1])], SVK(210e9, 0.3), Circle(1.0))
+dofs_per_node(::Truss{2}) = [Dof(:uₓ, 1), Dof(:uⱼ, 2)]
 
+"Returns the relative coordinates of node 2 respect to 1 [(X₂+ U₂)  - (X₁+ U₁)] in a matrix."
+function _relative_coords_mat(e::Truss{dim}, u_e::AbstractVector) where {dim}
+    X_e = coordinates(e)
+    X_def_mat = mapreduce(permutedims, vcat, X_e + u_e)
+    diff = SVector{dim}(X_def_mat[2, :]) - SVector{dim}(X_def_mat[1, :])
+end
 
+"Returns the deformed length of a truss element."
+function _def_length(e::Truss{dim}, u_e::AbstractVector) where {dim}
+    diff = _relative_coords_mat(e, u_e)
+    length = sqrt(diff' * diff) # Element length
+end
 
-
-function internal_force(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
+"Returns the stiffness matrix in local coordinates."
+function _local_stiffness_matrix(e::Truss{dim,SVK}, length::Number) where {dim}
 
     E = material(e).E
     A = area(geometry(e))
 
-    X_e = coordinates(e)
-    X_def_matrix = mapreduce(permutedims, vcat, X_e + u_e) # (nnodes x [xdef_1 , x_def_2, ...])
-
-
-
-    # Element geometry
-    diff = SVector{dim}(X_def_matrix[2, :]) - SVector{dim}(X_def_matrix[1, :])
-    length = sqrt(diff' * diff) # Element length
-    (c, s) = (diff[1], diff[end]) ./ length # Element orientation (cosine and sin respecto to dim 1 axis)
-    # Rotation matrix 
-    Qloc2glo = @SMatrix [c -s 0 0
-        s c 0 0
-        0 0 c -s
-        0 0 s c]
-    # Stiffness matrix in local system
-    Kloc = E * A / length * @SMatrix [1 0 -1 0
+    K_loc = E * A / length * SMatrix{4,4}([
+        1 0 -1 0
         0 0 0 0
         -1 0 1 0
-        0 0 0 0]
-    # Stiffness matrix in global system
-    Kglo = Qloc2glo * Kloc * Qloc2glo'
-    # Internal forces
-    Main.@infiltrate
-    fᵢₙₜ = Kglo * u_e
-    # Store
-    force_vectors = [fᵢₙₜ]
-    tangent_matrices = [Kglo]
+        0 0 0 0
+    ])
+end
 
-    return force_vectors, tangent_matrices
+"Returns the rotation matrix from global to local."
+function R_local2global(diff, length)
+    (c, s) = (diff[1], diff[end]) ./ length # Element orientation (cosine and sin respecto to dim 1 axis)
 
+    # Rotation matrix 
+    R_local2global = SMatrix{4,4}(
+        [
+            c -s 0 0
+            s c 0 0
+            0 0 c -s
+            0 0 s c
+        ]
+    )
+end
+
+function stiffness_matrix(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
+    l_def = _def_length(e, u_e)
+    K_loc = _local_stiffness_matrix(e, l_def)
+    X_rel = _relative_coords_mat(e, u_e)
+    Rot_mat = R_local2global(X_rel, l_def)
+    K_glob = Rot_mat * K_loc * Rot_mat'
+end
+
+
+function internal_force(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
+    K_e = stiffness_matrix(e, u_e)
+    u_e = mapreduce(permutedims, hcat, u_e)'
+    internal_force_vector = K_e * u_e
 end
 
 

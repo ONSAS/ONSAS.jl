@@ -4,8 +4,8 @@
 using Test: @testset, @test
 using StaticArrays: SVector
 using ONSAS.Elements
-using ONSAS.Elements: _dim_to_local_dofs, _DEFAULT_INDEX
-
+using ONSAS.Elements: _dim_to_nodal_dofs, _DEFAULT_INDEX
+using ONSAS.BoundaryConditions: FixedDisplacementBoundaryCondition
 
 @testset "ONSAS.Elements.Dof" begin
 
@@ -56,13 +56,19 @@ end
     @test all([is_fixed(dof) for dof in dofs(node)])
 
     # Dofs
-    @test all([_dim_to_local_dofs(dimension(node))[i] == d for (i, d) in enumerate(dofs(node))])
+    @test all([_dim_to_nodal_dofs(dimension(node))[i] == d for (i, d) in enumerate(dofs(node))])
     @test all(vcat(dofs(node), dofs(node))[i] == d for (i, d) in enumerate(dofs([node, node])))
 
     new_global_dof_indexes = 7:12
     set_dof_index!(node, new_global_dof_indexes)
     @test all([index(dof)[] == new_global_dof_indexes[i] for (i, dof) in enumerate(dofs(node))])
 
+    # Boundary conds
+    @test length(boundary_conditions(node)) == 0
+    fixed_bc = FixedDisplacementBoundaryCondition(:my_fixed_bc)
+    pinned_bc = FixedDisplacementBoundaryCondition(:my_pinned_bc)
+    push!(node, [fixed_bc, pinned_bc])
+    @test length(boundary_conditions(node)) == 2
 
 end
 

@@ -4,29 +4,53 @@ using ONSAS
 
 ## scalar parameters
 E = 2e11  # Young modulus in Pa
+ν = 0.0  # Poisson's modulus
 A = 5e-3  # Cross-section area in m^2
-d = 1.0   # horizontal distance in m
-h = 1.0   # height in m
+ang = 65 # truss angle in degrees
+L = 2 # Length in m 
+d = L * cos(deg2rad(65))   # vertical distance in m
+h = L * sin(deg2rad(65))
+d = 0.0  # horizontal distance in m
 # Fx = 0     # horizontal load in N
-# Fy = -1e3  # vertical   load in N
-
-## set structs
-E1 = E
-E2 = E
-
+Fⱼ = -3e8  # vertical   load in N
 # -------------------------------
 # Materials
-steel1 = Material("LinearElastic", [E1])
-steel2 = Material("LinearElastic", [E2])
-
-Materials = [steel1, steel2]
 # -------------------------------
-
+steel = SVK(E, ν)
+materials = [steel]
 # -------------------------------
 # Geometries
-
+# -------------------------------
 ## Cross section
 dim = sqrt(A)
+s = Square(dim)
+## Nodes
+n₁ = Node((0.0, 0.0))
+n₂ = Node((d, h))
+n₃ = Node((2d, 0.0))
+# -------------------------------
+# Boundary conditions
+# -------------------------------
+bc₁ = FixedDisplacementBoundaryCondition()
+bc₂ = FⱼLoadBoundaryCondition(Fⱼ)
+push!([n₁, n₃], bc₁)
+push!([n₂], bc₂)
+# -------------------------------
+# Elements
+# -------------------------------
+t₁ = Truss([n₁, n₂], steel, s)
+# -------------------------------
+# Test internal force
+# -------------------------------
+u_e = [[0, 0], [0, 0]]
+@show K₁ = stiffness_matrix(t₁, u_e)
+@show f₁ = internal_force(t₁, u_e)
+
+
+
+#=
+
+
 Section = Rectangle(dim, dim)
 Square_section = CrossSection(Section)
 ## Geometries
@@ -156,3 +180,5 @@ print("initial solution \n", initial_solution)
 
 # UG = zeros( size( FG ) )
 # UG[  neumDofs ] = UGred
+
+=#
