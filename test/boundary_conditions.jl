@@ -114,7 +114,7 @@ end
 
     # Load boundary condition: force along `z` axis 
     Fₖ_val = rand(Int, 1)
-    Fₖ_label = :Fy_force_bc
+    Fₖ_label = :Fk_force_bc
     Fₖ_bc = FₖLoadBoundaryCondition(Fₖ_val..., label=Fₖ_label)
     @test dofs(Fₖ_bc) == [:Fₖ]
     @test values(Fₖ_bc) == Fₖ_val[1]

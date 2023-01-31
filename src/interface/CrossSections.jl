@@ -69,7 +69,7 @@ struct Rectangle <: AbstractCrossSection
     width_z::Number
 end
 
-area(r::Rectangle) = cs.width_y * cs.width_z
+area(r::Rectangle) = r.width_y * r.width_z
 function Ixx(r::Rectangle)
     #  torsional constant from table 10.1 from Roark's Formulas for Stress and Strain 7th ed.
     a = 0.5 * max([r.width_y, r.width_z])
@@ -103,16 +103,16 @@ Iyz(s::Square) = 0.0
 
 """ Circle cross-section.
 ### Fields:
-- `diameter` -- circle diameter.
+- `d` -- circle diameter.
 """
 struct Circle <: AbstractCrossSection
-    diameter::Number
+    d::Number
 end
 
-area(c::Circle) = c.dimater^2 / 4
-Ixx(c::Circle) = c.dimater^4 / 32
-Iyy(c::Circle) = c.dimater^4 / 64
-Izz(c::Circle) = c.dimater^4 / 64
+area(c::Circle) = c.d^2 / 4
+Ixx(c::Circle) = c.d^4 / 32
+Iyy(c::Circle) = c.d^4 / 64
+Izz(c::Circle) = c.d^4 / 64
 Ixy(c::Circle) = 0.0
 Ixz(c::Circle) = 0.0
 Iyz(c::Circle) = 0.0

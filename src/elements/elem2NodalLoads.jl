@@ -28,7 +28,7 @@ function elem2NodalLoads(Conec, Nodes, Mesh, Geometries, mesh_with_BC, BC)
     return Fext
 end
 
-function generate_loads(elem_type::Node, loadVals, loadCoordSystem, Conec, Nodes, elem_index, Geometries)
+function generate_loads(elem_type, loadVals, loadCoordSystem, Conec, Nodes, elem_index, Geometries)
 
     if cmp(loadCoordSystem, "Global") == 0
         nodes = Conec[elem_index]

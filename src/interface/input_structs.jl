@@ -1,53 +1,39 @@
 
-include("./Materials.jl")
+include("Materials.jl")
 @reexport using .Materials
 
-
-include("./BoundaryConditions.jl")
+include("BoundaryConditions.jl")
 @reexport using .BoundaryConditions
 
-include("./CrossSections.jl")
+include("CrossSections.jl")
 @reexport using .CrossSections
 
-include("./Meshes.jl")
+include("Meshes.jl")
 @reexport using .Meshes
 
-
-"""
-    AbstractElement
-
-Abstract type to define finite element types.\\
-
-Available types:
-
-* `Node`: 
-* `Truss`: 
-* `Frame`: 
-* `Triangle`: 
-* `Tetrahedron`: 
+include("Elements.jl")
+@reexport using .Elements
 
 
-"""
-abstract type AbstractElement end
 
 # struct Node <: AbstractElement end
 # struct Truss <: AbstractElement end
-struct Frame <: AbstractElement end
-struct Triangle <: AbstractElement end
-struct Tetrahedron <: AbstractElement end
+# struct Frame <: AbstractElement end
+# struct Triangle <: AbstractElement end
+# struct Tetrahedron <: AbstractElement end
 
-"""
-Struct with information of the geometry of the element:
- - element_type: a struct with: `node`, `truss`, `frame``, `triangle` or `tetrahedron`.
-"""
-struct Geometry
-    type::AbstractElement
-    cross_section
-    # define constructor with no cross section by default
-    function Geometry(type::AbstractElement, cross_section=nothing)
-        new(type, CrossSection())
-    end
-end
+# """
+# Struct with information of the geometry of the element:
+#  - element_type: a struct with: `node`, `truss`, `frame``, `triangle` or `tetrahedron`.
+# """
+# struct Geometry
+#     type::AbstractElement
+#     cross_section
+#     # define constructor with no cross section by default
+#     function Geometry(type::AbstractElement, cross_section=nothing)
+#         new(type, CrossSection())
+#     end
+# end
 
 
 

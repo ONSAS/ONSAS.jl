@@ -4,67 +4,9 @@ Module defining meshes entities interface.
 module Meshes
 
 using Reexport: @reexport
-using StaticArrays: SVector
 
-@reexport import ..Utils: Index, index
-
-export AbstractNode, Node, coordinates, coordinates_eltype, dimension, set_index!
 export Mesh, build_node_set, nodes, node_sets, elements,
     element_sets, element_types, elements, connectivity
-# ======================
-# Abstract Node
-# ======================
-
-abstract type AbstractNode end
-
-""" Abstract supertype for all nodes.
-
-An `AbstractNode` object is a point in space.
-
-**Common methods:**
-
-* [`coordinates`](@ref)
-* [`coordinates_eltype`](@ref)
-* [`index`](@ref)
-* [`dimension`](@ref)
-"""
-
-const DEFAULT_NODE_INDEX = Index(0)
-
-"""
-    Node{dim, T}
-A `Node` is a point in space.
-### Fields:
-- `x`     -- stores the coordinates
-- `index` -- stores the node index in the mesh.
-"""
-struct Node{dim,T} <: AbstractNode
-    x::AbstractArray{T}
-    index::Index
-    function Node(x::AbstractArray{T}, index::Index=DEFAULT_NODE_INDEX) where {T}
-        dim = length(x)
-        new{dim,T}(x, index)
-    end
-end
-
-Node(x::NTuple{dim,T}, index::Int=DEFAULT_NODE_INDEX[]) where {dim,T} = Node(SVector(x), Index(index))
-Node(x::NTuple{dim,T}, index::Index=DEFAULT_NODE_INDEX) where {dim,T} = Node(SVector(x), index)
-
-"Returns coordinates of an entity."
-coordinates(n::Node) = n.x
-
-"Returns coordinate's type of an entity."
-coordinates_eltype(::Node{dim,T}) where {dim,T} = T
-
-index(n::Node) = n.index[]
-
-"Sets node's index."
-set_index!(n::Node, id::Int) = n.index[] = id
-
-"Returns dimension."
-dimension(::Node{dim}) where {dim} = dim
-
-Base.getindex(n::Node, i::Int) = n.x[i]
 
 # ======================
 # Abstract Mesh
@@ -111,17 +53,17 @@ There are multiple helper structures to apply boundary conditions or define subd
 - `element_sets -- maps a `String` key to a `Set` of elements ids.
 
 """
-Base.@kwdef struct Mesh{D,E,T} <: AbstractMesh{D,E,T}
-    nodes::Vector{<:AbstractNode}
+Base.@kwdef struct Mesh{D,E,N,T} <: AbstractMesh{D,E,T}
+    nodes::Vector{N}
     elements::Vector{E}
     # Sets
     node_sets::Dict{String,Set{Int}} = Dict{String,Set{Int}}()
     element_sets::Dict{String,Set{Int}} = Dict{String,Set{Int}}()
     function Mesh(
-        nodes::Vector{<:AbstractNode},
+        nodes::Vector{N},
         elements::Vector{E},
         node_sets::Dict{String,Set{Int}}=Dict{String,Set{Int}}(),
-        element_sets::Dict{String,Set{Int}}=Dict{String,Set{Int}}()) where {E}
+        element_sets::Dict{String,Set{Int}}=Dict{String,Set{Int}}()) where {E,N}
         n₁ = first(nodes)
         D = dimension(n₁)
         T = coordinates_eltype(n₁)
@@ -132,7 +74,7 @@ Base.@kwdef struct Mesh{D,E,T} <: AbstractMesh{D,E,T}
             coordinates_eltype(n) != T && throw(ArgumentError("All nodes must have the same eltype."))
         end
         # [set_index!(e, i) for (i, e) in enumerate(elements)]
-        return new{D,E,T}(nodes, elements, node_sets, element_sets)
+        return new{D,E,N,T}(nodes, elements, node_sets, element_sets)
     end
 end
 
@@ -143,7 +85,7 @@ nodes(m::Mesh) = m.nodes
 node_sets(m::Mesh) = m.node_sets
 
 "Create a nodes set in a Tuple (label, set)"
-build_node_set(label::String, n::Vector{<:AbstractNode}) = (label, Set(index.(n)))
+build_node_set(label::String, n::Vector{N}) where {N} = (label, Set(index.(n)))
 
 "Returns the elements of the mesh."
 elements(m::Mesh) = m.elements

@@ -9,9 +9,10 @@ module BoundaryConditions
 
 using Reexport: @reexport
 
-@reexport import ..Utils: label
+@reexport import ..Utils: dofs, label
 
-export AbstractBoundaryCondition, dofs, label
+
+export AbstractBoundaryCondition
 export DisplacementBoundaryCondition, FixedDisplacementBoundaryCondition, PinnedDisplacementBoundaryCondition
 export GlobalLoadBoundaryCondition, load_factor_function
 export MᵢLoadBoundaryCondition, MⱼLoadBoundaryCondition, MₖLoadBoundaryCondition
