@@ -1,5 +1,5 @@
 using ..Materials: SVK
-using ..Utils: eye, row_vector
+using ..Utils: ScalarWrapper, eye, row_vector
 
 """
 A `Truss` represents a 2D element that transmits axial force only.
@@ -9,15 +9,18 @@ A `Truss` represents a 2D element that transmits axial force only.
 - `geometry` -- stores the truss cross-section properties.
 """
 struct Truss{dim,M,G} <: AbstractElement{dim,M}
-    nodes::Vector{<:AbstractNode{dim,<:Number}}
+    nodes::Vector{<:AbstractNode{dim}}
     material::M
     geometry::G
-    function Truss(nodes::Vector{<:AbstractNode{dim}}, material::M, geometry::G) where {dim,M<:AbstractMaterial,G<:AbstractCrossSection}
-        length(nodes) == 2 || throw(ArgumentError("A `Truss` element must have 2 nodes."))
-        new{dim,M,G}(nodes, material, geometry)
-    end
+    label::ScalarWrapper{Symbol}
 end
 
+function Truss(g::G, dim::Integer=3, label=_DEFAULT_LABEL) where {G<:AbstractCrossSection}
+    Truss(Vector{Node{dim,Float64}}(), nothing, g, ScalarWrapper(label))
+end
+function Truss(m::M, g::G, dim::Integer=3, label=_DEFAULT_LABEL) where {M<:AbstractMaterial,G<:AbstractCrossSection}
+    Truss(Vector{Node{dim,Float64}}(), m, g, rWrapper(label))
+end
 num_nodes(::Truss) = 2
 dofs_per_node(::Truss{1}) = [Dof(:uₓ, 1)]
 dofs_per_node(::Truss{2}) = [Dof(:uₓ, 1), Dof(:uⱼ, 3)]

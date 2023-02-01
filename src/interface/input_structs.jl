@@ -8,12 +8,14 @@ include("BoundaryConditions.jl")
 include("CrossSections.jl")
 @reexport using .CrossSections
 
-include("Meshes.jl")
-@reexport using .Meshes
+# include("Meshes.jl")
+# @reexport using .Meshes
 
 include("Elements.jl")
 @reexport using .Elements
 
+include("StructuralModel.jl")
+@reexport using .StructuralModel
 
 
 # struct Node <: AbstractElement end

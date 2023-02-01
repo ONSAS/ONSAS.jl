@@ -14,7 +14,7 @@ using ..Utils: ScalarWrapper
 using Reexport: @reexport
 using StaticArrays: SVector, SMatrix
 
-@reexport import ..Utils: Index, index, dofs, set_index!
+@reexport import ..Utils: Index, index, dofs, label, set_label!, set_index!
 
 export Dof, symbol, is_fixed, fix!
 export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, dimension, set_dof_index!
@@ -22,6 +22,7 @@ export AbstractElement, nodes, num_nodes, dofs_per_node, geometry, material, mat
 export Truss, internal_force, stiffness_matrix
 
 
+const _DEFAULT_LABEL = :no_labelled_element
 const _DEFAULT_INDEX_INT = 0
 const _DEFAULT_INDEX = Index(_DEFAULT_INDEX_INT)
 
@@ -249,6 +250,12 @@ function set_nodes!(e::AbstractElement, nodes::Vector{<:AbstractNode})
         return ArgumentError("The number of nodes must be $(num_nodes(e)).")
     end
 end
+
+label(e::AbstractElement) = e.label
+
+set_label!(e::AbstractElement, label::String) = set_label!(e, Symbol(label))
+
+set_label!(e::AbstractElement, label::Symbol) = e.label[] = label
 
 "Returns the element material."
 material(e::AbstractElement) = e.material

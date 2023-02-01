@@ -7,7 +7,7 @@ module Utils
 using AutoHashEquals: @auto_hash_equals
 using LinearAlgebra: Diagonal
 
-export label, index, set_index!, solve
+export label, set_label!, index, set_index!, solve
 export Index, ScalarWrapper
 export eye, row_vector
 
@@ -15,8 +15,11 @@ export eye, row_vector
 # Empty functions to be overloaded #
 ####################################
 
-"Empty function to extract the label of an object."
+"Returns the label of an object."
 function label end
+
+"Sets the label of an object."
+function set_label! end
 
 "Empty function to solve a problem"
 function solve end

@@ -10,29 +10,37 @@ module Materials
 
 using Reexport: @reexport
 
-@reexport import ..Utils: label
+@reexport import ..Utils: ScalarWrapper, label, set_label!
 
 export AbstractMaterial, model, parameters
 export SVK, lame_parameters
 
 
-""" Abstract supertype for a material.
-The following methods are provided by the interface:
-- `model(m)`      -- return a string with the material model (defaults to the material's type label)
-- `parameters(m)` -- return a tuple with the material parameters
-- `label(m)`      -- return material label
+""" Abstract supertype for all material models.
+
+An `AbstractMaterial` object facilitates the process of defining new material models. 
+Different material models leads to different constitutive laws, internal forces and stiffness matrices.
+
+
+**Common methods:**
+
+* [`model`](@ref)
+* [`parameters`](@ref)
+* [`label`](@ref)
+* [`set_label!`](@ref)
 """
 abstract type AbstractMaterial end
 
 "Returns the material model of a `T`` material type. "
-model(::Type{T}) where {T<:AbstractMaterial} = string(T)
+model(::T) where {T<:AbstractMaterial} = string(T)
 
 function parameters(m::T) where {T<:AbstractMaterial}
     Tuple([getfield(f, n) for n in fieldlabels(T) if fieldtype(T, n) isa Number])
 end
 
-"Returns the material with label `m`."
-label(m::AbstractMaterial) = "no label is implemented, please overload this method."
+label(m::AbstractMaterial) = m.label[]
+set_label!(m::AbstractMaterial, label::Symbol) = m.label[] = label
+set_label!(m::AbstractMaterial, label::String) = set_label!(m, Symbol(label))
 
 const DEFAULT_LABEL = :label_no_assignned
 
@@ -52,10 +60,10 @@ struct SVK <: AbstractMaterial
     E::Number
     ν::Number
     ρ::Union{<:Number,Nothing}
-    label::Symbol
+    label::ScalarWrapper{Symbol}
     function SVK(E, ν, ρ=nothing, label=DEFAULT_LABEL)
 
-        return new(E, ν, ρ, Symbol(label))
+        return new(E, ν, ρ, ScalarWrapper(Symbol(label)))
     end
 end
 
@@ -70,14 +78,8 @@ function SVK(; λ, G, ρ, label)
 end
 
 
-"Returns SVK material model label."
-model(::SVK) = "SVK"
-
 "Returns SVK parameters tuple."
 parameters(m::SVK) = (m.E, m.ν)
-
-"Returns SVK label"
-label(m::SVK) = string(m.label)
 
 " Convert svk material parameters to lamé nomenclature"
 function lame_parameters(svk::SVK)

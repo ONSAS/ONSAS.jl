@@ -79,7 +79,7 @@ Base.@kwdef struct Mesh{D,E,N,T} <: AbstractMesh{D,E,T}
 end
 
 "Returns the nodes of the mesh."
-nodes(m::Mesh) = m.nodes
+# nodes(m::Mesh) = m.nodes
 
 "Returns the node sets of the mesh."
 node_sets(m::Mesh) = m.node_sets
