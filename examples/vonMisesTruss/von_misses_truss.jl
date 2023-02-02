@@ -34,16 +34,16 @@ elements_dict = Dict{String,AbstractElement}(
     "truss_s₂" => Truss(s₂)
 )
 elements = StructuralElements(elements_dict)
-
 # -------------------------------
 # Boundary conditions
 # -------------------------------
 bc₁ = FixedDisplacementBoundaryCondition()
 bc₂ = FⱼLoadBoundaryCondition(Fⱼ)
-boundary_conditions = Dict(
+bcs_dict = Dict(
     "fixed" => bc₁,
     "load" => bc₂
 )
+boundary_conditions = StructuralBoundaryConditions(bcs_dict)
 # -------------------------------
 # Create mesh
 # -------------------------------
@@ -51,16 +51,37 @@ boundary_conditions = Dict(
 n₁ = Node((0.0, 0.0, 0.0))
 n₂ = Node((d, h, 0.0))
 n₃ = Node((2d, 0.0, 0.0))
-nodes = [n₁, n₂, n₃]
-## Connectivity
-conec_nodes = Dict{String,Set}(
-    "fixed" => Set([n₁, n₂]),
-    "load" => Set([n₃])
+vec_nodes = [n₁, n₂, n₃]
+## Elements connectivity
+elem₁_nodes = [n₁, n₂]
+elem₂_nodes = [n₂, n₃]
+vec_conec_elems = [elem₁_nodes, elem₂_nodes]
+mesh = Mesh(vec_nodes, vec_conec_elems)
+
+# -------------------------------
+# Apply MEBI
+# -------------------------------
+# Materials
+material_sets = Dict{String,Set{Int}}(
+    "steel" => Set{Int}([1]),
+    "aluminum" => Set{Int}([2]),
 )
-conec_elems = Dict{String,Set}(
-    "truss_s₁" => Set([[n₁, n₂]]),
-    "truss_s₂" => Set([[n₂, n₃]])
+add_set!(materials, material_sets)
+# Elements
+element_sets = Dict{String,Set{Int}}(
+    "truss_s₁" => Set{Int}([1]),
+    "truss_s₂" => Set{Int}([2]),
 )
+add_set!(elements, element_sets)
+# Boundary conditions
+bc_sets = Dict{String,Set{Int}}(
+    "fixed" => Set{Int}([1, 3]),
+    "load" => Set{Int}([2])
+)
+add_set!(boundary_conditions, bc_sets)
+# -------------------------------
+# Create Structure
+# -------------------------------
+s = Structure(mesh, materials, elements, boundary_conditions)
 
 
-mesh = Mesh(nodes, conec_nodes, conec_elems)

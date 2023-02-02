@@ -14,11 +14,11 @@ using ..Utils: ScalarWrapper
 using Reexport: @reexport
 using StaticArrays: SVector, SMatrix
 
-@reexport import ..Utils: Index, index, dofs, label, set_label!, set_index!
+@reexport import ..Utils: Index, index, dofs, dimension, nodes, label, set_label!, set_index!
 
 export Dof, symbol, is_fixed, fix!
-export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, dimension, set_dof_index!
-export AbstractElement, nodes, num_nodes, dofs_per_node, geometry, material, material_model
+export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, set_dof_index!
+export AbstractElement, num_nodes, dofs_per_node, geometry, material, material_model
 export Truss, internal_force, stiffness_matrix
 
 
@@ -91,7 +91,6 @@ coordinates(n::AbstractNode) = n.x
 "Returns coordinate's type of an entity."
 coordinates_eltype(::AbstractNode{dim,T}) where {dim,T} = T
 
-"Returns dimension."
 dimension(::AbstractNode{dim}) where {dim} = dim
 
 Base.getindex(n::AbstractNode, i::Int) = n.x[i]
@@ -185,8 +184,10 @@ An `AbstractElement` object facilitates the process of evaluating:
 * [`dofs_per_node`](@ref)
 * [`dimension`](@ref)
 * [`geometry`](@ref)
+* [`label`](@ref)
 * [`nodes`](@ref)
 * [`set_nodes!`](@ref)
+* [`set_label!`](@ref)
 
 * [`material`](@ref)
 * [`material_model`](@ref)
@@ -251,10 +252,9 @@ function set_nodes!(e::AbstractElement, nodes::Vector{<:AbstractNode})
     end
 end
 
-label(e::AbstractElement) = e.label
+label(e::AbstractElement) = e.label[]
 
 set_label!(e::AbstractElement, label::String) = set_label!(e, Symbol(label))
-
 set_label!(e::AbstractElement, label::Symbol) = e.label[] = label
 
 "Returns the element material."

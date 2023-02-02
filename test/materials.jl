@@ -44,7 +44,6 @@ const TOLERANCE = 1e-2
     @test model(svk_lame) == "SVK"
     @test parameters(svk_lame)[1] ≈ E atol = TOLERANCE
     @test parameters(svk_lame)[2] ≈ ν atol = TOLERANCE
-    Main.@infiltrate
     @test label(svk_lame) == label_lame
 
 end

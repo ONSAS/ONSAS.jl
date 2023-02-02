@@ -62,11 +62,16 @@ end
     @test values(generic_bc) == generic_values
     @test load_factor_function(generic_bc) == load_fact_generic
     @test label(generic_bc) == generic_bc_label
+    new_label = :new_label
+    set_label!(generic_bc, new_label)
+    @test label(generic_bc) == new_label
 
     # Generic labeled global load boundary condition without load factor function defined
     generic_bc = GlobalLoadBoundaryCondition(dofs=generic_load_dofs, values=generic_values)
     @test load_factor_function(generic_bc) == DEFAULT_LOAD_FACTOR_FUNC
     @test label(generic_bc) == DEFAULT_LABEL
+    set_label!(generic_bc, new_label)
+    @test label(generic_bc) == new_label
 
 
     # Load boundary condition: Moment along `x` axis 
@@ -77,6 +82,7 @@ end
     @test values(Mᵢ_bc) == Mᵢ_val[1]
     @test label(Mᵢ_bc) == DEFAULT_LABEL
     @test load_factor_function(Mᵢ_bc) == Mᵢ_load_factor_func
+
 
     # Load boundary condition: Moment along `y` axis 
     Mⱼ_val = rand(Int, 1)
@@ -94,6 +100,9 @@ end
     @test values(Mₖ_bc) == Mₖ_val[1]
     @test label(Mₖ_bc) == Mₖ_label
     @test load_factor_function(Mₖ_bc) == DEFAULT_LOAD_FACTOR_FUNC
+    set_label!(Mₖ_bc, new_label)
+    @test label(Mₖ_bc) == new_label
+
 
     # Load boundary condition: force along `x` axis 
     Fᵢ_val = rand(Float32, 1)
