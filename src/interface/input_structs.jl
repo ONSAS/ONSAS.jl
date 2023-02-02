@@ -2,6 +2,9 @@
 include("Materials.jl")
 @reexport using .Materials
 
+include("InitialConditions.jl")
+@reexport using .InitialConditions
+
 include("BoundaryConditions.jl")
 @reexport using .BoundaryConditions
 

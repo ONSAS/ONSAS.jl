@@ -4,16 +4,21 @@ Module defining structure entities interface.
 module StructuralModel
 
 using ..Materials: AbstractMaterial
-using ..Elements: AbstractElement
+using ..CrossSections: AbstractCrossSection
+using ..Elements: AbstractElement, AbstractNode, Truss, element_type, geometry, set_material
 using ..BoundaryConditions: AbstractBoundaryCondition, AbstractLoadBoundaryCondition, AbstractDisplacementBoundaryCondition
-using ..Utils: label, set_label!
+using ..Utils: AbstractIndex, ElementIndex, label, set_label!
 using ..Meshes: AbstractMesh, element_nodes
 using Reexport: @reexport
 
-export StructuralDefinitionStruct, StructuralMaterials, StructuralElements,
-    StructuralBoundaryConditions, StructuralInitialConditions, Structure
 
-export sets, add_set!
+export AbstractStructuralMEBI, sets, add_set!
+export StructuralMaterials, get_materials
+export StructuralElements, get_elements
+export StructuralBoundaryConditions, get_dsip_bcs, get_load_bcs
+export StructuralInitialConditions
+export Structure
+
 
 # ======================
 # Model definition
@@ -36,12 +41,12 @@ sets(mebi::AbstractStructuralMEBI) = mebi.sets
 "Adds a new set to the sets."
 function add_set!(
     mebi::AbstractStructuralMEBI,
-    new_set::Dict{String,Set{Int}}
+    new_set::Dict{String,<:Set{<:AbstractIndex}}
 )
     merge!(sets(mebi), new_set)
 end
 
-#Add getindex mat["mat1"] = material 1
+#TODO: Check not repeated keys 
 
 """ Structural materials.
 A `StructuralMaterials` is a collection of `Materials` defining the material models of the structure.
@@ -51,10 +56,10 @@ A `StructuralMaterials` is a collection of `Materials` defining the material mod
 """
 struct StructuralMaterials{M} <: AbstractStructuralMEBI
     vec_mats::Vector{M}
-    sets::Dict{String,Set{Int}}
+    sets::Dict{String,<:Set}
     function StructuralMaterials(
         mats_dict::Dict{String,M},
-        sets::Dict{String,Set{Int}}=Dict{String,Set{Int}}()
+        sets::Dict{String,<:Set}=Dict{String,Set}()
     ) where {M<:AbstractMaterial}
 
         vmats = Vector{M}(undef, 0)
@@ -67,6 +72,28 @@ struct StructuralMaterials{M} <: AbstractStructuralMEBI
     end
 end
 
+get_materials(sm::StructuralMaterials) = sm.vec_mats
+
+function Base.getindex(sm::StructuralMaterials, mat_label::L) where {L<:Union{String,Symbol}}
+    mat_vec = get_materials(sm)
+    mat = filter(m -> label(m) == Symbol(mat_label), mat_vec)
+    isempty(mat) && @warn("The label $mat_label was not found among the structural materials")
+
+    return first(mat)
+end
+
+"Returns material type for a given index"
+function _find_material(sm::StructuralMaterials, i_e::ElementIndex)
+    # Find element material
+    for (label_mat_set, mat_set) in sets(sm)
+        if i_e ∈ mat_set
+            mat_elem = sm[label_mat_set]
+            return mat_elem
+        end
+    end
+    nothing
+end
+
 """ Structural elements.
 A `StructuralElements` is a collection of `Elements` defining the elements types of the structure.
 ### Fields:
@@ -75,10 +102,10 @@ A `StructuralElements` is a collection of `Elements` defining the elements types
 """
 struct StructuralElements{E} <: AbstractStructuralMEBI
     vec_elems::Vector{E}
-    sets::Dict{String,Set{Int}}
+    sets::Dict{String,<:Set}
     function StructuralElements(
         elems_dict::Dict{String,E},
-        sets::Dict{String,Set{Int}}=Dict{String,Set{Int}}()
+        sets::Dict{String,<:Set}=Dict{String,Set{AbstractIndex}}()
     ) where {E<:AbstractElement}
 
         velems = Vector{E}(undef, 0)
@@ -90,6 +117,28 @@ struct StructuralElements{E} <: AbstractStructuralMEBI
         new{E}(velems, sets)
     end
 end
+
+get_elements(se::StructuralElements) = se.vec_elems
+
+function Base.getindex(se::StructuralElements, elem_label::L) where {L<:Union{String,Symbol}}
+    elem_vec = get_elements(se)
+    elems = filter(e -> label(e) == Symbol(elem_label), elem_vec)
+    isempty(elems) && @warn "The label $elem_label was not found among the structural elements"
+    return first(elems)
+end
+
+"Returns material type for a given index"
+function _find_element_type(se::StructuralElements, i::ElementIndex)
+    # Find element elementype
+    for (label_elem_set, elem_set) in sets(se)
+        if i ∈ elem_set
+            elemtype = se[label_elem_set]
+            return elemtype
+        end
+    end
+    nothing
+end
+
 
 
 """ Structural boundary conditions.
@@ -103,10 +152,10 @@ A `StructuralBoundaryConditions` is a collection of `BoundaryConditions` definin
 struct StructuralBoundaryConditions{B} <: AbstractStructuralMEBI
     displacements_bc::Vector{B}
     loads_bc::Vector{B}
-    sets::Dict{String,Set{Int}}
+    sets::Dict{String,<:Set}
     function StructuralBoundaryConditions(
         bc_dict::Dict{String,B},
-        sets::Dict{String,Set{Int}}=Dict{String,Set{Int}}()
+        sets::Dict{String,<:Set}=Dict{String,Set{AbstractIndex}}()
     ) where {B<:AbstractBoundaryCondition}
 
         v_dbc = Vector{B}(undef, 0)
@@ -123,6 +172,20 @@ struct StructuralBoundaryConditions{B} <: AbstractStructuralMEBI
         new{B}(v_dbc, v_lbc, sets)
     end
 end
+
+get_dsip_bcs(se::StructuralBoundaryConditions) = se.displacements_bc
+get_load_bcs(se::StructuralBoundaryConditions) = se.loads_bc
+
+function Base.getindex(bcs::StructuralBoundaryConditions, bc_label::L) where {L<:Union{String,Symbol}}
+    disp_bcs_vec = get_dsip_bcs(bcs)
+    disp_bcs = filter(dbc -> label(dbc) == Symbol(bc_label), disp_bcs_vec)
+    isempty(disp_bcs) || return disp_bcs
+    load_bcs_vec = get_load_bcs(bcs)
+    load_bcs = filter(lbc -> label(lbc) == Symbol(bc_label), load_bcs_vec)
+    isempty(load_bcs) || return load_bcs
+    return @warn "The label $bc_label was not found among the boundary conditions"
+end
+
 
 # TODO: Implement initial conditions struct
 struct StructuralInitialConditions{I} <: AbstractStructuralMEBI end
@@ -146,10 +209,10 @@ struct StructuralInitialConditions{D,V,A} <: AbstractStructuralMEBI
     displacements::Vector{D}
     velocity::Vector{V}
     acceleration::Vector{A}
-    sets::Dict{String,Set{Int}}
+    sets::Dict{String,Set{AbstractIndex}}
     function StructuralInitialConditions(
         ic_dict::Dict{String,I},
-        sets::Dict{String,Set{Int}}=Dict{String,Set{Int}}()
+        sets::Dict{String,Set{AbstractIndex}}=Dict{String,Set{AbstractIndex}}()
     ) where {I<:AbstractElement}
 
         v_dic = Vector{D}(undef, 0)
@@ -211,42 +274,64 @@ An `Structure` object facilitates the process of asse
 - `initial` -- Stores a list with initial conditions. 
 """
 struct Structure{D,M,E,B,I}
-    mats::AbstractVector{M}
-    elements::AbstractVector{E}
-    bcs::AbstractVector{B}
-    initial::AbstractVector{I}
     mesh::AbstractMesh{D}
-end
+    materials::StructuralMaterials{M}
+    elements::StructuralElements{E}
+    bcs::StructuralBoundaryConditions{B}
+    init::StructuralInitialConditions{I}
+    function Structure(
+        mesh::AbstractMesh{D},
+        mats::StructuralMaterials{M},
+        elems::StructuralElements{E},
+        bcs::StructuralBoundaryConditions{B},
+        init::StructuralInitialConditions{I}=StructuralInitialConditions{Nothing}()
+    ) where {D,M,E,B,I}
 
 
-function Structure(
-    mesh::AbstractMesh{D},
-    mats::StructuralMaterials{M},
-    elements::StructuralElements{E},
-    bcs::StructuralBoundaryConditions{B},
-    init::StructuralInitialConditions{I}=StructuralInitialConditions{Nothing}()
-) where {D,M,E,B,I}
+        # Create elements and push them into the mesh
+        _create_elements!(mesh, mats, elems)
 
-    Main.@infiltrate
+        # Apply bc
+        _apply_bcs!(mesh, bcs)
 
-    # set_mats = set(mats)
-    # set_elements = set(elements)
-    # set_elements = set(bcs)
-    for (e_nodes, i) in enumerate(element_nodes(mesh)) # loop over elements
-        for (label_mat_set, set) in mats
-            if i ∈ set
-                break
-            end
-            mat_label = label_mat_set
-            mat_e = set(materials)[mat_label]
-            # element_material_label = [mat  if i ∈ set]            
-        end
 
+        return new{D,M,E,B,I}(mesh, mats, elems, bcs, init)
     end
-    # Structure{D,M,E,B,I}(mats)
-    return nothing
 end
 
 
+"Creates a new element given a pre element (without material) defined in the input"
+function _create_elements!(
+    mesh::AbstractMesh,
+    mats::StructuralMaterials,
+    elems::StructuralElements
+)
+
+    for (i, e_nodes) in enumerate(element_nodes(mesh)) # loop over elements
+
+        e_mat = _find_material(mats, ElementIndex(i))
+        pre_element = _find_element_type(elems, ElementIndex(i))
+        e = _create_element(pre_element, e_mat, e_nodes)
+        push!(mesh, e)
+    end
+
+end
+
+"Function to assign material to a truss with a given pre_element"
+function _create_element(pre_element::Truss, m::AbstractMaterial, nodes::AbstractVector{<:AbstractNode})
+    element_type(pre_element)(nodes, m, geometry(pre_element), pre_element.label)
+end
+
+"Applies nodal and element boundary conditions to the mesh"
+function _apply_bcs!(mesh::AbstractMesh, bcs::StructuralBoundaryConditions)
+
+    for (label, set) in sets(bcs)
+        bc = bcs[label]
+        for index in set
+            push!(mesh[index], bc...)
+        end
+    end
+
+end
 
 end # module

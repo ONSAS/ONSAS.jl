@@ -10,21 +10,24 @@ module Elements
 using ..Materials: AbstractMaterial
 using ..CrossSections: AbstractCrossSection, area
 using ..BoundaryConditions: AbstractBoundaryCondition
-using ..Utils: ScalarWrapper
+using ..InitialConditions: AbstractInitialCondition
+using ..Utils: ScalarWrapper, DofIndex, ElementIndex, NodeIndex
 using Reexport: @reexport
 using StaticArrays: SVector, SMatrix
 
-@reexport import ..Utils: Index, index, dofs, dimension, nodes, label, set_label!, set_index!
+@reexport import ..Utils: index, dofs, dimension, nodes, label, set_label!, set_index!
 
 export Dof, symbol, is_fixed, fix!
-export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, set_dof_index!
+export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, element_type, set_dof_index!
 export AbstractElement, num_nodes, dofs_per_node, geometry, material, material_model
-export Truss, internal_force, stiffness_matrix
+export internal_force, stiffness_matrix
 
 
 const _DEFAULT_LABEL = :no_labelled_element
 const _DEFAULT_INDEX_INT = 0
-const _DEFAULT_INDEX = Index(_DEFAULT_INDEX_INT)
+const _DEFAULT_DOF_INDEX = DofIndex(_DEFAULT_INDEX_INT)
+const _DEFAULT_NODE_INDEX = NodeIndex(_DEFAULT_INDEX_INT)
+const _DEFAULT_ELEMENT_INDEX = ElementIndex(_DEFAULT_INDEX_INT)
 
 """ Degree of freedom struct.
 This is a scalar degree of freedom of the structure.
@@ -35,11 +38,11 @@ This is a scalar degree of freedom of the structure.
 """
 struct Dof
     symbol::Symbol
-    index::Index
+    index::DofIndex
     is_fixed::ScalarWrapper{Bool}
 end
 
-Dof(symbol::Symbol, index::Integer=_DEFAULT_INDEX_INT, is_fixed::Bool=false) = Dof(symbol, Index(index), ScalarWrapper(is_fixed))
+Dof(symbol::Symbol, index::Integer=_DEFAULT_INDEX_INT, is_fixed::Bool=false) = Dof(symbol, DofIndex(index), ScalarWrapper(is_fixed))
 Base.:(==)(d1::Dof, d2::Dof) = d1.symbol == d2.symbol && d1.index == d2.index
 
 
@@ -48,7 +51,7 @@ index(d::Dof) = d.index
 
 "Sets a new index to the degree of freedom."
 set_index!(d::Dof, i::Int) = d.index[] = i
-set_index!(d::Dof, idx::Index) = d.index = idx
+set_index!(d::Dof, idx::DofIndex) = d.index = idx
 
 "Returns the degree of freedom symbol."
 symbol(d::Dof) = d.symbol
@@ -74,8 +77,8 @@ An `AbstractNode` object is a point in space.
 * [`boundary_conditions`](@ref)
 * [`coordinates`](@ref)
 * [`coordinates_eltype`](@ref)
-* [`index`](@ref)
 * [`dimension`](@ref)
+* [`index`](@ref)
 * [`dofs`](@ref)
 """
 
@@ -102,20 +105,19 @@ dofs(n::Vector{<:AbstractNode}) = vcat(dofs.(n)...)
 
 index(n::AbstractNode) = n.index[]
 
-"Sets node's index."
-set_index!(n::AbstractNode, id::Int) = n.index[] = id
+_nodes2dofs(idx::Integer, dim::Integer) = (idx-1)*2dim+1:(idx)*2dim
 
-"Sets node dofs indexes."
-function set_dof_index!(n::AbstractNode, indexes::I) where {I<:Union{Vector{<:Integer},AbstractRange{<:Integer}}}
+function set_index!(n::AbstractNode{dim}, idx::NodeIndex) where {dim}
     ndofs = dofs(n)
-    length(ndofs) != length(indexes) && throw(ArgumentError("Indexes and dofs length mismatch"))
-    [set_index!(dof, indexes[i]) for (i, dof) in enumerate(ndofs)]
-    return ndofs
+    node_dof_indexes = _nodes2dofs(idx[], dim)
+    [set_index!(dof, node_dof_indexes[i]) for (i, dof) in enumerate(ndofs)]
+    return n
 end
+
+set_index!(n::AbstractNode, i::Integer) = set_index!(n, NodeIndex(i))
 
 "Fixes a node dofs"
 fix!(n::AbstractNode) = [fix!(dof) for dof in dofs(n)]
-
 
 #TODO: generalize to any field type and dimension (:u, dim)
 "Maps dimension of the node to local degrees of freedom."
@@ -141,25 +143,31 @@ A `Node` is a point in space.
 - `x`     -- stores the coordinates.
 - `dofs`  -- stores the node degrees of freedom.
 - `index` -- stores the node index in the mesh.
+- `bc`    -- stores the boundary conditions applied on the node.
+- `ic`    -- stores the initial conditions applied on the node.
 """
 mutable struct Node{dim,T} <: AbstractNode{dim,T}
     x::AbstractArray{T}
     dofs::Vector{<:Dof}
-    index::Index
+    index::NodeIndex
     bc::Vector{<:AbstractBoundaryCondition}
-    function Node(x::AbstractArray{T}, dofs::Vector{<:Dof}, index::Index, bc::Vector{<:AbstractBoundaryCondition}) where {T}
-        new{length(x),T}(x, dofs, index, bc)
+    ic::Vector{<:AbstractInitialCondition}
+    function Node(
+        x::AbstractArray{T}, dofs::Vector{<:Dof}, index::NodeIndex,
+        bc::Vector{<:AbstractBoundaryCondition},
+        ic::Vector{<:AbstractInitialCondition}) where {T}
+        new{length(x),T}(x, dofs, index, bc, ic)
     end
 end
 
 Node(x::NTuple{dim,T}, index::Integer, bc::Vector{<:AbstractBoundaryCondition}) where {dim,T} = Node(SVector(x), _dim_to_nodal_dofs(length(x)), Index(index), bc)
-# Empty bc constructors
+# Empty bc and ic constructors
 empty_bc = Vector{AbstractBoundaryCondition}()
-Node(x::NTuple{dim,T}, index::Index) where {dim,T} = Node(SVector(x), _dim_to_nodal_dofs(length(x)), index, empty_bc)
-Node(x::NTuple{dim,T}, index::Integer=_DEFAULT_INDEX_INT) where {dim,T} = Node(SVector(x), _dim_to_nodal_dofs(length(x)), Index(index), empty_bc)
-Node(x::AbstractArray{T}, index::Index) where {T} = Node(x, _dim_to_nodal_dofs(length(x)), index, empty_bc)
-Node(x::AbstractArray{T}, index::Integer=_DEFAULT_INDEX_INT) where {T} = Node(x, _dim_to_nodal_dofs(length(x)), Index(index), empty_bc)
-
+empty_ic = Vector{AbstractInitialCondition}()
+Node(x::NTuple{dim,T}, index::NodeIndex) where {dim,T} = Node(SVector(x), _dim_to_nodal_dofs(length(x)), index, empty_bc, empty_ic)
+Node(x::NTuple{dim,T}, index::Integer=_DEFAULT_INDEX_INT) where {dim,T} = Node(SVector(x), _dim_to_nodal_dofs(length(x)), NodeIndex(index), empty_bc, empty_ic)
+Node(x::AbstractArray{T}, index::NodeIndex) where {T} = Node(x, _dim_to_nodal_dofs(length(x)), index, empty_bc, empty_ic)
+Node(x::AbstractArray{T}, index::Integer=_DEFAULT_INDEX_INT) where {T} = Node(x, _dim_to_nodal_dofs(length(x)), NodeIndex(index), empty_bc, empty_ic)
 
 # =================
 # Abstract Element
@@ -184,10 +192,13 @@ An `AbstractElement` object facilitates the process of evaluating:
 * [`dofs_per_node`](@ref)
 * [`dimension`](@ref)
 * [`geometry`](@ref)
+* [`index`](@ref)
 * [`label`](@ref)
 * [`nodes`](@ref)
 * [`set_nodes!`](@ref)
 * [`set_label!`](@ref)
+* [`set_index!`](@ref)
+* [`element_type`](@ref)
 
 * [`material`](@ref)
 * [`material_model`](@ref)
@@ -203,6 +214,7 @@ An `AbstractElement` object facilitates the process of evaluating:
 
 
 **Common fields:**
+* index
 * nodes
 * material
 * geometry
@@ -228,6 +240,7 @@ The following methods can be implemented to provide additional functionality:
 * `strain`                  - function that returns the element stress.
 
 """
+Base.push!(e::AbstractElement, bc::AbstractBoundaryCondition) = push!(e.bc, bc)
 
 coordinates(e::AbstractElement) = row_vector(coordinates.(nodes(e)))
 
@@ -240,6 +253,12 @@ dimension(::AbstractElement{dim}) where {dim} = dim
 
 "Returns the geometrical properties of the element"
 geometry(e::AbstractElement) = e.geometry
+
+index(e::AbstractElement) = e.index
+
+set_index!(e::AbstractElement, i::Int) = set_index(e, ElementIndex(i))
+
+set_index!(e::AbstractElement, idx::ElementIndex) = e.index = idx
 
 nodes(e::AbstractElement) = e.nodes
 
@@ -255,6 +274,7 @@ end
 label(e::AbstractElement) = e.label[]
 
 set_label!(e::AbstractElement, label::String) = set_label!(e, Symbol(label))
+
 set_label!(e::AbstractElement, label::Symbol) = e.label[] = label
 
 "Returns the element material."

@@ -1,6 +1,8 @@
 using ..Materials: SVK
 using ..Utils: ScalarWrapper, eye, row_vector
 
+export Truss
+
 """
 A `Truss` represents a 2D element that transmits axial force only.
 ### Fields:
@@ -15,16 +17,22 @@ struct Truss{dim,M,G} <: AbstractElement{dim,M}
     label::ScalarWrapper{Symbol}
 end
 
+
 function Truss(g::G, dim::Integer=3, label=_DEFAULT_LABEL) where {G<:AbstractCrossSection}
     Truss(Vector{Node{dim,Float64}}(), nothing, g, ScalarWrapper(label))
 end
+
 function Truss(m::M, g::G, dim::Integer=3, label=_DEFAULT_LABEL) where {M<:AbstractMaterial,G<:AbstractCrossSection}
-    Truss(Vector{Node{dim,Float64}}(), m, g, rWrapper(label))
+    Truss(Vector{Node{dim,Float64}}(), m, g, ScalarWrapper(label))
 end
+
+element_type(::Truss) = Truss
 num_nodes(::Truss) = 2
 dofs_per_node(::Truss{1}) = [Dof(:uₓ, 1)]
 dofs_per_node(::Truss{2}) = [Dof(:uₓ, 1), Dof(:uⱼ, 3)]
 dofs_per_node(::Truss{3}) = [Dof(:uₓ, 1), Dof(:uⱼ, 3), Dof(:uₖ, 5)]
+
+set_material(t::Truss, m::M) where {M<:AbstractMaterial} = element_type(t)(m, geometry(t), dimension(t), label(t))
 
 function _aux_matrices(dim::Integer)
     Bdif = hcat(-eye(dim), eye(dim))
