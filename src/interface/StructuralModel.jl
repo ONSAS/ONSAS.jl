@@ -11,14 +11,15 @@ using ..Utils: label, set_label!
 using ..Meshes: AbstractMesh, element_nodes
 using Reexport: @reexport
 
+@reexport import ..Meshes: elements
+@reexport import ..Elements: nodes
 
 export AbstractStructuralMEBI, sets, add_set!
-export StructuralMaterials, get_materials
-export StructuralElements, get_elements
-export StructuralBoundaryConditions, get_dsip_bcs, get_load_bcs
+export StructuralMaterials, materials
+export StructuralElements
+export StructuralBoundaryConditions, disp_bcs, load_bcs
 export StructuralInitialConditions
-export Structure
-
+export Structure, mesh
 
 # ======================
 # Model definition
@@ -72,10 +73,10 @@ struct StructuralMaterials{M} <: AbstractStructuralMEBI
     end
 end
 
-get_materials(sm::StructuralMaterials) = sm.vec_mats
+materials(sm::StructuralMaterials) = sm.vec_mats
 
 function Base.getindex(sm::StructuralMaterials, mat_label::L) where {L<:Union{String,Symbol}}
-    mat_vec = get_materials(sm)
+    mat_vec = materials(sm)
     mat = filter(m -> label(m) == Symbol(mat_label), mat_vec)
     isempty(mat) && @warn("The label $mat_label was not found among the structural materials")
 
@@ -118,10 +119,10 @@ struct StructuralElements{E} <: AbstractStructuralMEBI
     end
 end
 
-get_elements(se::StructuralElements) = se.vec_elems
+elements(se::StructuralElements) = se.vec_elems
 
 function Base.getindex(se::StructuralElements, elem_label::L) where {L<:Union{String,Symbol}}
-    elem_vec = get_elements(se)
+    elem_vec = elements(se)
     elems = filter(e -> label(e) == Symbol(elem_label), elem_vec)
     isempty(elems) && @warn "The label $elem_label was not found among the structural elements"
     return first(elems)
@@ -173,16 +174,16 @@ struct StructuralBoundaryConditions{B} <: AbstractStructuralMEBI
     end
 end
 
-get_dsip_bcs(se::StructuralBoundaryConditions) = se.displacements_bc
-get_load_bcs(se::StructuralBoundaryConditions) = se.loads_bc
+disp_bcs(se::StructuralBoundaryConditions) = se.displacements_bc
+load_bcs(se::StructuralBoundaryConditions) = se.loads_bc
 
 function Base.getindex(bcs::StructuralBoundaryConditions, bc_label::L) where {L<:Union{String,Symbol}}
-    disp_bcs_vec = get_dsip_bcs(bcs)
-    disp_bcs = filter(dbc -> label(dbc) == Symbol(bc_label), disp_bcs_vec)
-    isempty(disp_bcs) || return disp_bcs
-    load_bcs_vec = get_load_bcs(bcs)
-    load_bcs = filter(lbc -> label(lbc) == Symbol(bc_label), load_bcs_vec)
-    isempty(load_bcs) || return load_bcs
+    disp_bcs_vec = disp_bcs(bcs)
+    disp_bcs_label_vec = filter(dbc -> label(dbc) == Symbol(bc_label), disp_bcs_vec)
+    isempty(disp_bcs_label_vec) || return first(disp_bcs_label_vec)
+    load_bcs_vec = load_bcs(bcs)
+    load_bcs_label_vec = filter(lbc -> label(lbc) == Symbol(bc_label), load_bcs_vec)
+    isempty(load_bcs_label_vec) || return first(load_bcs_label_vec)
     return @warn "The label $bc_label was not found among the boundary conditions"
 end
 
@@ -249,36 +250,27 @@ elements, initial and boundary conditions to the mesh.
 
 * [`nodes`](@ref)
 * [`elements`](@ref)
-
-* [`materials`](@ref)
-* [`boundary_conditions`](@ref)
-* [`initial_conditions`](@ref)
-
-* [`displacements`](@ref)
-* [`velocities`](@ref)
-* [`accelerations`](@ref)
-
-* [`tangent_matrices`](@ref)
-* [`forces_vectors`](@ref)
+* [`mesh`](@ref)
 
 """
 abstract type AbstractStructure{M,E,B,I} end
 
 
 """
-An `Structure` object facilitates the process of asse 
+An `Structure` object facilitates the process of assembling and creating the structural analysis. 
 ### Fields:
-- `mats` -- Stores a list with each material defined object. 
-- `elements` -- Stores a list with elements. 
-- `bcs` -- Stores a list with different boundary conditions. 
-- `initial` -- Stores a list with initial conditions. 
+- `mesh`        -- Stores the structure mesh. 
+- `materials`   -- Stores the types of material models considered in the structure. 
+- `elements`    -- Stores the types of elements considered in the structure.
+- `bcs`         -- Stores the types of boundary conditions in the structure.
+- `ics`     -- Stores the types of initial conditions in the structure.
 """
 struct Structure{D,M,E,B,I}
     mesh::AbstractMesh{D}
     materials::StructuralMaterials{M}
     elements::StructuralElements{E}
     bcs::StructuralBoundaryConditions{B}
-    init::StructuralInitialConditions{I}
+    ics::StructuralInitialConditions{I}
     function Structure(
         mesh::AbstractMesh{D},
         mats::StructuralMaterials{M},
@@ -298,7 +290,6 @@ struct Structure{D,M,E,B,I}
         return new{D,M,E,B,I}(mesh, mats, elems, bcs, init)
     end
 end
-
 
 "Creates a new element given a pre element (without material) defined in the input"
 function _create_elements!(
@@ -333,5 +324,14 @@ function _apply_bcs!(mesh::AbstractMesh, bcs::StructuralBoundaryConditions)
     end
 
 end
+
+"Returns the mesh"
+mesh(s::Structure) = s.mesh
+
+nodes(s::Structure) = nodes(mesh(s))
+elements(s::Structure) = elements(mesh(s))
+
+Base.getindex(s::Structure, i::AbstractIndex) = mesh(s)[i]
+
 
 end # module

@@ -16,3 +16,6 @@ end
     include("elements.jl")
 end
 
+@safetestset "ONSAS.StructuralModel" begin
+    include("structural_model.jl")
+end
