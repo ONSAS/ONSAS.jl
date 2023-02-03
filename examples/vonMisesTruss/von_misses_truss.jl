@@ -77,7 +77,7 @@ add_set!(s_boundary_conditions, bc_sets)
 # -------------------------------
 # Create Structure
 # -------------------------------
-s = Structure(mesh, s_materials, s_elements, s_boundary_conditions)
+#s = Structure(mesh, s_materials, s_elements, s_boundary_conditions)
 
 # curr_state = ModelState(s, save_vars = (:u,:udot,:udotdot))
 
