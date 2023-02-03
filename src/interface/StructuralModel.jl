@@ -5,9 +5,9 @@ module StructuralModel
 
 using ..Materials: AbstractMaterial
 using ..CrossSections: AbstractCrossSection
-using ..Elements: AbstractElement, AbstractNode, Truss, element_type, geometry, set_material
+using ..Elements
 using ..BoundaryConditions: AbstractBoundaryCondition, AbstractLoadBoundaryCondition, AbstractDisplacementBoundaryCondition
-using ..Utils: AbstractIndex, ElementIndex, label, set_label!
+using ..Utils: label, set_label!
 using ..Meshes: AbstractMesh, element_nodes
 using Reexport: @reexport
 

@@ -4,14 +4,14 @@ Module defining meshes entities interface.
 module Meshes
 
 using Reexport: @reexport
-using ..Utils: NodeIndex, ElementIndex, row_vector
-using ..Elements: AbstractElement, AbstractNode, set_index!
+using ..Utils: row_vector
+using ..Elements: AbstractElement, AbstractNode, NodeIndex, ElementIndex, set_index!
 
+@reexport import ..BoundaryConditions: dofs
+@reexport import ..Elements: coordinates_eltype, nodes
+@reexport import ..Utils: dimension
 
-import ..Elements: coordinates_eltype
-import ..Utils: dimension, dofs, elements, nodes
-
-export Mesh, node_sets, element_nodes, element_sets, element_types, elements, connectivity
+export Mesh, coordinates_eltype, dimension, elements, element_nodes, element_sets, nodes, node_sets
 
 # ======================
 # Abstract Mesh
@@ -65,7 +65,10 @@ node_sets(m::AbstractMesh) = m.node_sets
 Base.push!(m::AbstractMesh, e::AbstractElement) = push!(elements(m), e)
 
 "Adds a new `Node` to the mesh"
-Base.push!(m::AbstractMesh, n::AbstractNode) = push!(nodes(m), n)
+function Base.push!(m::AbstractMesh, n::AbstractNode)
+    set_index!(n, length(nodes(m)) + 1)
+    push!(nodes(m), n)
+end
 
 Base.getindex(m::AbstractMesh, i_e::ElementIndex) = elements(m)[i_e[]]
 Base.getindex(m::AbstractMesh, i_e::NodeIndex) = nodes(m)[i_e[]]
@@ -108,8 +111,6 @@ struct Mesh{D,E<:AbstractElement,N<:AbstractNode,T} <: AbstractMesh{D,T}
         # Add Elements
         for (i, e) in enumerate(elements)
             set_index!(e, i)
-            # Check nodes ∈ nodes
-            [n ∈ vnodes || throw(ArgumentError("The element node ∉ nodes(mesh)")) for n in nodes(elements)]
         end
         return new{D,E,N,T}(vnodes, element_nodes, elements, node_sets, element_sets)
     end

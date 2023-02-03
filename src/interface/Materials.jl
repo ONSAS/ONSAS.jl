@@ -12,7 +12,7 @@ using Reexport: @reexport
 
 @reexport import ..Utils: ScalarWrapper, label, set_label!
 
-export AbstractMaterial, model, parameters
+export AbstractMaterial, parameters
 export SVK, lame_parameters
 
 
@@ -24,16 +24,13 @@ Different material models leads to different constitutive laws, internal forces 
 
 **Common methods:**
 
-* [`model`](@ref)
 * [`parameters`](@ref)
 * [`label`](@ref)
 * [`set_label!`](@ref)
 """
 abstract type AbstractMaterial end
 
-"Returns the material model of a `T`` material type. "
-model(::T) where {T<:AbstractMaterial} = string(T)
-
+"Returns the parameters of type `Number`."
 function parameters(m::T) where {T<:AbstractMaterial}
     Tuple([getfield(f, n) for n in fieldlabels(T) if fieldtype(T, n) isa Number])
 end

@@ -7,27 +7,84 @@ Module defining the elements implemented.
 """
 module Elements
 
+using AutoHashEquals: @auto_hash_equals
+using Reexport: @reexport
+using StaticArrays: SVector, SMatrix
+
 using ..Materials: AbstractMaterial
 using ..CrossSections: AbstractCrossSection, area
 using ..BoundaryConditions: AbstractBoundaryCondition
 using ..InitialConditions: AbstractInitialCondition
-using ..Utils: ScalarWrapper, DofIndex, ElementIndex, NodeIndex
-using Reexport: @reexport
-using StaticArrays: SVector, SMatrix
+using ..Utils: ScalarWrapper
+@reexport import ..Utils: dimension, label, set_label!
+@reexport import ..BoundaryConditions: dofs
 
-@reexport import ..Utils: index, dofs, dimension, nodes, label, set_label!, set_index!
-
+export AbstractIndex, ElementIndex, NodeIndex, DofIndex, index, set_index!
 export Dof, symbol, is_fixed, fix!
-export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, element_type, set_dof_index!
+export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, element_type, dofs
 export AbstractElement, num_nodes, dofs_per_node, geometry, material, material_model
 export internal_force, stiffness_matrix
 
 
 const _DEFAULT_LABEL = :no_labelled_element
+
+#############
+# Indexes  #
+#############
+
+""" Abstract supertype for all indexes.
+
+The following methods are provided by the interface:
+
+
+**Common methods:**
+
+* [`Base.getindex`](@ref)
+* [`Base.setindex!`](@ref)
+* [`Base.isequal`](@ref)
+
+"""
+
+abstract type AbstractIndex{I} end
+
+@inline Base.getindex(v::AbstractVector, i::AbstractIndex) = v[i[]]
+@inline Base.getindex(i::AbstractIndex) = i.id
+@inline Base.setindex!(i::AbstractIndex, id) = i.id = id # callable with i[] = id
+@inline Base.isequal(i₁::AbstractIndex, i₂::AbstractIndex) = i₁[] == i₂[]
+@inline Base.:(==)(i₁::AbstractIndex, i₂::AbstractIndex) = isequal(i₁, i₂)
+
+"""
+`Dof` identification number.
+### Fields:
+`id` -- integer number. 
+"""
+@auto_hash_equals mutable struct DofIndex{I<:Integer} <: AbstractIndex{I}
+    id::I
+end
+
+"""
+`Element` identification number.
+### Fields:
+`id` -- integer number. 
+"""
+@auto_hash_equals mutable struct ElementIndex{I<:Integer} <: AbstractIndex{I}
+    id::I
+end
+
+"""
+`Node` identification number.
+### Fields:
+`id` -- index number. 
+"""
+@auto_hash_equals mutable struct NodeIndex{I<:Integer} <: AbstractIndex{I}
+    id::I
+end
+
+# ========================
+# Degree of freedom (Dof)
+# ========================
 const _DEFAULT_INDEX_INT = 0
 const _DEFAULT_DOF_INDEX = DofIndex(_DEFAULT_INDEX_INT)
-const _DEFAULT_NODE_INDEX = NodeIndex(_DEFAULT_INDEX_INT)
-const _DEFAULT_ELEMENT_INDEX = ElementIndex(_DEFAULT_INDEX_INT)
 
 """ Degree of freedom struct.
 This is a scalar degree of freedom of the structure.
@@ -66,6 +123,8 @@ fix!(d::Dof) = d.is_fixed[] = true
 # Abstract Node
 # =================
 
+const _DEFAULT_NODE_INDEX = NodeIndex(_DEFAULT_INDEX_INT)
+const _DEFAULT_ELEMENT_INDEX = ElementIndex(_DEFAULT_INDEX_INT)
 abstract type AbstractNode{dim,T} end
 
 """ Abstract supertype for all nodes.
@@ -111,14 +170,17 @@ function set_index!(n::AbstractNode{dim}, idx::NodeIndex) where {dim}
     ndofs = dofs(n)
     node_dof_indexes = _nodes2dofs(idx[], dim)
     [set_index!(dof, node_dof_indexes[i]) for (i, dof) in enumerate(ndofs)]
+    n.index[] = idx[]
     return n
 end
 
 set_index!(n::AbstractNode, i::Integer) = set_index!(n, NodeIndex(i))
 
 "Fixes a node dofs"
-fix!(n::AbstractNode) = [fix!(dof) for dof in dofs(n)]
-
+function fix!(n::AbstractNode)
+    [fix!(dof) for dof in dofs(n)]
+    return n
+end
 #TODO: generalize to any field type and dimension (:u, dim)
 "Maps dimension of the node to local degrees of freedom."
 function _dim_to_nodal_dofs(dim::Int)
