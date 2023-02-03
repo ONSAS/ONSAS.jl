@@ -1,7 +1,7 @@
 ## Von Mises truss example problem
-
 using ONSAS
-
+using StaticArrays: SVector, SMatrix
+using SparseArrays
 ## scalar parameters
 E = 2e11  # Young modulus in Pa
 ν = 0.0  # Poisson's modulus
@@ -10,175 +10,91 @@ ang = 65 # truss angle in degrees
 L = 2 # Length in m 
 d = L * cos(deg2rad(65))   # vertical distance in m
 h = L * sin(deg2rad(65))
-d = 0.0  # horizontal distance in m
 # Fx = 0     # horizontal load in N
 Fⱼ = -3e8  # vertical   load in N
+# -------------------------------
+# Create mesh
+# -------------------------------
+## Nodes
+n₁ = Node((0.0, 0.0, 0.0))
+n₂ = Node((d, h, 0.0))
+n₃ = Node((2d, 0.0, 0.0))
+vec_nodes = [n₁, n₂, n₃]
+## Elements connectivity
+elem₁_nodes = [n₁, n₂]
+elem₂_nodes = [n₂, n₃]
+vec_conec_elems = [elem₁_nodes, elem₂_nodes]
+mesh = Mesh(vec_nodes, vec_conec_elems)
 # -------------------------------
 # Materials
 # -------------------------------
 steel = SVK(E, ν)
-materials = [steel]
+aluminum = SVK(E / 3, ν)
+materials_dict = Dict("steel" => steel, "aluminum" => aluminum)
+s_materials = StructuralMaterials(materials_dict)
+# Sets
+m_sets = Dict(
+    "steel" => Set([ElementIndex(1)]),
+    "aluminum" => Set([ElementIndex(2)]),
+)
+add_set!(s_materials, m_sets)
 # -------------------------------
 # Geometries
 # -------------------------------
 ## Cross section
-dim = sqrt(A)
-s = Square(dim)
-## Nodes
-n₁ = Node((0.0, 0.0))
-n₂ = Node((d, h))
-n₃ = Node((2d, 0.0))
+a = sqrt(A)
+s₁ = Square(a)
+s₂ = Square(2a)
+# -------------------------------
+# Elements
+# -------------------------------
+elements_dict = Dict{String,AbstractElement}(
+    "truss_s₁" => Truss(s₁),
+    "truss_s₂" => Truss(s₂)
+)
+s_elements = StructuralElements(elements_dict)
+# Sets
+e_sets = Dict(
+    "truss_s₁" => Set([ElementIndex(1)]),
+    "truss_s₂" => Set([ElementIndex(2)]),
+)
+add_set!(s_elements, e_sets)
 # -------------------------------
 # Boundary conditions
 # -------------------------------
 bc₁ = FixedDisplacementBoundaryCondition()
 bc₂ = FⱼLoadBoundaryCondition(Fⱼ)
-push!([n₁, n₃], bc₁)
-push!([n₂], bc₂)
+bcs_dict = Dict(
+    "fixed" => bc₁,
+    "load" => bc₂
+)
+s_boundary_conditions = StructuralBoundaryConditions(bcs_dict)
+bc_sets = Dict(
+    "fixed" => Set([NodeIndex(1), NodeIndex(3)]),
+    "load" => Set([NodeIndex(2)])
+)
+add_set!(s_boundary_conditions, bc_sets)
 # -------------------------------
-# Elements
+# Create Structure
 # -------------------------------
-t₁ = Truss([n₁, n₂], steel, s)
-# -------------------------------
-# Test internal force
-# -------------------------------
-u_e = [[0, 0], [0, 0]]
-@show K₁ = stiffness_matrix(t₁, u_e)
-@show f₁ = internal_force(t₁, u_e)
+s = Structure(mesh, s_materials, s_elements, s_boundary_conditions)
+
+# curr_state = ModelState(s, save_vars = (:u,:udot,:udotdot))
+
+# struct StaticAnalysis <: StrucutralAnalysis end 
+
+# sol = solve(StaticAnalysis(s,load_factors_vec = [1:10]), NR(tolf,tolr) )
+
+# sol = solve(DynamicAnalysis(s), Newmark(tolf,tolr) )
 
 
-
-#=
-
-
-Section = Rectangle(dim, dim)
-Square_section = CrossSection(Section)
-## Geometries
-node_geometry = Geometry(Node())
-truss_geometry = Geometry(Truss(), Square_section)
-
-Geometries = [node_geometry, truss_geometry]
-# -------------------------------
-
-# -------------------------------
-# BoundaryConditions
-fixed_support = DispsBoundaryCondition([1, 3, 5], zeros(3))
-y_support = DispsBoundaryCondition([3], [0.0])
-# load_and_support = DispsBoundaryCondition([3], [0.0], "my_nodal_load")
-
-function my_nodal_load(solution::ModelSolution, properties::ModelProperties)
-    num_nodes = size(properties.mesh.nodes_coords, 1)
-    f_ext = zeros(6 * num_nodes)
-    f_ext[6+5] = -1e3 * solution.time
-    return f_ext
-end
-
-Fz = -1e3
-loadsBaseVals = [0, 0, 0, 0, -1e3, 0]
-loadsCoordSystem = "Global"
-LoadsBC = [LoadsBoundaryCondition(loadsBaseVals, loadsCoordSystem)]
-
-DofsBC = [fixed_support, y_support]
-# -------------------------------
+# # sol = solve(DynamAnalysis(s),Newmark(),last_state  )
 
 
-# -------------------------------
-# InitialConditions
-IC = []
-# -------------------------------
+# sol.hist_states = []
 
 
-# -------------------------------
-# Mesh
+# function solve()
+#     curr_state = __init()
+#     _solve()
 
-# The coordinate matrix is given by
-nodal_coords = [0.0 0.0 0.0
-    d 0.0 h
-    2d 0.0 0.0]
-
-elem_nodal_connec = [[1], [2], [3], [1, 2], [2, 3]]
-
-# matrix with MGBI indexes of each element (on each row)
-MGBIValsMat = [0 1 0 1 0 # no material / first geometry / load BC / supportBC /no IC
-    0 1 1 2 0
-    1 2 0 0 0
-    2 2 0 0 0]
-
-MGBIVec = [1, 2, 1, 3, 4]
-
-StrMesh = Mesh(nodal_coords, elem_nodal_connec, MGBIValsMat, MGBIVec)
-# -------------------------------
-StrConvergenceSettings = ConvergenceSettings()
-Algorithm = NewtonRaphson(1.0, 1.0)
-
-initial_solution, model_properties = ONSAS_init(Materials, Geometries, LoadsBC, DofsBC, IC, StrMesh, StrConvergenceSettings, Algorithm)
-stop
-print("initial solution \n", initial_solution)
-
-
-#fixed_node = Node( fixed_support )
-#fixed_node = Node( fixed_support )
-#loaded_node = Truss( steel2, Square_section, load_and_support )
-
-# elementos = AbstractElement[]
-
-# indices = [1,2]
-
-# for j in indices
-#     print("j ", j,"\n")
-#     push!(elementos, Node( fixed_support ) )
-#     print(elementos,"\n")
-# end
-
-# print("\n\nvalor ",  elementos[1],"\n")
-# print("\n\nTYPEOF ", typeof( elementos[1]),"\n")
-
-# elementos[1].connectivity = [ 4]
-# print("PRUEBA ",  elementos,"\n")
-
-# elementos[2].connectivity = [ 3]
-# print("PRUEBA 2 ",  elementos,"\n")
-
-# mallab = MeshB( nodal_coords, elementos)
-
-# print( "\n\n mallabb", mallab,"\n")
-#print(" inertia: ", mallab.elements[2].cross_section.inertia_y )
-
-# -------------------------------
-# AnalysisSettings
-# analysis_settings = AnalysisSettings("newton_raphson", 1.0, 2.0);
-Analysis_settings = AnalysisSettings()
-
-# -------------------------------
-
-#print("type truss:", typeof(Truss2)==Symbol("Truss") )
-
-#mallab = lector_msh( materiales, cross_section, boundary_conditions, initial_conditions )
-
-initial_solution, model_properties = ONSAS_init(materials, geometries, boundary_conditions, initial_conditions, my_mesh, Analysis_settings)
-
-print("initial solution \n", initial_solution)
-
-#solutions = ONSAS_solve( model_properties, initial_solution, verbosity=true )
-
-
-# print("KG:\n")
-# display(KG)
-# display(FG)
-# print("neumDofs", neumDofs)
-# print("\n")
-
-# KGred = copy( KG )
-# FGred = copy( FG )
-
-# KGred = KGred[ neumDofs, neumDofs ]
-# FGred = FGred[ neumDofs           ]
-
-# print("KGred", KGred,"\n")
-# # the system is solved.
-# UGred = KGred \ FGred
-
-# UG = zeros( size( FG ) )
-# UG[  neumDofs ] = UGred
-
-=#

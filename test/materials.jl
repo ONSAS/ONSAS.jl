@@ -8,11 +8,6 @@ const TOLERANCE = 1e-2
 
 @testset "ONSAS.Materials SVK" begin
 
-    # random tpyes for each SVK parameter
-    # types = [Float64, Float32]
-    # type1 = rand(types)
-    # type2 = rand(types)
-
     E = 2e9
     ν = 1 / 3
 
@@ -41,9 +36,8 @@ const TOLERANCE = 1e-2
     @test lame_params[2] ≈ G atol = TOLERANCE
 
     # Test Abstract Material interface
-    @test model(svk_lame) == "SVK"
     @test parameters(svk_lame)[1] ≈ E atol = TOLERANCE
     @test parameters(svk_lame)[2] ≈ ν atol = TOLERANCE
-    @test label(svk_lame) == String(label_lame)
+    @test label(svk_lame) == label_lame
 
 end

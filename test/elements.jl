@@ -4,7 +4,7 @@
 using Test: @testset, @test
 using StaticArrays: SVector
 using ONSAS.Elements
-using ONSAS.Elements: _dim_to_nodal_dofs, _DEFAULT_INDEX
+using ONSAS.Elements: _DEFAULT_INDEX_INT, _dim_to_nodal_dofs
 using ONSAS.BoundaryConditions: FixedDisplacementBoundaryCondition
 
 @testset "ONSAS.Elements.Dof" begin
@@ -13,7 +13,7 @@ using ONSAS.BoundaryConditions: FixedDisplacementBoundaryCondition
     sym = :uₓ
     ux_dof = Dof(sym)
     @test symbol(ux_dof) == sym
-    @test index(ux_dof) == _DEFAULT_INDEX
+    @test index(ux_dof) == DofIndex(0)
     @test is_fixed(ux_dof) == false
     fix!(ux_dof)
     @test is_fixed(ux_dof) == true
@@ -23,11 +23,11 @@ using ONSAS.BoundaryConditions: FixedDisplacementBoundaryCondition
     index_θⱼ = rand(Int)
     θⱼ_dof = Dof(sym, index_θⱼ)
     @test symbol(θⱼ_dof) == sym
-    @test index(θⱼ_dof) == Index(index_θⱼ)
+    @test index(θⱼ_dof) == DofIndex(index_θⱼ)
     @test is_fixed(θⱼ_dof) == false
     new_index = index_θⱼ + 1
     set_index!(θⱼ_dof, new_index)
-    @test index(θⱼ_dof) == Index(new_index)
+    @test index(θⱼ_dof) == DofIndex(new_index)
 
 end
 
@@ -46,22 +46,24 @@ end
     node = Node(x_test)
     @test all([node[i] == xᵢ for (i, xᵢ) in enumerate(coordinates(node))])
     @test coordinates_eltype(node) == node_eltype
-    @test index(node) == _DEFAULT_INDEX[]
+    @test index(node) == _DEFAULT_INDEX_INT
     @test all([node[i] == x for (i, x) in enumerate(x_test)])
     @test dimension(node) == length(x_test)
-    new_index = rand(Int)
-    set_index!(node, new_index)
-    @test index(node) == new_index
+
+    # Fix node
     fix!(node)
     @test all([is_fixed(dof) for dof in dofs(node)])
 
     # Dofs
     @test all([_dim_to_nodal_dofs(dimension(node))[i] == d for (i, d) in enumerate(dofs(node))])
     @test all(vcat(dofs(node), dofs(node))[i] == d for (i, d) in enumerate(dofs([node, node])))
-
+    # Set new index and test dofs indexes
+    new_index = 2
     new_global_dof_indexes = 7:12
-    set_dof_index!(node, new_global_dof_indexes)
+    set_index!(node, new_index)
+    @test index(node) == new_index
     @test all([index(dof)[] == new_global_dof_indexes[i] for (i, dof) in enumerate(dofs(node))])
+
 
     # Boundary conds
     @test length(boundary_conditions(node)) == 0
