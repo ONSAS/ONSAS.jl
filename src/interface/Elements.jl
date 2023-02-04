@@ -14,17 +14,16 @@ using StaticArrays: SVector, SMatrix
 using ..Materials: AbstractMaterial
 using ..CrossSections: AbstractCrossSection, area
 using ..BoundaryConditions: AbstractBoundaryCondition
+@reexport import ..BoundaryConditions: dofs
 using ..InitialConditions: AbstractInitialCondition
 using ..Utils: ScalarWrapper
 @reexport import ..Utils: dimension, label, set_label!
-@reexport import ..BoundaryConditions: dofs
+@reexport import ..Utils: internal_forces, internal_tangents, displacements
 
 export AbstractIndex, ElementIndex, NodeIndex, DofIndex, index, set_index!
 export Dof, symbol, is_fixed, fix!
 export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, element_type, dofs
 export AbstractElement, num_nodes, dofs_per_node, geometry, material, material_model
-export internal_force, stiffness_matrix
-
 
 const _DEFAULT_LABEL = :no_labelled_element
 
@@ -349,13 +348,13 @@ material_model(::AbstractElement{dim,M}) where {dim,M} = M
 set_material!(e::AbstractElement, m::AbstractMaterial) = e.material = m
 
 "Returns the internal force vector of the element."
-function internal_force(e::AbstractElement, args...; kwargs...) end
+function internal_forces(e::AbstractElement, args...; kwargs...) end
 
 "Returns the internal stiffness matrix of the element."
 function stiffness_matrix(e::AbstractElement, args...; kwargs...) end
 
 "Returns the inertial force vector of the element."
-function inertial_force(e::AbstractElement, args...; kwargs...) end
+function inertial_forces(e::AbstractElement, args...; kwargs...) end
 
 "Returns the inertial tangent matrices of the element."
 function mass_matrices(e::AbstractElement, args...; kwargs...) end
