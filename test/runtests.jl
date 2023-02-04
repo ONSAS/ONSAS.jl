@@ -1,21 +1,23 @@
+using Test
 using SafeTestsets: @safetestset
 
-@safetestset "ONSAS.Mesh" begin
-    include("meshes.jl")
+MODULES = ["meshes.jl", "materials.jl", "elements.jl", "structural_model.jl"]
+EXAMPLES = [
+    joinpath("..", "examples", "vonMisesTruss", "von_misses_truss.jl"),
+    #joinpath("..", "examples", "uniaxialExtension", "uniaxialExtension.jl")
+]
+
+function test(files::Vector)
+    @testset "ONSAS.jl" begin
+        foreach(test, files)
+    end
+end
+function test(file::String)
+    @info "Testing $file..."
+    path = joinpath(@__DIR__, file)
+    @eval @time @safetestset $file begin
+        include($path)
+    end
 end
 
-@safetestset "ONSAS.Materials" begin
-    include("materials.jl")
-end
-
-@safetestset "ONSAS.BoundaryConditions" begin
-    include("boundary_conditions.jl")
-end
-
-@safetestset "ONSAS.Elements" begin
-    include("elements.jl")
-end
-
-@safetestset "ONSAS.StructuralModel" begin
-    include("structural_model.jl")
-end
+test([MODULES; EXAMPLES]);
