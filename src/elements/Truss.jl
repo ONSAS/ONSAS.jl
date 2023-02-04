@@ -10,7 +10,7 @@ A `Truss` represents a 2D element that transmits axial force only.
 - `material`  -- stores truss material.
 - `geometry` -- stores the truss cross-section properties.
 """
-struct Truss{dim,M,G} <: AbstractElement{dim,M}
+mutable struct Truss{dim,M,G} <: AbstractElement{dim,M}
     nodes::Vector{<:AbstractNode{dim}}
     material::M
     geometry::G
@@ -80,7 +80,6 @@ function stress(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
     σ = _stress(l_ini, l_def, material(e).E)
 end
 
-
 function stiffness_matrix(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
 
     E = material(e).E
@@ -96,7 +95,7 @@ function stiffness_matrix(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
 end
 
 
-function internal_force(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
+function internal_forces(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
 
     E = material(e).E
     A = area(geometry(e))
