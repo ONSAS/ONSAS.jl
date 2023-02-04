@@ -5,14 +5,21 @@ include("Materials.jl")
 include("BoundaryConditions.jl")
 @reexport using .BoundaryConditions
 
+include("InitialConditions.jl")
+@reexport using .InitialConditions
+
 include("CrossSections.jl")
 @reexport using .CrossSections
+
+include("Elements.jl")
+@reexport using .Elements
 
 include("Meshes.jl")
 @reexport using .Meshes
 
-include("Elements.jl")
-@reexport using .Elements
+include("StructuralModel.jl")
+@reexport using .StructuralModel
+
 
 
 
