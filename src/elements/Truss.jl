@@ -96,7 +96,7 @@ function stiffness_matrix(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
 end
 
 
-function internal_force(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
+function internal_forces(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
 
     E = material(e).E
     A = area(geometry(e))

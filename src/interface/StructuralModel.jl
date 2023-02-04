@@ -3,34 +3,36 @@ Module defining structure entities interface.
 """
 module StructuralModel
 
+using Reexport: @reexport
+using StaticArrays: @MVector
+using SparseArrays: SparseMatrixCSC
+
 using ..Materials: AbstractMaterial
 using ..CrossSections: AbstractCrossSection
 using ..Elements
 using ..BoundaryConditions: AbstractBoundaryCondition, AbstractLoadBoundaryCondition, AbstractDisplacementBoundaryCondition
 using ..Utils: label, set_label!
 using ..Meshes: AbstractMesh, element_nodes
-using Reexport: @reexport
 
 @reexport import ..Meshes: elements
 @reexport import ..Elements: nodes
+@reexport import ..Utils: external_forces, internal_forces, internal_tangents, displacements
 
 export AbstractStructuralMEBI, sets, add_set!
 export StructuralMaterials, materials
 export StructuralElements
 export StructuralBoundaryConditions, disp_bcs, load_bcs
 export StructuralInitialConditions
-export Structure, mesh
+export AbstractStructure, Structure, mesh, current_state
+export AbstractStructuralState, StaticState
 
 # ======================
 # Model definition
 # ======================
 
 """ Abstract supertype for all structural definitions.
-
 An `AbstractStructuralMEBI` object facilitates the process of defining sets of materials, elements, initial and boundary conditions.
-
 **Common methods:**
-
 * [`sets`](@ref)
 * [`add_set!`](@ref)
 """
@@ -141,7 +143,6 @@ function _find_element_type(se::StructuralElements, i::ElementIndex)
 end
 
 
-
 """ Structural boundary conditions.
 A `StructuralBoundaryConditions` is a collection of `BoundaryConditions` defining the boundary conditions of the structure.
 ### Fields:
@@ -192,12 +193,9 @@ end
 struct StructuralInitialConditions{I} <: AbstractStructuralMEBI end
 
 #=
-
 const D = DisplacementInitialCondition
 const V = VelocityInitialCondition
 const A = AccelerationInitialCondition
-
-
 """ Structural initial conditions.
 A `StructuralInitialConditions` is a collection of `InitialConditions` defining the initial conditions of the structure.
 ### Fields:
@@ -215,7 +213,6 @@ struct StructuralInitialConditions{D,V,A} <: AbstractStructuralMEBI
         ic_dict::Dict{String,I},
         sets::Dict{String,Set{AbstractIndex}}=Dict{String,Set{AbstractIndex}}()
     ) where {I<:AbstractElement}
-
         v_dic = Vector{D}(undef, 0)
         v_vic = Vector{V}(undef, 0)
         v_aic = Vector{A}(undef, 0)
@@ -229,7 +226,6 @@ struct StructuralInitialConditions{D,V,A} <: AbstractStructuralMEBI
                 push!(v_aic, i)
             end
         end
-
         new{D,V,A}(v_dic, v_vic, v_aic, sets)
     end
 end
@@ -237,24 +233,65 @@ end
 
 
 # ======================
-# Structure
+# Structural state
 # ======================
 
 
-""" Abstract supertype to define a new structure.
+""" Abstract supertype to define a new structural state.
+structure(s::AbstractStructuralState) = s.s
+**Common methods:**
+* [`displacements`](@ref)
+* [`internal_forces`](@ref)
+* [`internal_tangents`](@ref)
+* [`external_forces`](@ref)
+"""
+abstract type AbstractStructuralState end
 
+displacements(sc::AbstractStructuralState) = sc.Uᵏ
+internal_forces(sc::AbstractStructuralState) = sc.Fᵢₙₜᵏ
+internal_tangents(sc::AbstractStructuralState) = sc.Kₛᵏ
+external_forces(sc::AbstractStructuralState) = sc.Fₑₓₜᵏ
+
+"""
+An `StaticState` object facilitates the process of storing the relevant static variables of the structure. 
+### Fields:
+- `Uᵏ`    -- stores displacements vector.
+- `Fₑₓₜᵏ` -- stores external forces vector.
+- `Fᵢₙₜᵏ` -- stores internal forces vector.
+- `Kₛᵏ`   -- stiffness tangent matrix of the structure. 
+"""
+struct StaticState <: AbstractStructuralState
+    Uᵏ::AbstractVector
+    Fₑₓₜᵏ::AbstractVector
+    Fᵢₙₜᵏ::AbstractVector
+    Kₛᵏ::AbstractMatrix
+end
+
+#TODO: Add tangent matrix of the external forces vector
+
+"Returns a default static case for a given mesh."
+function StaticCase(m::AbstractMesh)
+    n_dofs = length(dofs(m))
+    Uᵏ = @MVector zeros(n_dofs)
+    Fₑₓₜᵏ = similar(Uᵏ)
+    Fᵢₙₜᵏ = similar(Uᵏ)
+    Kₛᵏ = SparseMatrixCSC(zeros(n_dofs, n_dofs))
+    StaticState(Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ)
+end
+
+# ==========
+# Structure
+# ==========
+
+""" Abstract supertype to define a new structure.
 An `AbstractStructure` object facilitates the process of assigning materials, 
 elements, initial and boundary conditions to the mesh.
-
 **Common methods:**
-
 * [`nodes`](@ref)
 * [`elements`](@ref)
 * [`mesh`](@ref)
-
 """
-abstract type AbstractStructure{M,E,B,I} end
-
+abstract type AbstractStructure{D,M,E,B,I} end
 
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
@@ -263,14 +300,16 @@ An `Structure` object facilitates the process of assembling and creating the str
 - `materials`   -- Stores the types of material models considered in the structure. 
 - `elements`    -- Stores the types of elements considered in the structure.
 - `bcs`         -- Stores the types of boundary conditions in the structure.
-- `ics`     -- Stores the types of initial conditions in the structure.
+- `ics`         -- Stores the types of initial conditions in the structure.
+- `ics`         -- Stores the current state of the structure.
 """
-struct Structure{D,M,E,B,I}
+mutable struct Structure{D,M,E,B,I} <: AbstractStructure{D,M,E,B,I}
     mesh::AbstractMesh{D}
     materials::StructuralMaterials{M}
     elements::StructuralElements{E}
     bcs::StructuralBoundaryConditions{B}
     ics::StructuralInitialConditions{I}
+    state::AbstractStructuralState
     function Structure(
         mesh::AbstractMesh{D},
         mats::StructuralMaterials{M},
@@ -282,12 +321,13 @@ struct Structure{D,M,E,B,I}
 
         # Create elements and push them into the mesh
         _create_elements!(mesh, mats, elems)
-
         # Apply bc
         _apply_bcs!(mesh, bcs)
 
+        # Default structural state
+        s_case = StaticCase(mesh)
 
-        return new{D,M,E,B,I}(mesh, mats, elems, bcs, init)
+        return new{D,M,E,B,I}(mesh, mats, elems, bcs, init, s_case)
     end
 end
 
@@ -319,7 +359,7 @@ function _apply_bcs!(mesh::AbstractMesh, bcs::StructuralBoundaryConditions)
     for (label, set) in sets(bcs)
         bc = bcs[label]
         for index in set
-            push!(mesh[index], bc...)
+            push!(mesh[index], bc)
         end
     end
 
@@ -329,9 +369,14 @@ end
 mesh(s::Structure) = s.mesh
 
 nodes(s::Structure) = nodes(mesh(s))
+
 elements(s::Structure) = elements(mesh(s))
 
 Base.getindex(s::Structure, i::AbstractIndex) = mesh(s)[i]
+
+"Returns the current structural state"
+current_state(s::Structure) = s.state
+
 
 
 end # module

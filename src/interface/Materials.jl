@@ -1,7 +1,3 @@
-#######################
-# Materials interface #
-#######################
-
 """
 Module defining the materials implemented.
 Each material consists of a data type with one or more parameters into its fields.
@@ -41,9 +37,9 @@ set_label!(m::AbstractMaterial, label::String) = set_label!(m, Symbol(label))
 
 const DEFAULT_LABEL = :label_no_assignned
 
-#############################
-# Materials implementations #
-#############################
+# ========================
+# LinearElastic Materials 
+# ========================
 
 """ SVK material struct.
 ### Fields:

@@ -13,9 +13,9 @@ using ..Elements: AbstractElement, AbstractNode, NodeIndex, ElementIndex, set_in
 
 export Mesh, coordinates_eltype, dimension, elements, element_nodes, element_sets, nodes, node_sets
 
-# ======================
+# =============
 # Abstract Mesh
-# ======================
+# =============
 
 """ Abstract supertype for all meshes.
 

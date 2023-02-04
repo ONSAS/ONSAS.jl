@@ -23,8 +23,6 @@ export AbstractIndex, ElementIndex, NodeIndex, DofIndex, index, set_index!
 export Dof, symbol, is_fixed, fix!
 export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, element_type, dofs
 export AbstractElement, num_nodes, dofs_per_node, geometry, material, material_model
-export internal_force, stiffness_matrix
-
 
 const _DEFAULT_LABEL = :no_labelled_element
 

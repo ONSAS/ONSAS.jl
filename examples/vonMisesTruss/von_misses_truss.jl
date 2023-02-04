@@ -1,7 +1,7 @@
 ## Von Mises truss example problem
 using ONSAS
-using StaticArrays: SVector, SMatrix
-using SparseArrays
+using LinearAlgebra
+using Test
 ## scalar parameters
 E = 2e11  # Young modulus in Pa
 ν = 0.0  # Poisson's modulus
@@ -77,24 +77,22 @@ add_set!(s_boundary_conditions, bc_sets)
 # -------------------------------
 # Create Structure
 # -------------------------------
-#s = Structure(mesh, s_materials, s_elements, s_boundary_conditions)
-
-# curr_state = ModelState(s, save_vars = (:u,:udot,:udotdot))
-
-# struct StaticAnalysis <: StrucutralAnalysis end 
-
-# sol = solve(StaticAnalysis(s,load_factors_vec = [1:10]), NR(tolf,tolr) )
-
-# sol = solve(DynamicAnalysis(s), Newmark(tolf,tolr) )
-
-
-# # sol = solve(DynamAnalysis(s),Newmark(),last_state  )
-
-
-# sol.hist_states = []
-
-
-# function solve()
-#     curr_state = __init()
-#     _solve()
-
+s = Structure(mesh, s_materials, s_elements, s_boundary_conditions)
+init_state = current_state(s)
+@test norm(displacements(init_state)) == 0
+@test norm(external_forces(init_state)) == 0
+@test norm(internal_forces(init_state)) == 0
+@test norm(internal_tangents(init_state)) == 0
+# -------------------------------
+# Structural Analysis
+# -------------------------------
+t₁ = 1
+Δₜ = 0.2
+structural_analysis = StaticAnalysis(s, t₁, Δₜ, init_state)
+# -------------------------------
+# Solve analysis
+# -------------------------------
+tol_f = 1e-10;
+tol_u = 1e-10;
+max_iter = 100;
+# sol = solve(structural_analysis, NR(); tol=ConvergenceTolerances(tol_f, tol_u, max_iter))
