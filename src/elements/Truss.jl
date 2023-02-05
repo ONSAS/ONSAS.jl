@@ -1,22 +1,29 @@
 using ..Materials: SVK
+using ..CrossSections: AbstractCrossSection, area
 using ..Utils: ScalarWrapper, eye, row_vector
 
-export Truss
+export Truss, cross_section
 
 """
 A `Truss` represents a 2D element that transmits axial force only.
 ### Fields:
-- `nodes` -- stores truss nodes.
-- `material`  -- stores truss material.
-- `geometry` -- stores the truss cross-section properties.
+- `nodes`          -- stores truss nodes.
+- `material`       -- stores truss material.
+- `cross_sections` -- stores the truss cross-section properties.
+- `label`          -- stores the truss label.
 """
-struct Truss{dim,M,G} <: AbstractElement{dim,M}
+struct Truss{dim,M,G<:AbstractCrossSection} <: AbstractElement{dim,M}
     nodes::Vector{<:AbstractNode{dim}}
     material::M
-    geometry::G
+    cross_section::G
     label::ScalarWrapper{Symbol}
 end
 
+"Creates a `Truss` element given a pre-defined truss without element"
+create_element(e::Truss, mat::AbstractMaterial) =
+    Truss(nodes(e), mat, cross_section(e), ScalarWrapper(label(e)))
+create_element(e::Truss, mat::AbstractMaterial, nodes::Vector{<:AbstractNode}) =
+    Truss(nodes, mat, cross_section(e), ScalarWrapper(label(e)))
 
 function Truss(g::G, dim::Integer=3, label=_DEFAULT_LABEL) where {G<:AbstractCrossSection}
     Truss(Vector{Node{dim,Float64}}(), nothing, g, ScalarWrapper(label))
@@ -26,13 +33,14 @@ function Truss(m::M, g::G, dim::Integer=3, label=_DEFAULT_LABEL) where {M<:Abstr
     Truss(Vector{Node{dim,Float64}}(), m, g, ScalarWrapper(label))
 end
 
-element_type(::Truss) = Truss
-num_nodes(::Truss) = 2
-dofs_per_node(::Truss{1}) = [Dof(:uₓ, 1)]
-dofs_per_node(::Truss{2}) = [Dof(:uₓ, 1), Dof(:uⱼ, 3)]
-dofs_per_node(::Truss{3}) = [Dof(:uₓ, 1), Dof(:uⱼ, 3), Dof(:uₖ, 5)]
+"Returns the geometrical properties of the element"
+cross_section(e::Truss) = e.cross_section
 
-set_material(t::Truss, m::M) where {M<:AbstractMaterial} = element_type(t)(m, geometry(t), dimension(t), label(t))
+"Returns local dofs of a truss element."
+local_dofs(::Truss{1}) = [Dof(:uₓ, 1)]
+local_dofs(::Truss{2}) = [Dof(:uₓ, 1), Dof(:uⱼ, 3)]
+local_dofs(::Truss{3}) = [Dof(:uₓ, 1), Dof(:uⱼ, 3), Dof(:uₖ, 5)]
+
 
 function _aux_matrices(dim::Integer)
     Bdif = hcat(-eye(dim), eye(dim))
@@ -81,10 +89,10 @@ function stress(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
 end
 
 
-function stiffness_matrix(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
+function internal_tangents(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
 
     E = material(e).E
-    A = area(geometry(e))
+    A = area(cross_sections(e))
 
     X_ref, X_def = _X_rows(e, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
@@ -99,7 +107,7 @@ end
 function internal_forces(e::Truss{dim,SVK}, u_e::AbstractVector) where {dim}
 
     E = material(e).E
-    A = area(geometry(e))
+    A = area(cross_sections(e))
 
     X_ref, X_def = _X_rows(e, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)

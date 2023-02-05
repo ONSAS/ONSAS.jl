@@ -342,15 +342,10 @@ function _create_elements!(
 
         e_mat = _find_material(mats, ElementIndex(i))
         pre_element = _find_element_type(elems, ElementIndex(i))
-        e = _create_element(pre_element, e_mat, e_nodes)
+        e = create_element(pre_element, e_mat, e_nodes)
         push!(mesh, e)
     end
 
-end
-
-"Function to assign material to a truss with a given pre_element"
-function _create_element(pre_element::Truss, m::AbstractMaterial, nodes::AbstractVector{<:AbstractNode})
-    element_type(pre_element)(nodes, m, geometry(pre_element), pre_element.label)
 end
 
 "Applies nodal and element boundary conditions to the mesh"
