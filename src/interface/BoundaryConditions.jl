@@ -7,7 +7,6 @@ using Reexport: @reexport
 
 @reexport import ..Utils: ScalarWrapper, label, set_label!
 
-
 export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition, AbstractLoadBoundaryCondition, dofs
 export DisplacementBoundaryCondition, FixedDisplacementBoundaryCondition, PinnedDisplacementBoundaryCondition
 export GlobalLoadBoundaryCondition, load_factor_function
@@ -79,8 +78,6 @@ This is a particular instance of the struct `DisplacementBoundaryCondition`
 struct FixedDisplacementBoundaryCondition{D,V} <: AbstractDisplacementBoundaryCondition
     bc::DisplacementBoundaryCondition{D,V}
     function FixedDisplacementBoundaryCondition(label_bc=DEFAULT_LABEL)
-
-
 
         dofs_fixed = [:uᵢ, :θᵢ, :uⱼ, :θⱼ, :uₖ, :θₖ]
 

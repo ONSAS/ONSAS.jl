@@ -27,9 +27,6 @@ structure(a::AbstractStructuralAnalysis) = a.s
 "Returns final time of the analysis"
 final_time(a::AbstractStructuralAnalysis) = a.t₁
 
-"Returns time step of the analysis"
-time_step(a::AbstractStructuralAnalysis) = a.Δₜ
-
 # ================
 # Static analysis
 # ================
@@ -39,21 +36,19 @@ A `StaticAnalysis` is a collection of parameters for defining the static analysi
 
 ### Fields:
 - `s` -- Stores the structure to be analyzed.
-- `t₁` -- Stores the final time of the analysis.
-- `t₁` -- Stores the final time of the analysis.
+- `t₁` -- Stores the final time (final load factor step) of the analysis.
 - `initial_state` -- Stores the initial state of the structure.
 """
 
 struct StaticAnalysis <: AbstractStructuralAnalysis
     s::AbstractStructure
     t₁::Number
-    Δₜ::Number
     init_state::StaticState
     function StaticAnalysis(s, t₁::Number=1.0, Δₜ::Number=0.1, init_state=current_state(s))
         # Check meaningful parameters
         (t₁ > 0 && Δₜ > 0) || throw(ArgumentError("t₁ and Δₜ must be positive"))
         (t₁ ≥ Δₜ) || throw(ArgumentError("t₁ must be greater than Δₜ"))
-        new(s, t₁, Δₜ, init_state)
+        new(s, t₁, init_state)
     end
 end
 
