@@ -123,7 +123,7 @@ Iyz(c::Circle) = 0.0
 This generic cross-section struct can be used to define a cross-section not belonging to the existing categories. 
 
 ### Fields:
-- `A` -- area.
+- `area` -- area.
 - `Ixx` -- moment of inertia respect to `x` axis.
 - `Iyy` -- moment of inertia respect to `y` axis.
 - `Izz` -- moment of inertia respect to `z` axis.
@@ -132,7 +132,7 @@ This generic cross-section struct can be used to define a cross-section not belo
 - `Iyz` -- product moment of area respect to the `y-z` axes.
 """
 struct GenericCrossSection <: AbstractCrossSection
-    A::Number
+    area::Number
     Ixx::Number
     Iyy::Number
     Izz::Number

@@ -13,9 +13,9 @@ using ..Elements: AbstractElement, AbstractNode, NodeIndex, ElementIndex, set_in
 
 export Mesh, coordinates_eltype, dimension, elements, element_nodes, element_sets, nodes, node_sets
 
-# ======================
+# =============
 # Abstract Mesh
-# ======================
+# =============
 
 """ Abstract supertype for all meshes.
 
@@ -71,7 +71,7 @@ function Base.push!(m::AbstractMesh, n::AbstractNode)
 end
 
 Base.getindex(m::AbstractMesh, i_e::ElementIndex) = elements(m)[i_e[]]
-Base.getindex(m::AbstractMesh, i_e::NodeIndex) = nodes(m)[i_e[]]
+Base.getindex(m::AbstractMesh, i_n::NodeIndex) = nodes(m)[i_n[]]
 
 """ Mesh.
 A `Mesh` is a collection of `Element`s and `Node`s which covers the computational domain, 

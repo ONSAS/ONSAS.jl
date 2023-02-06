@@ -1,7 +1,3 @@
-#################################
-# Boundary Conditions interface #
-#################################
-
 """
 Module defining the boundary conditions implemented.
 """
@@ -46,11 +42,11 @@ set_label!(bc::AbstractBoundaryCondition, label) = bc.label[] = Symbol(label)
 "Returns the values imposed to the respective degrees of freedom"
 Base.values(bc::AbstractBoundaryCondition) = bc.values
 
+# ================================
+# Displacement Boundary Conditions 
+# ================================
 
-#####################################
-# Displacements Boundary Conditions #
-#####################################
-
+""" Abstract supertype for all displacement boundary conditions."""
 abstract type AbstractDisplacementBoundaryCondition <: AbstractBoundaryCondition end
 
 
@@ -131,12 +127,13 @@ Base.values(pbc::PinnedDisplacementBoundaryCondition) = values(pbc.bc)
 label(pbc::PinnedDisplacementBoundaryCondition) = label(pbc.bc)
 set_label!(pbc::PinnedDisplacementBoundaryCondition, label) = set_label!(pbc.bc, label)
 
-#############################
-# Load Boundary Conditions #
-#############################
+# ========================
+# Load Boundary Conditions 
+# =========================
+
+""" Abstract supertype for all displacement boundary conditions."""
 
 abstract type AbstractLoadBoundaryCondition <: AbstractBoundaryCondition end
-
 
 const DEFAULT_LOAD_FACTOR_FUNC = (t) -> 1.0
 
@@ -339,9 +336,9 @@ end
 - `spring_constants` -- Spring constant `k = f/u` for each dof. 
 """
 
-###############################
-# Springs Boundary Conditions #
-###############################
+# ========================
+# Spring boundary conditions 
+# =========================
 
 struct SpringsBoundaryCondition{D,V} <: AbstractBoundaryCondition
     dofs::D

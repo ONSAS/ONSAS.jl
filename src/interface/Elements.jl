@@ -1,7 +1,3 @@
-######################
-# Elements interface #
-######################
-
 """
 Module defining the elements implemented.
 """
@@ -12,25 +8,23 @@ using Reexport: @reexport
 using StaticArrays: SVector, SMatrix
 
 using ..Materials: AbstractMaterial
-using ..CrossSections: AbstractCrossSection, area
 using ..BoundaryConditions: AbstractBoundaryCondition
 using ..InitialConditions: AbstractInitialCondition
 using ..Utils: ScalarWrapper
 @reexport import ..Utils: dimension, label, set_label!
+@reexport import ..Utils: internal_forces, internal_tangents
 @reexport import ..BoundaryConditions: dofs
 
 export AbstractIndex, ElementIndex, NodeIndex, DofIndex, index, set_index!
 export Dof, symbol, is_fixed, fix!
-export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype, element_type, dofs
-export AbstractElement, num_nodes, dofs_per_node, geometry, material, material_model
-export internal_force, stiffness_matrix
-
+export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype
+export AbstractElement, create_element, coordinates, dofs, local_dofs, material
 
 const _DEFAULT_LABEL = :no_labelled_element
 
-#############
-# Indexes  #
-#############
+# ========
+# Indexes 
+# ========
 
 """ Abstract supertype for all indexes.
 
@@ -50,8 +44,6 @@ abstract type AbstractIndex{I} end
 @inline Base.getindex(v::AbstractVector, i::AbstractIndex) = v[i[]]
 @inline Base.getindex(i::AbstractIndex) = i.id
 @inline Base.setindex!(i::AbstractIndex, id) = i.id = id # callable with i[] = id
-@inline Base.isequal(i₁::AbstractIndex, i₂::AbstractIndex) = i₁[] == i₂[]
-@inline Base.:(==)(i₁::AbstractIndex, i₂::AbstractIndex) = isequal(i₁, i₂)
 
 """
 `Dof` identification number.
@@ -249,116 +241,97 @@ An `AbstractElement` object facilitates the process of evaluating:
 
 **Common methods:**
 
+* [`create_element`](@ref)
 * [`coordinates`](@ref)
 * [`dofs`](@ref)
-* [`dofs_per_node`](@ref)
-* [`dimension`](@ref)
-* [`geometry`](@ref)
+* [`local_dofs`](@ref)
 * [`index`](@ref)
-* [`label`](@ref)
-* [`nodes`](@ref)
-* [`set_nodes!`](@ref)
-* [`set_label!`](@ref)
 * [`set_index!`](@ref)
-* [`element_type`](@ref)
-
+* [`label`](@ref)
+* [`set_label!`](@ref)
+* [`nodes`](@ref)
 * [`material`](@ref)
-* [`material_model`](@ref)
-* [`set_material!`](@ref)
 
 * [`internal_forces`](@ref)
-* [`stiffness_matrix`](@ref)
+* [`internal_tangents`](@ref)
 * [`inertial_forces`](@ref)
 * [`inertial_tangents`](@ref)
 
+* [`stress`](@ref)
 * [`strain`](@ref)
-* [`stresses`](@ref)
 
 
 **Common fields:**
-* index
 * nodes
 * material
-* geometry
+* label
 
 **Hard contracts:**
 
-* [`num_nodes`](@ref)  - defines the number of nodes per element.
-* [`local_dofs`](@ref)  - defines the local dofs of the element.
+* [`create_element`](@ref)  - creates a new element given an empty element defined in the input
+* [`local_dofs`](@ref)      - defines the local dofs of the element.
 
 For static cases the following methods are required:
 
-* [`internal_forces`](@ref)  - function that returns the internal force vector.
-* [`stiffness_matrix`](@ref) - function that returns the internal stiffness matrix.
+* [`internal_forces`](@ref)     - function that returns the internal force vector.
+* [`internal_tangents`](@ref)   - function that returns the internal stiffness matrix.
 
 For dynamic cases the following methods are required:
-* [`inertial_forces`](@ref) - function that returns the inertial force vector.
-* [`inertial_tangents`](@ref)  - function that returns the inertial stiffness matrices.
+* [`inertial_forces`](@ref)     - function that returns the inertial force vector.
+* [`inertial_tangents`](@ref)   - function that returns the inertial stiffness matrices.
 
 **Soft contracts:**
 The following methods can be implemented to provide additional functionality:
 
-* `stresses`                - function that returns the element inertial stress.
-* `strain`                  - function that returns the element stress.
+* [`stress`](@ref)                - function that returns the element inertial stress.
+* [`strain`](@ref)                  - function that returns the element stress.
 
 """
-Base.push!(e::AbstractElement, bc::AbstractBoundaryCondition) = push!(e.bc, bc)
 
+"Creates a new element given a pre-element (without material assigned) defined in the input"
+function create_element(e::AbstractElement, material::AbstractMaterial, args...; kwargs...) end
+
+"Returns element coordinates."
 coordinates(e::AbstractElement) = row_vector(coordinates.(nodes(e)))
 
 dofs(e::AbstractElement) = row_vector(dofs.(nodes(e)))
 
-"Returns element number of dofs per element"
-dofs_per_node(e::AbstractElement) = length(dofs(first(nodes(e))))
-
-dimension(::AbstractElement{dim}) where {dim} = dim
-
-"Returns the geometrical properties of the element"
-geometry(e::AbstractElement) = e.geometry
+"Returns local dofs of an element. This dofs are essential for the assemble process."
+function local_dofs(e::AbstractElement) end
 
 index(e::AbstractElement) = e.index
 
-set_index!(e::AbstractElement, i::Int) = set_index(e, ElementIndex(i))
-
-set_index!(e::AbstractElement, idx::ElementIndex) = e.index = idx
-
-nodes(e::AbstractElement) = e.nodes
-
-"Sets nodes to the element."
-function set_nodes!(e::AbstractElement, nodes::Vector{<:AbstractNode})
-    if length(nodes) == num_nodes(e)
-        e.nodes = nodes
-    else
-        return ArgumentError("The number of nodes must be $(num_nodes(e)).")
-    end
-end
-
+"Returns element label."
 label(e::AbstractElement) = e.label[]
 
+"Sets element label."
 set_label!(e::AbstractElement, label::String) = set_label!(e, Symbol(label))
-
 set_label!(e::AbstractElement, label::Symbol) = e.label[] = label
 
-"Returns the element material."
+"Returns element nodes."
+nodes(e::AbstractElement) = e.nodes
+
+"Returns element material."
 material(e::AbstractElement) = e.material
 
-"Returns the material model of the element."
-material_model(::AbstractElement{dim,M}) where {dim,M} = M
-
-"Sets a material to the element."
-set_material!(e::AbstractElement, m::AbstractMaterial) = e.material = m
-
 "Returns the internal force vector of the element."
-function internal_force(e::AbstractElement, args...; kwargs...) end
+function internal_forces(e::AbstractElement, args...; kwargs...) end
 
-"Returns the internal stiffness matrix of the element."
-function stiffness_matrix(e::AbstractElement, args...; kwargs...) end
+"Returns the tangents of the internal force (stiffness)."
+function internal_tangents(e::AbstractElement, args...; kwargs...) end
 
 "Returns the inertial force vector of the element."
-function inertial_force(e::AbstractElement, args...; kwargs...) end
+function inertial_forces(e::AbstractElement, args...; kwargs...) end
 
 "Returns the inertial tangent matrices of the element."
-function mass_matrices(e::AbstractElement, args...; kwargs...) end
+function inertial_tangents(e::AbstractElement, args...; kwargs...) end
+
+"Returns the element stresses"
+function stress(e::AbstractElement, args...; kwargs...) end
+
+"Returns the element strain"
+function strain(e::AbstractElement, args...; kwargs...) end
+
 
 include("./../elements/Truss.jl")
 
