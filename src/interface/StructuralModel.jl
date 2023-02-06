@@ -57,7 +57,7 @@ A `StructuralMaterials` is a collection of `Materials` defining the material mod
 - `vec_mats` -- Stores material models`.
 - `sets`     -- Maps a material `String` (corresponding to a material type) into element ids. 
 """
-struct StructuralMaterials{M} <: AbstractStructuralMEBI
+struct StructuralMaterials{M<:AbstractMaterial} <: AbstractStructuralMEBI
     vec_mats::Vector{M}
     sets::Dict{String,<:Set}
     function StructuralMaterials(
@@ -103,7 +103,7 @@ A `StructuralElements` is a collection of `Elements` defining the elements types
 - `vec_elems` -- Stores element types. 
 - `sets`     -- Maps an element `String` (corresponding to a element type) into element ids. 
 """
-struct StructuralElements{E} <: AbstractStructuralMEBI
+struct StructuralElements{E<:AbstractElement} <: AbstractStructuralMEBI
     vec_elems::Vector{E}
     sets::Dict{String,<:Set}
     function StructuralElements(
@@ -151,7 +151,7 @@ A `StructuralBoundaryConditions` is a collection of `BoundaryConditions` definin
 - `loads_bc` -- Stores loads boundary conditions. 
 - `sets`     -- Maps a boundary condition `String` (corresponding to a bc type) into element ids. 
 """
-struct StructuralBoundaryConditions{B} <: AbstractStructuralMEBI
+struct StructuralBoundaryConditions{B<:AbstractBoundaryCondition} <: AbstractStructuralMEBI
     displacements_bc::Vector{B}
     loads_bc::Vector{B}
     sets::Dict{String,<:Set}
@@ -270,7 +270,7 @@ end
 #TODO: Add tangent matrix of the external forces vector
 
 "Returns a default static case for a given mesh."
-function StaticCase(m::AbstractMesh)
+function StaticState(m::AbstractMesh)
     n_dofs = length(dofs(m))
     Uᵏ = @MVector zeros(n_dofs)
     Fₑₓₜᵏ = similar(Uᵏ)
@@ -290,8 +290,21 @@ elements, initial and boundary conditions to the mesh.
 * [`nodes`](@ref)
 * [`elements`](@ref)
 * [`mesh`](@ref)
+* [`state`](@ref)
 """
 abstract type AbstractStructure{D,M,E,B,I} end
+
+"Returns the mesh"
+mesh(s::AbstractStructure) = s.mesh
+
+nodes(s::AbstractStructure) = nodes(mesh(s))
+
+elements(s::AbstractStructure) = elements(mesh(s))
+
+Base.getindex(s::AbstractStructure, i::AbstractIndex) = mesh(s)[i]
+
+"Returns the current structural state"
+current_state(s::AbstractStructure) = s.state
 
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
@@ -325,9 +338,9 @@ mutable struct Structure{D,M,E,B,I} <: AbstractStructure{D,M,E,B,I}
         _apply_bcs!(mesh, bcs)
 
         # Default structural state
-        s_case = StaticCase(mesh)
+        s_default_state = StaticState(mesh)
 
-        return new{D,M,E,B,I}(mesh, mats, elems, bcs, init, s_case)
+        return new{D,M,E,B,I}(mesh, mats, elems, bcs, init, s_default_state)
     end
 end
 
@@ -360,17 +373,7 @@ function _apply_bcs!(mesh::AbstractMesh, bcs::StructuralBoundaryConditions)
 
 end
 
-"Returns the mesh"
-mesh(s::Structure) = s.mesh
 
-nodes(s::Structure) = nodes(mesh(s))
-
-elements(s::Structure) = elements(mesh(s))
-
-Base.getindex(s::Structure, i::AbstractIndex) = mesh(s)[i]
-
-"Returns the current structural state"
-current_state(s::Structure) = s.state
 
 
 

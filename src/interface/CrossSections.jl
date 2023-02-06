@@ -11,41 +11,40 @@ export Rectangle, Square, Circle, GenericCrossSection
 
 """ Abstract supertype for all elements corss-section.
 
-The following methods are provided by the interface:
-- `area (cs)`        -- returns the cross-section area.
-- `Ixx (cs)`         -- returns the moment of inertia with respect to `x` axis.
-- `Iyy (cs)`         -- returns the moment of inertia with respect to `y` axis.
-- `Izz (cs)`         -- returns the moment of inertia with respect to `z` axis.
-- `Ixy (cs)`         -- returns the product moment of area respect to the `x-y` axes.
-- `Ixz (cs)`         -- returns the product moment of area respect to the `x-z` axes.
-- `Iyz (cs)`         -- returns the product moment of area respect to the `y-z` axes.
-- `I_tensor_xyz(cs)` -- returns the inertia tensor in the system of coordinates `x-y-z`.
+
+**Common methods:**
+- * [`area`](@ref)         -- returns the cross-section area.
+- * [`Ixx`](@ref)          -- returns the moment of inertia with respect to `x` axis.
+- * [`Iyy`](@ref)          -- returns the moment of inertia with respect to `y` axis.
+- * [`Izz`](@ref)          -- returns the moment of inertia with respect to `z` axis.
+- * [`Ixy`](@ref)          -- returns the product moment of area respect to the `x-y` axes.
+- * [`Ixz`](@ref)          -- returns the product moment of area respect to the `x-z` axes.
+- * [`Iyz`](@ref)          -- returns the product moment of area respect to the `y-z` axes.
+- * [`I_tensor_xyz`](@ref) -- returns the inertia tensor in the system of coordinates `x-y-z`.
 """
 
 abstract type AbstractCrossSection end
 
-const ERROR_CS = :("This method is not available for this cross-section type. Please implement it")
-
 "Returns the cross-section area"
-area(::AbstractCrossSection) = error(ERROR_CS)
+area(cs::AbstractCrossSection) = cs.area
 
 "Returns the moment of inertia with respect to `x` axis."
-Ixx(::AbstractCrossSection) = error(ERROR_CS)
+Ixx(::AbstractCrossSection) = cs.Ixx
 
 "Returns the moment of inertia with respect to `y` axis."
-Iyy(::AbstractCrossSection) = error(ERROR_CS)
+Iyy(::AbstractCrossSection) = cs.Iyy
 
 "Returns the moment of inertia with respect to `z` axis."
-Izz(::AbstractCrossSection) = error(ERROR_CS)
+Izz(::AbstractCrossSection) = cs.Izz
 
 "Returns the product moment of area respect to the `x-y` axes."
-Ixy(::AbstractCrossSection) = error(ERROR_CS)
+Ixy(::AbstractCrossSection) = cs.Ixy
 
 "Returns the product moment of area respect to the `x-z` axes."
-Ixz(::AbstractCrossSection) = error(ERROR_CS)
+Ixz(::AbstractCrossSection) = cs.Ixz
 
 "Returns the product moment of area respect to the `y-z` axes."
-Iyz(::AbstractCrossSection) = error(ERROR_CS)
+Iyz(::AbstractCrossSection) = cs.Iyz
 
 "Returns the inertia tensor in the system of coordinates `x-y-z`"
 I_tensor_xyz(cs::AbstractCrossSection) = [
@@ -143,10 +142,4 @@ end
 
 "Constructor for cross-sections in the principal axes system."
 GenericCrossSection(A, Ixx, Iyy, Izz) = GenericCrossSection(A, Ixx, Iyy, Izz, 0.0, 0.0, 0.0)
-
-# Create accessors methods
-for f in fieldnames(GenericCrossSection)
-    @eval $f(gcs::GenericCrossSection) = gcs.$f
-end
-
 end # module
