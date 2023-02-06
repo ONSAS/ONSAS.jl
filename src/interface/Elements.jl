@@ -334,6 +334,7 @@ function strain(e::AbstractElement, args...; kwargs...) end
 
 
 include("./../elements/Truss.jl")
+include("./../elements/Tetrahedron.jl")
 
 end # module
 

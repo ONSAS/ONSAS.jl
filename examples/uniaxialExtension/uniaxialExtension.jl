@@ -1,101 +1,76 @@
-# # Uniaxial extension problem
-#
+## Uniaxial extension example
 using ONSAS
-
+using LinearAlgebra
+using Test
+## scalar parameters
 # scalar parameters
 E = 1.0 # Young modulus in Pa
-nu = 0.3  # Poisson's ratio
+ν = 0.3  # Poisson's ratio
 p = 2   # Tension load in Pa
-Lx = 2   # Dimension in x of the boxD in m 
-Ly = 1   # Dimension in y of the boxD in m
-Lz = 1   # Dimension in z of the boxD in m
-
-delta_time = 0.5
-final_time = 1.0
-
-# Lamé parameters
-lambda = E * nu / ((1 + nu) * (1 - 2 * nu))
-mu = E / (2 * (1 + nu))
-
-# set material structs
-# FIXME Material not defined.
-SVK_mat = Material("SVK", [E, nu])
-
-# set geometry structs
-triangl_geo = Geometry("face")
-tetra_geo = Geometry("tetrahedron")
-
-
-# boundary conditions
-
-# Set the loads
-function my_tension(nodes_matrix, params)
-    num_nodes = size(nodes_matrix, 1)
-    return sin.(params * nodes_matrix[:, 1])
-end
-
-my_BCs = [BoundaryCondition([], [], my_tension),  # tension
-    BoundaryCondition([1], [0]),  # non-friction constraint x=0
-    BoundaryCondition([3], [0]),  # non-friction constraint y=0
-    BoundaryCondition([5], [0])] # non-friction constraint z=0
-
-# the connectivity matrix is given by a vector of vectors.
-elem_nodal_connec = [[5, 8, 6],  # loaded face
-    [6, 8, 7],  # loaded face
-    [4, 1, 2],  # x=0 supp face
-    [4, 2, 3],  # x=0 supp face
-    [6, 2, 1],  # y=0 supp face
-    [6, 1, 5],  # y=0 supp face
-    [1, 4, 5],  # z=0 supp face
-    [4, 8, 5],  # z=0 supp face
-    [1, 4, 2, 6],  # tetrahedron
-    [6, 2, 3, 4],  # tetrahedron
-    [4, 3, 6, 7],  # tetrahedron
-    [4, 1, 5, 6],  # tetrahedron
-    [4, 6, 5, 8],  # tetrahedron
-    [4, 7, 6, 8]] # tetrahedron
-
-# matrix with MGBI indexes of each property (on each row)
-# MGBI = Materials / Geomtries / BoundaryConditions / InitialConditions
-MGBIValsMat = [0 1 1 0  # BC 1
-    0 1 2 0  # BC 2
-    0 1 3 0  # BC 3
-    0 1 4 0  # BC 4
-    1 2 0 0]
-
-MGBIVec = Int.(vcat(ones(2), 2 * ones(2), 3 * ones(2), 4 * ones(2), 5 * ones(6)))
-
-# The coordinate matrix is given by
-nodal_coords = [0.0 0 0
-    0 0 Lz
-    0 Ly Lz
-    0 Ly 0
-    Lx 0 0
-    Lx 0 Lz
-    Lx Ly Lz
-    Lx Ly 0]
-
-my_mesh = Mesh(nodal_coords, elem_nodal_connec, MGBIValsMat, MGBIVec)
-
-my_analysettings = AnalysisSettings("newton_raphson", delta_time, final_time)
-
-# ONSAS init
-solution, properties = ONSAS_init(materials, geometries, boundary_conditions, initial_conditions, mesh, analysis_settings)
-
-
-# print("Starting time loop.\n")
-# currTime = 0.0
-
-# while currTime < finalTime
-# global currTime = currTime + deltaTime 
-# print("Solving time: ", currTime,"\n")
-
-# BCs[1].NeumannNodalVals = [loadsTimeFact( currTime )] 
-# print( "  current pressure ", BCs[1].NeumannNodalVals, "\n" )
-
-# # Run FEMAssembler                             
-# KG, FG, Kmatrices = assembler( nodalCoords, elemNodalConnec, MEBIValsMat, MEBIVec, [SVKmat], [ triangl, tetra ], BCs, [], verbosityBool=true )
-
-# end
+Lᵢ = 2.0   # Dimension in x of the box in m 
+Lⱼ = 1.0   # Dimension in y of the box in m
+Lₖ = 1.0   # Dimension in z of the box in m
+# -------------------------------
+# Create mesh
+# -------------------------------
+n₁ = Node((0.0, 0.0, 0.0))
+n₂ = Node((0.0, 0.0, Lₖ))
+n₃ = Node((0.0, Lⱼ, Lₖ))
+n₄ = Node((0.0, Lⱼ, 0.0))
+n₅ = Node((Lᵢ, 0.0, 0.0))
+n₆ = Node((Lᵢ, 0.0, Lₖ))
+n₇ = Node((Lᵢ, Lⱼ, Lₖ))
+n₈ = Node((Lᵢ, Lⱼ, 0.0))
+vec_nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
+## Elements connectivity
+triangle₁_nodes = [n₅, n₈, n₆]
+triangle₂_nodes = [n₆, n₈, n₇]
+triangle₃_nodes = [n₄, n₁, n₂]
+triangle₄_nodes = [n₄, n₂, n₃]
+triangle₅_nodes = [n₆, n₂, n₁]
+triangle₆_nodes = [n₆, n₁, n₅]
+triangle₇_nodes = [n₁, n₄, n₅]
+triangle₈_nodes = [n₄, n₈, n₅]
+tetra₁_nodes = [n₁, n₄, n₂, n₆]
+tetra₂_nodes = [n₆, n₂, n₃, n₄]
+tetra₃_nodes = [n₄, n₃, n₆, n₇]
+tetra₄_nodes = [n₄, n₁, n₅, n₆]
+tetra₅_nodes = [n₄, n₆, n₅, n₈]
+tetra₆_nodes = [n₄, n₇, n₆, n₈]
+vec_conec_elems = [
+    triangle₁_nodes, triangle₂_nodes, triangle₃_nodes, triangle₄_nodes,
+    triangle₅_nodes, triangle₆_nodes, triangle₇_nodes, triangle₈_nodes,
+    tetra₁_nodes, tetra₂_nodes, tetra₃_nodes,
+    tetra₄_nodes, tetra₅_nodes, tetra₆_nodes]
+# Mesh
+mesh = Mesh(vec_nodes, vec_conec_elems)
+# find elements with 3 and 4 nodes and create a elementIndexVector
+tetra_indexes = ElementIndex.(findall(x -> length(x) == 4, element_nodes(mesh)))
+triangle_indexes = ElementIndex.(findall(x -> length(x) == 3, element_nodes(mesh)))
+# -------------------------------
+# Materials
+# -------------------------------
+svk = SVK(E, ν)
+materials_dict = Dict("mySVK" => svk)
+s_materials = StructuralMaterials(materials_dict)
+# Sets
+m_sets = Dict(
+    "mySVK" => Set(tetra_indexes),
+)
+add_set!(s_materials, m_sets)
+# -------------------------------
+# Elements
+# -------------------------------
+elements_dict = Dict{String,AbstractElement}(
+    "triangles" => Triangle(),
+    "svk_tetras" => Tetrahedron()
+)
+s_elements = StructuralElements(elements_dict)
+# Sets
+e_sets = Dict(
+    "triangles" => Set(triangle_indexes),
+    "svk_tetras" => Set(tetra_indexes),
+)
+add_set!(s_elements, e_sets)
 
 
