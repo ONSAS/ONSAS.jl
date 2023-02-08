@@ -11,7 +11,7 @@ export dimension, label, set_label!
 export ScalarWrapper
 export eye, row_vector
 export displacements, internal_forces, internal_tangents,
-    inertial_forces, inertial_tangents, external_forces, external_tangents, unwarp
+    inertial_forces, inertial_tangents, external_forces, external_tangents, _unwrap
 
 #================================#
 # Generic functions to overload  #
@@ -46,7 +46,7 @@ function label end
 "Sets the label of an object."
 function set_label! end
 
-"Unwarps an object."
+"Unwraps the object fields."
 function _unwrap end
 
 "Empty function to solve a problem"
