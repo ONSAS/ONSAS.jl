@@ -99,5 +99,5 @@ max_iter = 100;
 tols = ConvergenceSettings(tol_f, tol_u, max_iter)
 nr = NewtonRaphson(Δλ, tols)
 # sol = solve(structural_analysis, nr)
-
+# typeof(sol) = StaticSolution(:u, hist:)
 
