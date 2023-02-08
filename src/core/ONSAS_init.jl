@@ -1,39 +1,36 @@
-"""
-Function used to initialize the model solution and properties structs. 
-"""
-function ONSAS_init(Materials, Geometries, LoadsBC, DofsBC, Initial_conditions, Mesh, ConvergenceSettings, Algorithm)
 
-    # ---------------------------------------
-    # create properties
-    # neum_dofs = compute_neum_dofs(Mesh, Boundary_conditions)
-    neum_dofs = []
-    Properties = ModelProperties(Materials, Geometries, LoadsBC, DofsBC, Mesh, ConvergenceSettings, Algorithm, neum_dofs)
-    # ---------------------------------------
+using .StructuralAnalyses: StaticAnalysis, structure
+using .StructuralSolvers: AbstractSolver
 
-    # ---------------------------------------
-    # boundary conds
-    Conec = boundary_cond_processing(Materials, Geometries, Mesh, LoadsBC, DofsBC)
-    # ---------------------------------------
+import .StructuralSolvers: init
 
-    # ---------------------------------------
-    # create initial solution
-    nnodes = size(Mesh.nodal_coords, 1)
+"Returns load factors vector"
+_load_factors_vector(sa::StaticAnalysis, alg::AbstractSolver) =
+    LinRange(0, final_time(sa), ceil(Int, final_time(sa) / step_size(alg)))
 
-    U = zeros(6 * nnodes)
-    U̇ = zeros(6 * nnodes)
-    Ü = zeros(6 * nnodes) # TO DO compute acceleration 
 
-    # system_matrix, system_rhs = assemble_system(Properties, Unp1k, neum_dofs)
-    system_matrix, system_rhs = assemble_system(Properties, U, neum_dofs)
-    # Solution = ModelSolution( 0.0, U, Udot, Udotdot, system_matrix, system_rhs )
-    Solution = 1
-    # ---------------------------------------
+"Returns the initialized analysis and solution struct. "
+function init(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
-    return Solution, Properties
+    s = structure(sa)
+    #TODO : add an optinal load factors vector in kwargs 
+    λs = _load_factors_vector(sa, alg)
+
+    # Apply load BC into the global external forces vector 
+    _apply_load_bc!(s, first(λs))
+
+    # Build initial external forces vector and apply boundary conditions
+    _apply_disp_bc!(s, first(λs))
+
+    # Main.@infiltrate
+
+
+    return sa
 end
 
 
 
+#=
 
 
 function generate_neum(nNodes)
@@ -96,3 +93,4 @@ function compute_neum_dofs(Mesh, Boundary_conditions)
     return neum_dofs
 end
 
+=#

@@ -24,7 +24,7 @@ vec_nodes = [n₁, n₂, n₃]
 elem₁_nodes = [n₁, n₂]
 elem₂_nodes = [n₂, n₃]
 vec_conec_elems = [elem₁_nodes, elem₂_nodes]
-mesh = Mesh(vec_nodes, vec_conec_elems)
+s_mesh = Mesh(vec_nodes, vec_conec_elems)
 # -------------------------------
 # Materials
 # -------------------------------
@@ -62,7 +62,7 @@ add_set!(s_elements, e_sets)
 # -------------------------------
 # Boundary conditions
 # -------------------------------
-bc₁ = FixedDisplacementBoundaryCondition()
+bc₁ = PinnedDisplacementBoundaryCondition()
 bc₂ = FⱼLoadBoundaryCondition(Fⱼ)
 bcs_dict = Dict(
     "fixed" => bc₁,
@@ -77,7 +77,7 @@ add_set!(s_boundary_conditions, bc_sets)
 # -------------------------------
 # Create Structure
 # -------------------------------
-s = Structure(mesh, s_materials, s_elements, s_boundary_conditions)
+s = Structure(s_mesh, s_materials, s_elements, s_boundary_conditions)
 init_state = current_state(s)
 @test norm(displacements(init_state)) == 0
 @test norm(external_forces(init_state)) == 0
@@ -86,13 +86,18 @@ init_state = current_state(s)
 # -------------------------------
 # Structural Analysis
 # -------------------------------
-t₁ = 1
-Δₜ = 0.2
-structural_analysis = StaticAnalysis(s, t₁, Δₜ, init_state)
+# Final load factor
+λ₁ = 10
+structural_analysis = StaticAnalysis(s, λ₁, init_state)
 # -------------------------------
 # Solve analysis
 # -------------------------------
+Δλ = 1
 tol_f = 1e-10;
 tol_u = 1e-10;
 max_iter = 100;
-# sol = solve(structural_analysis, NR(); tol=ConvergenceTolerances(tol_f, tol_u, max_iter))
+tols = ConvergenceSettings(tol_f, tol_u, max_iter)
+nr = NewtonRaphson(Δλ, tols)
+# sol = solve(structural_analysis, nr)
+
+

@@ -41,7 +41,6 @@ The following methods are provided by the interface:
 
 abstract type AbstractIndex{I} end
 
-@inline Base.getindex(v::AbstractVector, i::AbstractIndex) = v[i[]]
 @inline Base.getindex(i::AbstractIndex) = i.id
 @inline Base.setindex!(i::AbstractIndex, id) = i.id = id # callable with i[] = id
 
@@ -53,6 +52,23 @@ abstract type AbstractIndex{I} end
 @auto_hash_equals mutable struct DofIndex{I<:Integer} <: AbstractIndex{I}
     id::I
 end
+
+# @inline Base.getindex(m::AbstractMatrix, i::DofIndex) = m[i[], i[]]
+# @inline Base.getindex(m::AbstractMatrix, vi::Vector{<:DofIndex}) = [m[i[], i[]] for i in vi]
+# @inline Base.setindex!(m::AbstractMatrix, t::T, i::DofIndex) where {T<:Number} = (m[i[], i[]] = t)
+# @inline function Base.setindex!(m::AbstractMatrix, tv::Vector{T}, vi::Vector{<:DofIndex}) where {T<:Number}
+#     length(tv) == length(vi) || error("The length of the vector and the vector of indexes must be the same.")
+#     [m[vᵢ] = tᵢ for (vᵢ, tᵢ) in zip(vi, tv)]
+# end
+
+@inline Base.getindex(v::AbstractVector, i::DofIndex) = v[i[]]
+@inline Base.getindex(v::AbstractVector, vi::Vector{<:DofIndex}) = [v[i[]] for i in vi]
+@inline Base.setindex!(v::AbstractVector, t::T, i::DofIndex) where {T<:Number} = (v[i[]] = t)
+@inline function Base.setindex!(v::AbstractVector, tv::Vector{T}, vi::Vector{<:DofIndex}) where {T<:Number}
+    length(tv) == length(vi) || error("The length of the vector and the vector of indexes must be the same.")
+    [v[dof(vᵢ)] = tᵢ for (vᵢ, tᵢ) in zip(vi, tv)]
+end
+
 
 """
 `Element` identification number.
@@ -93,6 +109,15 @@ end
 
 Dof(symbol::Symbol, index::Integer=_DEFAULT_INDEX_INT, is_fixed::Bool=false) = Dof(symbol, DofIndex(index), ScalarWrapper(is_fixed))
 Base.:(==)(d1::Dof, d2::Dof) = d1.symbol == d2.symbol && d1.index == d2.index
+
+
+# @inline Base.getindex(m::AbstractMatrix, d::Tuple) = m[index(d[1]), index(d[2])]
+# @inline Base.setindex!(m::AbstractMatrix, tv::Vector{<:Real}, d::Dof) = m[index(d), index(d)] = tv
+@inline Base.getindex(v::AbstractVector, d::Dof) = v[index(d)]
+@inline Base.getindex(v::AbstractVector, vd::Vector{<:Dof}) = [v[index(d)] for d in vd]
+@inline Base.setindex!(v::AbstractVector, t::Real, d::Dof) = v[index(d)] = t
+@inline Base.setindex!(v::AbstractVector, tv::Vector, vd::Vector{<:Dof}) = [setindex!(v, ti, vi) for (ti, vi) in zip(tv, vd)]
+# v[index(d) for d in vd]
 
 
 "Returns the degree of freedom identification number."
@@ -168,21 +193,20 @@ end
 
 set_index!(n::AbstractNode, i::Integer) = set_index!(n, NodeIndex(i))
 
-"Fixes a node dofs"
-function fix!(n::AbstractNode)
-    [fix!(dof) for dof in dofs(n)]
-    return n
-end
+"Fixes node dofs"
+fix!(n::AbstractNode) = [fix!(dof) for dof in dofs(n)]
+
+
 #TODO: generalize to any field type and dimension (:u, dim)
 "Maps dimension of the node to local degrees of freedom."
 function _dim_to_nodal_dofs(dim::Int)
     dofs = if dim == 1
-        [Dof(:uₓ, 1)]
+        [Dof(:uᵢ, 1)]
     elseif dim == 2
-        [Dof(:uₓ, 1), Dof(:uⱼ, 2), Dof(:θₖ, 3)]
+        [Dof(:uᵢ, 1), Dof(:uⱼ, 2), Dof(:θₖ, 3)]
     elseif dim == 3
         [
-            Dof(:uₓ, 1), Dof(:θₓ, 2),
+            Dof(:uᵢ, 1), Dof(:θₓ, 2),
             Dof(:uⱼ, 3), Dof(:θⱼ, 4),
             Dof(:uₖ, 5), Dof(:θₖ, 6)
         ]
@@ -295,6 +319,7 @@ function create_element(e::AbstractElement, material::AbstractMaterial, args...;
 coordinates(e::AbstractElement) = row_vector(coordinates.(nodes(e)))
 
 dofs(e::AbstractElement) = row_vector(dofs.(nodes(e)))
+dofs(ve::Vector{<:AbstractElement}) = unique(row_vector(dofs.(ve)))
 
 "Returns local dofs of an element. This dofs are essential for the assemble process."
 function local_dofs(e::AbstractElement) end
@@ -313,6 +338,10 @@ nodes(e::AbstractElement) = e.nodes
 
 "Returns element material."
 material(e::AbstractElement) = e.material
+
+"Fixes element dofs"
+fix!(e::AbstractElement) = [fix!(n) for n in nodes(e)]
+
 
 "Returns the internal force vector of the element."
 function internal_forces(e::AbstractElement, args...; kwargs...) end

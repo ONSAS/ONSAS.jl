@@ -3,3 +3,6 @@ include("StructuralModel.jl")
 
 include("StructuralAnalyses.jl")
 @reexport using .StructuralAnalyses
+
+include("StructuralSolvers.jl")
+@reexport using .StructuralSolvers

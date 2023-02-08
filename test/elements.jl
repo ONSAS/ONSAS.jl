@@ -10,7 +10,7 @@ using ONSAS.BoundaryConditions: FixedDisplacementBoundaryCondition
 @testset "ONSAS.Elements.Dof" begin
 
     # Default dof
-    sym = :uₓ
+    sym = :uᵢ
     ux_dof = Dof(sym)
     @test symbol(ux_dof) == sym
     @test index(ux_dof) == DofIndex(0)

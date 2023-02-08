@@ -5,7 +5,7 @@ module StructuralAnalyses
 
 using ..StructuralModel
 
-export StaticAnalysis, structure, final_time, time_step
+export AbstractStructuralAnalysis, StaticAnalysis, structure, final_time, time_step
 
 
 """ Abstract supertype for all structural analysis.
@@ -44,10 +44,9 @@ struct StaticAnalysis <: AbstractStructuralAnalysis
     s::AbstractStructure
     t₁::Number
     init_state::StaticState
-    function StaticAnalysis(s, t₁::Number=1.0, Δₜ::Number=0.1, init_state=current_state(s))
+    function StaticAnalysis(s, t₁::Number=1.0, init_state=current_state(s))
         # Check meaningful parameters
-        (t₁ > 0 && Δₜ > 0) || throw(ArgumentError("t₁ and Δₜ must be positive"))
-        (t₁ ≥ Δₜ) || throw(ArgumentError("t₁ must be greater than Δₜ"))
+        (t₁ > 0) || throw(ArgumentError("t₁ must be positive"))
         new(s, t₁, init_state)
     end
 end

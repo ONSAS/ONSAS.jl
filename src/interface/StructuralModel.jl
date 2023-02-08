@@ -15,6 +15,7 @@ using ..Utils: label, set_label!
 using ..Meshes: AbstractMesh, element_nodes
 
 @reexport import ..Meshes: elements
+@reexport import ..BoundaryConditions: dofs
 @reexport import ..Elements: nodes
 @reexport import ..Utils: external_forces, internal_forces, internal_tangents, displacements
 
@@ -23,7 +24,7 @@ export StructuralMaterials, materials
 export StructuralElements
 export StructuralBoundaryConditions, disp_bcs, load_bcs
 export StructuralInitialConditions
-export AbstractStructure, Structure, mesh, current_state
+export AbstractStructure, Structure, mesh, current_state, structural_bcs
 export AbstractStructuralState, StaticState
 
 # ======================
@@ -148,7 +149,6 @@ A `StructuralBoundaryConditions` is a collection of `BoundaryConditions` definin
 ### Fields:
 - `displacements_bc` -- Stores displacement boundary conditions. 
 - `loads_bc` -- Stores loads boundary conditions. 
-- `loads_bc` -- Stores loads boundary conditions. 
 - `sets`     -- Maps a boundary condition `String` (corresponding to a bc type) into element ids. 
 """
 struct StructuralBoundaryConditions{B<:AbstractBoundaryCondition} <: AbstractStructuralMEBI
@@ -175,7 +175,10 @@ struct StructuralBoundaryConditions{B<:AbstractBoundaryCondition} <: AbstractStr
     end
 end
 
+"Returns displacements boundary conditions"
 disp_bcs(se::StructuralBoundaryConditions) = se.displacements_bc
+
+"Returns load boundary conditions"
 load_bcs(se::StructuralBoundaryConditions) = se.loads_bc
 
 function Base.getindex(bcs::StructuralBoundaryConditions, bc_label::L) where {L<:Union{String,Symbol}}
@@ -287,21 +290,31 @@ end
 An `AbstractStructure` object facilitates the process of assigning materials, 
 elements, initial and boundary conditions to the mesh.
 **Common methods:**
-* [`nodes`](@ref)
 * [`elements`](@ref)
+* [`nodes`](@ref)
 * [`mesh`](@ref)
 * [`state`](@ref)
 """
 abstract type AbstractStructure{D,M,E,B,I} end
 
-"Returns the mesh"
-mesh(s::AbstractStructure) = s.mesh
+elements(s::AbstractStructure) = elements(mesh(s))
 
 nodes(s::AbstractStructure) = nodes(mesh(s))
 
-elements(s::AbstractStructure) = elements(mesh(s))
+"Returns the mesh"
+mesh(s::AbstractStructure) = s.mesh
+
+disp_bcs(s::AbstractStructure) = disp_bcs(s.bcs)
+
+dofs(s::AbstractStructure) = dofs(mesh(s))
+
+load_bcs(s::AbstractStructure) = load_bcs(s.bcs)
+
+structural_bcs(s::AbstractStructure) = s.bcs
 
 Base.getindex(s::AbstractStructure, i::AbstractIndex) = mesh(s)[i]
+Base.getindex(s::AbstractStructure, vi::Vector{<:AbstractIndex}) = mesh(s)[vi]
+Base.getindex(s::AbstractStructure, si::Set{<:AbstractIndex}) = mesh(s)[si]
 
 "Returns the current structural state"
 current_state(s::AbstractStructure) = s.state
@@ -314,7 +327,7 @@ An `Structure` object facilitates the process of assembling and creating the str
 - `elements`    -- Stores the types of elements considered in the structure.
 - `bcs`         -- Stores the types of boundary conditions in the structure.
 - `ics`         -- Stores the types of initial conditions in the structure.
-- `ics`         -- Stores the current state of the structure.
+- `state`         -- Stores the current state of the structure.
 """
 mutable struct Structure{D,M,E,B,I} <: AbstractStructure{D,M,E,B,I}
     mesh::AbstractMesh{D}
@@ -334,8 +347,9 @@ mutable struct Structure{D,M,E,B,I} <: AbstractStructure{D,M,E,B,I}
 
         # Create elements and push them into the mesh
         _create_elements!(mesh, mats, elems)
+
         # Apply bc
-        _apply_bcs!(mesh, bcs)
+        _assign_bcs!(mesh, bcs)
 
         # Default structural state
         s_default_state = StaticState(mesh)
@@ -362,7 +376,7 @@ function _create_elements!(
 end
 
 "Applies nodal and element boundary conditions to the mesh"
-function _apply_bcs!(mesh::AbstractMesh, bcs::StructuralBoundaryConditions)
+function _assign_bcs!(mesh::AbstractMesh, bcs::StructuralBoundaryConditions)
 
     for (label, set) in sets(bcs)
         bc = bcs[label]

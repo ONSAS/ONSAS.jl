@@ -5,7 +5,7 @@ module Meshes
 
 using Reexport: @reexport
 using ..Utils: row_vector
-using ..Elements: AbstractElement, AbstractNode, NodeIndex, ElementIndex, set_index!
+using ..Elements: AbstractElement, AbstractNode, AbstractIndex, NodeIndex, ElementIndex, set_index!
 
 @reexport import ..BoundaryConditions: dofs
 @reexport import ..Elements: coordinates_eltype, nodes
@@ -72,6 +72,8 @@ end
 
 Base.getindex(m::AbstractMesh, i_e::ElementIndex) = elements(m)[i_e[]]
 Base.getindex(m::AbstractMesh, i_n::NodeIndex) = nodes(m)[i_n[]]
+Base.getindex(m::AbstractMesh, vi::Vector{<:AbstractIndex}) = [m[i] for i in vi]
+Base.getindex(m::AbstractMesh, si::Set{<:AbstractIndex}) = [m[i] for i in collect(si)]
 
 """ Mesh.
 A `Mesh` is a collection of `Element`s and `Node`s which covers the computational domain, 

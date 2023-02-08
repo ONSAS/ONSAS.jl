@@ -1,11 +1,12 @@
 """
 Module defining structural solvers that can be used to solved different analyses. 
 """
-module StructuralAnalyses
+module StructuralSolvers
 
 using Reexport: @reexport
 @reexport import ..StructuralModel: displacements
 @reexport import ..StructuralAnalyses: AbstractStructuralAnalysis
+@reexport import ..Utils: solve
 
 export ConvergenceSettings, step_size, tolerances, NewtonRaphson, AbstractSolution, StaticSolution
 
@@ -66,7 +67,7 @@ algorithm(sol::AbstractSolution) = sol.alg
 displacements(sol::AbstractSolution) = sol.U
 
 """
-    Solution{T<:AbstractSolver, UT, VT, AT} <: AbstractSolution
+Static solution struct.
 ### Fields
 - `alg` -- Algorithm used in the integration
 - `U`   -- Displacements
@@ -81,17 +82,14 @@ struct StaticSolution{T<:AbstractSolver,UT,ST} <: AbstractSolution
 end
 
 # constructor with missing fields
-Solution(alg, U, t) = Solution(alg, U, nothing, nothing, t)
+StaticSolution(alg, U, t) = StaticSolution(alg, U, t, Dict())
 
-""" Returns the ambient dimension of the state space of the solution."""
-dim(sol::Solution) = length(first(sol.U))
-
-"""Returns the vector of displacements of the given solution along coordinate `i`."""
-function displacements(sol::Solution, i::Int)
-    1 ≤ i ≤ dim(sol) || throw(ArgumentError("expected the coordinate to be between 1 and $(dim(sol)), got $i"))
-    U = displacements(sol)
-    return [u[i] for u in U]
-end
+# """Returns the vector of displacements of the given solution along coordinate `i`."""
+# function displacements(sol::Solution, i::Int)
+#     1 ≤ i ≤ dim(sol) || throw(ArgumentError("expected the coordinate to be between 1 and $(dim(sol)), got $i"))
+#     U = displacements(sol)
+#     return [u[i] for u in U]
+# end
 
 # ===============
 # Solve function
@@ -106,9 +104,14 @@ Solve an structural analysis problem.
 A solution structure (`AbstractSolution`) that holds the result and the algorithm used
 to obtain it.
 """
-function solve(a::AbstractStructuralAnalyses, alg::AbstractSolver, args...; kwargs...)
-    initialized_analysis = init(ivp, alg, args...; kwargs...)
+function solve(a::AbstractStructuralAnalysis, alg::AbstractSolver, args...; kwargs...)
+    initialized_analysis = init(a, alg, args...; kwargs...)
     return _solve(initialized_analysis, alg, args...; kwargs...)
+end
+
+"Returns the initialized analysis."
+function init(a::AbstractStructuralAnalysis, alg::AbstractSolver, args...; kwargs...)
+    return a
 end
 
 end # module
