@@ -37,9 +37,9 @@ end
 cross_section(e::Truss) = e.cross_section
 
 "Returns local dofs of a truss element."
-local_dofs(::Truss{1}) = [Dof(:uₓ, 1)]
-local_dofs(::Truss{2}) = [Dof(:uₓ, 1), Dof(:uⱼ, 3)]
-local_dofs(::Truss{3}) = [Dof(:uₓ, 1), Dof(:uⱼ, 3), Dof(:uₖ, 5)]
+local_dofs(::Truss{1}) = [Dof(:uᵢ, 1)]
+local_dofs(::Truss{2}) = [Dof(:uᵢ, 1), Dof(:uⱼ, 3)]
+local_dofs(::Truss{3}) = [Dof(:uᵢ, 1), Dof(:uⱼ, 3), Dof(:uₖ, 5)]
 
 
 function _aux_matrices(dim::Integer)
