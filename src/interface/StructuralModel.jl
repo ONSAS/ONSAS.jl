@@ -18,13 +18,15 @@ using ..Meshes: AbstractMesh, element_nodes
 @reexport import ..BoundaryConditions: dofs
 @reexport import ..Elements: nodes
 @reexport import ..Utils: external_forces, internal_forces, internal_tangents, displacements
+import ..Utils: _unwrap
+
 
 export AbstractStructuralMEBI, sets, add_set!
 export StructuralMaterials, materials
 export StructuralElements
 export StructuralBoundaryConditions, disp_bcs, load_bcs
 export StructuralInitialConditions
-export AbstractStructure, Structure, mesh, current_state, structural_bcs
+export AbstractStructure, Structure, mesh, current_state, free_dofs, free_dofs_indexes, structural_bcs
 export AbstractStructuralState, StaticState
 
 # ======================
@@ -270,6 +272,8 @@ struct StaticState <: AbstractStructuralState
     Kₛᵏ::AbstractMatrix
 end
 
+_unwrap(sc::StaticState) = (sc.Uᵏ, sc.Fₑₓₜᵏ, sc.Fᵢₙₜᵏ, sc.Kₛᵏ)
+
 #TODO: Add tangent matrix of the external forces vector
 
 "Returns a default static case for a given mesh."
@@ -307,6 +311,10 @@ mesh(s::AbstractStructure) = s.mesh
 disp_bcs(s::AbstractStructure) = disp_bcs(s.bcs)
 
 dofs(s::AbstractStructure) = dofs(mesh(s))
+
+"Returns free dofs (or not fixed) dofs of the structure"
+free_dofs(s::AbstractStructure) = filter(is_free, dofs(s))
+free_dofs_indexes(s::AbstractStructure) = getindex.(index.(free_dofs(s)))
 
 load_bcs(s::AbstractStructure) = load_bcs(s.bcs)
 

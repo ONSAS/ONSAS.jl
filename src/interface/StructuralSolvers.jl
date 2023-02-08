@@ -37,21 +37,15 @@ end
 Abstract supertype for all direct integration methods.
 """
 abstract type AbstractSolver end
+"Returns the step size of the solver."
 step_size(alg::AbstractSolver) = alg.Δt
+"Returns the numerical tolerance set to the solver."
 tolerances(alg::AbstractSolver) = alg.tol
 
+"Computes the solver step for a given analysis."
+function step!(alg::AbstractSolver, a::AbstractStructuralAnalysis, args...; kwargs...) end
 
-""" Newton-Raphson solver struct.
-
-### Fields:
-- `Δt`  -- Step size
-- `tol` -- Numerical tolerances
-"""
-
-struct NewtonRaphson <: AbstractSolver
-    Δt::Number
-    tol::ConvergenceSettings
-end
+include("./../algorithms/NR.jl")
 
 #==========#
 # Solutions
@@ -84,13 +78,6 @@ end
 # constructor with missing fields
 StaticSolution(alg, U, t) = StaticSolution(alg, U, t, Dict())
 
-# """Returns the vector of displacements of the given solution along coordinate `i`."""
-# function displacements(sol::Solution, i::Int)
-#     1 ≤ i ≤ dim(sol) || throw(ArgumentError("expected the coordinate to be between 1 and $(dim(sol)), got $i"))
-#     U = displacements(sol)
-#     return [u[i] for u in U]
-# end
-
 # ===============
 # Solve function
 # ===============
@@ -106,6 +93,7 @@ to obtain it.
 """
 function solve(a::AbstractStructuralAnalysis, alg::AbstractSolver, args...; kwargs...)
     initialized_analysis = init(a, alg, args...; kwargs...)
+    step!(alg, initialized_analysis, args...; kwargs...)
     return _solve(initialized_analysis, alg, args...; kwargs...)
 end
 

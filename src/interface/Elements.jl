@@ -16,7 +16,7 @@ using ..Utils: ScalarWrapper
 @reexport import ..BoundaryConditions: dofs
 
 export AbstractIndex, ElementIndex, NodeIndex, DofIndex, index, set_index!
-export Dof, symbol, is_fixed, fix!
+export Dof, symbol, is_fixed, is_free, fix!
 export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype
 export AbstractElement, create_element, coordinates, dofs, local_dofs, material
 
@@ -130,8 +130,11 @@ set_index!(d::Dof, idx::DofIndex) = d.index = idx
 "Returns the degree of freedom symbol."
 symbol(d::Dof) = d.symbol
 
-"Returns `true` if the degree of freedom is free"
+"Returns `true` if the degree of freedom is fixed"
 is_fixed(d::Dof) = d.is_fixed[]
+
+"Returns `true` if the degree of freedom is free"
+is_free(d::Dof) = !is_fixed(d)
 
 "Sets the degree of freedom as fixed"
 fix!(d::Dof) = d.is_fixed[] = true
