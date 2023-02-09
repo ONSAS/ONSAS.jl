@@ -48,6 +48,7 @@ using ONSAS
     @test label(aluminum) == Symbol(aluminum_label)
     @test s_materials["steel"] == steel
     @test steel ∈ materials(s_materials) && aluminum ∈ materials(s_materials)
+
     # -------------------------------
     # Geometries
     # -------------------------------
@@ -88,6 +89,7 @@ using ONSAS
         bc_label₁ => bc₁,
         bc_label₂ => bc₂
     )
+
     s_bcs = StructuralBoundaryConditions(boundary_conditions)
     @test label(elem₁) == Symbol(elem₁_label)
     @test label(elem₂) == Symbol(elem₂_label)

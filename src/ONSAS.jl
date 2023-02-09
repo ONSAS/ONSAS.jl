@@ -12,5 +12,6 @@ include("interface/model_structs.jl")
 # core
 include("core/update_structure_state.jl")
 include("core/ONSAS_init.jl")
+include("core/assembler.jl")
 
 end # module

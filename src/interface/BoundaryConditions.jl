@@ -76,11 +76,11 @@ struct FixedDisplacementBoundaryCondition{D} <: AbstractDisplacementBoundaryCond
     bc::DisplacementBoundaryCondition{D}
     function FixedDisplacementBoundaryCondition(label_bc=DEFAULT_LABEL)
 
-        dofs_fixed = [:uᵢ, :θᵢ, :uⱼ, :θⱼ, :uₖ, :θₖ]
+        local_dofs_fixed = [1, 2, 3, 4, 5, 6]
 
         bc = DisplacementBoundaryCondition(
-            dofs=dofs_fixed,
-            values=x -> zeros(length(dofs_fixed)),
+            dofs=local_dofs_fixed,
+            values=x -> zeros(length(local_dofs_fixed)),
             label=label_bc
         )
 
@@ -104,11 +104,11 @@ struct PinnedDisplacementBoundaryCondition{D} <: AbstractDisplacementBoundaryCon
     bc::DisplacementBoundaryCondition{D}
     function PinnedDisplacementBoundaryCondition(label_bc=DEFAULT_LABEL)
 
-        dofs_fixed = [:uᵢ, :uⱼ, :uₖ]
+        local_dofs_fixed = [1, 3, 5]
 
         bc = DisplacementBoundaryCondition(
-            dofs=dofs_fixed,
-            values=(t) -> zeros(length(dofs_fixed)),
+            dofs=local_dofs_fixed,
+            values=(t) -> zeros(length(local_dofs_fixed)),
             label=label_bc
         )
 
@@ -182,7 +182,7 @@ struct MᵢLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
     function MᵢLoadBoundaryCondition(
         v::Vector, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
     ) where {F}
-        m_dofs = [:θᵢ]
+        m_dofs = [2]
         lbc = GlobalLoadBoundaryCondition(m_dofs, v, load_factor, label)
         return new{F}(lbc)
     end
@@ -206,7 +206,7 @@ struct MⱼLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
     function MⱼLoadBoundaryCondition(
         v::Vector, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
     ) where {F}
-        m_dofs = [:θⱼ]
+        m_dofs = [4]
         lbc = GlobalLoadBoundaryCondition(m_dofs, v, load_factor, label)
         return new{F}(lbc)
     end
@@ -230,7 +230,7 @@ struct MₖLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
     function MₖLoadBoundaryCondition(
         v::Vector, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
     ) where {F}
-        m_dofs = [:θₖ]
+        m_dofs = [6]
         lbc = GlobalLoadBoundaryCondition(m_dofs, v, load_factor, label)
         return new{F}(lbc)
     end
@@ -254,7 +254,7 @@ struct FᵢLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
     function FᵢLoadBoundaryCondition(
         v::Real, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
     ) where {F}
-        m_dofs = [:uᵢ]
+        m_dofs = [1]
         lbc = GlobalLoadBoundaryCondition(m_dofs, [v], load_factor, label)
         return new{F}(lbc)
     end
@@ -279,7 +279,7 @@ struct FⱼLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
     function FⱼLoadBoundaryCondition(
         v::Real, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
     ) where {F}
-        m_dofs = [:uⱼ]
+        m_dofs = [3]
         lbc = GlobalLoadBoundaryCondition(m_dofs, [v], load_factor, label)
         return new{F}(lbc)
     end
@@ -304,7 +304,7 @@ struct FₖLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
     function FₖLoadBoundaryCondition(
         v::Real, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
     ) where {F}
-        m_dofs = [:uₖ]
+        m_dofs = [5]
         lbc = GlobalLoadBoundaryCondition(m_dofs, [v], load_factor, label)
         return new{F}(lbc)
     end

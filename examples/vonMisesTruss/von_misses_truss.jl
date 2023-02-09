@@ -82,7 +82,6 @@ init_state = current_state(s)
 @test norm(displacements(init_state)) == 0
 @test norm(external_forces(init_state)) == 0
 @test norm(internal_forces(init_state)) == 0
-@test norm(internal_tangents(init_state)) == 0
 # -------------------------------
 # Structural Analysis
 # -------------------------------

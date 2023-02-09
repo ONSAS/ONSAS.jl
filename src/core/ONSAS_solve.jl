@@ -5,8 +5,6 @@ using ..StructuralAnalyses: StaticAnalysis
 "Internal function to solve different analysis problem"
 function _solve(sa::StaticAnalysis, alg::NewtonRaphson, args...; kwargs...)
 
-
-    Main.@infiltrate
     # initial conditions
     u0 = prob.u0
     tspan = prob.tspan

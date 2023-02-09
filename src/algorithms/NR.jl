@@ -1,6 +1,6 @@
-using ..StructuralSolvers: AbstractSolver, ConvergenceSettings
+using ..StructuralModel: current_state, free_dof_indexes, _unwrap
 using ..StructuralAnalyses: StaticAnalysis, structure
-using ..StructuralModel: current_state, free_dofs_indexes, _unwrap
+using ..StructuralSolvers: AbstractSolver, ConvergenceSettings
 
 """ Newton-Raphson solver struct.
 
@@ -19,7 +19,7 @@ function step!(alg::NewtonRaphson, sa::StaticAnalysis, args...)
     # Current state
     s = structure(sa)
     Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ = _unwrap(current_state(s))
-    fdofs_indexes = free_dofs_indexes(s)
+    fdofs_indexes = free_dof_indexes(s)
 
     # Solve system
     Kₛ_redᵏ = view(Kₛᵏ, fdofs_indexes, fdofs_indexes)

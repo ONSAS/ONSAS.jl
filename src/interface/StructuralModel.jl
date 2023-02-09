@@ -17,7 +17,7 @@ using ..Meshes: AbstractMesh, element_nodes
 @reexport import ..Meshes: elements
 @reexport import ..BoundaryConditions: dofs
 @reexport import ..Elements: nodes
-@reexport import ..Utils: external_forces, internal_forces, internal_tangents, displacements
+@reexport import ..Utils: external_forces, internal_forces, displacements
 import ..Utils: _unwrap
 
 
@@ -26,7 +26,7 @@ export StructuralMaterials, materials
 export StructuralElements
 export StructuralBoundaryConditions, disp_bcs, load_bcs
 export StructuralInitialConditions
-export AbstractStructure, Structure, mesh, current_state, free_dofs, free_dofs_indexes, structural_bcs
+export AbstractStructure, Structure, mesh, current_state, free_dof_indexes, structural_bcs
 export AbstractStructuralState, StaticState
 
 # ======================
@@ -313,8 +313,7 @@ disp_bcs(s::AbstractStructure) = disp_bcs(s.bcs)
 dofs(s::AbstractStructure) = dofs(mesh(s))
 
 "Returns free dofs (or not fixed) dofs of the structure"
-free_dofs(s::AbstractStructure) = filter(is_free, dofs(s))
-free_dofs_indexes(s::AbstractStructure) = getindex.(index.(free_dofs(s)))
+free_dof_indexes(s::AbstractStructure) = s.free_dof_indexes
 
 load_bcs(s::AbstractStructure) = load_bcs(s.bcs)
 
@@ -330,12 +329,13 @@ current_state(s::AbstractStructure) = s.state
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
 ### Fields:
-- `mesh`        -- Stores the structure mesh. 
-- `materials`   -- Stores the types of material models considered in the structure. 
-- `elements`    -- Stores the types of elements considered in the structure.
-- `bcs`         -- Stores the types of boundary conditions in the structure.
-- `ics`         -- Stores the types of initial conditions in the structure.
-- `state`         -- Stores the current state of the structure.
+- `mesh`             -- Stores the structure mesh. 
+- `materials`        -- Stores the types of material models considered in the structure. 
+- `elements`         -- Stores the types of elements considered in the structure.
+- `bcs`              -- Stores the types of boundary conditions in the structure.
+- `ics`              -- Stores the types of initial conditions in the structure.
+- `state`            -- Stores the current state of the structure.
+- `free_dof_indexes` -- Stores the free degrees of freedom.
 """
 mutable struct Structure{D,M,E,B,I} <: AbstractStructure{D,M,E,B,I}
     mesh::AbstractMesh{D}
@@ -344,6 +344,7 @@ mutable struct Structure{D,M,E,B,I} <: AbstractStructure{D,M,E,B,I}
     bcs::StructuralBoundaryConditions{B}
     ics::StructuralInitialConditions{I}
     state::AbstractStructuralState
+    free_dof_indexes::Vector{<:Integer}
     function Structure(
         mesh::AbstractMesh{D},
         mats::StructuralMaterials{M},
@@ -359,10 +360,11 @@ mutable struct Structure{D,M,E,B,I} <: AbstractStructure{D,M,E,B,I}
         # Apply bc
         _assign_bcs!(mesh, bcs)
 
-        # Default structural state
         s_default_state = StaticState(mesh)
 
-        return new{D,M,E,B,I}(mesh, mats, elems, bcs, init, s_default_state)
+        default_free_dofs_indexes = index.(dofs(mesh))
+
+        return new{D,M,E,B,I}(mesh, mats, elems, bcs, init, s_default_state, default_free_dofs_indexes)
     end
 end
 
