@@ -12,11 +12,11 @@ using ..BoundaryConditions: AbstractBoundaryCondition
 using ..InitialConditions: AbstractInitialCondition
 using ..Utils: ScalarWrapper
 @reexport import ..Utils: dimension, label, set_label!
-@reexport import ..Utils: internal_forces, internal_tangents
+@reexport import ..Utils: internal_forces, inertial_forces
 @reexport import ..BoundaryConditions: dofs
 
-export AbstractIndex, ElementIndex, NodeIndex, DofIndex, index, set_index!
-export Dof, symbol, is_fixed, is_free, fix!
+export AbstractIndex, ElementIndex, NodeIndex, index
+export Dof
 export AbstractNode, Node, boundary_conditions, coordinates, coordinates_eltype
 export AbstractElement, create_element, coordinates, dofs, local_dofs, material
 
@@ -45,32 +45,6 @@ abstract type AbstractIndex{I} end
 @inline Base.setindex!(i::AbstractIndex, id) = i.id = id # callable with i[] = id
 
 """
-`Dof` identification number.
-### Fields:
-`id` -- integer number. 
-"""
-@auto_hash_equals mutable struct DofIndex{I<:Integer} <: AbstractIndex{I}
-    id::I
-end
-
-# @inline Base.getindex(m::AbstractMatrix, i::DofIndex) = m[i[], i[]]
-# @inline Base.getindex(m::AbstractMatrix, vi::Vector{<:DofIndex}) = [m[i[], i[]] for i in vi]
-# @inline Base.setindex!(m::AbstractMatrix, t::T, i::DofIndex) where {T<:Number} = (m[i[], i[]] = t)
-# @inline function Base.setindex!(m::AbstractMatrix, tv::Vector{T}, vi::Vector{<:DofIndex}) where {T<:Number}
-#     length(tv) == length(vi) || error("The length of the vector and the vector of indexes must be the same.")
-#     [m[vᵢ] = tᵢ for (vᵢ, tᵢ) in zip(vi, tv)]
-# end
-
-@inline Base.getindex(v::AbstractVector, i::DofIndex) = v[i[]]
-@inline Base.getindex(v::AbstractVector, vi::Vector{<:DofIndex}) = [v[i[]] for i in vi]
-@inline Base.setindex!(v::AbstractVector, t::T, i::DofIndex) where {T<:Number} = (v[i[]] = t)
-@inline function Base.setindex!(v::AbstractVector, tv::Vector{T}, vi::Vector{<:DofIndex}) where {T<:Number}
-    length(tv) == length(vi) || error("The length of the vector and the vector of indexes must be the same.")
-    [v[dof(vᵢ)] = tᵢ for (vᵢ, tᵢ) in zip(vi, tv)]
-end
-
-
-"""
 `Element` identification number.
 ### Fields:
 `id` -- integer number. 
@@ -92,52 +66,23 @@ end
 # Degree of freedom (Dof)
 # ========================
 const _DEFAULT_INDEX_INT = 0
-const _DEFAULT_DOF_INDEX = DofIndex(_DEFAULT_INDEX_INT)
 
 """ Degree of freedom struct.
 This is a scalar degree of freedom of the structure.
 ### Fields:
-- `symbol`  -- degree of freedom symbol.
 - `index`   -- degree of freedom identification number. 
-- `is_free` -- boolean indicating if the dof is free(`false`) or fixed(`true`).
 """
-struct Dof
-    symbol::Symbol
-    index::DofIndex
-    is_fixed::ScalarWrapper{Bool}
+mutable struct Dof
+    index::Int
 end
 
-Dof(symbol::Symbol, index::Integer=_DEFAULT_INDEX_INT, is_fixed::Bool=false) = Dof(symbol, DofIndex(index), ScalarWrapper(is_fixed))
-Base.:(==)(d1::Dof, d2::Dof) = d1.symbol == d2.symbol && d1.index == d2.index
+index(d::Dof) = d.index
+Base.setindex!(d::Dof, i::Int) = d.index = i
 
-
-# @inline Base.getindex(m::AbstractMatrix, d::Tuple) = m[index(d[1]), index(d[2])]
-# @inline Base.setindex!(m::AbstractMatrix, tv::Vector{<:Real}, d::Dof) = m[index(d), index(d)] = tv
 @inline Base.getindex(v::AbstractVector, d::Dof) = v[index(d)]
 @inline Base.getindex(v::AbstractVector, vd::Vector{<:Dof}) = [v[index(d)] for d in vd]
-@inline Base.setindex!(v::AbstractVector, t::Real, d::Dof) = v[index(d)] = t
-@inline Base.setindex!(v::AbstractVector, tv::Vector, vd::Vector{<:Dof}) = [setindex!(v, ti, vi) for (ti, vi) in zip(tv, vd)]
-# v[index(d) for d in vd]
-
-
-"Returns the degree of freedom identification number."
-index(d::Dof) = d.index
-
-"Sets a new index to the degree of freedom."
-set_index!(d::Dof, i::Int) = d.index[] = i
-set_index!(d::Dof, idx::DofIndex) = d.index = idx
-
-"Returns the degree of freedom symbol."
-symbol(d::Dof) = d.symbol
-
-"Returns `true` if the degree of freedom is fixed"
-is_fixed(d::Dof) = d.is_fixed[]
-
-"Returns `true` if the degree of freedom is free"
-is_free(d::Dof) = !is_fixed(d)
-
-"Sets the degree of freedom as fixed"
-fix!(d::Dof) = d.is_fixed[] = true
+@inline Base.setindex!(v::AbstractVector{T}, t::T, d::Dof) where {T} = v[index(d)] = t
+@inline Base.setindex!(v::AbstractVector, tv::Vector{T}, vd::Vector{<:Dof}) where {T} = [setindex!(v, ti, vi) for (ti, vi) in zip(tv, vd)]
 
 # =================
 # Abstract Node
@@ -186,32 +131,28 @@ index(n::AbstractNode) = n.index[]
 
 _nodes2dofs(idx::Integer, dim::Integer) = (idx-1)*2dim+1:(idx)*2dim
 
-function set_index!(n::AbstractNode{dim}, idx::NodeIndex) where {dim}
+function Base.setindex!(n::AbstractNode{dim}, idx::NodeIndex) where {dim}
     ndofs = dofs(n)
     node_dof_indexes = _nodes2dofs(idx[], dim)
-    [set_index!(dof, node_dof_indexes[i]) for (i, dof) in enumerate(ndofs)]
+    [setindex!(dof, node_dof_indexes[i]) for (i, dof) in enumerate(ndofs)]
     n.index[] = idx[]
     return n
 end
 
-set_index!(n::AbstractNode, i::Integer) = set_index!(n, NodeIndex(i))
-
-"Fixes node dofs"
-fix!(n::AbstractNode) = [fix!(dof) for dof in dofs(n)]
-
+Base.setindex!(n::AbstractNode, i::Integer) = setindex!(n, NodeIndex(i))
 
 #TODO: generalize to any field type and dimension (:u, dim)
 "Maps dimension of the node to local degrees of freedom."
 function _dim_to_nodal_dofs(dim::Int)
     dofs = if dim == 1
-        [Dof(:uᵢ, 1)]
+        [Dof(1)]
     elseif dim == 2
-        [Dof(:uᵢ, 1), Dof(:uⱼ, 2), Dof(:θₖ, 3)]
+        [Dof(1), Dof(2), Dof(3)]
     elseif dim == 3
         [
-            Dof(:uᵢ, 1), Dof(:θₓ, 2),
-            Dof(:uⱼ, 3), Dof(:θⱼ, 4),
-            Dof(:uₖ, 5), Dof(:θₖ, 6)
+            Dof(1), Dof(2),
+            Dof(3), Dof(4),
+            Dof(5), Dof(6)
         ]
     else
         error("Dimension not supported.")
@@ -273,20 +214,16 @@ An `AbstractElement` object facilitates the process of evaluating:
 * [`dofs`](@ref)
 * [`local_dofs`](@ref)
 * [`index`](@ref)
-* [`set_index!`](@ref)
 * [`label`](@ref)
 * [`set_label!`](@ref)
 * [`nodes`](@ref)
 * [`material`](@ref)
 
 * [`internal_forces`](@ref)
-* [`internal_tangents`](@ref)
 * [`inertial_forces`](@ref)
-* [`inertial_tangents`](@ref)
 
 * [`stress`](@ref)
 * [`strain`](@ref)
-
 
 **Common fields:**
 * nodes
@@ -333,8 +270,7 @@ index(e::AbstractElement) = e.index
 label(e::AbstractElement) = e.label[]
 
 "Sets element label."
-set_label!(e::AbstractElement, label::String) = set_label!(e, Symbol(label))
-set_label!(e::AbstractElement, label::Symbol) = e.label[] = label
+set_label!(e::AbstractElement, label::L) where {L<:Union{String,Symbol}} = e.label[] = Symbol(label)
 
 "Returns element nodes."
 nodes(e::AbstractElement) = e.nodes
@@ -342,21 +278,11 @@ nodes(e::AbstractElement) = e.nodes
 "Returns element material."
 material(e::AbstractElement) = e.material
 
-"Fixes element dofs"
-fix!(e::AbstractElement) = [fix!(n) for n in nodes(e)]
-
-
 "Returns the internal force vector of the element."
 function internal_forces(e::AbstractElement, args...; kwargs...) end
 
-"Returns the tangents of the internal force (stiffness)."
-function internal_tangents(e::AbstractElement, args...; kwargs...) end
-
 "Returns the inertial force vector of the element."
 function inertial_forces(e::AbstractElement, args...; kwargs...) end
-
-"Returns the inertial tangent matrices of the element."
-function inertial_tangents(e::AbstractElement, args...; kwargs...) end
 
 "Returns the element stresses"
 function stress(e::AbstractElement, args...; kwargs...) end

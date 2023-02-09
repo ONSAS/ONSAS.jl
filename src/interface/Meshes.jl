@@ -5,7 +5,7 @@ module Meshes
 
 using Reexport: @reexport
 using ..Utils: row_vector
-using ..Elements: AbstractElement, AbstractNode, AbstractIndex, NodeIndex, ElementIndex, set_index!
+using ..Elements: AbstractElement, AbstractNode, AbstractIndex, NodeIndex, ElementIndex
 
 @reexport import ..BoundaryConditions: dofs
 @reexport import ..Elements: coordinates_eltype, nodes
@@ -66,7 +66,7 @@ Base.push!(m::AbstractMesh, e::AbstractElement) = push!(elements(m), e)
 
 "Adds a new `Node` to the mesh"
 function Base.push!(m::AbstractMesh, n::AbstractNode)
-    set_index!(n, length(nodes(m)) + 1)
+    setindex!(n, length(nodes(m)) + 1)
     push!(nodes(m), n)
 end
 
@@ -106,13 +106,13 @@ struct Mesh{D,E<:AbstractElement,N<:AbstractNode,T} <: AbstractMesh{D,T}
         T = coordinates_eltype(n₁)
         # Add nodes
         for (i, n) in enumerate(vnodes)
-            set_index!(n, i)
+            setindex!(n, i)
             dimension(n) != D && throw(ArgumentError("All nodes must have the same dimension."))
             coordinates_eltype(n) != T && throw(ArgumentError("All nodes must have the same eltype."))
         end
         # Add Elements
         for (i, e) in enumerate(elements)
-            set_index!(e, i)
+            setindex!(e, i)
         end
         return new{D,E,N,T}(vnodes, element_nodes, elements, node_sets, element_sets)
     end

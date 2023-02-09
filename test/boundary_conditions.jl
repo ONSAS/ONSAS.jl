@@ -12,7 +12,7 @@ using ONSAS.BoundaryConditions: DEFAULT_LABEL, DEFAULT_LOAD_FACTOR_FUNC
     ###############
 
     # Generic labeled boundary condition
-    generic_fixed_dofs = [:uᵢ, :uⱼ, :θⱼ, :uₖ, :θₖ]
+    generic_fixed_dofs = [1, 3, 4, 6]
     generic_fixed_values = zeros(length(generic_fixed_dofs))
     generic_bc_label = :bc_generic
     generic_bc = DisplacementBoundaryCondition(generic_fixed_dofs, generic_fixed_values, generic_bc_label)
@@ -29,14 +29,14 @@ using ONSAS.BoundaryConditions: DEFAULT_LABEL, DEFAULT_LOAD_FACTOR_FUNC
 
     # Fixed boundary condition
     fixed_bc = FixedDisplacementBoundaryCondition()
-    @test dofs(fixed_bc) == [:uᵢ, :θᵢ, :uⱼ, :θⱼ, :uₖ, :θₖ]
+    @test dofs(fixed_bc) == [1, 2, 3, 4, 5, 6]#[:uᵢ, :θᵢ, :uⱼ, :θⱼ, :uₖ, :θₖ]
     @test values(fixed_bc) == zeros(length(dofs(fixed_bc)))
     @test label(fixed_bc) == DEFAULT_LABEL
 
     # Pinned boundary condition
     label_pinned = :my_pinned_bc
     pinned_bc = PinnedDisplacementBoundaryCondition(label_pinned)
-    @test dofs(pinned_bc) == [:uᵢ, :uⱼ, :uₖ]
+    @test dofs(pinned_bc) == [1, 3, 5]#[:uᵢ, :uⱼ, :uₖ]
     @test values(pinned_bc) == zeros(length(dofs(pinned_bc)))
     @test label(pinned_bc) == label_pinned
 

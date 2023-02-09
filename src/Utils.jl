@@ -25,20 +25,11 @@ function displacements end
 "Returns the internal forces of an object"
 function internal_forces end
 
-"Returns the inertial forces tangent of an object"
-function internal_tangents end
-
 "Returns the inertial forces of an object"
 function inertial_forces end
 
-"Returns the inertial forces tangent of an object"
-function inertial_tangents end
-
 "Returns the inertial forces of an object"
 function external_forces end
-
-"Returns the external forces tangent of an object"
-function external_tangents end
 
 "Returns the label of an object."
 function label end

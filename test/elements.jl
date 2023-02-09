@@ -10,24 +10,12 @@ using ONSAS.BoundaryConditions: FixedDisplacementBoundaryCondition
 @testset "ONSAS.Elements.Dof" begin
 
     # Default dof
-    sym = :uᵢ
-    ux_dof = Dof(sym)
-    @test symbol(ux_dof) == sym
-    @test index(ux_dof) == DofIndex(0)
-    @test is_fixed(ux_dof) == false
-    fix!(ux_dof)
-    @test is_fixed(ux_dof) == true
-
-    # Dof with index
-    sym = :θⱼ
-    index_θⱼ = rand(Int)
-    θⱼ_dof = Dof(sym, index_θⱼ)
-    @test symbol(θⱼ_dof) == sym
-    @test index(θⱼ_dof) == DofIndex(index_θⱼ)
-    @test is_fixed(θⱼ_dof) == false
+    index_θⱼ = 4
+    θⱼ_dof = Dof(index_θⱼ)
+    @test index(θⱼ_dof) == index_θⱼ
     new_index = index_θⱼ + 1
-    set_index!(θⱼ_dof, new_index)
-    @test index(θⱼ_dof) == DofIndex(new_index)
+    setindex!(θⱼ_dof, new_index)
+    @test index(θⱼ_dof) == new_index
 
 end
 
@@ -50,17 +38,12 @@ end
     @test all([node[i] == x for (i, x) in enumerate(x_test)])
     @test dimension(node) == length(x_test)
 
-    # Fix node
-    fix!(node)
-    @test all([is_fixed(dof) for dof in dofs(node)])
-
     # Dofs
-    @test all([_dim_to_nodal_dofs(dimension(node))[i] == d for (i, d) in enumerate(dofs(node))])
     @test all(vcat(dofs(node), dofs(node))[i] == d for (i, d) in enumerate(dofs([node, node])))
     # Set new index and test dofs indexes
     new_index = 2
     new_global_dof_indexes = 7:12
-    set_index!(node, new_index)
+    setindex!(node, new_index)
     @test index(node) == new_index
     @test all([index(dof)[] == new_global_dof_indexes[i] for (i, dof) in enumerate(dofs(node))])
 

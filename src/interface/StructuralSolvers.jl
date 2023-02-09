@@ -33,7 +33,6 @@ end
 #==========#
 
 """
-    AbstractSolver
 Abstract supertype for all direct integration methods.
 """
 abstract type AbstractSolver end
