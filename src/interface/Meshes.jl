@@ -11,7 +11,7 @@ using ..Elements: AbstractElement, AbstractNode, AbstractIndex, NodeIndex, Eleme
 @reexport import ..Elements: coordinates_eltype, nodes
 @reexport import ..Utils: dimension
 
-export Mesh, coordinates_eltype, dimension, elements, element_nodes, element_sets, nodes, node_sets
+export Mesh, coordinates_eltype, dimension, elements, element_nodes, element_sets, nodes, node_sets, num_dofs, num_elements
 
 # =============
 # Abstract Mesh
@@ -46,8 +46,14 @@ coordinates_eltype(::AbstractMesh{D,T}) where {D,T} = T
 "Returns the mesh dofs "
 dofs(m::AbstractMesh) = row_vector(dofs.(nodes(m)))
 
+"Returns the number of dofs"
+num_dofs(m::AbstractMesh) = length(dofs(m))
+
 "Returns the elements of the mesh."
 elements(m::AbstractMesh) = m.elements
+
+"Returns the number of elements in the mesh"
+num_elements(m::AbstractMesh) = length(elements(m))
 
 "Returns the elements of the mesh."
 element_nodes(m::AbstractMesh) = m.element_nodes

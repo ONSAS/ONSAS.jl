@@ -7,10 +7,6 @@ using ONSAS.BoundaryConditions: DEFAULT_LABEL, DEFAULT_LOAD_FACTOR_FUNC
 
 @testset "ONSAS.BoundaryConditions.DisplacementBoundaryCondition" begin
 
-    ###############
-    # Constructors
-    ###############
-
     # Generic labeled boundary condition
     generic_fixed_dofs = [1, 3, 4, 6]
     generic_fixed_values = zeros(length(generic_fixed_dofs))
@@ -30,14 +26,15 @@ using ONSAS.BoundaryConditions: DEFAULT_LABEL, DEFAULT_LOAD_FACTOR_FUNC
     # Fixed boundary condition
     fixed_bc = FixedDisplacementBoundaryCondition()
     @test dofs(fixed_bc) == [1, 2, 3, 4, 5, 6]#[:uᵢ, :θᵢ, :uⱼ, :θⱼ, :uₖ, :θₖ]
-    @test values(fixed_bc) == zeros(length(dofs(fixed_bc)))
+    t = 0
+    @test values(fixed_bc)(t) == zeros(length(dofs(fixed_bc)))
     @test label(fixed_bc) == DEFAULT_LABEL
 
     # Pinned boundary condition
     label_pinned = :my_pinned_bc
     pinned_bc = PinnedDisplacementBoundaryCondition(label_pinned)
     @test dofs(pinned_bc) == [1, 3, 5]#[:uᵢ, :uⱼ, :uₖ]
-    @test values(pinned_bc) == zeros(length(dofs(pinned_bc)))
+    @test values(pinned_bc)(t) == zeros(length(dofs(pinned_bc)))
     @test label(pinned_bc) == label_pinned
 
 end
@@ -58,37 +55,32 @@ end
         generic_load_dofs, generic_values, load_fact_generic, generic_bc_label
     )
 
+
     @test dofs(generic_bc) == generic_load_dofs
     @test values(generic_bc) == generic_values
     @test load_factor_function(generic_bc) == load_fact_generic
     @test label(generic_bc) == generic_bc_label
-    new_label = :new_label
-    set_label!(generic_bc, new_label)
-    @test label(generic_bc) == new_label
+
 
     # Generic labeled global load boundary condition without load factor function defined
     generic_bc = GlobalLoadBoundaryCondition(dofs=generic_load_dofs, values=generic_values)
     @test load_factor_function(generic_bc) == DEFAULT_LOAD_FACTOR_FUNC
     @test label(generic_bc) == DEFAULT_LABEL
-    set_label!(generic_bc, new_label)
-    @test label(generic_bc) == new_label
-
 
     # Load boundary condition: Moment along `x` axis 
     Mᵢ_val = rand(Float32, 1)
     Mᵢ_load_factor_func = (t) -> sin(t)
     Mᵢ_bc = MᵢLoadBoundaryCondition(Mᵢ_val..., Mᵢ_load_factor_func)
-    @test dofs(Mᵢ_bc) == [:Mᵢ]
-    @test values(Mᵢ_bc) == Mᵢ_val[1]
+    @test dofs(Mᵢ_bc) == [2]
+    @test values(Mᵢ_bc) == Mᵢ_val
     @test label(Mᵢ_bc) == DEFAULT_LABEL
     @test load_factor_function(Mᵢ_bc) == Mᵢ_load_factor_func
-
 
     # Load boundary condition: Moment along `y` axis 
     Mⱼ_val = rand(Int, 1)
     Mⱼ_bc = MⱼLoadBoundaryCondition(Mⱼ_val...)
-    @test dofs(Mⱼ_bc) == [:Mⱼ]
-    @test values(Mⱼ_bc) == Mⱼ_val[1]
+    @test dofs(Mⱼ_bc) == [4]
+    @test values(Mⱼ_bc) == Mⱼ_val
     @test label(Mⱼ_bc) == DEFAULT_LABEL
     @test load_factor_function(Mⱼ_bc) == DEFAULT_LOAD_FACTOR_FUNC
 
@@ -96,28 +88,25 @@ end
     Mₖ_val = rand(Int, 1)
     Mₖ_label = :my_moment_bc
     Mₖ_bc = MₖLoadBoundaryCondition(Mₖ_val..., label=Mₖ_label)
-    @test dofs(Mₖ_bc) == [:Mₖ]
-    @test values(Mₖ_bc) == Mₖ_val[1]
+    @test dofs(Mₖ_bc) == [6]
+    @test values(Mₖ_bc) == Mₖ_val
     @test label(Mₖ_bc) == Mₖ_label
     @test load_factor_function(Mₖ_bc) == DEFAULT_LOAD_FACTOR_FUNC
-    set_label!(Mₖ_bc, new_label)
-    @test label(Mₖ_bc) == new_label
-
 
     # Load boundary condition: force along `x` axis 
     Fᵢ_val = rand(Float32, 1)
     Fᵢ_load_factor_func = (t) -> sin(t)
     Fᵢ_bc = FᵢLoadBoundaryCondition(Fᵢ_val..., Fᵢ_load_factor_func)
-    @test dofs(Fᵢ_bc) == [:Fᵢ]
-    @test values(Fᵢ_bc) == Fᵢ_val[1]
+    @test dofs(Fᵢ_bc) == [1]
+    @test values(Fᵢ_bc) == Fᵢ_val
     @test label(Fᵢ_bc) == DEFAULT_LABEL
     @test load_factor_function(Fᵢ_bc) == Fᵢ_load_factor_func
 
     # Load boundary condition: force along `y` axis 
     Fⱼ_val = rand(Int, 1)
     Fⱼ_bc = FⱼLoadBoundaryCondition(Fⱼ_val...)
-    @test dofs(Fⱼ_bc) == [:Fⱼ]
-    @test values(Fⱼ_bc) == Fⱼ_val[1]
+    @test dofs(Fⱼ_bc) == [3]
+    @test values(Fⱼ_bc) == Fⱼ_val
     @test label(Fⱼ_bc) == DEFAULT_LABEL
     @test load_factor_function(Fⱼ_bc) == DEFAULT_LOAD_FACTOR_FUNC
 
@@ -125,8 +114,8 @@ end
     Fₖ_val = rand(Int, 1)
     Fₖ_label = :Fk_force_bc
     Fₖ_bc = FₖLoadBoundaryCondition(Fₖ_val..., label=Fₖ_label)
-    @test dofs(Fₖ_bc) == [:Fₖ]
-    @test values(Fₖ_bc) == Fₖ_val[1]
+    @test dofs(Fₖ_bc) == [5]#[:Fₖ]
+    @test values(Fₖ_bc) == Fₖ_val
     @test label(Fₖ_bc) == Fₖ_label
     @test load_factor_function(Fₖ_bc) == DEFAULT_LOAD_FACTOR_FUNC
 

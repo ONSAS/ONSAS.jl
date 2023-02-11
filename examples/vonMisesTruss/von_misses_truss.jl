@@ -16,13 +16,15 @@ Fⱼ = -3e8  # vertical   load in N
 # Create mesh
 # -------------------------------
 ## Nodes
-n₁ = Node((0.0, 0.0, 0.0))
-n₂ = Node((d, h, 0.0))
-n₃ = Node((2d, 0.0, 0.0))
+n₁ = Node(0.0, 0.0, 0.0)
+n₂ = Node(d, h, 0.0)
+n₃ = Node(2d, 0.0, 0.0)
 vec_nodes = [n₁, n₂, n₃]
 ## Elements connectivity
 elem₁_nodes = [n₁, n₂]
 elem₂_nodes = [n₂, n₃]
+Truss(n₁, n₂)
+Tetra(n₁, n₂)
 vec_conec_elems = [elem₁_nodes, elem₂_nodes]
 s_mesh = Mesh(vec_nodes, vec_conec_elems)
 # -------------------------------
@@ -78,25 +80,31 @@ add_set!(s_boundary_conditions, bc_sets)
 # Create Structure
 # -------------------------------
 s = Structure(s_mesh, s_materials, s_elements, s_boundary_conditions)
-init_state = current_state(s)
-@test norm(displacements(init_state)) == 0
-@test norm(external_forces(init_state)) == 0
-@test norm(internal_forces(init_state)) == 0
 # -------------------------------
 # Structural Analysis
 # -------------------------------
 # Final load factor
 λ₁ = 10
-structural_analysis = StaticAnalysis(s, λ₁, init_state)
+NSTEPS = 9
+s_analysis = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
+s_state = current_state(s_analysis)
+@test norm(displacements(s_state)) == 0
+@test norm(external_forces(s_state)) == 0
+@test norm(internal_forces(s_state)) == 0
 # -------------------------------
 # Solve analysis
 # -------------------------------
-Δλ = 1
 tol_f = 1e-10;
 tol_u = 1e-10;
 max_iter = 100;
 tols = ConvergenceSettings(tol_f, tol_u, max_iter)
-nr = NewtonRaphson(Δλ, tols)
-# sol = solve(structural_analysis, nr)
+nr = NewtonRaphson(tols)
+sol = solve(s_analysis, nr)
+#
+# extras::Dict{Any,Any}()
+#
+# plot(sol)
+# stress_field(sol)
+#
 # typeof(sol) = StaticSolution(:u, hist:)
 

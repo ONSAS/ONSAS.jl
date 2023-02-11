@@ -3,21 +3,30 @@
 #################
 module Utils
 
-using AutoHashEquals: @auto_hash_equals
 using LinearAlgebra: Diagonal
 
-export solve
-export dimension, label, set_label!
+export dimension, label
 export ScalarWrapper
 export eye, row_vector
-export displacements, internal_forces, internal_tangents,
-    inertial_forces, inertial_tangents, external_forces, external_tangents, _unwrap
+export coordinates, nodes, displacements, dofs, index, internal_forces, inertial_forces, external_forces, external_tangents, _unwrap
 
 #================================#
 # Generic functions to overload  #
 #================================#
+"Returns the nodes of an object"
+function nodes end
+
+"Returns the coordinates of an object"
+function coordinates end
+
 "Returns the object dimension"
 function dimension end
+
+"Returns dofs of an object "
+function dofs end
+
+"Returns the index of an object "
+function index end
 
 "Returns the object displacements"
 function displacements end
@@ -34,14 +43,8 @@ function external_forces end
 "Returns the label of an object."
 function label end
 
-"Sets the label of an object."
-function set_label! end
-
 "Unwraps the object fields."
 function _unwrap end
-
-"Empty function to solve a problem"
-function solve end
 
 #==========#
 # Wrappers #

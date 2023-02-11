@@ -3,15 +3,35 @@ module ONSAS
 # load packages
 include("init.jl")
 
-# input modules 
-include("interface/input_structs.jl")
 
-# structural modules 
-include("interface/model_structs.jl")
+# Input modules
+include("interface/Materials.jl")
+@reexport using .Materials
 
-# core
-include("core/update_structure_state.jl")
-include("core/ONSAS_init.jl")
-include("core/assembler.jl")
+include("interface/BoundaryConditions.jl")
+@reexport using .BoundaryConditions
+
+include("interface/CrossSections.jl")
+@reexport using .CrossSections
+
+include("interface/Elements.jl")
+@reexport using .Elements
+
+# include("interface/Meshes.jl")
+# @reexport using .Meshes
+
+
+# # Structure 
+# include("interface/StructuralModel.jl")
+# @reexport using .StructuralModel
+
+# # Solvers
+# include("interface/StructuralSolvers.jl")
+# @reexport using .StructuralSolvers
+
+# # Analysis
+# include("interface/StructuralAnalyses.jl")
+# @reexport using .StructuralAnalyses
+
 
 end # module

@@ -1,8 +1,4 @@
 using Reexport: @reexport
-using LinearAlgebra
-using SparseArrays
-using MshReader
-using StaticArrays
 
 # =========
 # Utils
