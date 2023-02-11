@@ -3,6 +3,8 @@ Module defining the elements implemented.
 """
 module Elements
 
+using AutoHashEquals: @auto_hash_equals
+using Dictionaries: Dictionary
 using Reexport: @reexport
 using StaticArrays: SVector
 using ..Utils: row_vector
@@ -12,9 +14,9 @@ using ..Utils: row_vector
 @reexport import ..Utils: internal_forces, inertial_forces
 @reexport import ..Utils: coordinates, dofs, index, nodes
 
-export Dof
+export Dof, add_dofs!
 export AbstractNode, Node, coordinates
-export AbstractElement, cross_section, coordinates, local_dofs
+export AbstractElement, cross_section, coordinates, local_dof_symbol, local_dofs
 
 # ========================
 # Degree of freedom (Dof)
@@ -26,12 +28,12 @@ This is a scalar degree of freedom of the structure.
 ### Fields:
 - `index`   -- degree of freedom identification number. 
 """
-mutable struct Dof
+@auto_hash_equals struct Dof
     index::Int
 end
 
 index(d::Dof) = d.index
-Base.setindex!(d::Dof, i::Int) = d.index = i
+# Base.setindex!(d::Dof, i::Int) = d.index = i
 
 @inline Base.getindex(v::AbstractVector, d::Dof) = v[index(d)]
 @inline Base.getindex(v::AbstractVector, vd::Vector{<:Dof}) = [v[index(d)] for d in vd]
@@ -41,6 +43,8 @@ Base.setindex!(d::Dof, i::Int) = d.index = i
 # =================
 # Abstract Node
 # =================
+
+const _EMPTY_DOF_DICT = Dictionary{Symbol,Vector{Dof}}()
 
 abstract type AbstractNode{dim,T} end
 
@@ -63,64 +67,43 @@ Base.getindex(n::AbstractNode, i::Int) = n.x[i]
 
 "Returns node's degrees of freedom."
 dofs(n::AbstractNode) = n.dofs
+dofs(n::AbstractNode, s::Symbol) = n.dofs[s]
 dofs(n::Vector{<:AbstractNode}) = vcat(dofs.(n)...)
 
-"Returns corresponding degrees of freedom considering angles"
-function _nodes2dofs(i::Integer, dim::Integer)
-    range = if dim == 3
-        (i-1)*2dim+1:(i)*2dim
-    elseif dim == 2
-        (i-1)*2dim:(i)*2dim-1
-    end
-end
-
-function Base.setindex!(n::AbstractNode{dim}, i::Int) where {dim}
-    ndofs = dofs(n)
-    node_dof_indexes = _nodes2dofs(i, dim)
-    [setindex!(dof, node_dof_indexes[i]) for (i, dof) in enumerate(ndofs)]
-    return n
-end
-
-#TODO: generalize to any field type and dimension (:u, dim)
-"Maps dimension of the node to local degrees of freedom."
-function _dim_to_nodal_dofs(dim::Int)
-    dofs = if dim == 1
-        [Dof(1)] #uₓ
-    elseif dim == 2
-        [Dof(1), Dof(2), Dof(3)]#uᵢ, uⱼ, θₖ
-    elseif dim == 3
-        [
-            Dof(1), Dof(2),
-            Dof(3), Dof(4),
-            Dof(5), Dof(6)
-        ]#uᵢ, θᵢ, uⱼ, θⱼ, uₖ, θₖ
+"Adds a vectors of `Dof` with a symbol"
+function add_dofs!(n::AbstractNode, s::Symbol, dofs_to_add::Vector{Dof})
+    if s ∉ keys(dofs(n))
+        insert!(dofs(n), s, dofs_to_add)
     else
-        error("Dimension not supported.")
+        [push!(dofs(n)[s], d) for d in dofs_to_add if d ∉ dofs(n)[s]]
     end
+    return dofs(n)
 end
+
 
 """
 A `Node` is a point in space.
 ### Fields:
 - `x`     -- stores the coordinates.
-- `dofs`  -- stores the node degrees of freedom.
+- `dofs`  -- stores the node degrees of freedom, maps symbol to dofs.
 """
 struct Node{dim,T} <: AbstractNode{dim,T}
     x::AbstractArray{T}
-    dofs::Vector{<:Dof}
+    dofs::Dictionary{Symbol,Vector{Dof}}
     function Node(
-        x::AbstractArray{T}, dofs::Vector{<:Dof}) where {T<:Real}
+        x::AbstractArray{T}, dofs::Dictionary{Symbol,Vector{Dof}}=_EMPTY_DOF_DICT) where {T<:Real}
         dim = length(x)
         @assert dim ≤ 3 "Only 1D,2D or 3D nodes are supported"
         new{dim,T}(x, dofs)
     end
 end
 
-Node(x₁::T) where {T<:Real} = Node(SVector(x₁), _dim_to_nodal_dofs(2))
-Node(x₁::T, x₂::T) where {T<:Real} = Node(SVector((x₁, x₂)), _dim_to_nodal_dofs(2))
-Node(x₁::T, x₂::T, x₃::T) where {T<:Real} = Node(SVector((x₁, x₂, x₃)), _dim_to_nodal_dofs(3))
-Node(x::NTuple{dim,T}) where {dim,T<:Real} = Node(SVector(x), _dim_to_nodal_dofs(length(x)))
-Node(x::Vector{T}) where {T<:Real} = Node(SVector(x...), _dim_to_nodal_dofs(length(x)))
+Node(x₁::T) where {T<:Real} = Node(SVector(x₁))
+Node(x₁::T, x₂::T) where {T<:Real} = Node(SVector((x₁, x₂)))
+Node(x₁::T, x₂::T, x₃::T) where {T<:Real} = Node(SVector((x₁, x₂, x₃)))
+Node(x::NTuple{dim,T}) where {dim,T<:Real} = Node(SVector(x))
+Node(x::Vector{T}) where {T<:Real} = Node(SVector(x...))
+
 # =================
 # Abstract Element
 # =================
@@ -155,7 +138,7 @@ An `AbstractElement` object facilitates the process of evaluating:
 
 **Hard contracts:**
 
-* [`local_dofs`](@ref)      - defines the local dofs of the element.
+* [`local_dof_symbol`](@ref)      - defines the local dofs of the element.
 
 For static cases the following methods are required:
 
@@ -166,18 +149,51 @@ For dynamic cases the following methods are required:
 """
 
 "Returns element coordinates."
-coordinates(e::AbstractElement) = row_vector(coordinates.(nodes(e)))
+coordinates(e::AbstractElement) = coordinates.(nodes(e))
 
 "Returns the geometrical properties of the element"
 cross_section(e::AbstractElement) = e.cross_section
 
-dofs(e::AbstractElement) = row_vector(dofs.(nodes(e)))
+function dofs(e::AbstractElement)
+
+    element_dofs = Dictionary{Symbol,Vector{Dof}}()
+    nodes_dofs_vec = dofs.(nodes(e))
+
+    for node_dofs in nodes_dofs_vec
+        for dof_symbol in keys(node_dofs)
+            dofs_to_add = node_dofs[dof_symbol]
+            if dof_symbol ∉ keys(element_dofs)
+                insert!(element_dofs, dof_symbol, dofs_to_add)
+            else
+                [push!(element_dofs[dof_symbol], d) for d in dofs_to_add if d ∉ element_dofs[dof_symbol]]
+            end
+        end
+    end
+    return element_dofs
+end
+
 dofs(ve::Vector{<:AbstractElement}) = unique(row_vector(dofs.(ve)))
 
-"Returns local dofs of an element. This dofs are essential for the assemble process."
-function local_dofs(e::AbstractElement) end
+"Returns local dofs symbols of the element (for only displacements `:u` is used) in a vector. 
+This dofs are essential for the assemble process."
+function local_dof_symbol(e::AbstractElement) end
 
-index(e::AbstractElement) = e.index
+"Returns local dofs given a vector of local dof symobls. This method extracts all node dofs with the same symbol
+as local_dof_symbol"
+function local_dofs(e::AbstractElement)
+    local_dof_symbols = local_dof_symbol(e)
+    local_dofs = Vector{Dof}()
+    element_dofs = dofs(e)
+    for dof_symbol in local_dof_symbols
+        if dof_symbol ∉ keys(element_dofs)
+            error("Element $(e.label) does not have dofs with symbol $(dof_symbol)")
+        else
+            push!(local_dofs, element_dofs[dof_symbol]...)
+        end
+    end
+    return local_dofs
+end
+
 
 "Returns element label."
 label(e::AbstractElement) = e.label
@@ -190,12 +206,6 @@ function internal_forces(e::AbstractElement, args...; kwargs...) end
 
 "Returns the inertial force vector of the element."
 function inertial_forces(e::AbstractElement, args...; kwargs...) end
-
-"Returns the element stresses"
-function stress(e::AbstractElement, args...; kwargs...) end
-
-"Returns the element strain"
-function strain(e::AbstractElement, args...; kwargs...) end
 
 include("../elements/Truss.jl")
 

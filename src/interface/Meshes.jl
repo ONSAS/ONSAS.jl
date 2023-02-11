@@ -3,15 +3,16 @@ Module defining meshes entities interface.
 """
 module Meshes
 
+using Dictionaries: Dictionary
 using Reexport: @reexport
 using ..Utils: row_vector
 using ..Elements: AbstractElement, AbstractNode, AbstractIndex, NodeIndex, ElementIndex
 
-@reexport import ..BoundaryConditions: dofs
-@reexport import ..Elements: coordinates_eltype, nodes
-@reexport import ..Utils: dimension
+@reexport import ..BoundaryConditions
+@reexport import ..Elements: nodes
+@reexport import ..Utils: dimension, dofs
 
-export Mesh, coordinates_eltype, dimension, elements, element_nodes, element_sets, nodes, node_sets, num_dofs, num_elements
+export Mesh, dimension, elements, element_nodes, element_sets, nodes, node_sets, num_dofs, num_elements
 
 # =============
 # Abstract Mesh
@@ -25,7 +26,6 @@ The following methods are provided by the interface:
 **Common methods:**
 
 * [`Base.push!`](@ref)
-* [`coordinates_eltype`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 * [`elements`](@ref)
@@ -39,9 +39,6 @@ abstract type AbstractMesh{D,T} end
 
 "Returns the dimension of the mesh. "
 dimension(::AbstractMesh{D}) where {D} = D
-
-"Returns the coordinate's type of the mesh. "
-coordinates_eltype(::AbstractMesh{D,T}) where {D,T} = T
 
 "Returns the mesh dofs "
 dofs(m::AbstractMesh) = row_vector(dofs.(nodes(m)))
@@ -71,10 +68,7 @@ node_sets(m::AbstractMesh) = m.node_sets
 Base.push!(m::AbstractMesh, e::AbstractElement) = push!(elements(m), e)
 
 "Adds a new `Node` to the mesh"
-function Base.push!(m::AbstractMesh, n::AbstractNode)
-    setindex!(n, length(nodes(m)) + 1)
-    push!(nodes(m), n)
-end
+Base.push!(m::AbstractMesh, n::AbstractNode) = push!(nodes(m), n)
 
 Base.getindex(m::AbstractMesh, i_e::ElementIndex) = elements(m)[i_e[]]
 Base.getindex(m::AbstractMesh, i_n::NodeIndex) = nodes(m)[i_n[]]
@@ -96,32 +90,26 @@ boundary conditions or define subdomains. They are gathered in the `element_sets
 """
 struct Mesh{D,E<:AbstractElement,N<:AbstractNode,T} <: AbstractMesh{D,T}
     nodes::Vector{N}
-    element_nodes::Vector{Vector{N}}
     elements::Vector{E}
     # Sets
-    node_sets::Dict{String,Set{NodeIndex}}
-    element_sets::Dict{String,Set{ElementIndex}}
-    function Mesh(
-        vnodes::Vector{N},
-        element_nodes::Vector{Vector{N}},
-        elements::Vector{E}=Vector{AbstractElement}(),
-        node_sets::Dict{String,Set{NodeIndex}}=Dict{String,Set{NodeIndex}}(),
-        element_sets::Dict{String,Set{ElementIndex}}=Dict{String,Set{ElementIndex}}()) where {N,E}
-        n₁ = first(vnodes)
-        D = dimension(n₁)
-        T = coordinates_eltype(n₁)
-        # Add nodes
-        for (i, n) in enumerate(vnodes)
-            setindex!(n, i)
-            dimension(n) != D && throw(ArgumentError("All nodes must have the same dimension."))
-            coordinates_eltype(n) != T && throw(ArgumentError("All nodes must have the same eltype."))
-        end
-        # Add Elements
-        for (i, e) in enumerate(elements)
-            setindex!(e, i)
-        end
-        return new{D,E,N,T}(vnodes, element_nodes, elements, node_sets, element_sets)
+    node_sets::Dictionary{String,Set{NodeIndex}}
+    element_sets::Dictionary{String,Set{ElementIndex}}
+end
+
+"Mesh construct with empty dofs"
+function Mesh(
+    nodes::Vector{N},
+    elements::Vector{E}=Vector{AbstractElement}(),
+    node_sets::Dictionary{String,Set{NodeIndex}}=Dictionary{String,Set{NodeIndex}}(),
+    element_sets::Dictionary{String,Set{ElementIndex}}=Dictionary{String,Set{ElementIndex}}()) where {N,E}
+    n₁ = first(nodes)
+    D = dimension(n₁)
+    T = eltype(coordinates(n₁))
+    # Add nodes
+    for n in enumerate(nodes)
+        @assert dimension(n) != D throw(ArgumentError("All nodes must have the same dimension."))
     end
+    return Mesh{D,E,N,T}(nodes, elements, node_sets, element_sets)
 end
 
 end # module

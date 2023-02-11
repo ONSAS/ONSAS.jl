@@ -3,26 +3,32 @@ using ..Elements: AbstractElement, AbstractNode, Node, _DEFAULT_LABEL
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye, row_vector
 
+import ..Elements: local_dof_symbol
+
 export Truss
 
 """
 A `Truss` represents a 2D element that transmits axial force only.
 ### Fields:
-- `nodes`          -- stores truss nodes.
+- `n₁`             -- stores first truss node.
+- `n₂`             -- stores second truss node.
 - `cross_sections` -- stores the truss cross-section properties.
 - `label`          -- stores the truss label.
 """
 struct Truss{dim,G<:AbstractCrossSection,T<:Real} <: AbstractElement{dim,T}
-    nodes::Vector{<:AbstractNode{dim,T}}
+    n₁::AbstractNode{dim,T}
+    n₂::AbstractNode{dim,T}
     cross_section::G
     label::Symbol
-    function Truss(nodes::Vector{<:AbstractNode{dim,T}}, g::G, label=_DEFAULT_LABEL) where
+    function Truss(n₁::AbstractNode{dim,T}, n₂::AbstractNode{dim,T}, g::G, label=_DEFAULT_LABEL) where
     {dim,G<:AbstractCrossSection,T<:Real}
-        setindex!(nodes[1], 1)
-        setindex!(nodes[2], 2)
-        new{dim,G,T}(nodes, g, Symbol(label))
+        new{dim,G,T}(n₁, n₂, g, Symbol(label))
     end
 end
+
+local_dof_symbol(::Truss) = [:u]
+nodes(t::Truss) = [t.n₁, t.n₂]
+
 #TODO: Implement a more general strain function strain(::Truss{E::GreenLagrange})
 
 _strain(l_ini::Number, l_def::Number) = 0.5 * (l_def^2 - l_ini^2) / l_ini^2 # green lagrange strain
@@ -32,17 +38,19 @@ function strain(e::Truss, u_e::AbstractVector)
     ϵ = _strain(l_ini, l_def)
 end
 
-function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}
+function internal_forces(m::SVK, e::Truss{dim}, u_glob::AbstractVector) where {dim}
 
     E = m.E
     A = area(cross_section(e))
 
-    u_loc_dofs = view(u_e, 1:2:length(u_e))
+    u_e = u_glob[local_dofs(e)]
 
-    X_ref, X_def = _X_rows(e, u_loc_dofs)
+    Main.@infiltrate
+
+    X_ref, X_def = _X_rows(e, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
     _, G = _aux_matrices(dim)
-    b_ref, b_def = _aux_b(X_ref, X_def, u_loc_dofs, G, dim)
+    b_ref, b_def = _aux_b(X_ref, X_def, u_e, G, dim)
 
     ϵ_e = _strain(l_ref, l_def)
     σ_e = E * ϵ_e
@@ -54,9 +62,7 @@ function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}
 end
 
 "Returns local dofs of a truss element."
-local_dofs(::Truss{1}) = [Dof(1), Dof(2)]
-local_dofs(::Truss{2}) = [Dof(1), Dof(3)]
-local_dofs(::Truss{3}) = [Dof(1), Dof(3), Dof(5)]
+local_dofs_symbol(::Truss) = :u
 
 function _aux_matrices(dim::Integer)
     Bdif = hcat(-eye(dim), eye(dim))
@@ -65,7 +71,7 @@ function _aux_matrices(dim::Integer)
 end
 
 function _X_rows(e::Truss{dim}, u_e::AbstractVector) where {dim}
-    X_ref_row = coordinates(e)
+    X_ref_row = reduce(vcat, coordinates(e))
     X_def_row = X_ref_row + u_e
     return X_ref_row, X_def_row
 end

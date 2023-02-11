@@ -18,7 +18,7 @@ struct SVK{T<:Real} <: AbstractMaterial
     ν::T
     ρ::Union{T,Nothing}
     label::Symbol
-    function SVK(E::T, ν::T, ρ=nothing, label=_DEFAULT_LABEL) where {T<:Real}
+    function SVK(E::T, ν::T, label=_DEFAULT_LABEL, ρ=nothing) where {T<:Real}
         return new{T}(E, ν, ρ, Symbol(label))
     end
 end
@@ -32,7 +32,6 @@ function SVK(; λ::Real, G::Real, ρ::Real, label)
 
     return SVK(E, ν, ρ, Symbol(label))
 end
-
 
 "Returns SVK parameters tuple."
 parameters(m::SVK) = (m.E, m.ν)

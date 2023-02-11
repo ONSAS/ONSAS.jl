@@ -5,6 +5,7 @@ version = "0.0.0"
 
 [deps]
 AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
+Dictionaries = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MshReader = "64cd2da2-d71d-431a-81e3-4cf84ef169dd"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
