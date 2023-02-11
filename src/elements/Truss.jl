@@ -45,8 +45,6 @@ function internal_forces(m::SVK, e::Truss{dim}, u_glob::AbstractVector) where {d
 
     u_e = u_glob[local_dofs(e)]
 
-    Main.@infiltrate
-
     X_ref, X_def = _X_rows(e, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
     _, G = _aux_matrices(dim)
