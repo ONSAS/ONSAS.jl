@@ -41,7 +41,7 @@ s_mesh = Mesh(vec_nodes, vec_elems)
 # -------------------------------
 # Dofs
 #--------------------------------}
-add!(s_mesh, :u, 3)
+# add!(s_mesh, :u, 3)
 
 
 

@@ -30,8 +30,6 @@ end
 
 label(m::AbstractMaterial) = m.label
 
-const _DEFAULT_LABEL = :label_no_assigned
-
 include("./../materials/SVK.jl")
 
 end # module

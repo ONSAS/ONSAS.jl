@@ -4,8 +4,8 @@ Module defining the elements implemented.
 module Elements
 
 using AutoHashEquals: @auto_hash_equals
-using Dictionaries: Dictionary
 using Reexport: @reexport
+@reexport using Dictionaries
 using StaticArrays: SVector
 using ..Utils: row_vector
 
@@ -21,7 +21,6 @@ export AbstractElement, cross_section, coordinates, local_dof_symbol, local_dofs
 # ========================
 # Degree of freedom (Dof)
 # ========================
-const _DEFAULT_INDEX_INT = 0
 
 """ Degree of freedom struct.
 This is a scalar degree of freedom of the structure.
@@ -33,7 +32,8 @@ This is a scalar degree of freedom of the structure.
 end
 
 index(d::Dof) = d.index
-# Base.setindex!(d::Dof, i::Int) = d.index = i
+index(vd::Vector{Dof}) = index.(vd)
+Base.maximum(vd::Vector{Dof}) = maximum(index.(vd))
 
 @inline Base.getindex(v::AbstractVector, d::Dof) = v[index(d)]
 @inline Base.getindex(v::AbstractVector, vd::Vector{<:Dof}) = [v[index(d)] for d in vd]
@@ -43,8 +43,6 @@ index(d::Dof) = d.index
 # =================
 # Abstract Node
 # =================
-
-const _EMPTY_DOF_DICT = Dictionary{Symbol,Vector{Dof}}()
 
 abstract type AbstractNode{dim,T} end
 
@@ -91,7 +89,7 @@ struct Node{dim,T} <: AbstractNode{dim,T}
     x::AbstractArray{T}
     dofs::Dictionary{Symbol,Vector{Dof}}
     function Node(
-        x::AbstractArray{T}, dofs::Dictionary{Symbol,Vector{Dof}}=_EMPTY_DOF_DICT) where {T<:Real}
+        x::AbstractArray{T}, dofs::Dictionary{Symbol,Vector{Dof}}=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real}
         dim = length(x)
         @assert dim ≤ 3 "Only 1D,2D or 3D nodes are supported"
         new{dim,T}(x, dofs)
@@ -107,8 +105,6 @@ Node(x::Vector{T}) where {T<:Real} = Node(SVector(x...))
 # =================
 # Abstract Element
 # =================
-
-const _DEFAULT_LABEL = :no_labelled_element
 
 #TODO: Add interpolation order
 abstract type AbstractElement{dim,T} end

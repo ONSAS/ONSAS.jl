@@ -4,16 +4,22 @@
 using Test: @testset, @test
 using LinearAlgebra: norm
 using StaticArrays: SVector
-using Dictionaries: dictionary
 using ONSAS.Materials: SVK
 using ONSAS.Elements
 
 @testset "ONSAS.Elements.Dof" begin
 
     # Default dof
-    index_θⱼ = 4
+    index_θⱼ = 2
     θⱼ_dof = Dof(index_θⱼ)
     @test index(θⱼ_dof) == index_θⱼ
+
+    u = [2, 3, 4]
+    @test u[θⱼ_dof] == u[index_θⱼ]
+    new_val = 6
+    u[θⱼ_dof] = new_val
+    @test u[θⱼ_dof] == new_val
+
 
 end
 
@@ -44,7 +50,6 @@ end
     @test length(dofs(node)[:u]) == length(new_dofs_node)
 
 end
-
 
 @testset "ONSAS.Elements.Node 3D" begin
 
@@ -79,26 +84,16 @@ end
     u_gobal_₁ = [0, 0, 0, 0, 0, 0]# uᵢ, θᵢ :uⱼ, θⱼ uₖ, θₖ (node 1)
     u_gobal_₂ = [0, 0, 0, 0, 0, 0]# uᵢ, θᵢ :uⱼ, θⱼ uₖ, θₖ (node 2)
     u_global_structure = vcat(u_gobal_₁, u_gobal_₂)
-    # element displacements 
-
-    # function displacements(e::AbstractElement, u_global_structure::Vector{T} ) where {T<:Real} 
-
-    #     elem_dofs = Dictionary{:Symbol,T}()
-    #     element_dofs_vec = dofs(e)
-
-
-
-
-    # view()
-
-
-
+    l_ref = norm(x₂ - x₁)
+    l_def = norm(
+        x₂ + u_global_structure[[Dof(1), Dof(3), Dof(5)]] -
+        (x₁ + u_global_structure[[Dof(7), Dof(9), Dof(11)]])
+    )
 
     A = 1
     square_corss_section = Square(A)
     my_label = "my_truss"
     t = Truss(n₁, n₂, square_corss_section, my_label)
-
 
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
     @test x₁ ∈ coordinates(t) && x₂ ∈ coordinates(t)
@@ -107,19 +102,14 @@ end
     @test all([d ∈ truss_dofs[:u] for d in [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]])
     @test all([d ∈ truss_dofs[:θ] for d in [Dof(2), Dof(4), Dof(6), Dof(8), Dof(10), Dof(12)]])
     @test local_dof_symbol(t) == [:u]
-    Main.@infiltrate
     local_dofs(t)
     @test all([d ∈ local_dofs(t) for d in [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]])
     @test string(label(t)) == my_label
 
-    l₀ = norm(x₂ - x₁)
-    u₂ = [0, 0, 0, 0, 0, 0]
-    # l₁ = norm(x₂ + u₂[1:2:end] - (x₁ + u₁[1:2:end]))
-
     fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_mat, t, u_global_structure)
-    # @test norm(fᵢₙₜ_e) == 0
-    # @test Kᵢₙₜ_e[1] == E * A / l₁
-    # @test norm(σ_e) == 0
-    # @test norm(ϵ_e) == 0
+    @test norm(fᵢₙₜ_e) == 0
+    @test Kᵢₙₜ_e[1] == E * A / l_def
+    @test norm(σ_e) == 0
+    @test norm(ϵ_e) == 0
 
 end

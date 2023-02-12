@@ -1,5 +1,5 @@
 using ..Materials: SVK
-using ..Elements: AbstractElement, AbstractNode, Node, _DEFAULT_LABEL
+using ..Elements: AbstractElement, AbstractNode, Node
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye, row_vector
 
@@ -20,7 +20,7 @@ struct Truss{dim,G<:AbstractCrossSection,T<:Real} <: AbstractElement{dim,T}
     n₂::AbstractNode{dim,T}
     cross_section::G
     label::Symbol
-    function Truss(n₁::AbstractNode{dim,T}, n₂::AbstractNode{dim,T}, g::G, label=_DEFAULT_LABEL) where
+    function Truss(n₁::AbstractNode{dim,T}, n₂::AbstractNode{dim,T}, g::G, label=:no_labelled_elem) where
     {dim,G<:AbstractCrossSection,T<:Real}
         new{dim,G,T}(n₁, n₂, g, Symbol(label))
     end

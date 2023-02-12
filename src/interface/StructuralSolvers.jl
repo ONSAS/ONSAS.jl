@@ -6,10 +6,6 @@ module StructuralSolvers
 export solve
 export ConvergenceSettings, step_size, tolerances, step!, AbstractSolution
 
-const DEFAULT_RELATIVE_DISP_TOLERANCE = 1e-6
-const DEFAULT_RELATIVE_FORCE_TOLERANCE = 1e-6
-const DEFAULT_MAX_ITER = 20
-
 """ ConvergenceSettings struct.
 Facilitates the process of defining and checking numerical convergence. 
 ### Fields:
@@ -18,9 +14,9 @@ Facilitates the process of defining and checking numerical convergence.
 - `max_iter`        -- Maximum number of iterations.
 """
 Base.@kwdef struct ConvergenceSettings
-    rel_disp_tol::Float64 = DEFAULT_RELATIVE_DISP_TOLERANCE
-    rel_force_tol::Float64 = DEFAULT_RELATIVE_FORCE_TOLERANCE
-    max_iter::Int = DEFAULT_MAX_ITER
+    rel_disp_tol::Float64 = 1e-6
+    rel_force_tol::Float64 = 1e-6
+    max_iter::Int = 20
 end
 
 #==========#

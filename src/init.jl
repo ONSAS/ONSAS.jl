@@ -1,5 +1,7 @@
 using Reexport: @reexport
 
+@reexport using Dictionaries: dictionary
+
 # =========
 # Utils
 # =========

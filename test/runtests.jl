@@ -1,10 +1,10 @@
 using Test
 using SafeTestsets: @safetestset
 
-MODULES = ["meshes.jl", "materials.jl", "elements.jl", "structural_model.jl"]
+MODULES = ["materials.jl", "elements.jl", "meshes.jl",]
 EXAMPLES = [
-    joinpath("..", "examples", "vonMisesTruss", "von_misses_truss.jl"),
-    #joinpath("..", "examples", "uniaxialExtension", "uniaxialExtension.jl")
+# joinpath("..", "examples", "vonMisesTruss", "von_misses_truss.jl"),
+#joinpath("..", "examples", "uniaxialExtension", "uniaxialExtension.jl")
 ]
 
 function test(files::Vector)

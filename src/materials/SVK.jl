@@ -1,4 +1,4 @@
-using .Materials: _DEFAULT_LABEL, AbstractMaterial
+using .Materials: AbstractMaterial
 using ..Utils: label
 
 import .Materials: parameters
@@ -18,9 +18,15 @@ struct SVK{T<:Real} <: AbstractMaterial
     ν::T
     ρ::Union{T,Nothing}
     label::Symbol
-    function SVK(E::T, ν::T, label=_DEFAULT_LABEL, ρ=nothing) where {T<:Real}
+    function SVK(E::T, ν::T, ρ::R, label::L=:no_labelled_mat) where
+    {T<:Real,R<:Union{Nothing,Real},L<:Union{Symbol,String}}
         return new{T}(E, ν, ρ, Symbol(label))
     end
+end
+
+"Constructor with no density parameter ρ"
+function SVK(E::Real, ν::Real, label::L=:no_labelled_mat) where {L<:Union{Symbol,String}}
+    return SVK(E, ν, nothing, label)
 end
 
 "Constructor with lamé parameters λ and G"
