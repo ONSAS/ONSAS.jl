@@ -34,28 +34,5 @@ function _assemble!(a::Assembler{T}, nrows::AbstractVector{Int}, ncols::Abstract
     append!(a.V, Ke)
     append!(a.I, rowdofs)
     append!(a.J, coldofs)
-    #=
-    @inbounds for i in 1:ncols
-        append!(a.I, rowdofs)
-        for _ in 1:nrows
-            push!(a.J, coldofs[i])
-        end
-    end
-    =#
+
 end
-
-Kechico = view(Ke, 1:10, 5:6)
-internal_force(...) = internal_force!(zeros(...), ....)
-function internal_force!(Kechico::AbstractMatrix, ...)
-    # ....
-    Kechico .= ....
-end
-
-n1 = [Dof(1)...Dof(6)]
-n2 = [Dof(7)...Dof(12)]
-
-Ke = 6x6
-
-dofs(e1) = [Dof(1)----Dof(12)]
-
-Kg[dofs(e1),dofs(e1)] = Ke 
