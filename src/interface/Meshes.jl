@@ -39,7 +39,7 @@ dimension(::AbstractMesh{dim}) where {dim} = dim
 "Returns a vector of dofs, entry `i` represents the dofs of node index `i` "
 dofs(m::AbstractMesh) = dofs.(nodes(m))
 
-"Retunrs ture if the mesh has dofs defined"
+"Returns true if the mesh has dofs defined"
 _have_dofs(m::AbstractMesh) = !all(isempty.(dofs(m)))
 
 "Returns the maximum dof index. This function assumes that dofs start at `Dof(1)`"
