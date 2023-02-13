@@ -108,7 +108,7 @@ Base.push!(m::AbstractMesh, vn::Vector{<:AbstractNode}) = [push!(nodes(m), n) fo
 
 
 """ Mesh.
-A `Mesh` is a collection of `Element`s and `Node`s which covers the computational domain, 
+A `Mesh` is a collection of `Element`s and `Node`s that cover the discretized domain, 
 together with Sets of elements and nodes. These entities are gathered in the `element_sets` and `node_sets`.
 
 ### Fields:
