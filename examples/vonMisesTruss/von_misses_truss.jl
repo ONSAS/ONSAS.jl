@@ -24,6 +24,7 @@ aluminum = SVK(E / 3, ν, "aluminium")
 a = sqrt(A)
 s₁ = Square(a)
 s₂ = Square(2a)
+
 # -------------------------------
 # Create mesh
 # -------------------------------
@@ -43,42 +44,36 @@ s_mesh = Mesh(vec_nodes, vec_elems)
 #--------------------------------}
 add_dofs!(s_mesh, :u, 3)
 add_dofs!(s_mesh, :θ, 3)
-
-
-
-
-#=
-
 # -------------------------------
 # Materials
 # -------------------------------
-s_materials = StructuralMaterials(
-    dictionary([steel => [truss₁], aluminum => [truss₂]])
-)
+mat_dict = dictionary([steel => [truss₁], aluminum => [truss₂]])
+s_materials = StructuralMaterials(mat_dict)
 # -------------------------------
 # Boundary conditions
 # -------------------------------
 bc₁ = PinnedDisplacementBoundaryCondition("fixed")
 bc₂ = FⱼLoadBoundaryCondition(Fⱼ, "load in j")
-node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂]])
+node_bc = dictionary([bc₁ => [n₁, n₃]])
 elem_bc = dictionary([bc₁ => [truss₁], bc₂ => [truss₂]])
 s_boundary_conditions = StructuralBoundaryConditions(node_bc, elem_bc)
-
-for (bc, n) in pairs(node_bc)
-    apply!(s, bc, n)
-end
 # -------------------------------
 # Create Structure
 # -------------------------------
 s = Structure(s_mesh, s_materials, s_boundary_conditions)
 
+
+# for (bc, n) in pairs(node_bc)
+#     apply!(s, bc, n)
+# end
+#=
 # -------------------------------
 # Structural Analysis
 # -------------------------------
 # Final load factor
 λ₁ = 10
 NSTEPS = 9
-s_analysis = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
+s_analysis = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, inital_state = state(sol))
 s_state = current_state(s_analysis)
 @test norm(displacements(s_state)) == 0
 @test norm(external_forces(s_state)) == 0
@@ -91,7 +86,10 @@ tol_u = 1e-10;
 max_iter = 100;
 tols = ConvergenceSettings(tol_f, tol_u, max_iter)
 nr = NewtonRaphson(tols)
+
+
 sol = solve(s_analysis, nr)
 # typeof(sol) = StaticSolution(:u, hist:)
+
 
 =#
