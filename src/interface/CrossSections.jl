@@ -10,8 +10,6 @@ export Rectangle, Square, Circle, GenericCrossSection
 # ======================
 
 """ Abstract supertype for all elements corss-section.
-
-
 **Common methods:**
 - * [`area`](@ref)         -- returns the cross-section area.
 - * [`Ixx`](@ref)          -- returns the moment of inertia with respect to `x` axis.
@@ -63,9 +61,9 @@ I_tensor_xyz(cs::AbstractCrossSection) = [
 - `width_y` -- width in `y` axis.
 - `width_z` -- width in `z` axis.
 """
-struct Rectangle <: AbstractCrossSection
-    width_y::Number
-    width_z::Number
+struct Rectangle{T<:Real} <: AbstractCrossSection
+    width_y::T
+    width_z::T
 end
 
 area(r::Rectangle) = r.width_y * r.width_z
@@ -88,8 +86,8 @@ Iyz(r::Rectangle) = 0.0
 ### Fields:
 - `width` -- width in `y` and `z` axes.
 """
-struct Square <: AbstractCrossSection
-    width::Number
+struct Square{T<:Real} <: AbstractCrossSection
+    width::T
 end
 
 area(s::Square) = s.width^2
@@ -104,8 +102,8 @@ Iyz(s::Square) = 0.0
 ### Fields:
 - `d` -- circle diameter.
 """
-struct Circle <: AbstractCrossSection
-    d::Number
+struct Circle{T<:Real} <: AbstractCrossSection
+    d::T
 end
 
 area(c::Circle) = c.d^2 / 4
@@ -130,14 +128,14 @@ This generic cross-section struct can be used to define a cross-section not belo
 - `Ixz` -- product moment of area respect to the `x-z` axes.
 - `Iyz` -- product moment of area respect to the `y-z` axes.
 """
-struct GenericCrossSection <: AbstractCrossSection
-    area::Number
-    Ixx::Number
-    Iyy::Number
-    Izz::Number
-    Ixy::Number
-    Ixz::Number
-    Iyz::Number
+struct GenericCrossSection{T<:Real} <: AbstractCrossSection
+    area::T
+    Ixx::T
+    Iyy::T
+    Izz::T
+    Ixy::T
+    Ixz::T
+    Iyz::T
 end
 
 "Constructor for cross-sections in the principal axes system."

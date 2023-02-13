@@ -3,48 +3,57 @@
 ########################
 using Test: @testset, @test
 using ONSAS.Meshes
-using ONSAS.Elements
-using ONSAS.CrossSections: Circle
 using ONSAS.Utils
-
-
-
 
 @testset "ONSAS.Meshes.Mesh" begin
 
     # Mesh considering only nodes
     # Nodes
     L = 1
-    n₁ = Node((0, 0))
-    n₂ = Node((L, L))
-    n₃ = Node((2L, 0))
-    mesh_nodes = [n₁, n₂, n₃]
-    ## Elements connectivity
-    elem₁_nodes = [n₁, n₂]
-    elem₂_nodes = [n₂, n₃]
-    vec_conec_elems = [elem₁_nodes, elem₂_nodes]
-    mesh = Mesh(mesh_nodes, vec_conec_elems)
+    n₁ = Node(0, 0, 0)
+    n₂ = Node(L, L, L)
+    n₃ = Node(2L, 0, 5L)
+    n₄ = Node(2L, 0, 5L)
+    vec_nodes = [n₁, n₂, n₃, n₄]
 
-    @test coordinates_eltype(mesh) == coordinates_eltype(n₁)
-    @test dimension(mesh) == 2
-    @test length(dofs(mesh)) == 9
-    @test isempty(elements(mesh))
-    @test element_nodes(mesh) == vec_conec_elems
-    @test length(element_sets(mesh)) == 0
-    @test nodes(mesh) == mesh_nodes
-    @test length(node_sets(mesh)) == 0
+    ## Elements
+    d = 0.2
+    s₁ = Circle(d)
+    t₁ = Truss(n₁, n₂, s₁)
+    t₂ = Truss(n₂, n₃, s₁)
+    t₃ = Truss(n₃, n₄, s₁)
+    vec_elements = [t₁, t₂, t₃]
 
-    # Add elements
-    n₄ = Node((3L, L))
-    push!(mesh, n₄)
-    @test nodes(mesh)[end] == n₄
-    s₁ = Circle(0.1)
-    t = Truss(s₁)
-    push!(mesh, t)
-    @test nodes(mesh)[end] == n₄
+    # Sets
+    set_nodes = dictionary(["set₂" => Set([1, 2, 3]), "set₁" => Set([3, 4])])
+    set_elements = dictionary(["set₂" => Set([1, 2]), "set₁" => Set([1, 2])])
 
-    # getting elements with NodeIndex and ElementIndex
-    @test mesh[NodeIndex(3)] == n₃
-    @test mesh[ElementIndex(1)] == t
+    # Constructors
+    mesh_with_sets = Mesh(vec_nodes, vec_elements, set_nodes, set_elements)
+    mesh = Mesh(vec_nodes, vec_elements, set_nodes)
+
+    @test dimension(mesh) == dimension(n₁)
+    @test all(isempty.(dofs(mesh)))
+    @test elements(mesh) == vec_elements
+    @test nodes(mesh) == vec_nodes
+    @test element_sets(mesh_with_sets) == set_elements
+    @test node_sets(mesh_with_sets) == set_nodes
+
+    # Add nodes and elements
+    new_node₁ = Node(3L, 0, 5L)
+    new_node₂ = Node(3L, 0, 5L)
+    push!(mesh, [new_node₁, new_node₂])
+    @test last(nodes(mesh)) == new_node₂
+    new_t₄ = Truss(n₃, n₄, s₁)
+    new_t₅ = Truss(n₂, n₁, s₁)
+    push!(mesh, [new_t₄, new_t₅])
+    @test last(elements(mesh)) == new_t₅
+    # Add dofs 
+    u_dim = 3
+    add_dofs!(mesh, :u, u_dim)
+    @test num_nodes(mesh) * u_dim == num_dofs(mesh)
+    θ_dim = 3
+    add_dofs!(mesh, :θ, θ_dim)
+    @test num_nodes(mesh) * (u_dim + θ_dim) == num_dofs(mesh)
 
 end

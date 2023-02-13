@@ -4,8 +4,6 @@ Module defining structure entities interface.
 module StructuralModel
 
 using Reexport: @reexport
-using StaticArrays: @MVector
-using SparseArrays: SparseMatrixCSC
 
 using ..Materials: AbstractMaterial
 using ..CrossSections: AbstractCrossSection
@@ -14,12 +12,9 @@ using ..BoundaryConditions: AbstractBoundaryCondition, AbstractLoadBoundaryCondi
 using ..Utils: label, set_label!
 using ..Meshes: AbstractMesh, element_nodes
 
-@reexport import ..Meshes: elements
+@reexport import ..Meshes: elements, num_dofs, num_elements
 @reexport import ..BoundaryConditions: dofs
 @reexport import ..Elements: nodes
-@reexport import ..Utils: external_forces, internal_forces, displacements
-import ..Utils: _unwrap
-
 
 export AbstractStructuralMEBI, sets, add_set!
 export StructuralMaterials, materials
@@ -27,7 +22,7 @@ export StructuralElements
 export StructuralBoundaryConditions, disp_bcs, load_bcs
 export StructuralInitialConditions
 export AbstractStructure, Structure, mesh, current_state, free_dof_indexes, structural_bcs
-export AbstractStructuralState, StaticState
+
 
 # ======================
 # Model definition
@@ -237,55 +232,6 @@ end
 =#
 
 
-# ======================
-# Structural state
-# ======================
-
-
-""" Abstract supertype to define a new structural state.
-structure(s::AbstractStructuralState) = s.s
-**Common methods:**
-* [`displacements`](@ref)
-* [`internal_forces`](@ref)
-* [`internal_tangents`](@ref)
-* [`external_forces`](@ref)
-"""
-abstract type AbstractStructuralState end
-
-displacements(sc::AbstractStructuralState) = sc.Uᵏ
-internal_forces(sc::AbstractStructuralState) = sc.Fᵢₙₜᵏ
-internal_tangents(sc::AbstractStructuralState) = sc.Kₛᵏ
-external_forces(sc::AbstractStructuralState) = sc.Fₑₓₜᵏ
-
-"""
-An `StaticState` object facilitates the process of storing the relevant static variables of the structure. 
-### Fields:
-- `Uᵏ`    -- stores displacements vector.
-- `Fₑₓₜᵏ` -- stores external forces vector.
-- `Fᵢₙₜᵏ` -- stores internal forces vector.
-- `Kₛᵏ`   -- stiffness tangent matrix of the structure. 
-"""
-struct StaticState <: AbstractStructuralState
-    Uᵏ::AbstractVector
-    Fₑₓₜᵏ::AbstractVector
-    Fᵢₙₜᵏ::AbstractVector
-    Kₛᵏ::AbstractMatrix
-end
-
-_unwrap(sc::StaticState) = (sc.Uᵏ, sc.Fₑₓₜᵏ, sc.Fᵢₙₜᵏ, sc.Kₛᵏ)
-
-#TODO: Add tangent matrix of the external forces vector
-
-"Returns a default static case for a given mesh."
-function StaticState(m::AbstractMesh)
-    n_dofs = length(dofs(m))
-    Uᵏ = @MVector zeros(n_dofs)
-    Fₑₓₜᵏ = similar(Uᵏ)
-    Fᵢₙₜᵏ = similar(Uᵏ)
-    Kₛᵏ = SparseMatrixCSC(zeros(n_dofs, n_dofs))
-    StaticState(Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ)
-end
-
 # ==========
 # Structure
 # ==========
@@ -297,34 +243,34 @@ elements, initial and boundary conditions to the mesh.
 * [`elements`](@ref)
 * [`nodes`](@ref)
 * [`mesh`](@ref)
-* [`state`](@ref)
 """
 abstract type AbstractStructure{D,M,E,B,I} end
 
 elements(s::AbstractStructure) = elements(mesh(s))
 
-nodes(s::AbstractStructure) = nodes(mesh(s))
-
 "Returns the mesh"
 mesh(s::AbstractStructure) = s.mesh
 
-disp_bcs(s::AbstractStructure) = disp_bcs(s.bcs)
-
 dofs(s::AbstractStructure) = dofs(mesh(s))
 
-"Returns free dofs (or not fixed) dofs of the structure"
-free_dof_indexes(s::AbstractStructure) = s.free_dof_indexes
+disp_bcs(s::AbstractStructure) = disp_bcs(s.bcs)
 
 load_bcs(s::AbstractStructure) = load_bcs(s.bcs)
 
-structural_bcs(s::AbstractStructure) = s.bcs
+nodes(s::AbstractStructure) = nodes(mesh(s))
+
+num_dofs(s::AbstractStructure) = length(dofs(s))
+
+num_elements(s::AbstractStructure) = length(elements(s))
+
+"Returns free dofs (or not fixed) dofs of the structure"
+free_dof_indexes(s::AbstractStructure) = s.free_dof_indexes
 
 Base.getindex(s::AbstractStructure, i::AbstractIndex) = mesh(s)[i]
 Base.getindex(s::AbstractStructure, vi::Vector{<:AbstractIndex}) = mesh(s)[vi]
 Base.getindex(s::AbstractStructure, si::Set{<:AbstractIndex}) = mesh(s)[si]
 
-"Returns the current structural state"
-current_state(s::AbstractStructure) = s.state
+structural_bcs(s::AbstractStructure) = s.bcs
 
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
@@ -334,7 +280,6 @@ An `Structure` object facilitates the process of assembling and creating the str
 - `elements`         -- Stores the types of elements considered in the structure.
 - `bcs`              -- Stores the types of boundary conditions in the structure.
 - `ics`              -- Stores the types of initial conditions in the structure.
-- `state`            -- Stores the current state of the structure.
 - `free_dof_indexes` -- Stores the free degrees of freedom.
 """
 mutable struct Structure{D,M,E,B,I} <: AbstractStructure{D,M,E,B,I}
@@ -343,7 +288,6 @@ mutable struct Structure{D,M,E,B,I} <: AbstractStructure{D,M,E,B,I}
     elements::StructuralElements{E}
     bcs::StructuralBoundaryConditions{B}
     ics::StructuralInitialConditions{I}
-    state::AbstractStructuralState
     free_dof_indexes::Vector{<:Integer}
     function Structure(
         mesh::AbstractMesh{D},
@@ -357,14 +301,12 @@ mutable struct Structure{D,M,E,B,I} <: AbstractStructure{D,M,E,B,I}
         # Create elements and push them into the mesh
         _create_elements!(mesh, mats, elems)
 
-        # Apply bc
+        # Push bcs into nodes and elements
         _assign_bcs!(mesh, bcs)
-
-        s_default_state = StaticState(mesh)
 
         default_free_dofs_indexes = index.(dofs(mesh))
 
-        return new{D,M,E,B,I}(mesh, mats, elems, bcs, init, s_default_state, default_free_dofs_indexes)
+        return new{D,M,E,B,I}(mesh, mats, elems, bcs, init, default_free_dofs_indexes)
     end
 end
 

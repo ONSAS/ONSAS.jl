@@ -5,15 +5,29 @@ using ..StructuralAnalyses: StaticAnalysis
 "Internal function to solve different analysis problem"
 function _solve(sa::StaticAnalysis, alg::NewtonRaphson, args...; kwargs...)
 
-    # initial conditions
-    u0 = prob.u0
-    tspan = prob.tspan
+    s = structure(sa)
 
-    # solve
-    sol = solve(prob, method, options)
+    while !is_done(sa, λᵏ)
 
-    # postprocess
-    postprocess(prob, sol, options)
+        # Increment external forces vector Fₑₓₜ  
+        update_external_forces!(s, λᵏ)
+
+        while !is_step_converged(sa)
+
+            # Compute tangents and internal forces
+            update_internal_forces!(s, sa)
+
+            # Increment U
+            step!(s, sa, alg)
+
+            check_convergence!(sa, alg)
+
+        end
+
+        next!(sa)
+
+    end
+
 
     return sol
 end

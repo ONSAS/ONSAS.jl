@@ -3,9 +3,14 @@ Module defining structural analyses that can be solved.
 """
 module StructuralAnalyses
 
-using ..StructuralModel
+using Reexport: @reexport
 
-export AbstractStructuralAnalysis, StaticAnalysis, structure, final_time, time_step
+using ..StructuralModel
+using ..Elements
+@reexport import ..Utils: displacements, external_forces, internal_forces
+
+export AbstractStructuralState, strains, stresses
+export AbstractStructuralAnalysis, structure, initial_time, current_time, current_state, final_time, next!, is_done
 
 
 """ Abstract supertype for all structural analysis.
@@ -16,46 +21,101 @@ to be solved.
 **Common methods:**
 
 * [`structure`](@ref)
+* [`structural_state`](@ref)
+
+* [`initial_time`](@ref)
+* [`current_time`](@ref)
 * [`final_time`](@ref)
-* [`time_step`](@ref)
+
+* [`current_state`](@ref)
+* [`next!`](@ref)
+* [`is_done`](@ref)
+
 """
 abstract type AbstractStructuralAnalysis end
 
 "Returns analyzed structure"
 structure(a::AbstractStructuralAnalysis) = a.s
 
+"Returns the structural state of the analysis"
+function structural_state(a::AbstractStructuralAnalysis) end
+
+"Returns initial time of the analysis"
+initial_time(a::AbstractStructuralAnalysis) = a.t₁
+
+"Returns current time of the analysis"
+current_time(a::AbstractStructuralAnalysis) = a.t
+
 "Returns final time of the analysis"
 final_time(a::AbstractStructuralAnalysis) = a.t₁
+
+"Increments the current time of the analysis"
+function next!(a::AbstractStructuralAnalysis) end
+
+"Returns `true` if the analysis is done"
+is_done(a) = current_time(a) > final_time(a)
+
+"Returns the current structural state"
+function current_state(a::AbstractStructuralAnalysis) end
+
+# ======================
+# Structural state
+# ======================
+
+""" Abstract supertype to define a new structural state.
+**Common methods:**
+* [`assembler`](@ref)
+* [`displacements`](@ref)
+* [`external_forces`](@ref)
+* [`internal_forces`](@ref)
+* [`residual_forces`](@ref)
+* [`systemΔu_matrix`](@ref)
+* [`strains`](@ref)
+* [`stresses`](@ref)
+"""
+abstract type AbstractStructuralState end
+
+"Returns an assembler object (this is used to speed up the assembling process"
+assembler(st::AbstractStructuralState) = st.assembler
+
+"Returns current displacement vector"
+displacements(st::AbstractStructuralState) = st.Uᵏ
+
+"Returns current displacement vector of an element"
+displacements(st::AbstractStructuralState, e::AbstractElement) = displacements(st)[dofs(e)]
+
+"Returns current internal forces vector"
+internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
+
+"Returns current external forces vector"
+external_forces(st::AbstractStructuralState) = st.Fₑₓₜᵏ
+
+"Returns current stresses"
+strains(st::AbstractStructuralState) = st.σᵏ
+
+"Returns current stresses"
+stresses(st::AbstractStructuralState) = st.ϵᵏ
+
+"Returns current external forces vector"
+function residual_forces(st::AbstractStructuralState) end
+
+"Returns current system Δu matrix"
+function systemΔu_matrix(st::AbstractStructuralState) end
+
+# ================
+# Common methods
+# ================
+include("./../core/boundary_cond_processing.jl")
+include("./../core/assembler.jl")
 
 # ================
 # Static analysis
 # ================
-
-""" StaticAnalysis struct.
-A `StaticAnalysis` is a collection of parameters for defining the static analysis of the structure. 
-
-### Fields:
-- `s` -- Stores the structure to be analyzed.
-- `t₁` -- Stores the final time (final load factor step) of the analysis.
-- `initial_state` -- Stores the initial state of the structure.
-"""
-
-struct StaticAnalysis <: AbstractStructuralAnalysis
-    s::AbstractStructure
-    t₁::Number
-    init_state::StaticState
-    function StaticAnalysis(s, t₁::Number=1.0, init_state=current_state(s))
-        # Check meaningful parameters
-        (t₁ > 0) || throw(ArgumentError("t₁ must be positive"))
-        new(s, t₁, init_state)
-    end
-end
+include("./../analyses/StaticAnalysis.jl")
 
 # ================
 # Dynamic analysis
 # ================
-
-
 
 # ================
 # Modal analysis

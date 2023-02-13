@@ -5,9 +5,9 @@ module BoundaryConditions
 
 using Reexport: @reexport
 
-@reexport import ..Utils: ScalarWrapper, label, set_label!
+@reexport import ..Utils: dofs, label
 
-export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition, AbstractLoadBoundaryCondition, dofs
+export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition, AbstractLoadBoundaryCondition
 export DisplacementBoundaryCondition, FixedDisplacementBoundaryCondition, PinnedDisplacementBoundaryCondition
 export GlobalLoadBoundaryCondition, load_factor_function
 export MᵢLoadBoundaryCondition, MⱼLoadBoundaryCondition, MₖLoadBoundaryCondition
@@ -24,19 +24,15 @@ An `AbstractBoundaryCondition` object facilitates the process of defining:
 **Common methods:**
 
 * [`label`](@ref)
-* [`set_label!`](@ref)
 * [`values`](@ref)
 """
 
 abstract type AbstractBoundaryCondition end
 
-const DEFAULT_LABEL = :bc_label_no_assigned
-
 "Returns the degrees of freedom where the boundary condition is imposed"
 dofs(bc::AbstractBoundaryCondition) = bc.dofs
 
-label(bc::AbstractBoundaryCondition) = bc.label[]
-set_label!(bc::AbstractBoundaryCondition, label) = bc.label[] = Symbol(label)
+label(bc::AbstractBoundaryCondition) = bc.name
 
 "Returns the values imposed to the respective degrees of freedom"
 Base.values(bc::AbstractBoundaryCondition) = bc.values
@@ -51,18 +47,18 @@ abstract type AbstractDisplacementBoundaryCondition <: AbstractBoundaryCondition
 
 """ Generalized displacement boundary condition struct.
 ### Fields:
-- `dofs`    -- Degrees of freedom where the boundary condition is imposed. 
+- `dofs`    -- Local degrees of freedom where the boundary condition is imposed. 
 - `values`  -- Values imposed. 
-- `label`   -- Boundary condition label.
+- `name`    -- Boundary condition label.
 """
-Base.@kwdef struct DisplacementBoundaryCondition{D} <: AbstractDisplacementBoundaryCondition
+Base.@kwdef struct DisplacementBoundaryCondition{D,F} <: AbstractDisplacementBoundaryCondition
     dofs::D
-    values::Function
-    label::ScalarWrapper{Symbol} = ScalarWrapper(DEFAULT_LABEL)
+    values::F
+    name::Symbol = :no_labelled_bc
 end
 
-function DisplacementBoundaryCondition(dofs, values::Function, label::L) where {L<:Union{Symbol,String}}
-    DisplacementBoundaryCondition(dofs, values, ScalarWrapper(Symbol(label)))
+function DisplacementBoundaryCondition(dofs, values::F, label::L) where {F,L}
+    DisplacementBoundaryCondition(dofs, values, Symbol(label))
 end
 
 """ Fixed displacement boundary condition struct:
@@ -72,26 +68,25 @@ This is a particular instance of the struct `DisplacementBoundaryCondition`
 ### Fields:
 - `bc`    -- Displacement boundary condition constructed with fixed dofs and values. 
 """
-struct FixedDisplacementBoundaryCondition{D} <: AbstractDisplacementBoundaryCondition
-    bc::DisplacementBoundaryCondition{D}
-    function FixedDisplacementBoundaryCondition(label_bc=DEFAULT_LABEL)
+struct FixedDisplacementBoundaryCondition <: AbstractDisplacementBoundaryCondition
+    bc::DisplacementBoundaryCondition
+    function FixedDisplacementBoundaryCondition(label_bc=:no_labelled_bc)
 
         local_dofs_fixed = [1, 2, 3, 4, 5, 6]
 
         bc = DisplacementBoundaryCondition(
             dofs=local_dofs_fixed,
-            values=x -> zeros(length(local_dofs_fixed)),
-            label=label_bc
+            values=t -> zeros(length(local_dofs_fixed)),
+            name=label_bc
         )
 
-        return new{typeof(dofs(bc))}(bc)
+        return new(bc)
     end
 end
 
 dofs(fbc::FixedDisplacementBoundaryCondition) = dofs(fbc.bc)
 Base.values(fbc::FixedDisplacementBoundaryCondition) = values(fbc.bc)
 label(fbc::FixedDisplacementBoundaryCondition) = label(fbc.bc)
-set_label!(fbc::FixedDisplacementBoundaryCondition, label) = set_label!(fbc.bc, label)
 
 """ Pinned displacement boundary condition struct:
 
@@ -100,26 +95,25 @@ This is a particular instance of the struct `DisplacementBoundaryCondition`
 ### Fields:
 - `bc`    -- Displacement boundary condition constructed with pinned dofs and values. 
 """
-struct PinnedDisplacementBoundaryCondition{D} <: AbstractDisplacementBoundaryCondition
-    bc::DisplacementBoundaryCondition{D}
-    function PinnedDisplacementBoundaryCondition(label_bc=DEFAULT_LABEL)
+struct PinnedDisplacementBoundaryCondition <: AbstractDisplacementBoundaryCondition
+    bc::DisplacementBoundaryCondition
+    function PinnedDisplacementBoundaryCondition(label_bc=:no_labelled_bc)
 
         local_dofs_fixed = [1, 3, 5]
 
         bc = DisplacementBoundaryCondition(
             dofs=local_dofs_fixed,
-            values=(t) -> zeros(length(local_dofs_fixed)),
-            label=label_bc
+            values=t -> zeros(length(local_dofs_fixed)),
+            name=label_bc
         )
 
-        return new{typeof(dofs(bc))}(bc)
+        return new(bc)
     end
 end
 
 dofs(pbc::PinnedDisplacementBoundaryCondition) = dofs(pbc.bc)
 Base.values(pbc::PinnedDisplacementBoundaryCondition) = values(pbc.bc)
 label(pbc::PinnedDisplacementBoundaryCondition) = label(pbc.bc)
-set_label!(pbc::PinnedDisplacementBoundaryCondition, label) = set_label!(pbc.bc, label)
 
 # ========================
 # Load Boundary Conditions 
@@ -129,20 +123,18 @@ set_label!(pbc::PinnedDisplacementBoundaryCondition, label) = set_label!(pbc.bc,
 
 abstract type AbstractLoadBoundaryCondition <: AbstractBoundaryCondition end
 
-const DEFAULT_LOAD_FACTOR_FUNC = (t) -> 1.0
-
 """ Generalized load boundary condition imposed in local coordinates of the element.
 ### Fields:
 - `dofs`        -- Degrees of freedom where the boundary condition is imposed. 
 - `values`      -- Values imposed. 
 - `load_factor` -- Function to compute at each time step the load factor.
-- `label`       -- Boundary condition label.
+- `name`       -- Boundary condition label.
 """
-Base.@kwdef struct LocalLoadBoundaryCondition{D,F} <: AbstractLoadBoundaryCondition
+Base.@kwdef struct LocalLoadBoundaryCondition{D,V,F} <: AbstractLoadBoundaryCondition
     dofs::D
-    values::Vector
-    load_factor::F = DEFAULT_LOAD_FACTOR_FUNC
-    label::ScalarWrapper{Symbol} = ScalarWrapper(DEFAULT_LABEL)
+    values::V
+    load_factor::F = t -> t
+    name::Symbol = :no_labelled_bc
 end
 
 "Returns the load factor function"
@@ -153,13 +145,13 @@ load_factor_function(lbc::LocalLoadBoundaryCondition) = lbc.load_time_factor
 - `dofs`        -- Degrees of freedom where the boundary condition is imposed. 
 - `values`      -- Values imposed. 
 - `load_factor` -- Function to compute at each time step the load factor.
-- `label`       -- Boundary condition label.
+- `name`       -- Boundary condition label.
 """
-Base.@kwdef struct GlobalLoadBoundaryCondition{D,F} <: AbstractLoadBoundaryCondition
+Base.@kwdef struct GlobalLoadBoundaryCondition{D,V,F} <: AbstractLoadBoundaryCondition
     dofs::D
-    values::Vector
-    load_factor::F = DEFAULT_LOAD_FACTOR_FUNC
-    label::ScalarWrapper{Symbol} = ScalarWrapper(DEFAULT_LABEL)
+    values::V
+    load_factor::F = t -> t
+    name::Symbol = :no_labelled_bc
 end
 
 function GlobalLoadBoundaryCondition(
@@ -177,21 +169,20 @@ This is a particular instance of the struct `GlobalLoadBoundaryCondition`
 ### Fields:
 - `bc`   -- Mᵢ Load boundary condition. 
 """
-struct MᵢLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
+struct MᵢLoadBoundaryCondition{V,F} <: AbstractLoadBoundaryCondition
     bc::GlobalLoadBoundaryCondition
     function MᵢLoadBoundaryCondition(
-        v::Vector, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
-    ) where {F}
-        m_dofs = [2]
-        lbc = GlobalLoadBoundaryCondition(m_dofs, v, load_factor, label)
-        return new{F}(lbc)
+        v::V, load_factor::F=t -> t; label=:no_labelled_bc
+    ) where {V<:Real,F}
+        m_dofs = [2]#θᵢ
+        lbc = GlobalLoadBoundaryCondition(m_dofs, [v], load_factor, label)
+        return new{V,F}(lbc)
     end
 end
 
 dofs(Mᵢbc::MᵢLoadBoundaryCondition) = dofs(Mᵢbc.bc)
 Base.values(Mᵢbc::MᵢLoadBoundaryCondition) = values(Mᵢbc.bc)
 label(Mᵢbc::MᵢLoadBoundaryCondition) = label(Mᵢbc.bc)
-set_label!(Mᵢbc::MᵢLoadBoundaryCondition, label) = set_label!(Mᵢbc.bc, label)
 load_factor_function(Mᵢbc::MᵢLoadBoundaryCondition) = load_factor_function(Mᵢbc.bc)
 
 """ Mⱼ load boundary condition struct:
@@ -201,21 +192,20 @@ This is a particular instance of the struct `GlobalLoadBoundaryCondition`
 ### Fields:
 - `bc`   -- Mⱼ Load boundary condition. 
 """
-struct MⱼLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
+struct MⱼLoadBoundaryCondition{V,F} <: AbstractLoadBoundaryCondition
     bc::GlobalLoadBoundaryCondition
     function MⱼLoadBoundaryCondition(
-        v::Vector, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
-    ) where {F}
+        v::V, load_factor::F=t -> t; label=:no_labelled_bc
+    ) where {V<:Real,F}
         m_dofs = [4]
-        lbc = GlobalLoadBoundaryCondition(m_dofs, v, load_factor, label)
-        return new{F}(lbc)
+        lbc = GlobalLoadBoundaryCondition(m_dofs, [v], load_factor, label)
+        return new{V,F}(lbc)
     end
 end
 
 dofs(Mⱼbc::MⱼLoadBoundaryCondition) = dofs(Mⱼbc.bc)
 Base.values(Mⱼbc::MⱼLoadBoundaryCondition) = values(Mⱼbc.bc)
 label(Mⱼbc::MⱼLoadBoundaryCondition) = label(Mⱼbc.bc)
-set_label!(Mⱼbc::MⱼLoadBoundaryCondition, label) = set_label!(Mⱼbc.bc, label)
 load_factor_function(Mⱼbc::MⱼLoadBoundaryCondition) = load_factor_function(Mⱼbc.bc)
 
 """ Mₖ load boundary condition struct:
@@ -225,21 +215,20 @@ This is a particular instance of the struct `GlobalLoadBoundaryCondition`
 ### Fields:
 - `bc`   -- Mₖ Load boundary condition. 
 """
-struct MₖLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
+struct MₖLoadBoundaryCondition{V,F} <: AbstractLoadBoundaryCondition
     bc::GlobalLoadBoundaryCondition
     function MₖLoadBoundaryCondition(
-        v::Vector, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
-    ) where {F}
+        v::V, load_factor::F=t -> t; label=:no_labelled_bc
+    ) where {V<:Real,F}
         m_dofs = [6]
-        lbc = GlobalLoadBoundaryCondition(m_dofs, v, load_factor, label)
-        return new{F}(lbc)
+        lbc = GlobalLoadBoundaryCondition(m_dofs, [v], load_factor, label)
+        return new{V,F}(lbc)
     end
 end
 
 dofs(Mₖbc::MₖLoadBoundaryCondition) = dofs(Mₖbc.bc)
 Base.values(Mₖbc::MₖLoadBoundaryCondition) = values(Mₖbc.bc)
 label(Mₖbc::MₖLoadBoundaryCondition) = label(Mₖbc.bc)
-set_label!(Mₖbc::MₖLoadBoundaryCondition, label) = set_label!(Mₖbc.bc, label)
 load_factor_function(Mₖbc::MₖLoadBoundaryCondition) = load_factor_function(Mₖbc.bc)
 
 """ Fᵢ load boundary condition struct:
@@ -249,21 +238,20 @@ This is a particular instance of the struct `GlobalLoadBoundaryCondition`
 ### Fields:
 - `bc`  -- Fᵢ Load boundary condition. 
 """
-struct FᵢLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
+struct FᵢLoadBoundaryCondition{V,F} <: AbstractLoadBoundaryCondition
     bc::GlobalLoadBoundaryCondition
     function FᵢLoadBoundaryCondition(
-        v::Real, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
-    ) where {F}
+        v::V, load_factor::F=t -> t; label=:no_labelled_bc
+    ) where {V<:Real,F}
         m_dofs = [1]
         lbc = GlobalLoadBoundaryCondition(m_dofs, [v], load_factor, label)
-        return new{F}(lbc)
+        return new{V,F}(lbc)
     end
 end
 
 dofs(Fᵢbc::FᵢLoadBoundaryCondition) = dofs(Fᵢbc.bc)
 Base.values(Fᵢbc::FᵢLoadBoundaryCondition) = values(Fᵢbc.bc)
 label(Fᵢbc::FᵢLoadBoundaryCondition) = label(Fᵢbc.bc)
-set_label!(Fᵢbc::FᵢLoadBoundaryCondition, label) = set_label!(Fᵢbc.bc, label)
 load_factor_function(Fᵢbc::FᵢLoadBoundaryCondition) = load_factor_function(Fᵢbc.bc)
 
 
@@ -274,21 +262,20 @@ This is a particular instance of the struct `GlobalLoadBoundaryCondition`
 ### Fields:
 - `bc`  -- Fⱼ Load boundary condition. 
 """
-struct FⱼLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
+struct FⱼLoadBoundaryCondition{V,F} <: AbstractLoadBoundaryCondition
     bc::GlobalLoadBoundaryCondition
     function FⱼLoadBoundaryCondition(
-        v::Real, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
-    ) where {F}
+        v::V, load_factor::F=t -> t; label=:no_labelled_bc
+    ) where {V<:Real,F}
         m_dofs = [3]
         lbc = GlobalLoadBoundaryCondition(m_dofs, [v], load_factor, label)
-        return new{F}(lbc)
+        return new{V,F}(lbc)
     end
 end
 
 dofs(Fⱼbc::FⱼLoadBoundaryCondition) = dofs(Fⱼbc.bc)
 Base.values(Fⱼbc::FⱼLoadBoundaryCondition) = values(Fⱼbc.bc)
 label(Fⱼbc::FⱼLoadBoundaryCondition) = label(Fⱼbc.bc)
-set_label!(Fⱼbc::FⱼLoadBoundaryCondition, label) = set_label!(Fⱼbc.bc, label)
 load_factor_function(Fⱼbc::FⱼLoadBoundaryCondition) = load_factor_function(Fⱼbc.bc)
 
 
@@ -299,29 +286,28 @@ This is a particular instance of the struct `GlobalLoadBoundaryCondition`
 ### Fields:
 - `bc`  -- Fₖ Load boundary condition. 
 """
-struct FₖLoadBoundaryCondition{F} <: AbstractLoadBoundaryCondition
+struct FₖLoadBoundaryCondition{V,F} <: AbstractLoadBoundaryCondition
     bc::GlobalLoadBoundaryCondition
     function FₖLoadBoundaryCondition(
-        v::Real, load_factor::F=DEFAULT_LOAD_FACTOR_FUNC; label=DEFAULT_LABEL
-    ) where {F}
+        v::V, load_factor::F=t -> t; label=:no_labelled_bc
+    ) where {V<:Real,F}
         m_dofs = [5]
         lbc = GlobalLoadBoundaryCondition(m_dofs, [v], load_factor, label)
-        return new{F}(lbc)
+        return new{V,F}(lbc)
     end
 end
 
 dofs(Fₖbc::FₖLoadBoundaryCondition) = dofs(Fₖbc.bc)
 Base.values(Fₖbc::FₖLoadBoundaryCondition) = values(Fₖbc.bc)
 label(Fₖbc::FₖLoadBoundaryCondition) = label(Fₖbc.bc)
-set_label!(Fₖbc::FₖLoadBoundaryCondition, label) = set_label!(Fₖbc.bc, label)
 load_factor_function(Fₖbc::FₖLoadBoundaryCondition) = load_factor_function(Fₖbc.bc)
 
 """ User Load boundary condition imposed in global coordinates to the entire structure.
 ### Fields:
 - `f`    -- User load function (the output of this function must be a vector with length equals to the number of dofs). 
 """
-struct UserLoadsBoundaryCondition <: AbstractLoadBoundaryCondition
-    f::Function
+struct UserLoadsBoundaryCondition{F} <: AbstractLoadBoundaryCondition
+    f::F
 end
 
 """ Spring boundary condition imposed in global coordinates of the element.

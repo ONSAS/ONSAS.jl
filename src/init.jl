@@ -1,8 +1,6 @@
 using Reexport: @reexport
-using LinearAlgebra
-using SparseArrays
-using MshReader
-using StaticArrays
+
+@reexport using Dictionaries: dictionary
 
 # =========
 # Utils

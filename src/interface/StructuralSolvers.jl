@@ -3,17 +3,8 @@ Module defining structural solvers that can be used to solved different analyses
 """
 module StructuralSolvers
 
-using Reexport: @reexport
-@reexport import ..StructuralModel: displacements
-@reexport import ..StructuralAnalyses: AbstractStructuralAnalysis
-@reexport import ..Utils: solve
-
-export ConvergenceSettings, step_size, tolerances, NewtonRaphson, AbstractSolution, StaticSolution
-
-
-const DEFAULT_RELATIVE_DISP_TOLERANCE = 1e-6
-const DEFAULT_RELATIVE_FORCE_TOLERANCE = 1e-6
-const DEFAULT_MAX_ITER = 20
+export solve
+export ConvergenceSettings, step_size, tolerances, step!, AbstractSolution
 
 """ ConvergenceSettings struct.
 Facilitates the process of defining and checking numerical convergence. 
@@ -23,9 +14,9 @@ Facilitates the process of defining and checking numerical convergence.
 - `max_iter`        -- Maximum number of iterations.
 """
 Base.@kwdef struct ConvergenceSettings
-    rel_disp_tol::Number = DEFAULT_RELATIVE_DISP_TOLERANCE
-    rel_force_tol::Number = DEFAULT_RELATIVE_FORCE_TOLERANCE
-    max_iter::Integer = DEFAULT_MAX_ITER
+    rel_disp_tol::Float64 = 1e-6
+    rel_force_tol::Float64 = 1e-6
+    max_iter::Int = 20
 end
 
 #==========#
@@ -36,13 +27,15 @@ end
 Abstract supertype for all direct integration methods.
 """
 abstract type AbstractSolver end
+
 "Returns the step size of the solver."
 step_size(alg::AbstractSolver) = alg.Δt
+
 "Returns the numerical tolerance set to the solver."
 tolerances(alg::AbstractSolver) = alg.tol
 
-"Computes the solver step for a given analysis."
-function step!(alg::AbstractSolver, a::AbstractStructuralAnalysis, args...; kwargs...) end
+"Computes solver step for a given analysis."
+function step!(alg::AbstractSolver, analysis::A, args...; kwargs...) where {A} end
 
 include("./../algorithms/NR.jl")
 
@@ -50,32 +43,11 @@ include("./../algorithms/NR.jl")
 # Solutions
 #==========#
 
-"""
-    AbstractSolution
-Abstract supertype that holds the solution of a numerical integration.
-"""
+"""Abstract supertype that holds the solution of a numerical integration."""
 abstract type AbstractSolution end
 
 algorithm(sol::AbstractSolution) = sol.alg
 displacements(sol::AbstractSolution) = sol.U
-
-"""
-Static solution struct.
-### Fields
-- `alg` -- Algorithm used in the integration
-- `U`   -- Displacements
-- `t`   -- Vector of time values
-- `vars`-- Other relevant variables are stored in a dictionary
-"""
-struct StaticSolution{T<:AbstractSolver,UT,ST} <: AbstractSolution
-    alg::T
-    U::UT
-    t::ST
-    vars::Dict
-end
-
-# constructor with missing fields
-StaticSolution(alg, U, t) = StaticSolution(alg, U, t, Dict())
 
 # ===============
 # Solve function
@@ -90,15 +62,17 @@ Solve an structural analysis problem.
 A solution structure (`AbstractSolution`) that holds the result and the algorithm used
 to obtain it.
 """
-function solve(a::AbstractStructuralAnalysis, alg::AbstractSolver, args...; kwargs...)
-    initialized_analysis = init(a, alg, args...; kwargs...)
-    step!(alg, initialized_analysis, args...; kwargs...)
+function solve(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
+    initialized_analysis = init(analysis, alg, args...; kwargs...)
     return _solve(initialized_analysis, alg, args...; kwargs...)
 end
 
+"Internal solve function to be overloaded by each analysis."
+function _solve(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} end
+
 "Returns the initialized analysis."
-function init(a::AbstractStructuralAnalysis, alg::AbstractSolver, args...; kwargs...)
-    return a
+function init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
+    return analysis
 end
 
 end # module
