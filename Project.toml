@@ -15,6 +15,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 AutoHashEquals = "0.2"
+Dictionaries = "0.3"
 MshReader = "0.1"
 Reexport = "1"
 SafeTestsets = "0.0.1"
