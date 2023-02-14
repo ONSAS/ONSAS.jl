@@ -12,7 +12,8 @@ using ..Utils: row_vector
 @reexport using ..CrossSections
 @reexport import ..Utils: dimension, label
 @reexport import ..Utils: internal_forces, inertial_forces
-@reexport import ..Utils: coordinates, dofs, index, nodes
+@reexport import ..Utils: coordinates, dofs, nodes
+import Dictionaries: index
 
 export Dof, add_dofs!
 export AbstractNode, Node, coordinates

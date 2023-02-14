@@ -20,10 +20,9 @@ include("interface/Elements.jl")
 include("interface/Meshes.jl")
 @reexport using .Meshes
 
-
-# # Structure 
-# include("interface/StructuralModel.jl")
-# @reexport using .StructuralModel
+# Structural model 
+include("interface/StructuralModel.jl")
+@reexport using .StructuralModel
 
 # # Solvers
 # include("interface/StructuralSolvers.jl")

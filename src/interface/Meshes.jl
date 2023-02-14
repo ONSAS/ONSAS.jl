@@ -137,18 +137,21 @@ struct Mesh{dim,E<:AbstractElement,N<:AbstractNode{dim}} <: AbstractMesh{dim}
 
         # Check node sets indexes
         for set in keys(node_sets)
-            @assert all(1 <= i <= length(nodes) for i in node_sets[set]) throw(ArgumentError("Node set $set contains invalid node indexes."))
+            check = all([i ≤ length(nodes) for i in node_sets[set]])
+            if check == false
+                throw(ArgumentError("Node set: $set contains invalid node indexes."))
+            end
         end
-
-        # Check element sets indexes
+        # Check node sets indexes
         for set in keys(element_sets)
-            @assert all(1 <= i <= length(elements) for i in element_sets[set]) throw(ArgumentError("Element set $set contains invalid node indexes."))
+            check = all([i ≤ length(nodes) for i in element_sets[set]])
+            if check == false
+                throw(ArgumentError("Element set: $set contains invalid element indexes."))
+            end
         end
-
         return new{first(dims),E,N}(nodes, elements, node_sets, element_sets)
     end
 end
-
 
 
 end # module
