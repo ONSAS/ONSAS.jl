@@ -47,14 +47,22 @@ function internal_forces(m::SVK, e::Truss{dim}, u_glob::AbstractVector) where {d
 
     X_ref, X_def = _X_rows(e, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
-    _, G = _aux_matrices(dim)
+    B_dif, G = _aux_matrices(dim)
     b_ref, b_def = _aux_b(X_ref, X_def, u_e, G, dim)
+
+    # normalized reference and deformed co-rotational vector
+    e₁_def = B_dif * X_def / l_def
+    TTcl = B_dif' * e₁_def
+
 
     ϵ_e = _strain(l_ref, l_def)
     σ_e = E * ϵ_e
     aux = (b_ref + b_def)
-    fᵢₙₜ_e = A * σ_e * l_ref * aux'
-    Kᵢₙₜ_e = A * σ_e / l_ref * G + E * A * l_ref * (aux' * aux)
+    fᵢₙₜ_e = A * σ_e * TTcl
+
+    Kₘ = E * A / l_ref * (TTcl * (TTcl'))
+    K_geo = σ_e * A / l_def * (B_dif' * B_dif - TTcl * (TTcl'))
+    Kᵢₙₜ_e = Kₘ + K_geo
 
     return fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e
 end

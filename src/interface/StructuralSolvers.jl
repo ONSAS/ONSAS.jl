@@ -24,6 +24,7 @@ function has_converged(cs::ConvergenceSettings, norm_Δu_rel::Real, norm_RHS_rel
     norm_Δu_rel ≤ cs.rel_disp_tol && return 1
     norm_RHS_rel ≤ cs.rel_force_tol && return 2
     iter > cs.max_iter && return 3
+    return false
 end
 
 #==========#

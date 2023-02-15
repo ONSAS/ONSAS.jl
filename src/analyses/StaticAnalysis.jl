@@ -3,12 +3,12 @@ using SparseArrays: SparseMatrixCSC
 
 using ..Elements: local_dofs
 using ..StructuralModel: AbstractStructure, num_dofs, num_elements
-using ..StructuralSolvers: AbstractSolver, NewtonRaphson
+using ..StructuralSolvers: AbstractSolver, ConvergenceSettings, NewtonRaphson, tolerances, has_converged
 using ..StructuralAnalyses: AbstractStructuralState, AbstractStructuralAnalysis
 using ..StructuralAnalyses: Assembler
 
 import ..Utils: _unwrap
-import ..StructuralAnalyses: current_state, initial_time, current_time, final_time, next!
+import ..StructuralAnalyses: _assemble!, current_state, initial_time, current_time, final_time, next!, residual_forces, tangent_matrix
 import ..StructuralSolvers: init, _solve
 
 export StaticState
@@ -32,8 +32,8 @@ struct StaticState <: AbstractStructuralState
     Fₑₓₜᵏ::AbstractVector
     Fᵢₙₜᵏ::AbstractVector
     Kₛᵏ::AbstractMatrix
-    ϵ::AbstractVector
-    σ::AbstractVector
+    ϵᵏ::AbstractVector
+    σᵏ::AbstractVector
     assembler::Assembler
 end
 
@@ -46,14 +46,14 @@ function StaticState(s::AbstractStructure)
     Fₑₓₜᵏ = similar(Uᵏ)
     Fᵢₙₜᵏ = similar(Uᵏ)
     Kₛᵏ = SparseMatrixCSC(zeros(n_dofs, n_dofs))
-    ϵ = Vector{}(undef, n_elements)
-    σ = Vector{}(undef, n_elements)
+    ϵᵏ = Vector{}(undef, n_elements)
+    σᵏ = Vector{}(undef, n_elements)
     assemblerᵏ = Assembler(s)
-    StaticState(ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵ, σ, assemblerᵏ)
+    StaticState(ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ)
 end
 
 residual_forces(sc::StaticState) = sc.Fₑₓₜᵏ - sc.Fᵢₙₜᵏ
-systemΔu_matrix(sc::StaticState) = sc.Kₛᵏ
+tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
 _unwrap(sc::StaticState) = (sc.ΔUᵏ, sc.Uᵏ, sc.Fₑₓₜᵏ, sc.Fᵢₙₜᵏ, sc.Kₛᵏ, sc.ϵᵏ, sc.σᵏ, sc.assemblerᵏ)
 
@@ -69,7 +69,6 @@ In the static analysis, the structure is analyzed at a given load factor (this v
 - `λᵥ`            -- Stores the load factors vector of the analysis
 - `current_step`  -- Stores the current load factor step
 """
-
 mutable struct StaticAnalysis <: AbstractStructuralAnalysis
     s::AbstractStructure
     state::StaticState
@@ -122,8 +121,6 @@ function init(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
     _update_load_bcs!(s, sa, λ₀)
 
-    update_displacement_bcs!(s, sa, λ0)
-
     return sa
 end
 
@@ -137,7 +134,11 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
         # Computes system residual forces tangent system matrix    
         assemble_system!(s, sa, alg)
 
-        while !is_step_converged(sa)
+        # Main.@infiltrate
+
+
+        while !_is_step_converged(sa, tolerances(alg))
+
 
             # Increment U
             step!(sa, alg)
@@ -165,24 +166,49 @@ function assemble_system!(s::AbstractStructure, sa::StaticAnalysis, ::NewtonRaph
     s = structure(sa)
     state = current_state(sa)
 
-    for mat in structural_materials
-        for e in elements(s)
+    for (mat, mat_elements) in pairs(materials(s))
+        for e in mat_elements
 
-            # Nodes and dofs of the element
-            element_nodes_dofs = dofs(e)
-            element_local_dofs = local_dofs(e)
-            global_dofs = element_nodes_dofs[element_local_dofs]
+            # Global dofs of the element (dofs where K must be added)
 
-            u_e = displacements(e, state)
-            fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(mat, e, u_e)
+            fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(mat, e, state.Uᵏ)
 
+            # Assembles the element internal magnitudes 
+            _assemble!(state, fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e, e)
 
-            # Computes element residual forces tangent system matrix
-            assemble!(e, sa)
-
-            # Assembles element residual forces tangent system matrix into global residual forces tangent system matrix
-            assemble!(s, e, sa)
         end
+
     end
+
+    # Insert values in the assembler objet into the tangent stiffness matrix
+    end_assemble!(state.Kₛᵏ, assembler(state))
+end
+
+"Assembles the internal force vector and the tangent matrix"
+function _assemble!(
+    state::StaticState, fᵢₙₜ_e::AbstractVector,
+    Kᵢₙₜ_e::AbstractMatrix, σ_e::Real, ϵ_e::Real, e::AbstractElement,
+)
+
+    #Returns the local dofs in the global mesh
+    ldofs = local_dofs(e)
+
+    # Assembles the element stiffness matrix
+    state.Fᵢₙₜᵏ[ldofs] += fᵢₙₜ_e
+    push!(state.σᵏ, σ_e)
+    push!(state.ϵᵏ, ϵ_e)
+
+    _assemble!(assembler(state), ldofs, Kᵢₙₜ_e)
+
+
+end
+
+"Returns relevant conv"
+_compute_
+
+function _is_step_converged(sa::StaticAnalysis, tol::ConvergenceSettings)
+
+    forces_tol, displacements_tol = _tolerancesΔu(state(sa))
+
 
 end

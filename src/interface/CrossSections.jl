@@ -106,10 +106,10 @@ struct Circle{T<:Real} <: AbstractCrossSection
     d::T
 end
 
-area(c::Circle) = c.d^2 / 4
-Ixx(c::Circle) = c.d^4 / 32
-Iyy(c::Circle) = c.d^4 / 64
-Izz(c::Circle) = c.d^4 / 64
+area(c::Circle) = pi * (c.d)^2 / 4
+Ixx(c::Circle) = pi * (c.d)^4 / 32
+Iyy(c::Circle) = pi * (c.d)^4 / 64
+Izz(c::Circle) = pi * (c.d)^4 / 64
 Ixy(c::Circle) = 0.0
 Ixz(c::Circle) = 0.0
 Iyz(c::Circle) = 0.0

@@ -67,10 +67,12 @@ current_state(a::AbstractStructuralAnalysis) = a.state
 **Common methods:**
 * [`assembler`](@ref)
 * [`displacements`](@ref)
+* [`Δ_displacements`](@ref)
 * [`external_forces`](@ref)
 * [`internal_forces`](@ref)
 * [`residual_forces`](@ref)
-* [`systemΔu_matrix`](@ref)
+* [`tangent_matrix`](@ref)
+* [`_tolerancesΔu`](@ref)
 * [`strains`](@ref)
 * [`stresses`](@ref)
 """
@@ -82,8 +84,8 @@ assembler(st::AbstractStructuralState) = st.assembler
 "Returns current displacement vector"
 displacements(st::AbstractStructuralState) = st.Uᵏ
 
-"Returns current displacement vector of an element"
-displacements(st::AbstractStructuralState, e::AbstractElement) = displacements(st)[dofs(e)]
+"Returns current displacement increments vector"
+Δ_displacements(st::AbstractStructuralState) = st.Uᵏ
 
 "Returns current internal forces vector"
 internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
@@ -100,8 +102,21 @@ stresses(st::AbstractStructuralState) = st.ϵᵏ
 "Returns current external forces vector"
 function residual_forces(st::AbstractStructuralState) end
 
-"Returns current system Δu matrix"
-function systemΔu_matrix(st::AbstractStructuralState) end
+"Returns current tangent matrix"
+function tangent_matrix(st::AbstractStructuralState) end
+
+"Returns step in u tolerances"
+function _tolerancesΔu(st::AbstractStructuralState)
+    RHS_norm = residual_forces(current_state(sa)) |> norm
+    Fext_norm = external_forces(current_state(sa)) |> norm
+    forces_tol = RHS_norm / Fext_norm
+
+    ΔU_norm = Δ_displacements(current_state(sa)) |> norm
+    U_norm = displacements(current_state(sa)) |> norm
+    displacements_tol = ΔU_norm / U_norm
+    return forces_tol, displacements_tol
+end
+
 
 # ================
 # Common methods

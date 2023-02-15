@@ -40,6 +40,8 @@ Base.getindex(sm::StructuralMaterials, m::M) where {M<:AbstractMaterial} = sm.ma
 Base.getindex(sm::StructuralMaterials, e::E) where {E<:AbstractElement} =
     [m for (m, es) in pairs(sm.mats_to_elems) if e in es][1]
 
+Base.pairs(sm::StructuralMaterials) = pairs(sm.mats_to_elems)
+
 "Checks that each element has a single material"
 _element_material_is_unique(mat_dict) = length(unique(values(mat_dict))) == length(values(mat_dict))
 
@@ -76,7 +78,6 @@ function Base.getindex(sb::StructuralBoundaryConditions{NB,LB}, bc::BC) where
     BC <: NB && bc ∈ keys(node_bcs(sb)) && push!(bc_elements, node_bcs(sb)[bc]...)
     BC <: LB && bc ∈ keys(element_bcs(sb)) && push!(bc_elements, element_bcs(sb)[bc]...)
 
-    # Main.@infiltrate
     isempty(bc_elements) ? throw(KeyError("Boundary condition $bc not found")) : return bc_elements
 end
 

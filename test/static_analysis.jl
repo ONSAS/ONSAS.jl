@@ -84,7 +84,7 @@ nr = NewtonRaphson(tols)
 
     sa_rand = StaticState(Δuᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵ, σ, assembler)
     @test residual_forces(sa_rand) == Fₑₓₜᵏ - Fᵢₙₜᵏ
-    @test systemΔu_matrix(sa_rand) == Kₛᵏ
+    @test tangent_matrix(sa_rand) == Kₛᵏ
 
 end
 
