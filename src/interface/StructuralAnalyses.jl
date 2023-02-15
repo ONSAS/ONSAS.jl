@@ -5,13 +5,17 @@ module StructuralAnalyses
 
 using Reexport: @reexport
 
-using ..StructuralModel
-using ..Elements
+@reexport using ..StructuralModel
+@reexport using ..Materials
+@reexport using ..Elements
+@reexport using ..BoundaryConditions
+@reexport using ..Meshes
 @reexport import ..Utils: displacements, external_forces, internal_forces
 
-export AbstractStructuralState, strains, stresses
-export AbstractStructuralAnalysis, structure, initial_time, current_time, current_state, final_time, next!, is_done
-
+export AbstractStructuralState, assembler, displacements,
+    internal_forces, external_forces, strains, stresses, residual_forces, systemΔu_matrix
+export AbstractStructuralAnalysis, structure, initial_time, current_time, final_time,
+    next!, is_done, current_state
 
 """ Abstract supertype for all structural analysis.
 
@@ -37,9 +41,6 @@ abstract type AbstractStructuralAnalysis end
 "Returns analyzed structure"
 structure(a::AbstractStructuralAnalysis) = a.s
 
-"Returns the structural state of the analysis"
-function structural_state(a::AbstractStructuralAnalysis) end
-
 "Returns initial time of the analysis"
 initial_time(a::AbstractStructuralAnalysis) = a.t₁
 
@@ -53,10 +54,10 @@ final_time(a::AbstractStructuralAnalysis) = a.t₁
 function next!(a::AbstractStructuralAnalysis) end
 
 "Returns `true` if the analysis is done"
-is_done(a) = current_time(a) > final_time(a)
+is_done(a::AbstractStructuralAnalysis) = current_time(a) ≥ final_time(a)
 
 "Returns the current structural state"
-function current_state(a::AbstractStructuralAnalysis) end
+current_state(a::AbstractStructuralAnalysis) = a.state
 
 # ======================
 # Structural state
@@ -105,7 +106,7 @@ function systemΔu_matrix(st::AbstractStructuralState) end
 # ================
 # Common methods
 # ================
-include("./../core/boundary_cond_processing.jl")
+include("./../core/bcs_processing.jl")
 include("./../core/assembler.jl")
 
 # ================

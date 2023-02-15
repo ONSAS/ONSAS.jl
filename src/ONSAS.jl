@@ -24,13 +24,13 @@ include("interface/Meshes.jl")
 include("interface/StructuralModel.jl")
 @reexport using .StructuralModel
 
-# # Solvers
-# include("interface/StructuralSolvers.jl")
-# @reexport using .StructuralSolvers
+# Solvers
+include("interface/StructuralSolvers.jl")
+@reexport using .StructuralSolvers
 
-# # Analysis
-# include("interface/StructuralAnalyses.jl")
-# @reexport using .StructuralAnalyses
+# Analysis
+include("interface/StructuralAnalyses.jl")
+@reexport using .StructuralAnalyses
 
 
 end # module

@@ -1,5 +1,7 @@
 using ..StructuralModel: AbstractStructure, num_dofs
 
+export Assembler
+
 "Assembler struct to store column indexes, row indexes and values to be inserted in the sparse matrix"
 struct Assembler{T}
     I::Vector{Int}

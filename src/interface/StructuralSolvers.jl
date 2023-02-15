@@ -19,6 +19,13 @@ Base.@kwdef struct ConvergenceSettings
     max_iter::Int = 20
 end
 
+"Checks if a given iteration has converged."
+function has_converged(cs::ConvergenceSettings, norm_Δu_rel::Real, norm_RHS_rel::Real, iter::Int)
+    norm_Δu_rel ≤ cs.rel_disp_tol && return 1
+    norm_RHS_rel ≤ cs.rel_force_tol && return 2
+    iter > cs.max_iter && return 3
+end
+
 #==========#
 # Solvers
 #==========#
@@ -38,16 +45,6 @@ tolerances(alg::AbstractSolver) = alg.tol
 function step!(alg::AbstractSolver, analysis::A, args...; kwargs...) where {A} end
 
 include("./../algorithms/NR.jl")
-
-#==========#
-# Solutions
-#==========#
-
-"""Abstract supertype that holds the solution of a numerical integration."""
-abstract type AbstractSolution end
-
-algorithm(sol::AbstractSolution) = sol.alg
-displacements(sol::AbstractSolution) = sol.U
 
 # ===============
 # Solve function

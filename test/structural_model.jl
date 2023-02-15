@@ -68,6 +68,11 @@ end
     @test bc₃ ∈ s_boundary_conditions[n₃] && bc₄ ∈ s_boundary_conditions[n₃] && bc₁ ∈ s_boundary_conditions[n₃]
     @test bc₃ ∈ s_boundary_conditions[truss₁]
 
+
+    # Constructor only with node or element boundary conditions
+    s_boundary_conditions_nodes = StructuralBoundaryConditions(node_bc)
+    s_boundary_conditions_element = StructuralBoundaryConditions(node_bc)
+
 end
 
 @testset "ONSAS.StructuralModel.Structure" begin
@@ -90,7 +95,6 @@ end
 
     # Mesh
     @test mesh(s) == s_mesh
-    Main.@infiltrate
     @test all([Dof(i) ∈ free_dofs(s) for i in 1:num_dofs(s)])
 
     # Boundary conditions

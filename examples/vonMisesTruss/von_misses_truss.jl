@@ -41,9 +41,10 @@ vec_elems = [truss₁, truss₂]
 s_mesh = Mesh(vec_nodes, vec_elems)
 # -------------------------------
 # Dofs
-#--------------------------------}
-add_dofs!(s_mesh, :u, 3)
-add_dofs!(s_mesh, :θ, 3)
+#--------------------------------
+dof_dim = 3
+add_dofs!(s_mesh, :u, dof_dim)
+add_dofs!(s_mesh, :θ, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------
@@ -52,32 +53,22 @@ s_materials = StructuralMaterials(mat_dict)
 # -------------------------------
 # Boundary conditions
 # -------------------------------
-bc₁ = PinnedDisplacementBoundaryCondition("fixed")
-bc₂ = FⱼLoadBoundaryCondition(Fⱼ, "load in j")
-node_bc = dictionary([bc₁ => [n₁, n₃]])
-elem_bc = dictionary([bc₁ => [truss₁], bc₂ => [truss₂]])
-s_boundary_conditions = StructuralBoundaryConditions(node_bc, elem_bc)
+bc₁ = PinnedDisplacementBoundaryCondition(dof_dim, "fixed")
+bc₂ = GlobalLoadBoundaryCondition(
+    [:u], t -> [0, Fⱼ, 0], "load in j")
+node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₁, n₂, n₃]])
+s_boundary_conditions = StructuralBoundaryConditions(node_bc)
 # -------------------------------
-# Create Structure
+# Structure
 # -------------------------------
 s = Structure(s_mesh, s_materials, s_boundary_conditions)
-
-
-# for (bc, n) in pairs(node_bc)
-#     apply!(s, bc, n)
-# end
-#=
 # -------------------------------
 # Structural Analysis
 # -------------------------------
 # Final load factor
 λ₁ = 10
 NSTEPS = 9
-s_analysis = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, inital_state = state(sol))
-s_state = current_state(s_analysis)
-@test norm(displacements(s_state)) == 0
-@test norm(external_forces(s_state)) == 0
-@test norm(internal_forces(s_state)) == 0
+sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
 # -------------------------------
 # Solve analysis
 # -------------------------------
@@ -86,10 +77,6 @@ tol_u = 1e-10;
 max_iter = 100;
 tols = ConvergenceSettings(tol_f, tol_u, max_iter)
 nr = NewtonRaphson(tols)
-
-
-sol = solve(s_analysis, nr)
+sol = solve(sa, nr)
 # typeof(sol) = StaticSolution(:u, hist:)
 
-
-=#

@@ -11,6 +11,7 @@ import ..Utils: _unwrap
 import ..StructuralAnalyses: current_state, initial_time, current_time, final_time, next!
 import ..StructuralSolvers: init, _solve
 
+export StaticState
 export StaticAnalysis, load_factors, current_load_factor
 
 #==============#
@@ -45,10 +46,10 @@ function StaticState(s::AbstractStructure)
     Fₑₓₜᵏ = similar(Uᵏ)
     Fᵢₙₜᵏ = similar(Uᵏ)
     Kₛᵏ = SparseMatrixCSC(zeros(n_dofs, n_dofs))
-    ϵᵏ = Vector{}(undef, n_elements)
-    σᵏ = Vector{}(undef, n_elements)
+    ϵ = Vector{}(undef, n_elements)
+    σ = Vector{}(undef, n_elements)
     assemblerᵏ = Assembler(s)
-    StaticState(ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ)
+    StaticState(ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵ, σ, assemblerᵏ)
 end
 
 residual_forces(sc::StaticState) = sc.Fₑₓₜᵏ - sc.Fᵢₙₜᵏ
@@ -61,7 +62,7 @@ _unwrap(sc::StaticState) = (sc.ΔUᵏ, sc.Uᵏ, sc.Fₑₓₜᵏ, sc.Fᵢₙₜ�
 #================#
 """ StaticAnalysis struct.
 A `StaticAnalysis` is a collection of parameters for defining the static analysis of the structure. 
-
+In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 ### Fields:
 - `s`             -- Stores the structure to be analyzed.
 - `state`         -- Stores the structural state.
@@ -69,28 +70,26 @@ A `StaticAnalysis` is a collection of parameters for defining the static analysi
 - `current_step`  -- Stores the current load factor step
 """
 
-struct StaticAnalysis <: AbstractStructuralAnalysis
+mutable struct StaticAnalysis <: AbstractStructuralAnalysis
     s::AbstractStructure
     state::StaticState
     λᵥ::Vector{<:Real}
     current_step::Int
 end
 
-function StaticAnalysis(s::AbstractStructure, λᵥ::Vector{<:Real}, current_step=0)
-    StaticAnalysis(s, StaticState(s), λᵥ, current_step)
+function StaticAnalysis(s::AbstractStructure, λᵥ::Vector{<:Real}; initial_step::Int=0)
+    StaticAnalysis(s, StaticState(s), λᵥ, initial_step)
 end
 
-function StaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, init_state=StaticState(s))
+function StaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1, init_state::StaticState=StaticState(s))
     t₀ = t₁ / NSTEPS
     λᵥ = LinRange(t₀, t₁, NSTEPS) |> collect
-    StaticAnalysis(s, StaticState(s), λᵥ, 0)
+    StaticAnalysis(s, λᵥ, initial_step=initial_step)
 end
 
 initial_time(sa::StaticAnalysis) = first(load_factors(sa))
 
-current_time(sa::StaticAnalysis) = sa.current_step
-
-current_state(sa::StaticAnalysis) = sa.state
+current_time(sa::StaticAnalysis) = load_factors(sa)[sa.current_step]
 
 final_time(sa::StaticAnalysis) = last(load_factors(sa))
 
@@ -98,29 +97,32 @@ final_time(sa::StaticAnalysis) = last(load_factors(sa))
 load_factors(sa::StaticAnalysis) = sa.λᵥ
 
 "Returns the current load factor"
-current_load_factor(sa::StaticAnalysis) = load_factors(sa)[current_time(sa)]
+current_load_factor(sa::StaticAnalysis) = current_time(sa)
 
 function next!(sa::StaticAnalysis)
-    next_step = current_load_factor(sa) + 1
-    (next_step <= length(load_factors(sa))) || throw(ArgumentError("Analysis is done λᵏ = $(current_load_factor(sa))"))
-    sa.current_step += 1
+    next_step = sa.current_step + 1
+    if next_step > length(load_factors(sa))
+        throw(ArgumentError("Analysis is done."))
+    else
+        sa.current_step = next_step
+    end
 end
 
 #================#
 # Solve
 #================#
-"Returns the initialized analysis and solution struct. "
+"Returns the initialized analysis. "
 function init(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
     s = structure(sa)
 
-    λ0 = first(load_factors(sa))
+    _apply_fixed_bc!(s, sa)
 
-    # Creates the external force vector
-    _apply_load_bc!(s, sa, λ0)
+    λ₀ = current_load_factor(sa)
 
-    # Build initial external forces vector and apply boundary conditions
-    _apply_disp_bc!(s, sa, λ0)
+    _update_load_bcs!(s, sa, λ₀)
+
+    update_displacement_bcs!(s, sa, λ0)
 
     return sa
 end

@@ -49,12 +49,18 @@ A `StructuralBoundaryConditions` is a collection of `BoundaryConditions` definin
 - `node_bc` -- Maps each boundary conditions for a vector of nodes. 
 - `element_bc` -- Maps each boundary conditions for a vector of elements. 
 """
-Base.@kwdef struct StructuralBoundaryConditions{
+struct StructuralBoundaryConditions{
     NB<:AbstractBoundaryCondition,LB<:AbstractBoundaryCondition,N<:AbstractNode,E<:AbstractElement
 }
-    node_bcs::Dictionary{NB,Vector{N}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractNode}}()
-    element_bcs::Dictionary{LB,Vector{E}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractElement}}()
+    node_bcs::Dictionary{NB,Vector{N}}
+    element_bcs::Dictionary{LB,Vector{E}}
 end
+
+StructuralBoundaryConditions(node_bcs::Dictionary{BC,Vector{N}}) where {BC<:AbstractBoundaryCondition,N<:AbstractNode} =
+    StructuralBoundaryConditions(node_bcs, Dictionary{AbstractBoundaryCondition,Vector{AbstractElement}}())
+
+StructuralBoundaryConditions(element_bcs::Dictionary{BC,Vector{E}}) where {BC<:AbstractBoundaryCondition,E<:AbstractElement} =
+    StructuralBoundaryConditions(Dictionary{AbstractBoundaryCondition,Vector{AbstractNode}}(), element_bcs)
 
 "Returns a boundary condition with the label `l`"
 function Base.getindex(sb::StructuralBoundaryConditions, l::L) where {L<:Union{Symbol,String}}
@@ -62,11 +68,15 @@ function Base.getindex(sb::StructuralBoundaryConditions, l::L) where {L<:Union{S
 end
 
 "Returns a collection of nodes and elements that are imposed with the boundary condition `bc`"
-function Base.getindex(sb::StructuralBoundaryConditions, bc::AbstractBoundaryCondition)
-    bc_elements = Vector{Union{AbstractElement,AbstractNode}}()
-    bc ∈ keys(node_bcs(sb)) && push!(bc_elements, node_bcs(sb)[bc]...)
-    bc ∈ keys(element_bcs(sb)) && push!(bc_elements, element_bcs(sb)[bc]...)
+function Base.getindex(sb::StructuralBoundaryConditions{NB,LB}, bc::BC) where
+{NB<:AbstractBoundaryCondition,LB<:AbstractBoundaryCondition,BC<:AbstractBoundaryCondition}
 
+    bc_elements = Vector{Union{AbstractElement,AbstractNode}}()
+
+    BC <: NB && bc ∈ keys(node_bcs(sb)) && push!(bc_elements, node_bcs(sb)[bc]...)
+    BC <: LB && bc ∈ keys(element_bcs(sb)) && push!(bc_elements, element_bcs(sb)[bc]...)
+
+    # Main.@infiltrate
     isempty(bc_elements) ? throw(KeyError("Boundary condition $bc not found")) : return bc_elements
 end
 

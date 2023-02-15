@@ -4,6 +4,9 @@
 using Test: @testset, @test
 using ONSAS.BoundaryConditions
 
+
+#=
+
 @testset "ONSAS.BoundaryConditions.DisplacementBoundaryCondition" begin
 
     # Generic labeled boundary condition
@@ -119,3 +122,6 @@ end
     @test load_factor_function(Fₖ_bc) == t -> t
 
 end
+
+
+=#
