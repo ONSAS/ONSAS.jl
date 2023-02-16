@@ -29,9 +29,7 @@ end
 local_dof_symbol(::Truss) = [:u]
 nodes(t::Truss) = [t.n₁, t.n₂]
 
-#TODO: Implement a more general strain function strain(::Truss{E::GreenLagrange})
-
-_strain(l_ini::Number, l_def::Number) = 0.5 * (l_def^2 - l_ini^2) / l_ini^2 # green lagrange strain
+_strain(l_ini::Number, l_def::Number) = (l_def^2 - l_ini^2) / (l_ini * (l_ini + l_def))# green lagrange strain
 
 function strain(e::Truss, u_e::AbstractVector)
     l_def, l_ini = lengths(e, u_e)
@@ -47,17 +45,14 @@ function internal_forces(m::SVK, e::Truss{dim}, u_glob::AbstractVector) where {d
 
     X_ref, X_def = _X_rows(e, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
-    B_dif, G = _aux_matrices(dim)
-    b_ref, b_def = _aux_b(X_ref, X_def, u_e, G, dim)
+    B_dif, _ = _aux_matrices(dim)
 
     # normalized reference and deformed co-rotational vector
     e₁_def = B_dif * X_def / l_def
     TTcl = B_dif' * e₁_def
 
-
     ϵ_e = _strain(l_ref, l_def)
     σ_e = E * ϵ_e
-    aux = (b_ref + b_def)
     fᵢₙₜ_e = A * σ_e * TTcl
 
     Kₘ = E * A / l_ref * (TTcl * (TTcl'))
@@ -79,6 +74,7 @@ end
 function _X_rows(e::Truss{dim}, u_e::AbstractVector) where {dim}
     X_ref_row = reduce(vcat, coordinates(e))
     X_def_row = X_ref_row + u_e
+
     return X_ref_row, X_def_row
 end
 

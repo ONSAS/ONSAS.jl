@@ -15,7 +15,7 @@ using Reexport: @reexport
 export AbstractStructuralState, assembler, displacements,
     internal_forces, external_forces, strains, stresses, residual_forces, systemΔu_matrix
 export AbstractStructuralAnalysis, structure, initial_time, current_time, final_time,
-    next!, is_done, current_state
+    _next!, is_done, current_state
 
 """ Abstract supertype for all structural analysis.
 
@@ -32,7 +32,8 @@ to be solved.
 * [`final_time`](@ref)
 
 * [`current_state`](@ref)
-* [`next!`](@ref)
+* [`current_iteration`](@ref)
+* [`_next!`](@ref)
 * [`is_done`](@ref)
 
 """
@@ -51,13 +52,17 @@ current_time(a::AbstractStructuralAnalysis) = a.t
 final_time(a::AbstractStructuralAnalysis) = a.t₁
 
 "Increments the current time of the analysis"
-function next!(a::AbstractStructuralAnalysis) end
+function _next!(a::AbstractStructuralAnalysis) end
 
 "Returns `true` if the analysis is done"
-is_done(a::AbstractStructuralAnalysis) = current_time(a) ≥ final_time(a)
+is_done(a::AbstractStructuralAnalysis) = current_time(a) > final_time(a)
 
 "Returns the current structural state"
 current_state(a::AbstractStructuralAnalysis) = a.state
+
+"Returns the current iteration state"
+current_iteration(a::AbstractStructuralAnalysis) = a.state.iter_state
+
 
 # ======================
 # Structural state
@@ -85,7 +90,7 @@ assembler(st::AbstractStructuralState) = st.assembler
 displacements(st::AbstractStructuralState) = st.Uᵏ
 
 "Returns current displacement increments vector"
-Δ_displacements(st::AbstractStructuralState) = st.Uᵏ
+Δ_displacements(st::AbstractStructuralState) = st.ΔUᵏ
 
 "Returns current internal forces vector"
 internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
@@ -107,12 +112,12 @@ function tangent_matrix(st::AbstractStructuralState) end
 
 "Returns step in u tolerances"
 function _tolerancesΔu(st::AbstractStructuralState)
-    RHS_norm = residual_forces(current_state(sa)) |> norm
-    Fext_norm = external_forces(current_state(sa)) |> norm
+    RHS_norm = residual_forces(st) |> norm
+    Fext_norm = external_forces(st) |> norm
     forces_tol = RHS_norm / Fext_norm
 
-    ΔU_norm = Δ_displacements(current_state(sa)) |> norm
-    U_norm = displacements(current_state(sa)) |> norm
+    ΔU_norm = Δ_displacements(st) |> norm
+    U_norm = displacements(st) |> norm
     displacements_tol = ΔU_norm / U_norm
     return forces_tol, displacements_tol
 end
@@ -136,6 +141,11 @@ include("./../analyses/StaticAnalysis.jl")
 # ================
 # Modal analysis
 # ================
+
+## Implement Newmark to solve an structural analysis
+
+
+
 
 
 

@@ -151,23 +151,8 @@ coordinates(e::AbstractElement) = coordinates.(nodes(e))
 "Returns the geometrical properties of the element"
 cross_section(e::AbstractElement) = e.cross_section
 
-function dofs(e::AbstractElement)
-
-    element_dofs = Dictionary{Symbol,Vector{Dof}}()
-    nodes_dofs_vec = dofs.(nodes(e))
-
-    for node_dofs in nodes_dofs_vec
-        for dof_symbol in keys(node_dofs)
-            dofs_to_add = node_dofs[dof_symbol]
-            if dof_symbol ∉ keys(element_dofs)
-                insert!(element_dofs, dof_symbol, dofs_to_add)
-            else
-                [push!(element_dofs[dof_symbol], d) for d in dofs_to_add if d ∉ element_dofs[dof_symbol]]
-            end
-        end
-    end
-    return element_dofs
-end
+"Returns the element dofs"
+dofs(e::AbstractElement) = mergewith(vcat, dofs.(nodes(e))...)
 
 dofs(ve::Vector{<:AbstractElement}) = unique(row_vector(dofs.(ve)))
 

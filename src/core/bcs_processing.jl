@@ -4,7 +4,9 @@ using ..StructuralAnalyses: AbstractStructuralAnalysis
 
 
 "Updates the external forces vector with loads boundary conditions at time `t`."
-function _update_load_bcs!(s::AbstractStructure, sa::AbstractStructuralAnalysis, t::Number)
+function _update_load_bcs!(s::AbstractStructure, sa::AbstractStructuralAnalysis)
+
+    t = current_time(sa)
 
     # Extract load boundary conditions
     bcs = boundary_conditions(s)
@@ -25,9 +27,11 @@ function _update_load_bcs!(s::AbstractStructure, sa::AbstractStructuralAnalysis,
 
         # Repeat the bc values vector to fill a vector of dofs
         dofs_values = values(lbc)(t)
+
         repeat_mod = Int(length(dofs_lbc) / length(dofs_values))
 
         sa.state.Fₑₓₜᵏ[dofs_lbc] = repeat(dofs_values, outer=repeat_mod)
+
     end
 end
 

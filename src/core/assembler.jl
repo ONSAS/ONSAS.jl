@@ -2,7 +2,9 @@ using SparseArrays: sparse, SparseMatrixCSC
 using ..Elements: Dof
 using ..StructuralModel: AbstractStructure, num_dofs
 
-export Assembler
+import ..StructuralSolvers: _reset!
+
+export Assembler, _assemble!, _reset_assembler!, end_assemble
 
 "Assembler struct to store column indexes, row indexes and values to be inserted in the sparse matrix"
 struct Assembler{T}
@@ -48,12 +50,16 @@ function _assemble!(a::Assembler{T},
     end
 end
 
-"Finish the assemble and adds the assembler into the sparse matrix"
-function end_assemble!(Kg::AbstractMatrix{T}, a::Assembler{T}) where {T}
-    # Fill global K with the assembled values
-    @inbounds for i in 1:length(a.I)
-        Kg[a.I[i], a.J[i]] += a.V[i]
-    end
+"Rests the assembler object"
+function _reset!(a::Assembler{T}) where {T}
+    N = length(a.I)
+    empty!(a.I)
+    empty!(a.J)
+    empty!(a.V)
+    sizehint!(a.I, N)
+    sizehint!(a.J, N)
+    sizehint!(a.V, N)
 end
 
-
+"Finish the assemble and adds the assembler into the sparse matrix"
+end_assemble(a::Assembler{T}) where {T} = sparse(a.I, a.J, a.V)

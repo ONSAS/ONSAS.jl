@@ -41,7 +41,6 @@ s_mesh = Mesh(vec_nodes, vec_elems)
 #--------------------------------
 dof_dim = 3
 add_dofs!(s_mesh, :u, dof_dim)
-add_dofs!(s_mesh, :θ, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------
@@ -52,19 +51,20 @@ s_materials = StructuralMaterials(mat_dict)
 # -------------------------------
 bc₁ = PinnedDisplacementBoundaryCondition(dof_dim, "fixed")
 bc₂ = GlobalLoadBoundaryCondition(
-    [:u], t -> [0, 0, Fₖ], "load in j")
+    [:u], t -> [0, 0, Fₖ * t], "load in j")
 node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂]])
 s_boundary_conditions = StructuralBoundaryConditions(node_bc)
 # -------------------------------
 # Structure
 # -------------------------------
 s = Structure(s_mesh, s_materials, s_boundary_conditions)
+
 # -------------------------------
 # Structural Analysis
 # -------------------------------
 # Final load factor
-λ₁ = 10
-NSTEPS = 9
+λ₁ = 1
+NSTEPS = 10
 sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
 # -------------------------------
 # Solve analysis
@@ -76,4 +76,3 @@ tols = ConvergenceSettings(tol_f, tol_u, max_iter)
 nr = NewtonRaphson(tols)
 sol = solve(sa, nr)
 # typeof(sol) = StaticSolution(:u, hist:)
-
