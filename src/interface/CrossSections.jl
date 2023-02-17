@@ -55,9 +55,9 @@ I_tensor_xyz(cs::AbstractCrossSection) = [
     -Ixz(cs) -Iyz(cs) Izz(cs)
 ]
 
-#########################################
+#======================================#
 # AbstractCrossSection implementations #
-########################################
+#======================================#
 
 include("../cross_sections/Circle.jl")
 include("../cross_sections/Rectangle.jl")

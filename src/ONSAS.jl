@@ -14,12 +14,11 @@ include("interface/CrossSections.jl")
 include("interface/Elements.jl")
 @reexport using .Elements
 
-# include("interface/BoundaryConditions.jl")
-# @reexport using .BoundaryConditions
+include("interface/BoundaryConditions.jl")
+@reexport using .BoundaryConditions
 
-
-# include("interface/Meshes.jl")
-# @reexport using .Meshes
+include("interface/Meshes.jl")
+@reexport using .Meshes
 
 # # Structural model 
 # include("interface/StructuralModel.jl")

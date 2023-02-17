@@ -14,7 +14,7 @@ using ..Utils: row_vector
 @reexport import ..Utils: label
 import Dictionaries: index
 
-export Dof, setdofs!
+export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
 export AbstractElement, cross_section, coordinates, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes
 
@@ -88,7 +88,7 @@ dofs(vn::Vector{<:AbstractNode}) = vcat(dofs.(vn)...)
 dofs(n::AbstractNode, s::Symbol) = n.dofs[s]
 
 "Sets a vectors of dofs `vd` to the `AbstractNode` `n` assigned to the symbol `s`."
-function setdofs!(n::AbstractNode, s::Symbol, vd::Vector{Dof})
+function add!(n::AbstractNode, s::Symbol, vd::Vector{Dof})
     if s ∉ keys(dofs(n))
         insert!(dofs(n), s, vd)
     else
@@ -180,6 +180,11 @@ function internal_forces(e::AbstractElement, args...; kwargs...) end
 
 "Returns the inertial forces vector of an `AbstractElement` `e`."
 function inertial_forces(e::AbstractElement, args...; kwargs...) end
+
+#=================================#
+# AbstractElement implementations #
+#=================================#
+
 
 include("../elements/Truss.jl")
 

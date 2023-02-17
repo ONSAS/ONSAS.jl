@@ -43,9 +43,9 @@ end
     first_dof = 1
     last_dof = 4
     new_dofs = Dof.(first_dof:last_dof-1)
-    setdofs!(node, :u, new_dofs)
+    add!(node, :u, new_dofs)
     more_new_dofs = Dof.(first_dof+1:last_dof)
-    setdofs!(node, :u, more_new_dofs)
+    add!(node, :u, more_new_dofs)
     new_dofs_node = Dof.(first_dof:last_dof)
     @test length(dofs(node)[:u]) == length(new_dofs_node)
 

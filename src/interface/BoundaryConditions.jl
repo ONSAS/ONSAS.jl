@@ -7,13 +7,12 @@ module BoundaryConditions
 
 using Reexport: @reexport
 
-@reexport import ..Utils: dofs, label
+@reexport import ..Elements: dofs
+@reexport import ..Utils: label
 
 export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition, AbstractLoadBoundaryCondition
-export DisplacementBoundaryCondition, FixedDofBoundaryCondition, PinnedDisplacementBoundaryCondition
-export GlobalLoadBoundaryCondition
-# export MᵢLoadBoundaryCondition, MⱼLoadBoundaryCondition, MₖLoadBoundaryCondition
-# export FᵢLoadBoundaryCondition, FⱼLoadBoundaryCondition, FₖLoadBoundaryCondition
+export DisplacementBoundaryCondition, FixedDofBoundaryCondition, components
+export GlobalLoadBoundaryCondition, LocalLoadBoundaryCondition
 
 
 """ Abstract supertype for all elements.
@@ -25,8 +24,7 @@ An `AbstractBoundaryCondition` object facilitates the process of defining:
 
 **Common methods:**
 
-
-* [`apply!`](@ref)
+* [`dofs`](@ref)
 * [`label`](@ref)
 """
 
@@ -67,19 +65,19 @@ This is a particular instance of the struct `DisplacementBoundaryCondition`
     considering null dof value at an specific component of the dof displacements
 ### Fields:
 - `dofs`             -- Vectors of symbols the where the boundary condition is subscribed.
-- `fixed_components` -- Vectors of integer indicaating the degree of freedom component fixed.
+- `components` -- Vectors of integer indicating the degree of freedom component fixed.
 - `name`             -- Boundary condition label.
 """
 Base.@kwdef struct FixedDofBoundaryCondition <: AbstractDisplacementBoundaryCondition
     dofs::Vector{Symbol}
-    fixed_components::Vector{Int}
+    components::Vector{Int}
     name::Symbol = :no_labelled_bc
 end
 
-FixedDofBoundaryCondition(dofs::Vector{Symbol}, fixed_components::Vector{Int}, name::String="no_labelled_bc") =
-    FixedDofBoundaryCondition(dofs, fixed_components, Symbol(name))
+FixedDofBoundaryCondition(dofs::Vector{Symbol}, components::Vector{Int}, name::String="no_labelled_bc") =
+    FixedDofBoundaryCondition(dofs, components, Symbol(name))
 
-fixed_components(bc::FixedDofBoundaryCondition) = bc.fixed_components
+components(bc::FixedDofBoundaryCondition) = bc.components
 
 # ========================
 # Load Boundary Conditions 
@@ -88,6 +86,9 @@ fixed_components(bc::FixedDofBoundaryCondition) = bc.fixed_components
 """ Abstract supertype for all displacement boundary conditions."""
 
 abstract type AbstractLoadBoundaryCondition <: AbstractBoundaryCondition end
+
+" Abstract functor for a `AbstractLoadBoundaryCondition` returns the load at time `t`. "
+(lbc::AbstractLoadBoundaryCondition)(t::Real) = values(lbc)(t)
 
 """ Load boundary condition imposed in local coordinates of the element.
 ### Fields:
@@ -101,6 +102,11 @@ struct LocalLoadBoundaryCondition <: AbstractLoadBoundaryCondition
     name::Symbol
 end
 
+"Constructor for `LocalLoadBoundaryCondition` with a string label."
+LocalLoadBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::String="no_labelled_bc") =
+    LocalLoadBoundaryCondition(dofs, values, Symbol(name))
+
+
 """ Load boundary condition imposed in global coordinates of the element.
 ### Fields:
 - `dofs`   -- Degrees of freedom where the boundary condition is imposed. 
@@ -113,23 +119,9 @@ struct GlobalLoadBoundaryCondition <: AbstractLoadBoundaryCondition
     name::Symbol
 end
 
+"Constructor for `LocalLoadBoundaryCondition` with a string label."
 GlobalLoadBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::String="no_labelled_bc") =
     GlobalLoadBoundaryCondition(dofs, values, Symbol(name))
-
-""" Spring boundary condition imposed in global coordinates of the element.
-### Fields:
-- `dofs`             -- Degrees of freedom where the spring force is imposed. 
-- `spring_constants` -- Spring constant `k = f/u` for each dof. 
-"""
-
-# ========================
-# Spring boundary conditions 
-# =========================
-
-struct SpringsBoundaryCondition{D,V} <: AbstractBoundaryCondition
-    dofs::D
-    spring_constants::V
-end
 
 
 end # module

@@ -50,10 +50,10 @@ using ONSAS.Utils
     @test last(elements(mesh)) == new_t₅
     # Add dofs 
     u_dim = 3
-    add_dofs!(mesh, :u, u_dim)
+    add!(mesh, :u, u_dim)
     @test num_nodes(mesh) * u_dim == num_dofs(mesh)
     θ_dim = 3
-    add_dofs!(mesh, :θ, θ_dim)
+    add!(mesh, :θ, θ_dim)
     @test num_nodes(mesh) * (u_dim + θ_dim) == num_dofs(mesh)
 
 end

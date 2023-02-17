@@ -9,7 +9,6 @@ using Reexport: @reexport
 @reexport using ..Materials
 @reexport using ..Elements
 @reexport using ..BoundaryConditions
-using ..Meshes: AbstractMesh
 @reexport using ..Meshes
 using ..Utils: row_vector, label
 
