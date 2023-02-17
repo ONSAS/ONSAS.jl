@@ -35,13 +35,13 @@ s_materials = StructuralMaterials(mat_dict)
 # Boundary conditions
 Fⱼ = 20.0
 Fᵢ = 10.0
-
-bc₁ = PinnedDisplacementBoundaryCondition("pinned")
-bc₂ = FixedDisplacementBoundaryCondition("fixed")
-bc₃ = FⱼLoadBoundaryCondition(Fⱼ, "load in j")
-bc₄ = FᵢLoadBoundaryCondition(Fᵢ, "load in i")
-node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₄ => [n₃], bc₃ => [n₃]])
-elem_bc = dictionary([bc₃ => [truss₁], bc₄ => [truss₂]])
+dof_dim = 3
+bc₁ = FixedDofBoundaryCondition([:u], collect(1:dof_dim), "fixed_uₓ_uⱼ_uₖ")
+bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed_uⱼ")
+bc₃ = GlobalLoadBoundaryCondition([:u], t -> [0, Fⱼ * t, 0], "load in j")
+bc₄ = GlobalLoadBoundaryCondition([:u], t -> [Fᵢ * sin(t), 0, 0], "load in i")
+node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
+elem_bc = dictionary([bc₄ => [truss₁, truss₂]])
 s_boundary_conditions = StructuralBoundaryConditions(node_bc, elem_bc)
 
 @testset "ONSAS.StructuralModel.StructuralMaterials" begin
@@ -55,30 +55,34 @@ end
 
 @testset "ONSAS.StructuralModel.StructuralMaterials" begin
 
+
     @test node_bcs(s_boundary_conditions) == node_bc
     @test element_bcs(s_boundary_conditions) == elem_bc
 
     @test length(load_bcs(s_boundary_conditions)) == 2
     @test bc₃ ∈ load_bcs(s_boundary_conditions) && bc₄ ∈ load_bcs(s_boundary_conditions)
-    @test length(displacement_bcs(s_boundary_conditions)) == 2
-    @test bc₁ ∈ displacement_bcs(s_boundary_conditions) && bc₂ ∈ displacement_bcs(s_boundary_conditions)
+    @test length(fixed_dof_bcs(s_boundary_conditions)) == 2
+    @test bc₁ ∈ fixed_dof_bcs(s_boundary_conditions) && bc₂ ∈ fixed_dof_bcs(s_boundary_conditions)
 
-    @test s_boundary_conditions["pinned"] == bc₁
+    @test s_boundary_conditions["fixed_uⱼ"] == bc₂
     @test truss₁ ∈ s_boundary_conditions[bc₃] && n₃ ∈ s_boundary_conditions[bc₃]
-    @test bc₃ ∈ s_boundary_conditions[n₃] && bc₄ ∈ s_boundary_conditions[n₃] && bc₁ ∈ s_boundary_conditions[n₃]
-    @test bc₃ ∈ s_boundary_conditions[truss₁]
+    @test bc₂ ∈ s_boundary_conditions[n₂] && bc₂ ∈ s_boundary_conditions[n₂] && bc₃ ∈ s_boundary_conditions[n₃]
+    @test bc₄ ∈ s_boundary_conditions[truss₁]
 
 
     # Constructor only with node or element boundary conditions
     s_boundary_conditions_nodes = StructuralBoundaryConditions(node_bc)
-    s_boundary_conditions_element = StructuralBoundaryConditions(node_bc)
+    @test isempty(element_bcs(s_boundary_conditions_nodes))
+    Main.@infiltrate
+
+    s_boundary_conditions_element = StructuralBoundaryConditions(elem_bc)
 
 end
 
 @testset "ONSAS.StructuralModel.Structure" begin
 
     s_mesh = Mesh([n₁, n₂, n₃], [truss₁, truss₂, truss₃])
-    add_dofs!(s_mesh, :u, 3)
+    add!(s_mesh, :u, dof_dim)
     s = Structure(s_mesh, s_materials, s_boundary_conditions)
 
     # Dofs

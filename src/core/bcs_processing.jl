@@ -4,32 +4,7 @@ using ..BoundaryConditions: AbstractLoadBoundaryCondition, AbstractDisplacementB
 using ..StructuralModel: AbstractStructure, load_bcs, free_dofs
 using ..StructuralAnalyses: AbstractStructuralAnalysis, external_forces
 
-export _apply!
-
-"Applies a fixed displacement boundary condition to the structure `s` "
-function _apply!(s::AbstractStructure, fbc::FixedDofBoundaryCondition)
-
-    bcs = boundary_conditions(s)
-
-    # Extract dofs to apply the bc
-    fbc_dofs_symbols = dofs(fbc)
-
-    # Extract nodes and elements 
-    entities = bcs[fbc]
-
-    for dof_symbol in fbc_dofs_symbols
-        dofs_entities = getindex.(dofs.(entities), dof_symbol)
-        for component in fixed_components(fbc)
-            dofs_to_delete = getindex.(dofs_entities, component)
-            deleteat!(free_dofs(s), findall(x -> x ∈ dofs_to_delete, free_dofs(s)))
-        end
-    end
-
-end
-
-"Applies a vector of fixed displacement condition to the structure `s` "
-_apply!(s::AbstractStructure, l_bcs::Vector{<:FixedDofBoundaryCondition}) = [_apply!(s, lbc) for lbc in l_bcs]
-
+export _apply!, fixed_components
 
 "Applies a fixed displacement boundary condition to the structural analysis `sa` at the current analysis time `t`"
 function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondition)

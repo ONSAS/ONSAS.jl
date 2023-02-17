@@ -10,7 +10,6 @@ ang = 65 # truss angle in degrees
 L = 2 # Length in m 
 d = L * cos(deg2rad(65))   # vertical distance in m
 h = L * sin(deg2rad(65))
-# Fx = 0     # horizontal load in N
 Fₖ = -3e8  # vertical   load in N
 # -------------------------------
 # Materials
@@ -40,7 +39,7 @@ s_mesh = Mesh(vec_nodes, vec_elems)
 # Dofs
 #--------------------------------
 dof_dim = 3
-add_dofs!(s_mesh, :u, dof_dim)
+add!(s_mesh, :u, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------
@@ -49,11 +48,14 @@ s_materials = StructuralMaterials(mat_dict)
 # -------------------------------
 # Boundary conditions
 # -------------------------------
-bc₁ = FixedDofBoundaryCondition([:u], collect(1:dof_dim), "fixed_uₓ_uⱼ_uₖ")
+# Fixed dofs
+bc₁ = FixedDofBoundaryCondition([:u], [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
 bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed_uⱼ")
+# Load 
 bc₃ = GlobalLoadBoundaryCondition([:u], t -> [0, 0, Fₖ * t], "load in j")
 node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
 s_boundary_conditions = StructuralBoundaryConditions(node_bc)
+# Simplificar en un solo diccionario y que el constructor reciba las dos
 # -------------------------------
 # Structure
 # -------------------------------
@@ -65,13 +67,13 @@ s = Structure(s_mesh, s_materials, s_boundary_conditions)
 λ₁ = 1
 NSTEPS = 10
 sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
-# -------------------------------
-# Solve analysis
-# -------------------------------
-tol_f = 1e-10;
-tol_u = 1e-10;
-max_iter = 100;
-tols = ConvergenceSettings(tol_f, tol_u, max_iter)
-nr = NewtonRaphson(tols)
-sol = solve(sa, nr)
+# # -------------------------------
+# # Solve analysis
+# # -------------------------------
+# tol_f = 1e-10;
+# tol_u = 1e-10;
+# max_iter = 100;
+# tols = ConvergenceSettings(tol_f, tol_u, max_iter)
+# nr = NewtonRaphson(tols)
+# sol = solve(sa, nr)
 # typeof(sol) = StaticSolution(:u, hist:)

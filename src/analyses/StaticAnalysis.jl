@@ -25,10 +25,11 @@ An `StaticState` object facilitates the process of storing the relevant static v
 - `Uᵏ`    -- stores displacements vector.
 - `Fₑₓₜᵏ` -- stores external forces vector.
 - `Fᵢₙₜᵏ` -- stores internal forces vector.
-- `assembler object`   -- assembler handler object 
+- `assembler`   -- assembler handler object 
 - `iter_state`   -- current Δu iteration state 
 """
-mutable struct StaticState{DU<:AbstractVector,U<:AbstractVector,F<:AbstractVector,K<:AbstractMatrix,E<:AbstractVector,S<:AbstractVector} <: AbstractStructuralState
+mutable struct StaticState{DU<:AbstractVector,U<:AbstractVector,
+    F<:AbstractVector,K<:AbstractMatrix,E<:AbstractVector,S<:AbstractVector} <: AbstractStructuralState
     ΔUᵏ::DU
     Uᵏ::U
     Fₑₓₜᵏ::F
@@ -40,16 +41,18 @@ mutable struct StaticState{DU<:AbstractVector,U<:AbstractVector,F<:AbstractVecto
     iter_state::IterationStep
 end
 
+# Puede no ser mutable 
+# Tengo un strain y stress cambiados en algún lado
 "Returns a default static case for a given mesh."
 function StaticState(s::AbstractStructure)
     n_dofs = num_dofs(s)
-    n_fdofs = length(free_dofs(s))
+    n_fdofs = num_free_dofs(s)
     n_elements = num_elements(s)
     Uᵏ = @MVector zeros(n_dofs)
     ΔUᵏ = @MVector zeros(n_fdofs)
     Fₑₓₜᵏ = @MVector zeros(n_dofs)
-    Fᵢₙₜᵏ = similar(Uᵏ)
-    Kₛᵏ = SparseMatrixCSC(zeros(n_fdofs, n_fdofs))
+    Fᵢₙₜᵏ = similar(Fₑₓₜᵏ)
+    Kₛᵏ = SparseMatrixCSC(zeros(1, 1))
     ϵᵏ = Vector{}(undef, n_elements)
     σᵏ = Vector{}(undef, n_elements)
     assemblerᵏ = Assembler(s)
@@ -79,7 +82,6 @@ mutable struct StaticAnalysis{S<:AbstractStructure} <: AbstractStructuralAnalysi
     λᵥ::Vector{<:Real}
     current_step::Int
     function StaticAnalysis(s::S, λᵥ::Vector{<:Real}; initial_step::Int=0) where {S<:AbstractStructure}
-        _apply!(s, fixed_dof_bcs(boundary_conditions(s)))
         new{S}(s, StaticState(s), λᵥ, initial_step)
     end
 end
@@ -121,14 +123,17 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
     s = structure(sa)
 
+    states = []
+
     # load factors iteration 
     while !is_done(sa)
 
-        _reset!(current_iteration(sa))
+        _reset!(current_iteration(sa)) # Arrancarlo en Infinito
 
-        _apply!(sa, load_bcs(s))
+        _apply!(sa, load_bcs(s)) # Compute Fext
 
         @debug external_forces(current_state(sa))
+
 
         while !_has_converged!(current_iteration(sa), tolerances(alg))
 
@@ -139,18 +144,19 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
             @debug residual_forces(current_state(sa), s.free_dofs)
             @debug tangent_matrix(current_state(sa))[index.(s.free_dofs), index.(s.free_dofs)]
 
-            # Increment U
+            # Increment U 
             @debug _step!(sa, alg)
 
         end
 
-        _next!(sa, alg)
+        push!(states, current_state(sa))
 
+        _next!(sa, alg)
 
     end
 
 
-    return 1
+    return states
 end
 
 "Rests the assembler state"

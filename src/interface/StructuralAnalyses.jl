@@ -99,10 +99,10 @@ internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
 external_forces(st::AbstractStructuralState) = st.Fₑₓₜᵏ
 
 "Returns current stresses"
-strains(st::AbstractStructuralState) = st.σᵏ
+stresses(st::AbstractStructuralState) = st.σᵏ
 
-"Returns current stresses"
-stresses(st::AbstractStructuralState) = st.ϵᵏ
+"Returns current strains"
+strain(st::AbstractStructuralState) = st.ϵᵏ
 
 "Returns current external forces vector"
 function residual_forces(st::AbstractStructuralState) end
@@ -110,16 +110,16 @@ function residual_forces(st::AbstractStructuralState) end
 "Returns current tangent matrix"
 function tangent_matrix(st::AbstractStructuralState) end
 
-"Returns step in u tolerances"
-function _tolerancesΔu(st::AbstractStructuralState)
+"Returns forces and displacements in u tolerances"
+function _residuals(st::AbstractStructuralState)
     RHS_norm = residual_forces(st) |> norm
     Fext_norm = external_forces(st) |> norm
-    forces_tol = RHS_norm / Fext_norm
+    residual_forces = RHS_norm / Fext_norm
 
     ΔU_norm = Δ_displacements(st) |> norm
     U_norm = displacements(st) |> norm
-    displacements_tol = ΔU_norm / U_norm
-    return forces_tol, displacements_tol
+    residual_ΔU = ΔU_norm / U_norm
+    return residual_forces, residual_ΔU
 end
 
 
