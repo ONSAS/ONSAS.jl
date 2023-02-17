@@ -74,7 +74,7 @@ function _update!(i_step::IterationStep,
     i_step.Δu_rel = i_step.Δu_norm / norm(U)
 
     i_step.Δr_norm = norm(r)
-    i_step.Δr_rel = i_step.Δr_norm / norm(fₑₓₜ)
+    @show i_step.Δr_rel = i_step.Δr_norm / norm(fₑₓₜ)
 
     i_step.iter += 1
 
@@ -153,6 +153,8 @@ end
 function _solve(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} end
 
 "Returns the initialized analysis."
-function _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} end
+function _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
+    return analysis
+end
 
 end # module

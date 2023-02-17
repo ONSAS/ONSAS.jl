@@ -49,16 +49,15 @@ s_materials = StructuralMaterials(mat_dict)
 # -------------------------------
 # Boundary conditions
 # -------------------------------
-bc₁ = PinnedDisplacementBoundaryCondition(dof_dim, "fixed")
-bc₂ = GlobalLoadBoundaryCondition(
-    [:u], t -> [0, 0, Fₖ * t], "load in j")
-node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂]])
+bc₁ = FixedDofBoundaryCondition([:u], collect(1:dof_dim), "fixed_uₓ_uⱼ_uₖ")
+bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed_uⱼ")
+bc₃ = GlobalLoadBoundaryCondition([:u], t -> [0, 0, Fₖ * t], "load in j")
+node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
 s_boundary_conditions = StructuralBoundaryConditions(node_bc)
 # -------------------------------
 # Structure
 # -------------------------------
 s = Structure(s_mesh, s_materials, s_boundary_conditions)
-
 # -------------------------------
 # Structural Analysis
 # -------------------------------

@@ -17,7 +17,7 @@ using ..Utils: row_vector, label
 @reexport import ..Meshes: num_dofs, elements, num_elements, num_nodes
 
 export StructuralMaterials
-export StructuralBoundaryConditions, node_bcs, element_bcs, displacement_bcs, load_bcs
+export StructuralBoundaryConditions, node_bcs, element_bcs, displacement_bcs, load_bcs, fixed_dof_bcs
 export Structure, mesh, materials, boundary_conditions, free_dofs
 
 """ Structural materials.
@@ -95,11 +95,21 @@ element_bcs(se::StructuralBoundaryConditions) = se.element_bcs
 
 "Returns displacements boundary conditions"
 function displacement_bcs(se::StructuralBoundaryConditions)
-    vbc = Vector{AbstractDisplacementBoundaryCondition}()
-    disp_bc_nodes = filter(bc -> bc isa AbstractDisplacementBoundaryCondition, keys(node_bcs(se)))
+    vbc = Vector{DisplacementBoundaryCondition}()
+    disp_bc_nodes = filter(bc -> bc isa DisplacementBoundaryCondition, keys(node_bcs(se)))
     push!(vbc, disp_bc_nodes...)
-    disp_bc_elements = filter(bc -> bc isa AbstractDisplacementBoundaryCondition, keys(element_bcs(se)))
+    disp_bc_elements = filter(bc -> bc isa DisplacementBoundaryCondition, keys(element_bcs(se)))
     push!(vbc, disp_bc_elements...)
+    return unique(vbc)
+end
+
+"Returns fixed dof boundary conditions"
+function fixed_dof_bcs(se::StructuralBoundaryConditions)
+    vbc = Vector{FixedDofBoundaryCondition}()
+    fixed_bc_nodes = filter(bc -> bc isa FixedDofBoundaryCondition, keys(node_bcs(se)))
+    push!(vbc, fixed_bc_nodes...)
+    fixed_bc_elements = filter(bc -> bc isa FixedDofBoundaryCondition, keys(element_bcs(se)))
+    push!(vbc, fixed_bc_elements...)
     return unique(vbc)
 end
 

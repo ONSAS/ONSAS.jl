@@ -8,7 +8,7 @@ using Reexport: @reexport
 @reexport import ..Utils: dofs, label
 
 export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition, AbstractLoadBoundaryCondition
-export DisplacementBoundaryCondition, FixedDisplacementBoundaryCondition, PinnedDisplacementBoundaryCondition
+export DisplacementBoundaryCondition, FixedDofBoundaryCondition, PinnedDisplacementBoundaryCondition
 export GlobalLoadBoundaryCondition
 # export MᵢLoadBoundaryCondition, MⱼLoadBoundaryCondition, MₖLoadBoundaryCondition
 # export FᵢLoadBoundaryCondition, FⱼLoadBoundaryCondition, FₖLoadBoundaryCondition
@@ -23,8 +23,9 @@ An `AbstractBoundaryCondition` object facilitates the process of defining:
 
 **Common methods:**
 
+
+* [`apply!`](@ref)
 * [`label`](@ref)
-* [`values`](@ref)
 """
 
 abstract type AbstractBoundaryCondition end
@@ -48,7 +49,7 @@ abstract type AbstractDisplacementBoundaryCondition <: AbstractBoundaryCondition
 
 """ Generalized displacement boundary condition struct.
 ### Fields:
-- `dofs`    -- Vectors of symbols where the where the boundary condition is subscripted. 
+- `dofs`    -- Vectors of symbols the where the boundary condition is subscripted. 
 - `values`  -- Values imposed function. 
 - `name`    -- Boundary condition label.
 """
@@ -61,56 +62,22 @@ end
 
 """ Fixed displacement boundary condition struct:
 This is a particular instance of the struct `DisplacementBoundaryCondition`
-    considering null displacements and rotations.
+    considering null dof value at an specific component of the dof displacements
 ### Fields:
-- `bc`    -- Displacement boundary condition constructed with fixed dofs and values. 
+- `dofs`       -- Vectors of symbols the where the boundary condition is subscribed.
+- `components` -- Vectors of integer indicaating the degree of freedom component fixed.
+- `name`       -- Boundary condition label.
 """
-struct FixedDisplacementBoundaryCondition <: AbstractDisplacementBoundaryCondition
-    bc::DisplacementBoundaryCondition
-    function FixedDisplacementBoundaryCondition(dof_dim::Int=3, label_bc=:no_labelled_bc)
-
-        local_dofs_fixed = [:u, :θ]
-
-        bc = DisplacementBoundaryCondition(
-            dofs=local_dofs_fixed,
-            values=t -> zeros(dof_dim * length(local_dofs_fixed)),
-            name=Symbol(label_bc)
-        )
-
-        return new(bc)
-    end
+Base.@kwdef struct FixedDofBoundaryCondition <: AbstractDisplacementBoundaryCondition
+    dofs::Vector{Symbol}
+    fixed_components::Vector{Int}
+    name::Symbol = :no_labelled_bc
 end
 
-dofs(fbc::FixedDisplacementBoundaryCondition) = dofs(fbc.bc)
-Base.values(fbc::FixedDisplacementBoundaryCondition) = values(fbc.bc)
-label(fbc::FixedDisplacementBoundaryCondition) = label(fbc.bc)
+FixedDofBoundaryCondition(dofs::Vector{Symbol}, fixed_components::Vector{Int}, name::String="no_labelled_bc") =
+    FixedDofBoundaryCondition(dofs, fixed_components, Symbol(name))
 
-""" Pinned displacement boundary condition struct:
-This is a particular instance of the struct `DisplacementBoundaryCondition`
-    considering null displacements.
-### Fields:
-- `bc`    -- Displacement boundary condition constructed with pinned dofs and values. 
-"""
-struct PinnedDisplacementBoundaryCondition <: AbstractDisplacementBoundaryCondition
-    bc::DisplacementBoundaryCondition
-    function PinnedDisplacementBoundaryCondition(dof_dim::Int=3, label_bc=:no_labelled_bc)
-
-        local_dofs_fixed = [:u]
-
-        bc = DisplacementBoundaryCondition(
-            dofs=local_dofs_fixed,
-            values=t -> zeros(length(dof_dim * length(local_dofs_fixed))),
-            name=Symbol(label_bc)
-        )
-
-        return new(bc)
-    end
-end
-
-dofs(pbc::PinnedDisplacementBoundaryCondition) = dofs(pbc.bc)
-Base.values(pbc::PinnedDisplacementBoundaryCondition) = values(pbc.bc)
-label(pbc::PinnedDisplacementBoundaryCondition) = label(pbc.bc)
-
+fixed_components(bc::FixedDofBoundaryCondition) = bc.fixed_components
 
 # ========================
 # Load Boundary Conditions 

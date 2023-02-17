@@ -4,13 +4,13 @@ using SparseArrays: SparseMatrixCSC
 using IterativeSolvers: cg
 
 using ..Elements: local_dofs
-using ..StructuralModel: AbstractStructure, num_dofs, num_elements
+using ..StructuralModel: AbstractStructure, num_dofs, num_elements, boundary_conditions, fixed_dof_bcs, load_bcs
 using ..StructuralAnalyses
 using ..StructuralSolvers
 
 import ..Utils: _unwrap
-import ..StructuralAnalyses: _assemble!, initial_time, current_time, final_time, _next!, residual_forces, tangent_matrix
-import ..StructuralSolvers: _init, _solve, _update!
+import ..StructuralAnalyses: _apply!, _assemble!, initial_time, current_time, final_time, _next!, residual_forces, tangent_matrix
+import ..StructuralSolvers: _solve, _update!
 
 export StaticState
 export StaticAnalysis, load_factors, current_load_factor
@@ -28,14 +28,14 @@ An `StaticState` object facilitates the process of storing the relevant static v
 - `assembler object`   -- assembler handler object 
 - `iter_state`   -- current Δu iteration state 
 """
-mutable struct StaticState <: AbstractStructuralState
-    ΔUᵏ::AbstractVector
-    Uᵏ::AbstractVector
-    Fₑₓₜᵏ::AbstractVector
-    Fᵢₙₜᵏ::AbstractVector
-    Kₛᵏ::AbstractMatrix
-    ϵᵏ::AbstractVector
-    σᵏ::AbstractVector
+mutable struct StaticState{DU<:AbstractVector,U<:AbstractVector,F<:AbstractVector,K<:AbstractMatrix,E<:AbstractVector,S<:AbstractVector} <: AbstractStructuralState
+    ΔUᵏ::DU
+    Uᵏ::U
+    Fₑₓₜᵏ::F
+    Fᵢₙₜᵏ::F
+    Kₛᵏ::K
+    ϵᵏ::E
+    σᵏ::S
     assembler::Assembler
     iter_state::IterationStep
 end
@@ -43,19 +43,20 @@ end
 "Returns a default static case for a given mesh."
 function StaticState(s::AbstractStructure)
     n_dofs = num_dofs(s)
+    n_fdofs = length(free_dofs(s))
     n_elements = num_elements(s)
     Uᵏ = @MVector zeros(n_dofs)
-    ΔUᵏ = similar(Uᵏ)
+    ΔUᵏ = @MVector zeros(n_fdofs)
     Fₑₓₜᵏ = @MVector zeros(n_dofs)
     Fᵢₙₜᵏ = similar(Uᵏ)
-    Kₛᵏ = SparseMatrixCSC(zeros(n_dofs, n_dofs))
+    Kₛᵏ = SparseMatrixCSC(zeros(n_fdofs, n_fdofs))
     ϵᵏ = Vector{}(undef, n_elements)
     σᵏ = Vector{}(undef, n_elements)
     assemblerᵏ = Assembler(s)
     StaticState(ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, IterationStep())
 end
 
-residual_forces(sc::StaticState) = sc.Fₑₓₜᵏ - sc.Fᵢₙₜᵏ
+residual_forces(sc::StaticState, free_dofs::Vector{Dof}) = external_forces(sc)[free_dofs] - internal_forces(sc)[free_dofs]
 tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
 _unwrap(sc::StaticState) = (sc.ΔUᵏ, sc.Uᵏ, sc.Fₑₓₜᵏ, sc.Fᵢₙₜᵏ, sc.Kₛᵏ, sc.ϵᵏ, sc.σᵏ, sc.assemblerᵏ, sc.iter_state)
@@ -72,15 +73,15 @@ In the static analysis, the structure is analyzed at a given load factor (this v
 - `λᵥ`            -- Stores the load factors vector of the analysis
 - `current_step`  -- Stores the current load factor step
 """
-mutable struct StaticAnalysis <: AbstractStructuralAnalysis
-    s::AbstractStructure
+mutable struct StaticAnalysis{S<:AbstractStructure} <: AbstractStructuralAnalysis
+    s::S
     state::StaticState
     λᵥ::Vector{<:Real}
     current_step::Int
-end
-
-function StaticAnalysis(s::AbstractStructure, λᵥ::Vector{<:Real}; initial_step::Int=0)
-    StaticAnalysis(s, StaticState(s), λᵥ, initial_step)
+    function StaticAnalysis(s::S, λᵥ::Vector{<:Real}; initial_step::Int=0) where {S<:AbstractStructure}
+        _apply!(s, fixed_dof_bcs(boundary_conditions(s)))
+        new{S}(s, StaticState(s), λᵥ, initial_step)
+    end
 end
 
 function StaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1, init_state::StaticState=StaticState(s))
@@ -113,17 +114,6 @@ end
 #================#
 # Solve
 #================#
-"Returns the initialized analysis. "
-function _init(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
-
-    s = structure(sa)
-
-    _apply_fixed_bc!(s, sa)
-
-    _update_load_bcs!(s, sa)
-
-    return sa
-end
 
 "Internal function to solve different analysis problem"
 function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
@@ -136,24 +126,20 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
         _reset!(current_iteration(sa))
 
-        _update_load_bcs!(s, sa)
+        _apply!(sa, load_bcs(s))
 
         @show external_forces(current_state(sa))
 
         while !_has_converged!(current_iteration(sa), tolerances(alg))
 
-            Main.@infiltrate
-
             # Computes system residual forces tangent system matrix    
             _assemble_system!(s, sa, alg)
 
-            @show residual_forces(current_state(sa))[s.free_dofs]
+            @show residual_forces(current_state(sa), s.free_dofs)
             @show tangent_matrix(current_state(sa))[index.(s.free_dofs), index.(s.free_dofs)]
 
             # Increment U
             @show _step!(sa, alg)
-
-            Main.@infiltrate
 
         end
 
@@ -187,7 +173,6 @@ function _assemble_system!(s::AbstractStructure, sa::StaticAnalysis, ::NewtonRap
         for e in mat_elements
 
             # Global dofs of the element (dofs where K must be added)
-
             fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(mat, e, state.Uᵏ)
 
             # Assembles the element internal magnitudes 
@@ -226,22 +211,24 @@ function _step!(sa::StaticAnalysis, alg::NewtonRaphson)
 
     # Extract state info
     c_state = current_state(sa)
-    f_dofs = index.(free_dofs(structure(sa)))
+    f_dofs = free_dofs(structure(sa))
+    f_dofs_indexes = index.(f_dofs)
 
     # Compute Δu
-    r = view(residual_forces(c_state), f_dofs)
-    K = view(tangent_matrix(c_state), f_dofs, f_dofs)
+    r = residual_forces(c_state, f_dofs)
+    K = view(tangent_matrix(c_state), f_dofs_indexes, f_dofs_indexes)
     @show Δu = cg(K, r)
 
     # Update sate
-    Δ_displacements(c_state)[f_dofs] = Δu
-    @show displacements(c_state)[f_dofs] += Δ_displacements(c_state)[f_dofs]
+    Δ_displacements(c_state) = Δu
+    @show displacements(c_state)[f_dofs] += Δ_displacements(c_state)
 
     # Update iteration 
     i_step = _update!(current_iteration(sa),
         Δ_displacements(c_state), displacements(c_state),
-        residual_forces(c_state), external_forces(c_state),
+        residual_forces(c_state, f_dofs), external_forces(c_state),
         tolerances(alg)
     )
+    # Main.@infiltrate
 
 end
