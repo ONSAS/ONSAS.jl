@@ -128,18 +128,19 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
         _apply!(sa, load_bcs(s))
 
-        @show external_forces(current_state(sa))
+        @debug external_forces(current_state(sa))
 
         while !_has_converged!(current_iteration(sa), tolerances(alg))
 
             # Computes system residual forces tangent system matrix    
             _assemble_system!(s, sa, alg)
 
-            @show residual_forces(current_state(sa), s.free_dofs)
-            @show tangent_matrix(current_state(sa))[index.(s.free_dofs), index.(s.free_dofs)]
+            @debug internal_forces(current_state(sa), s.free_dofs)
+            @debug residual_forces(current_state(sa), s.free_dofs)
+            @debug tangent_matrix(current_state(sa))[index.(s.free_dofs), index.(s.free_dofs)]
 
             # Increment U
-            @show _step!(sa, alg)
+            @debug _step!(sa, alg)
 
         end
 
@@ -217,11 +218,10 @@ function _step!(sa::StaticAnalysis, alg::NewtonRaphson)
     # Compute Δu
     r = residual_forces(c_state, f_dofs)
     K = view(tangent_matrix(c_state), f_dofs_indexes, f_dofs_indexes)
-    @show Δu = cg(K, r)
+    Δ_displacements(c_state) = cg(K, r)
 
     # Update sate
-    Δ_displacements(c_state) = Δu
-    @show displacements(c_state)[f_dofs] += Δ_displacements(c_state)
+    displacements(c_state)[f_dofs] += Δ_displacements(c_state)
 
     # Update iteration 
     i_step = _update!(current_iteration(sa),
@@ -229,6 +229,5 @@ function _step!(sa::StaticAnalysis, alg::NewtonRaphson)
         residual_forces(c_state, f_dofs), external_forces(c_state),
         tolerances(alg)
     )
-    # Main.@infiltrate
 
 end

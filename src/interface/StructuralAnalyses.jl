@@ -142,11 +142,4 @@ include("./../analyses/StaticAnalysis.jl")
 # Modal analysis
 # ================
 
-## Implement Newmark to solve an structural analysis
-
-
-
-
-
-
 end #module 

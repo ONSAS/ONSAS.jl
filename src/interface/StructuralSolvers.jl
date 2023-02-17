@@ -6,7 +6,7 @@ module StructuralSolvers
 using LinearAlgebra: norm
 
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
-    MaxIterCriterion, ΔU_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet, ConvergenceSettings, _has_converged!
+    MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet, ConvergenceSettings, _has_converged!
 export IterationStep, _reset!, _has_converged!, _update!
 export AbstractSolver, step_size, tolerances, _step!, solve, _solve
 
@@ -33,7 +33,7 @@ struct ResidualForceCriterion <: AbstractConvergenceCriterion end
 struct ΔUCriterion <: AbstractConvergenceCriterion end
 
 """ Both criterion convergence. """
-struct ΔU_ResidualForce_Criteria <: AbstractConvergenceCriterion end
+struct ΔU_and_ResidualForce_Criteria <: AbstractConvergenceCriterion end
 
 """ Maximum number of iterations convergence criterion. """
 struct MaxIterCriterion <: AbstractConvergenceCriterion end
@@ -74,7 +74,7 @@ function _update!(i_step::IterationStep,
     i_step.Δu_rel = i_step.Δu_norm / norm(U)
 
     i_step.Δr_norm = norm(r)
-    @show i_step.Δr_rel = i_step.Δr_norm / norm(fₑₓₜ)
+    i_step.Δr_rel = i_step.Δr_norm / norm(fₑₓₜ)
 
     i_step.iter += 1
 
@@ -104,7 +104,7 @@ function _has_converged!(i_step::IterationStep, cs::ConvergenceSettings)
     end
 
     if Δu_rel ≤ cs.rel_U_tol && Δr_rel ≤ cs.rel_res_force_tol && Δu_rel > 0 && Δr_rel > 0
-        i_step.criterion = ΔU_ResidualForce_Criteria()
+        i_step.criterion = ΔU_and_ResidualForce_Criteria()
         return true
     end
 

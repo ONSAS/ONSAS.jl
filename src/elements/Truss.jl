@@ -1,14 +1,14 @@
 using ..Materials: SVK
-using ..Elements: AbstractElement, AbstractNode, Node
+using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye, row_vector
 
-import ..Elements: local_dof_symbol
+import ..Elements: nodes, internal_forces, local_dof_symbol
 
 export Truss
 
 """
-A `Truss` represents a 2D element that transmits axial force only.
+A `Truss` represents an element composed by two `Node`s that transmits axial force only.
 ### Fields:
 - `n₁`             -- stores first truss node.
 - `n₂`             -- stores second truss node.
@@ -26,16 +26,17 @@ struct Truss{dim,G<:AbstractCrossSection,T<:Real} <: AbstractElement{dim,T}
     end
 end
 
+#==============================#
+# Truss element hard contracts #
+#==============================#
+
+"Returns the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
+
+"Returns a vector of `Node`'s corresponding to a `Truss` element `t`."
 nodes(t::Truss) = [t.n₁, t.n₂]
 
-_strain(l_ini::Number, l_def::Number) = (l_def^2 - l_ini^2) / (l_ini * (l_ini + l_def))# green lagrange strain
-
-function strain(e::Truss, u_e::AbstractVector)
-    l_def, l_ini = lengths(e, u_e)
-    ϵ = _strain(l_ini, l_def)
-end
-
+"Returns the internal force of a `Truss` element `t` doted with an `SVK` material and a global displacement vector `u_glob`."
 function internal_forces(m::SVK, e::Truss{dim}, u_glob::AbstractVector) where {dim}
 
     E = m.E
@@ -62,8 +63,15 @@ function internal_forces(m::SVK, e::Truss{dim}, u_glob::AbstractVector) where {d
     return fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e
 end
 
-"Returns local dofs of a truss element."
-local_dofs_symbol(::Truss) = :u
+"Returns the Green strain of given the reference length `l_ini` and the deformed length `l_def`. "
+_strain(l_ini::Number, l_def::Number) = (l_def^2 - l_ini^2) / (l_ini * (l_ini + l_def))# green lagrange strain
+
+"Returns the strain of given `Truss` element `t` with a element displacement vector `u_e`. "
+function strain(t::Truss, u_e::AbstractVector)
+    l_def, l_ini = lengths(t, u_e)
+    ϵ = _strain(l_ini, l_def)
+end
+
 
 function _aux_matrices(dim::Integer)
     Bdif = hcat(-eye(dim), eye(dim))
@@ -71,6 +79,7 @@ function _aux_matrices(dim::Integer)
     return Bdif, Ge
 end
 
+"Returns auxiliar matrices with the element coordinates at the deformed and undeformed configurations."
 function _X_rows(e::Truss{dim}, u_e::AbstractVector) where {dim}
     X_ref_row = reduce(vcat, coordinates(e))
     X_def_row = X_ref_row + u_e
@@ -78,6 +87,7 @@ function _X_rows(e::Truss{dim}, u_e::AbstractVector) where {dim}
     return X_ref_row, X_def_row
 end
 
+"Returns auxiliar vectors b_ref and b_def of a truss element."
 function _aux_b(X_ref_row::AbstractVector, X_def_row::AbstractVector, u_loc_dofs::AbstractVector, G::AbstractMatrix, dim::Integer)
 
     l_ref, l_def = _lengths(X_ref_row, X_def_row, dim)

@@ -103,7 +103,7 @@ function displacement_bcs(se::StructuralBoundaryConditions)
     return unique(vbc)
 end
 
-"Returns fixed dof boundary conditions"
+"Returns all fixed dofs boundary conditions defined in `se`"
 function fixed_dof_bcs(se::StructuralBoundaryConditions)
     vbc = Vector{FixedDofBoundaryCondition}()
     fixed_bc_nodes = filter(bc -> bc isa FixedDofBoundaryCondition, keys(node_bcs(se)))
@@ -113,7 +113,7 @@ function fixed_dof_bcs(se::StructuralBoundaryConditions)
     return unique(vbc)
 end
 
-"Returns load boundary conditions"
+"Returns all load boundary conditions defined in `se`"
 function load_bcs(se::StructuralBoundaryConditions)
     vbc = Vector{AbstractLoadBoundaryCondition}()
     load_bc_nodes = filter(bc -> bc isa AbstractLoadBoundaryCondition, keys(node_bcs(se)))

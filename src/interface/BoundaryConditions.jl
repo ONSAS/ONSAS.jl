@@ -1,5 +1,7 @@
 """
 Module defining the boundary conditions implemented.
+Two types of boundary conditions are defined Load (Neumann), and Displacements (Dirichlet). 
+Overall, each boundary condition consists of a data type with a label, dofs and values into its fields.
 """
 module BoundaryConditions
 
@@ -64,9 +66,9 @@ end
 This is a particular instance of the struct `DisplacementBoundaryCondition`
     considering null dof value at an specific component of the dof displacements
 ### Fields:
-- `dofs`       -- Vectors of symbols the where the boundary condition is subscribed.
-- `components` -- Vectors of integer indicaating the degree of freedom component fixed.
-- `name`       -- Boundary condition label.
+- `dofs`             -- Vectors of symbols the where the boundary condition is subscribed.
+- `fixed_components` -- Vectors of integer indicaating the degree of freedom component fixed.
+- `name`             -- Boundary condition label.
 """
 Base.@kwdef struct FixedDofBoundaryCondition <: AbstractDisplacementBoundaryCondition
     dofs::Vector{Symbol}

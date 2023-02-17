@@ -11,7 +11,7 @@ using ..Utils: row_vector
 import ..Elements: add_dofs!
 @reexport import ..Utils: dimension, dofs, nodes
 
-export Mesh, dimension, dofs, num_dofs, elements, num_elements, element_sets, nodes, num_nodes, node_sets
+export AbstractMesh, Mesh, dimension, dofs, num_dofs, elements, num_elements, element_sets, nodes, num_nodes, node_sets
 
 """ Abstract supertype for all meshes.
 
@@ -149,7 +149,9 @@ struct Mesh{dim,E<:AbstractElement,N<:AbstractNode{dim}} <: AbstractMesh{dim}
                 throw(ArgumentError("Element set: $set contains invalid element indexes."))
             end
         end
+
         return new{first(dims),E,N}(nodes, elements, node_sets, element_sets)
+
     end
 end
 
