@@ -11,7 +11,7 @@ export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
     MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet
 
 export ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol
-export ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!, _step!
+export ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!
 export AbstractSolver, step_size, tolerances, _step!, solve, _solve
 
 """ ConvergenceSettings struct.
@@ -119,14 +119,11 @@ displacement `U` and its increment `ΔU`, the residual increment `Δr`, the exte
 and checks if the iteration has converged given a `ConvergenceSettings` `cs`."
 function _update!(ri_step::ResidualsIterationStep,
     ΔU::AbstractVector, U::AbstractVector,
-    Δr::AbstractVector, fₑₓₜ::AbstractVector,
-    cs::ConvergenceSettings)
+    Δr::AbstractVector, fₑₓₜ::AbstractVector)
 
     _update_U!(ri_step, U, ΔU)
     _update_r!(ri_step, fₑₓₜ, Δr)
     _step!(ri_step)
-
-    isconverged!(ri_step, cs)
 
     return ri_step
 end
@@ -151,7 +148,6 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
     end
 
     # Check residual forces convergence 
-    print(Δr_relᵏ, Δr_rel_tol)
     if Δr_relᵏ ≤ Δr_rel_tol && Δr_relᵏ > 0
         _update!(ri_step, ResidualForceCriterion())
     end
@@ -161,7 +157,7 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
         @warn "Maximum number of iterations was reached."
     end
 
-    if Δr_relᵏ ≤ Δr_rel_tol && ΔU_relᵏ ≤ ΔU_rel_tol
+    if Δr_relᵏ ≤ Δr_rel_tol && ΔU_relᵏ ≤ ΔU_rel_tol || Δr_relᵏ < eps() || ΔU_relᵏ < eps()
         _update!(ri_step, ΔU_and_ResidualForce_Criteria())
         return true
     end

@@ -6,7 +6,7 @@ using Reexport: @reexport
 include("./Utils.jl")
 @reexport using .Utils
 
-# # Input modules
+# Input modules
 include("Materials/Materials.jl")
 @reexport using .Materials
 
@@ -26,13 +26,13 @@ include("Meshes/Meshes.jl")
 include("StructuralModel/StructuralModel.jl")
 @reexport using .StructuralModel
 
-# # # Solvers
+# Solvers
 include("StructuralSolvers/StructuralSolvers.jl")
 @reexport using .StructuralSolvers
 
-# # # Analysis
-# include("interface/StructuralAnalyses.jl")
-# @reexport using .StructuralAnalyses
+# Analysis
+include("StructuralAnalyses/StructuralAnalyses.jl")
+@reexport using .StructuralAnalyses
 
 
 end # module

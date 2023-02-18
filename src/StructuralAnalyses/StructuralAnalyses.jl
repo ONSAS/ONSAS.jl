@@ -10,65 +10,18 @@ using Reexport: @reexport
 @reexport using ..StructuralSolvers
 @reexport using ..StructuralModel
 @reexport using ..Materials
+import ..Elements: internal_forces, inertial_forces, strain, stress
+import ..StructuralModel: free_dofs
 @reexport using ..Elements
 @reexport using ..BoundaryConditions
 @reexport using ..Meshes
-import ..Elements: displacements, external_forces, internal_forces
+using ..Utils: row_vector
 
-export AbstractStructuralState, assembler, displacements,
-    internal_forces, external_forces, strains, stresses, residual_forces, systemΔu_matrix
-export AbstractStructuralAnalysis, structure, initial_time, current_time, final_time,
-    _next!, is_done, current_state
-
-""" Abstract supertype for all structural analysis.
-
-An `AbstractStructuralAnalysis` object facilitates the process of defining an structural analysis
-to be solved.
-
-**Common methods:**
-
-* [`structure`](@ref)
-* [`structural_state`](@ref)
-
-* [`initial_time`](@ref)
-* [`current_time`](@ref)
-* [`final_time`](@ref)
-
-* [`current_state`](@ref)
-* [`current_iteration`](@ref)
-* [`_next!`](@ref)
-* [`is_done`](@ref)
-
-"""
-abstract type AbstractStructuralAnalysis end
-
-"Returns analyzed structure in the `AbstractStructuralAnalysis` `a`."
-structure(a::AbstractStructuralAnalysis) = a.s
-
-"Returns the initial time of `AbstractStructuralAnalysis` `a`."
-initial_time(a::AbstractStructuralAnalysis) = a.t₁
-
-"Returns the current time of `AbstractStructuralAnalysis` `a`."
-current_time(a::AbstractStructuralAnalysis) = a.t
-
-"Returns the final time of `AbstractStructuralAnalysis` `a`."
-final_time(a::AbstractStructuralAnalysis) = a.t₁
-
-"Increments the time step given the `AbstractStructuralAnalysis` `a` and the `AbstractStructuralSolver` `alg`."
-function _next!(a::AbstractStructuralAnalysis, alg::AbstractStructuralSolver) end
-
-"Returns `true` if the `AbstractStructuralAnalysis` `a` is completed."
-is_done(a::AbstractStructuralAnalysis) = current_time(a) > final_time(a)
-
-"Returns the current state of the `AbstractStructuralAnalysis` `a`."
-current_state(a::AbstractStructuralAnalysis) = a.state
-
-"Returns the current displacements iteration state of the `AbstractStructuralAnalysis` `a`."
-current_iteration(a::AbstractStructuralAnalysis) = a.state.iter_state
-
-# ======================
-# Structural state
-# ======================
+export AbstractStructuralState, assembler, displacements, Δ_displacements,
+    residual_forces, iteration_residuals, tangent_matrix, external_forces, structure
+export AbstractStructuralAnalysis, initial_time, current_time, final_time,
+    _next!, is_done, current_state, current_iteration
+export _apply!
 
 """ Abstract supertype to define a new structural state.
 **Common methods:**
@@ -76,14 +29,17 @@ current_iteration(a::AbstractStructuralAnalysis) = a.state.iter_state
 * [`displacements`](@ref)
 * [`Δ_displacements`](@ref)
 * [`external_forces`](@ref)
+* [`iteration_residuals`](@ref)
 * [`internal_forces`](@ref)
 * [`residual_forces`](@ref)
 * [`tangent_matrix`](@ref)
-* [`_tolerancesΔu`](@ref)
-* [`strains`](@ref)
-* [`stresses`](@ref)
+* [`strain`](@ref)
+* [`stress`](@ref)
+* [`structure`](@ref)
 """
 abstract type AbstractStructuralState end
+
+Base.copy(x::ST) where {ST<:AbstractStructuralState} = ST([getfield(x, k) for k ∈ fieldnames(ST)]...)
 
 "Returns the `Assembler` used in the `AbstractStructuralState` `st`."
 assembler(st::AbstractStructuralState) = st.assembler
@@ -94,6 +50,9 @@ displacements(st::AbstractStructuralState) = st.Uᵏ
 "Returns current displacements increment vector at the current `AbstractStructuralState` `st`."
 Δ_displacements(st::AbstractStructuralState) = st.ΔUᵏ
 
+"Returns current `ResidualsIterationStep` object form an `AbstractStructuralState` `st`."
+function iteration_residuals(st::AbstractStructuralState) end
+
 "Returns the current internal forces vector in the `AbstractStructuralState` `st`."
 internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
 
@@ -101,10 +60,13 @@ internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
 external_forces(st::AbstractStructuralState) = st.Fₑₓₜᵏ
 
 "Returns stresses for each `Element` in the `AbstractStructuralState` `st`."
-stresses(st::AbstractStructuralState) = st.σᵏ
+stress(st::AbstractStructuralState) = st.σᵏ
 
 "Returns strains for each `Element` in the `AbstractStructuralState` `st`."
 strain(st::AbstractStructuralState) = st.ϵᵏ
+
+"Returns the structure of the `AbstractStructuralState` `st`."
+structure(st::AbstractStructuralState) = st.s
 
 "Returns residual forces vector in the `AbstractStructuralState` `st`."
 function residual_forces(st::AbstractStructuralState) end
@@ -125,16 +87,94 @@ function _residuals(st::AbstractStructuralState)
 end
 
 
+""" Abstract supertype for all structural analysis.
+
+An `AbstractStructuralAnalysis` object facilitates the process of defining an structural analysis
+to be solved.
+
+**Common methods:**
+
+* [`structure`](@ref)
+* [`free_dofs`](@ref)
+* [`structural_state`](@ref)
+
+* [`initial_time`](@ref)
+* [`current_time`](@ref)
+* [`final_time`](@ref)
+
+* [`current_state`](@ref)
+* [`current_iteration`](@ref)
+* [`_next!`](@ref)
+* [`is_done`](@ref)
+
+"""
+abstract type AbstractStructuralAnalysis end
+
+"Returns analyzed structure in the `AbstractStructuralAnalysis` `a`."
+structure(a::AbstractStructuralAnalysis) = a.s
+
+"Returns the free dofs of the structure in the `AbstractStructuralAnalysis` `a`."
+free_dofs(a::AbstractStructuralAnalysis) = free_dofs(structure(a))
+
+"Returns the initial time of `AbstractStructuralAnalysis` `a`."
+initial_time(a::AbstractStructuralAnalysis) = a.t₁
+
+"Returns the current time of `AbstractStructuralAnalysis` `a`."
+current_time(a::AbstractStructuralAnalysis) = a.t
+
+"Returns the final time of `AbstractStructuralAnalysis` `a`."
+final_time(a::AbstractStructuralAnalysis) = a.t₁
+
+"Increments the time step given the `AbstractStructuralAnalysis` `a` and the `AbstractStructuralSolver` `alg`."
+_next!(a::AbstractStructuralAnalysis, alg::AbstractSolver) = a.t += time_step(a)
+
+"Returns `true` if the `AbstractStructuralAnalysis` `a` is completed."
+is_done(a::AbstractStructuralAnalysis) = current_time(a) > final_time(a)
+
+"Returns the current state of the `AbstractStructuralAnalysis` `a`."
+current_state(a::AbstractStructuralAnalysis) = a.state
+
+"Returns the current displacements iteration state of the `AbstractStructuralAnalysis` `a`."
+current_iteration(a::AbstractStructuralAnalysis) = a.state.iter_state
+
 # ================
 # Common methods
 # ================
-include("./../core/bcs_processing.jl")
-include("./../core/assembler.jl")
+
+"Applies a fixed displacement boundary condition to the structural analysis `sa` at the current analysis time `t`"
+function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondition)
+
+    t = current_time(sa)
+    bcs = boundary_conditions(structure(sa))
+
+    # Extract dofs to apply the bc
+    lbc_dofs_symbols = dofs(lbc)
+
+    # Extract nodes and elements 
+    entities = bcs[lbc]
+    dofs_lbc = Dof[]
+
+    for dof_symbol in lbc_dofs_symbols
+        dofs_lbc_symbol = row_vector(getindex.(dofs.(entities), dof_symbol))
+        push!(dofs_lbc, dofs_lbc_symbol...)
+    end
+
+    # Repeat the bc values vector to fill a vector of dofs
+    dofs_values = lbc(t)
+    repeat_mod = Int(length(dofs_lbc) / length(dofs_values))
+
+    external_forces(current_state(sa))[dofs_lbc] = repeat(dofs_values, outer=repeat_mod)
+
+end
+
+"Applies a vector of load boundary conditions to the structure `s` "
+_apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractLoadBoundaryCondition}) = [_apply!(sa, lbc) for lbc in l_bcs]
 
 # ================
 # Static analysis
 # ================
-include("./../analyses/StaticAnalysis.jl")
+include("./StaticAnalyses.jl")
+@reexport using .StaticAnalyses
 
 # ================
 # Dynamic analysis

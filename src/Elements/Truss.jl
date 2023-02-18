@@ -3,7 +3,7 @@ using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye, row_vector
 
-import ..Elements: nodes, internal_forces, local_dof_symbol
+import ..Elements: nodes, internal_forces, local_dof_symbol, strain, stress
 
 export Truss
 
@@ -37,13 +37,10 @@ local_dof_symbol(::Truss) = [:u]
 nodes(t::Truss) = [t.n₁, t.n₂]
 
 "Returns the internal force of a `Truss` element `t` doted with an `SVK` material and a global displacement vector `u_glob`."
-function internal_forces(m::SVK, e::Truss{dim}, u_glob::AbstractVector) where {dim}
+function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}
 
     E = m.E
     A = area(cross_section(e))
-
-    u_e = u_glob[local_dofs(e)]
-
     X_ref, X_def = _X_rows(e, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
     B_dif, _ = _aux_matrices(dim)
@@ -67,19 +64,23 @@ end
 _strain(l_ini::Number, l_def::Number) = (l_def^2 - l_ini^2) / (l_ini * (l_ini + l_def))# green lagrange strain
 
 "Returns the strain of given `Truss` element `t` with a element displacement vector `u_e`. "
-function strain(t::Truss, u_e::AbstractVector)
-    l_def, l_ini = lengths(t, u_e)
-    ϵ = _strain(l_ini, l_def)
+function strain(t::Truss{dim}, u_e::AbstractVector) where {dim}
+    X_ref, X_def = _X_rows(t, u_e)
+    l_ref, l_def = _lengths(X_ref, X_def, dim)
+    ϵ = _strain(l_ref, l_def)
 end
 
+"Returns the stress of given `Truss` element `t` with a element displacement vector `u_e`. "
+stress(m::SVK, t::Truss, u_e::AbstractVector) = m.E * strain(t, u_e)
 
+"Returns "
 function _aux_matrices(dim::Integer)
     Bdif = hcat(-eye(dim), eye(dim))
     Ge = Bdif' * Bdif
     return Bdif, Ge
 end
 
-"Returns auxiliar matrices with the element coordinates at the deformed and undeformed configurations."
+"Returns auxiliar matrices with the element coordinates at the deformed and reference configurations."
 function _X_rows(e::Truss{dim}, u_e::AbstractVector) where {dim}
     X_ref_row = reduce(vcat, coordinates(e))
     X_def_row = X_ref_row + u_e

@@ -16,7 +16,8 @@ import Dictionaries: index
 
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
-export AbstractElement, cross_section, coordinates, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes
+export AbstractElement, cross_section, coordinates, internal_forces, inertial_forces,
+    local_dof_symbol, local_dofs, nodes, strain, stress
 
 # ========================
 # Degree of freedom (Dof)
@@ -180,6 +181,12 @@ function internal_forces(e::AbstractElement, args...; kwargs...) end
 
 "Returns the inertial forces vector of an `AbstractElement` `e`."
 function inertial_forces(e::AbstractElement, args...; kwargs...) end
+
+"Returns the `AbstractElement` `e` strain."
+function strain(e::AbstractElement, args...; kwargs...) end
+
+"Returns the `AbstractElement` `e` stress."
+function stress(e::AbstractElement, args...; kwargs...) end
 
 #=================================#
 # AbstractElement implementations #

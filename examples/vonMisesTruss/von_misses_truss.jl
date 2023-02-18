@@ -1,6 +1,5 @@
 ## Von Mises truss example problem
 using ONSAS
-using LinearAlgebra
 using Test
 ## scalar parameters
 E = 210e9  # Young modulus in Pa
@@ -66,14 +65,20 @@ s = Structure(s_mesh, s_materials, s_boundary_conditions)
 # Final load factor
 λ₁ = 1
 NSTEPS = 10
-# sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
-# # -------------------------------
-# # Solve analysis
-# # -------------------------------
-# tol_f = 1e-10;
-# tol_u = 1e-10;
-# max_iter = 100;
-# tols = ConvergenceSettings(tol_u, tol_f, max_iter)
-# nr = NewtonRaphson(tols)
-# sol = solve(sa, nr)
-# typeof(sol) = StaticSolution(:u, hist:)
+sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
+# -------------------------------
+# Solve analysis
+# -------------------------------
+tol_f = 1e-7;
+tol_u = 1e-7;
+max_iter = 100;
+tols = ConvergenceSettings(tol_u, tol_f, max_iter)
+nr = NewtonRaphson(tols)
+states = solve(sa, nr)
+#-----------------------------
+# Plot results 
+#-----------------------------
+numerical_uₖ = getindex.(displacements.(states), index(Dof(6)))
+values_from_ONSASm = -[0.0703, 0.1424, 0.2166, 0.2935, 0.3739, 0.4591, 0.5511, 0.6540, 0.7781, 0.9836]
+@test numerical_uₖ ≈ values_from_ONSASm rtol = 1e-3
+

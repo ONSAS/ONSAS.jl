@@ -1,16 +1,19 @@
+module StaticAnalyses
+
+using Reexport: @reexport
 using StaticArrays: @MVector
 using SparseArrays: SparseMatrixCSC
 
 using IterativeSolvers: cg
 
-using ..Elements: local_dofs
-using ..StructuralModel: AbstractStructure, num_dofs, num_elements, boundary_conditions, fixed_dof_bcs, load_bcs
-using ..StructuralAnalyses
-using ..StructuralSolvers
+using ...Elements: local_dofs
+using ...StructuralModel: AbstractStructure, num_dofs, num_elements, boundary_conditions, fixed_dof_bcs, load_bcs
+@reexport using ..StructuralAnalyses
+@reexport using ...StructuralSolvers
 
-import ..Utils: _unwrap
-import ..StructuralAnalyses: _apply!, _assemble!, initial_time, current_time, final_time, _next!, residual_forces, tangent_matrix
-import ..StructuralSolvers: _solve, _update!
+import ..StructuralAnalyses: _assemble!, initial_time, current_time, final_time, _next!,
+    residual_forces, tangent_matrix, iteration_residuals, is_done
+import ...StructuralSolvers: _solve, _update!, _step!
 
 export StaticState
 export StaticAnalysis, load_factors, current_load_factor
@@ -19,7 +22,8 @@ export StaticAnalysis, load_factors, current_load_factor
 # Static State
 #==============#
 """
-An `StaticState` object facilitates the process of storing the relevant static variables of the structure. 
+An `StaticState` object facilitates the process of storing the relevant static variables of the structure
+during the displacements iteration. 
 ### Fields:
 - `ΔUᵏ`   -- stores displacements vector increment.
 - `Uᵏ`    -- stores displacements vector.
@@ -28,22 +32,29 @@ An `StaticState` object facilitates the process of storing the relevant static v
 - `assembler`   -- assembler handler object 
 - `iter_state`   -- current Δu iteration state 
 """
-mutable struct StaticState{DU<:AbstractVector,U<:AbstractVector,
-    F<:AbstractVector,K<:AbstractMatrix,E<:AbstractVector,S<:AbstractVector} <: AbstractStructuralState
+mutable struct StaticState{
+    ST<:AbstractStructure,
+    DU<:AbstractVector,U<:AbstractVector,
+    FE<:AbstractVector,FI<:AbstractVector,
+    K<:AbstractMatrix,
+    E<:AbstractVector,S<:AbstractVector} <: AbstractStructuralState
+    # Structure
+    s::ST
+    #Displacements
     ΔUᵏ::DU
     Uᵏ::U
-    Fₑₓₜᵏ::F
-    Fᵢₙₜᵏ::F
+    #Forces
+    Fₑₓₜᵏ::FE
+    Fᵢₙₜᵏ::FI
     Kₛᵏ::K
     ϵᵏ::E
     σᵏ::S
+    # Iter
     assembler::Assembler
-    iter_state::IterationStep
+    iter_state::ResidualsIterationStep
 end
 
-# Puede no ser mutable 
-# Tengo un strain y stress cambiados en algún lado
-"Returns a default static case for a given mesh."
+"Constructor for `StaticState` given an `AbstractStructure` `s`."
 function StaticState(s::AbstractStructure)
     n_dofs = num_dofs(s)
     n_fdofs = num_free_dofs(s)
@@ -56,13 +67,17 @@ function StaticState(s::AbstractStructure)
     ϵᵏ = Vector{}(undef, n_elements)
     σᵏ = Vector{}(undef, n_elements)
     assemblerᵏ = Assembler(s)
-    StaticState(ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, IterationStep())
+    StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, ResidualsIterationStep())
 end
 
-residual_forces(sc::StaticState, free_dofs::Vector{Dof}) = external_forces(sc)[free_dofs] - internal_forces(sc)[free_dofs]
+"Returns the current residual forces of the `StaticState` `sc`."
+residual_forces(sc::StaticState) =
+    external_forces(sc)[free_dofs(structure(sc))] - internal_forces(sc)[free_dofs(structure(sc))]
+
+"Returns the current residual forces of the `StaticState` `sc`."
 tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
-_unwrap(sc::StaticState) = (sc.ΔUᵏ, sc.Uᵏ, sc.Fₑₓₜᵏ, sc.Fᵢₙₜᵏ, sc.Kₛᵏ, sc.ϵᵏ, sc.σᵏ, sc.assemblerᵏ, sc.iter_state)
+iteration_residuals(sc::StaticState) = sc.iter_state
 
 #================#
 # Static Analysis
@@ -76,42 +91,54 @@ In the static analysis, the structure is analyzed at a given load factor (this v
 - `λᵥ`            -- Stores the load factors vector of the analysis
 - `current_step`  -- Stores the current load factor step
 """
-mutable struct StaticAnalysis{S<:AbstractStructure} <: AbstractStructuralAnalysis
+mutable struct StaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <: AbstractStructuralAnalysis
     s::S
     state::StaticState
-    λᵥ::Vector{<:Real}
+    λᵥ::LFV
     current_step::Int
-    function StaticAnalysis(s::S, λᵥ::Vector{<:Real}; initial_step::Int=0) where {S<:AbstractStructure}
-        new{S}(s, StaticState(s), λᵥ, initial_step)
+    function StaticAnalysis(s::S, λᵥ::LFV; initial_step::Int=0) where {S<:AbstractStructure,LFV<:AbstractVector{<:Real}}
+        new{S,LFV}(s, StaticState(s), λᵥ, initial_step)
     end
 end
 
-function StaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1, init_state::StaticState=StaticState(s))
+"Constructor for `StaticAnalysis` given a final time (or load factor) `t₁` and the number of steps `NSTEPS`."
+function StaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1)
     t₀ = t₁ / NSTEPS
     λᵥ = LinRange(t₀, t₁, NSTEPS) |> collect
     StaticAnalysis(s, λᵥ, initial_step=initial_step)
 end
 
+"Returns the initial load factor of an `StaticAnalysis` `sa`."
 initial_time(sa::StaticAnalysis) = first(load_factors(sa))
 
+"Returns the current load factor of an `StaticAnalysis` `sa`."
 current_time(sa::StaticAnalysis) = load_factors(sa)[sa.current_step]
 
+"Returns the final load factor of an `StaticAnalysis` `sa`."
 final_time(sa::StaticAnalysis) = last(load_factors(sa))
 
-"Returns load factors vector"
-load_factors(sa::StaticAnalysis) = sa.λᵥ
-
-"Returns the current load factor"
-current_load_factor(sa::StaticAnalysis) = current_time(sa)
-
-function _next!(sa::StaticAnalysis, alg::AbstractSolver)
-    next_step = sa.current_step + 1
-    if next_step > length(load_factors(sa))
-        throw(ArgumentError("Analysis is done."))
+"Returns `true` if the `StaticAnalysis` `sa` is completed."
+function is_done(sa::StaticAnalysis)
+    is_done_bool = if sa.current_step > length(load_factors(sa))
+        sa.current_step -= 1
+        true
     else
-        sa.current_step = next_step
+        false
     end
 end
+
+"Returns the final load factor vector of an `StaticAnalysis` `sa`."
+load_factors(sa::StaticAnalysis) = sa.λᵥ
+
+"Returns the current load factor of an `StaticAnalysis` `sa`."
+current_load_factor(sa::StaticAnalysis) = current_time(sa)
+
+"Jumps to the next current load factor defined in the `StaticAnalysis` `sa`."
+function _next!(sa::StaticAnalysis, ::AbstractSolver)
+    sa.current_step += 1
+    sa.current_step > length(load_factors(sa)) && @warn "Analysis is done."
+end
+
 
 #================#
 # Solve
@@ -127,33 +154,34 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
     # load factors iteration 
     while !is_done(sa)
 
-        _reset!(current_iteration(sa)) # Arrancarlo en Infinito
+        _reset!(current_iteration(sa))
 
         _apply!(sa, load_bcs(s)) # Compute Fext
 
         @debug external_forces(current_state(sa))
 
-
-        while !_has_converged!(current_iteration(sa), tolerances(alg))
+        while !isconverged!(current_iteration(sa), tolerances(alg))
 
             # Computes system residual forces tangent system matrix    
             _assemble_system!(s, sa, alg)
 
-            @debug internal_forces(current_state(sa), s.free_dofs)
-            @debug residual_forces(current_state(sa), s.free_dofs)
+            @debug view(internal_forces(current_state(sa)), index.(free_dofs(s)))
+            @debug residual_forces(current_state(sa))
             @debug tangent_matrix(current_state(sa))[index.(s.free_dofs), index.(s.free_dofs)]
 
             # Increment U 
-            @debug _step!(sa, alg)
+            _step!(sa, alg)
+
+            @debug current_iteration(sa)
+            @debug isconverged!(current_iteration(sa), tolerances(alg))
 
         end
 
-        push!(states, current_state(sa))
+        push!(states, deepcopy(current_state(sa)))
 
         _next!(sa, alg)
 
     end
-
 
     return states
 end
@@ -163,7 +191,6 @@ function _reset_assembler!(state::StaticState)
     _reset!(state.assembler)
     internal_forces(state) .= 0.0
 end
-
 
 
 "Computes system residual forces and tangent system matrix for the analysis"
@@ -179,7 +206,7 @@ function _assemble_system!(s::AbstractStructure, sa::StaticAnalysis, ::NewtonRap
         for e in mat_elements
 
             # Global dofs of the element (dofs where K must be added)
-            fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(mat, e, state.Uᵏ)
+            fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(mat, e, displacements(state)[local_dofs(e)])
 
             # Assembles the element internal magnitudes 
             _assemble!(state, fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e, e)
@@ -221,18 +248,20 @@ function _step!(sa::StaticAnalysis, alg::NewtonRaphson)
     f_dofs_indexes = index.(f_dofs)
 
     # Compute Δu
-    r = residual_forces(c_state, f_dofs)
+    r = residual_forces(c_state)
     K = view(tangent_matrix(c_state), f_dofs_indexes, f_dofs_indexes)
-    Δ_displacements(c_state) = cg(K, r)
+    ΔU = cg(K, r)
 
-    # Update sate
-    displacements(c_state)[f_dofs] += Δ_displacements(c_state)
+    # Update state
+    Δ_displacements(c_state) = ΔU
+    displacements(c_state)[f_dofs] += ΔU
 
     # Update iteration 
-    i_step = _update!(current_iteration(sa),
+    _update!(current_iteration(sa),
         Δ_displacements(c_state), displacements(c_state),
-        residual_forces(c_state, f_dofs), external_forces(c_state),
-        tolerances(alg)
+        residual_forces(c_state), external_forces(c_state)
     )
 
 end
+
+end # module
