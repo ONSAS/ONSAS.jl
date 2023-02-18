@@ -51,7 +51,7 @@ tols = ConvergenceSettings(tol_u, tol_f, max_iter)
     Δr = [1e-10, 1e-10]
     fₑₓₜ = [1e3, 1e3]
 
-    _update!(residuals_current_step, ΔU, U, Δr, fₑₓₜ, tols)
+    _update!(residuals_current_step, ΔU, U, Δr, fₑₓₜ)
 
     @test iter(residuals_current_step) == 1
     ΔU_rel = norm(ΔU) / norm(U)
