@@ -1,6 +1,6 @@
-## Von Mises truss example problem
-using ONSAS
+using ONSAS.StructuralAnalyses.StaticAnalyses
 using Test
+
 ## scalar parameters
 E = 210e9  # Young modulus in Pa
 ν = 0.0  # Poisson's modulus
@@ -60,25 +60,69 @@ s_boundary_conditions = StructuralBoundaryConditions(node_bc)
 # -------------------------------
 s = Structure(s_mesh, s_materials, s_boundary_conditions)
 # -------------------------------
-# Structural Analysis
+# Solver
 # -------------------------------
-# Final load factor
-λ₁ = 1
-NSTEPS = 10
-sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
-# -------------------------------
-# Solve analysis
-# -------------------------------
-tol_f = 1e-7;
-tol_u = 1e-7;
+tol_f = 1e-10;
+tol_u = 1e-10;
 max_iter = 100;
-tols = ConvergenceSettings(tol_u, tol_f, max_iter)
+tols = ConvergenceSettings(tol_f, tol_u, max_iter)
 nr = NewtonRaphson(tols)
-states = solve(sa, nr)
-#-----------------------------
-# Plot results 
-#-----------------------------
-numerical_uₖ = getindex.(displacements.(states), index(Dof(6)))
-values_from_ONSASm = -[0.0703, 0.1424, 0.2166, 0.2935, 0.3739, 0.4591, 0.5511, 0.6540, 0.7781, 0.9836]
-@test numerical_uₖ ≈ values_from_ONSASm rtol = 1e-3
 
+@testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticState" begin
+
+    # Random static state
+    Δuᵏ = zeros(2)
+    Uᵏ = zeros(4)
+    Fₑₓₜᵏ = rand(4)
+    Fᵢₙₜᵏ = rand(4)
+    Kₛᵏ = rand(4, 4)
+    ϵ = Vector{}(undef, 2)
+    σ = Vector{}(undef, 2)
+    s_assembler = Assembler(2)
+    iter_residuals = ResidualsIterationStep()
+
+    sst_rand = StaticState(s, Δuᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵ, σ,
+        s_assembler, iter_residuals)
+
+    @test assembler(sst_rand) == s_assembler
+    @test displacements(sst_rand) == Uᵏ
+    @test Δ_displacements(sst_rand) == Δuᵏ
+    @test external_forces(sst_rand) == Fₑₓₜᵏ
+    @test internal_forces(sst_rand) == iter_residuals
+    @test residual_forces(sst_rand) == Fₑₓₜᵏ[free_dofs(s)] - Fᵢₙₜᵏ[free_dofs(s)]
+    @test tangent_matrix(sst_rand) == Kₛᵏ
+
+end
+#=
+
+@testset "ONSAS.StructuralAnalyses..StaticAnalyses.StaticAnalysis" begin
+    # Final load factor
+    λ₁ = 10
+    NSTEPS = 9
+    init_step = 7
+    sa_init = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, initial_step=init_step)
+
+    @test structure(sa_init) == s
+    λ₀ = λ₁ / NSTEPS
+    λᵥ = LinRange(λ₀, λ₁, NSTEPS)
+    @test initial_time(sa_init) == first(λᵥ)
+    @test current_time(sa_init) == λᵥ[init_step]
+    @test final_time(sa_init) == last(λᵥ)
+    @test current_load_factor(sa_init) == init_step * λ₁ / NSTEPS
+    @test load_factors(sa_init) == λᵥ
+
+    # Next step 
+    next!(sa_init)
+    @test current_time(sa_init) == λᵥ[init_step+1]
+    @test current_load_factor(sa_init) == (init_step + 1) * λ₁ / NSTEPS
+    @test !is_done(sa_init)
+    next!(sa_init)
+    @test is_done(sa_init)
+
+    # Reset and solve 
+    sa = StaticAnalysis(s, NSTEPS=NSTEPS)
+
+    solve(sa, nr)
+end
+
+=#

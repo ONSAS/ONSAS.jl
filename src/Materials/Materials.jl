@@ -1,6 +1,6 @@
 """
 Module defining the materials implemented.
-Each material consists of a data type with one or more parameters into its fields.
+Each material consists of a data type with a label and one or more parameters into its fields.
 """
 module Materials
 
@@ -14,7 +14,6 @@ export AbstractMaterial, parameters
 
 An `AbstractMaterial` object facilitates the process of defining new material models. 
 Different material models leads to different constitutive laws, internal forces and stiffness matrices.
-
 
 **Common methods:**
 
@@ -30,6 +29,10 @@ end
 
 label(m::AbstractMaterial) = m.label
 
-include("./../materials/SVK.jl")
+#===========================#
+# AbstractElement Materials #
+#===========================#
+
+include("./SVK.jl")
 
 end # module

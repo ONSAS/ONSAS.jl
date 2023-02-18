@@ -1,6 +1,6 @@
-#############################
-# Materials interface tests #
-#############################
+##########################
+# Materials module tests #
+##########################
 using Test: @testset, @test
 using ONSAS.Materials
 

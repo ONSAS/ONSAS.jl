@@ -43,9 +43,9 @@ end
     first_dof = 1
     last_dof = 4
     new_dofs = Dof.(first_dof:last_dof-1)
-    add_dofs!(node, :u, new_dofs)
+    add!(node, :u, new_dofs)
     more_new_dofs = Dof.(first_dof+1:last_dof)
-    add_dofs!(node, :u, more_new_dofs)
+    add!(node, :u, more_new_dofs)
     new_dofs_node = Dof.(first_dof:last_dof)
     @test length(dofs(node)[:u]) == length(new_dofs_node)
 
@@ -106,7 +106,9 @@ end
     @test all([d ∈ local_dofs(t) for d in [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]])
     @test string(label(t)) == my_label
 
-    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_mat, t, u_global_structure)
+    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_mat, t, u_global_structure[local_dofs(t)])
+    strain(t, u_global_structure[local_dofs(t)]) == ϵ_e
+    stress(t, u_global_structure[local_dofs(t)]) == σ_e
     @test norm(fᵢₙₜ_e) == 0
     @test Kᵢₙₜ_e[1] == E * A / l_def
     @test norm(σ_e) == 0

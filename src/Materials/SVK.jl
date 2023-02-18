@@ -11,7 +11,6 @@ export SVK, lame_parameters
 - `ν` -- Poisson's ratio.
 - `ρ` -- Density (`nothing` for static cases).
 - `label` -- Label of the material
-
 """
 struct SVK{T<:Real} <: AbstractMaterial
     E::T
@@ -24,12 +23,12 @@ struct SVK{T<:Real} <: AbstractMaterial
     end
 end
 
-"Constructor with no density parameter ρ"
+"Material `SVK` constructor with no density parameter `ρ`"
 function SVK(E::Real, ν::Real, label::L=:no_labelled_mat) where {L<:Union{Symbol,String}}
     return SVK(E, ν, nothing, label)
 end
 
-"Constructor with lamé parameters λ and G"
+"Material `SVK` constructor lamé parameters `λ` and `G`"
 function SVK(; λ::Real, G::Real, ρ::Real, label)
 
     # Compute E and ν given Lamé parameters λ and μ (μ = G)
@@ -39,10 +38,10 @@ function SVK(; λ::Real, G::Real, ρ::Real, label)
     return SVK(E, ν, ρ, Symbol(label))
 end
 
-"Returns SVK parameters tuple."
+"Returns material `m` SVK parameters into a tuple."
 parameters(m::SVK) = (m.E, m.ν)
 
-" Convert svk material parameters to lamé nomenclature"
+"Returns lamé parameters `λ` and `G` from a `SVK`` material `m`."
 function lame_parameters(svk::SVK)
 
     E = svk.E
