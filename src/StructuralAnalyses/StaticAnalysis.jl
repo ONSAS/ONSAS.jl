@@ -120,7 +120,6 @@ end
 "Internal function to solve different analysis problem"
 function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
-
     s = structure(sa)
 
     states = []

@@ -33,6 +33,6 @@ label(m::AbstractMaterial) = m.label
 # AbstractElement Materials #
 #===========================#
 
-include("./../materials/SVK.jl")
+include("./SVK.jl")
 
 end # module

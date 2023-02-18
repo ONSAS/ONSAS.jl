@@ -65,16 +65,14 @@ end
     @test bc₁ ∈ fixed_dof_bcs(s_boundary_conditions) && bc₂ ∈ fixed_dof_bcs(s_boundary_conditions)
 
     @test s_boundary_conditions["fixed_uⱼ"] == bc₂
-    @test truss₁ ∈ s_boundary_conditions[bc₃] && n₃ ∈ s_boundary_conditions[bc₃]
-    @test bc₂ ∈ s_boundary_conditions[n₂] && bc₂ ∈ s_boundary_conditions[n₂] && bc₃ ∈ s_boundary_conditions[n₃]
+    @test truss₁ ∈ s_boundary_conditions[bc₄] && n₂ ∈ s_boundary_conditions[bc₃]
+    @test bc₂ ∈ s_boundary_conditions[n₂] && bc₃ ∈ s_boundary_conditions[n₂]
     @test bc₄ ∈ s_boundary_conditions[truss₁]
 
 
     # Constructor only with node or element boundary conditions
     s_boundary_conditions_nodes = StructuralBoundaryConditions(node_bc)
     @test isempty(element_bcs(s_boundary_conditions_nodes))
-    Main.@infiltrate
-
     s_boundary_conditions_element = StructuralBoundaryConditions(elem_bc)
 
 end
@@ -99,11 +97,11 @@ end
 
     # Mesh
     @test mesh(s) == s_mesh
-    @test all([Dof(i) ∈ free_dofs(s) for i in 1:num_dofs(s)])
 
     # Boundary conditions
     @test boundary_conditions(s) == s_boundary_conditions
     @test displacement_bcs(s) == displacement_bcs(s_boundary_conditions)
     @test load_bcs(s) == load_bcs(s_boundary_conditions)
 
+    @test Dof(4) ∈ free_dofs(s) && Dof(6) ∈ free_dofs(s) && length(free_dofs(s)) == 2
 end

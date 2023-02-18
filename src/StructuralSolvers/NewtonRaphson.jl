@@ -5,17 +5,15 @@ import ..StructuralSolvers: tolerances
 export NewtonRaphson
 
 """ Newton-Raphson solver struct.
-
 ### Fields:
-- `tol` -- Numerical tolerances
+- `tols` -- Numerical tolerances
 """
-
 struct NewtonRaphson <: AbstractSolver
     tol::ConvergenceSettings
 end
 
-# Default tolerances
+"Constructor for `NewtonRaphson` solver with default tolerances."
 NewtonRaphson() = NewtonRaphson(ConvergenceSettings())
 
-"Returns NR tolerances settings"
-tolerances(alg::NewtonRaphson) = alg.tol
+"Returns `NewtonRaphson` solver tolerances."
+tolerances(sol::NewtonRaphson) = sol.tol

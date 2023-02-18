@@ -1,7 +1,8 @@
 using Test
 using SafeTestsets: @safetestset
 
-MODULES = ["materials.jl", "cross_sections.jl", "elements.jl", "meshes.jl"]
+MODULES = ["materials.jl", "cross_sections.jl", "elements.jl", "meshes.jl", "structural_model.jl", "structural_solvers.jl"]
+
 EXAMPLES = [
 # joinpath("..", "examples", "vonMisesTruss", "von_misses_truss.jl"),
 #joinpath("..", "examples", "uniaxialExtension", "uniaxialExtension.jl")

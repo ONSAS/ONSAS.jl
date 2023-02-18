@@ -1,16 +1,19 @@
 """
 Module defining structural analyses that can be solved. 
+Each structural analysis consists of a data type with an structure to be analyzed, analysis parameters and 
+an specific state which describes the current state of structure in the analysis.
 """
 module StructuralAnalyses
 
 using Reexport: @reexport
 
+@reexport using ..StructuralSolvers
 @reexport using ..StructuralModel
 @reexport using ..Materials
 @reexport using ..Elements
 @reexport using ..BoundaryConditions
 @reexport using ..Meshes
-@reexport import ..Utils: displacements, external_forces, internal_forces
+import ..Elements: displacements, external_forces, internal_forces
 
 export AbstractStructuralState, assembler, displacements,
     internal_forces, external_forces, strains, stresses, residual_forces, systemΔu_matrix
@@ -39,30 +42,29 @@ to be solved.
 """
 abstract type AbstractStructuralAnalysis end
 
-"Returns analyzed structure"
+"Returns analyzed structure in the `AbstractStructuralAnalysis` `a`."
 structure(a::AbstractStructuralAnalysis) = a.s
 
-"Returns initial time of the analysis"
+"Returns the initial time of `AbstractStructuralAnalysis` `a`."
 initial_time(a::AbstractStructuralAnalysis) = a.t₁
 
-"Returns current time of the analysis"
+"Returns the current time of `AbstractStructuralAnalysis` `a`."
 current_time(a::AbstractStructuralAnalysis) = a.t
 
-"Returns final time of the analysis"
+"Returns the final time of `AbstractStructuralAnalysis` `a`."
 final_time(a::AbstractStructuralAnalysis) = a.t₁
 
-"Increments the current time of the analysis"
-function _next!(a::AbstractStructuralAnalysis) end
+"Increments the time step given the `AbstractStructuralAnalysis` `a` and the `AbstractStructuralSolver` `alg`."
+function _next!(a::AbstractStructuralAnalysis, alg::AbstractStructuralSolver) end
 
-"Returns `true` if the analysis is done"
+"Returns `true` if the `AbstractStructuralAnalysis` `a` is completed."
 is_done(a::AbstractStructuralAnalysis) = current_time(a) > final_time(a)
 
-"Returns the current structural state"
+"Returns the current state of the `AbstractStructuralAnalysis` `a`."
 current_state(a::AbstractStructuralAnalysis) = a.state
 
-"Returns the current iteration state"
+"Returns the current displacements iteration state of the `AbstractStructuralAnalysis` `a`."
 current_iteration(a::AbstractStructuralAnalysis) = a.state.iter_state
-
 
 # ======================
 # Structural state
@@ -83,34 +85,34 @@ current_iteration(a::AbstractStructuralAnalysis) = a.state.iter_state
 """
 abstract type AbstractStructuralState end
 
-"Returns an assembler object (this is used to speed up the assembling process"
+"Returns the `Assembler` used in the `AbstractStructuralState` `st`."
 assembler(st::AbstractStructuralState) = st.assembler
 
-"Returns current displacement vector"
+"Returns current displacements vector at the current `AbstractStructuralState` `st`."
 displacements(st::AbstractStructuralState) = st.Uᵏ
 
-"Returns current displacement increments vector"
+"Returns current displacements increment vector at the current `AbstractStructuralState` `st`."
 Δ_displacements(st::AbstractStructuralState) = st.ΔUᵏ
 
-"Returns current internal forces vector"
+"Returns the current internal forces vector in the `AbstractStructuralState` `st`."
 internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
 
-"Returns current external forces vector"
+"Returns external forces vector in the `AbstractStructuralState` `st`."
 external_forces(st::AbstractStructuralState) = st.Fₑₓₜᵏ
 
-"Returns current stresses"
+"Returns stresses for each `Element` in the `AbstractStructuralState` `st`."
 stresses(st::AbstractStructuralState) = st.σᵏ
 
-"Returns current strains"
+"Returns strains for each `Element` in the `AbstractStructuralState` `st`."
 strain(st::AbstractStructuralState) = st.ϵᵏ
 
-"Returns current external forces vector"
+"Returns residual forces vector in the `AbstractStructuralState` `st`."
 function residual_forces(st::AbstractStructuralState) end
 
-"Returns current tangent matrix"
+"Returns system tangent matrix in the `AbstractStructuralState` `st`."
 function tangent_matrix(st::AbstractStructuralState) end
 
-"Returns forces and displacements in u tolerances"
+"Returns current residuals (forces and displacements) in the `AbstractStructuralState` `st`."
 function _residuals(st::AbstractStructuralState)
     RHS_norm = residual_forces(st) |> norm
     Fext_norm = external_forces(st) |> norm

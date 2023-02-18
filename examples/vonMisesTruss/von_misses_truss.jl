@@ -66,14 +66,14 @@ s = Structure(s_mesh, s_materials, s_boundary_conditions)
 # Final load factor
 λ₁ = 1
 NSTEPS = 10
-sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
+# sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
 # # -------------------------------
 # # Solve analysis
 # # -------------------------------
 # tol_f = 1e-10;
 # tol_u = 1e-10;
 # max_iter = 100;
-# tols = ConvergenceSettings(tol_f, tol_u, max_iter)
+# tols = ConvergenceSettings(tol_u, tol_f, max_iter)
 # nr = NewtonRaphson(tols)
 # sol = solve(sa, nr)
 # typeof(sol) = StaticSolution(:u, hist:)

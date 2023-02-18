@@ -4,7 +4,7 @@ using ..BoundaryConditions: AbstractLoadBoundaryCondition, AbstractDisplacementB
 using ..StructuralModel: AbstractStructure, load_bcs, free_dofs
 using ..StructuralAnalyses: AbstractStructuralAnalysis, external_forces
 
-export _apply!, fixed_components
+export _apply!
 
 "Applies a fixed displacement boundary condition to the structural analysis `sa` at the current analysis time `t`"
 function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondition)
@@ -25,7 +25,6 @@ function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondit
     end
 
     # Repeat the bc values vector to fill a vector of dofs
-    dofs_values = values(lbc)(t)
 
     repeat_mod = Int(length(dofs_lbc) / length(dofs_values))
 

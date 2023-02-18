@@ -97,7 +97,7 @@ function add!(n::AbstractNode, s::Symbol, vd::Vector{Dof})
     return dofs(n)
 end
 
-include("../elements/Node.jl")
+include("./Node.jl")
 
 # =================
 # Abstract Element
@@ -186,7 +186,7 @@ function inertial_forces(e::AbstractElement, args...; kwargs...) end
 #=================================#
 
 
-include("../elements/Truss.jl")
+include("./Truss.jl")
 
 end # module
 

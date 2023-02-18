@@ -59,10 +59,10 @@ I_tensor_xyz(cs::AbstractCrossSection) = [
 # AbstractCrossSection implementations #
 #======================================#
 
-include("../cross_sections/Circle.jl")
-include("../cross_sections/Rectangle.jl")
-include("../cross_sections/Square.jl")
-include("../cross_sections/GenericCrossSection.jl")
+include("./Circle.jl")
+include("./Rectangle.jl")
+include("./Square.jl")
+include("./GenericCrossSection.jl")
 
 end # module
 
