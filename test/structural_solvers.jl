@@ -47,15 +47,18 @@ tols = ConvergenceSettings(tol_u, tol_f, max_iter)
 
     # Update residuals
     ΔU = [1e-10, 1e-10]
+    ΔU_norm = norm(ΔU)
     U = [1e-1, 1e-4]
+    ΔU_rel = ΔU_norm / norm(U)
     Δr = [1e-10, 1e-10]
+    Δr_norm = norm(Δr)
     fₑₓₜ = [1e3, 1e3]
+    Δr_rel = Δr_norm / norm(fₑₓₜ)
 
-    _update!(residuals_current_step, ΔU, U, Δr, fₑₓₜ)
+    _update!(residuals_current_step, ΔU_norm, ΔU_rel, Δr_norm, Δr_rel)
 
     @test iter(residuals_current_step) == 1
-    ΔU_rel = norm(ΔU) / norm(U)
-    Δr_rel = norm(Δr) / norm(fₑₓₜ)
+
     @test displacement_tol(residuals_current_step)[1] == ΔU_rel
     @test displacement_tol(residuals_current_step)[2] == norm(ΔU)
     @test residual_forces_tol(residuals_current_step)[1] == Δr_rel

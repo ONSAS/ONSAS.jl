@@ -1,6 +1,6 @@
-########################
-# Mesh interface tests #
-########################
+#######################
+# Meshes module tests #
+#######################
 using Test: @testset, @test
 using ONSAS.Meshes
 using ONSAS.Utils

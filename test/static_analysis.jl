@@ -1,3 +1,7 @@
+#########################
+# Static Analysis tests #
+#########################
+using Test: @testset, @test
 using ONSAS.StructuralAnalyses.StaticAnalyses
 using Test
 
