@@ -129,20 +129,20 @@ nr = NewtonRaphson(tols)
 
     # Assemble process
     # truss₁ element
-    fᵢₙₜ_e_1 = rand(6)
-    k_e_1 = rand(6, 6)
-    σ_e_1 = rand(1)
-    ϵ_e_1 = rand(1)
+    fᵢₙₜ_e_1 = rand(Float32, 6)
+    k_e_1 = rand(Float32, 6, 6)
+    σ_e_1 = rand(Float32, 1)
+    ϵ_e_1 = rand(Float32, 1)
     _assemble!(default_s, fᵢₙₜ_e_1, truss₁)
     @test internal_forces(default_s)[1:6] == fᵢₙₜ_e_1
     _assemble!(default_s, k_e_1, truss₁)
     @test internal_forces(default_s)[1:6] == fᵢₙₜ_e_1
     _assemble!(default_s, σ_e_1..., ϵ_e_1..., truss₁)
     # truss₂ element
-    fᵢₙₜ_e_2 = rand(6)
-    k_e_2 = rand(6, 6)
-    σ_e_2 = rand(1)
-    ϵ_e_2 = rand(1)
+    fᵢₙₜ_e_2 = rand(Float32, 6)
+    k_e_2 = rand(Float32, 6, 6)
+    σ_e_2 = rand(Float32, 1)
+    ϵ_e_2 = rand(Float32, 1)
     _assemble!(default_s, fᵢₙₜ_e_2, truss₂)
     _assemble!(default_s, k_e_2, truss₂)
     _assemble!(default_s, σ_e_2..., ϵ_e_2..., truss₂)
