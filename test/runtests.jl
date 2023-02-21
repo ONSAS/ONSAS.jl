@@ -8,8 +8,8 @@ MODULES = [
     "structural_model.jl", "structural_solvers.jl", "static_analysis.jl"]
 
 EXAMPLES = [
-# joinpath("..", "examples", "vonMisesTruss", "von_misses_truss.jl"),
-#joinpath("..", "examples", "uniaxialExtension", "uniaxialExtension.jl")
+    joinpath("..", "examples", "vonMisesTruss", "von_misses_truss.jl"),
+    #joinpath("..", "examples", "uniaxialExtension", "uniaxialExtension.jl")
 ]
 
 function test(files::Vector)
