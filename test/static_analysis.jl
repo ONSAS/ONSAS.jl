@@ -79,14 +79,13 @@ nr = NewtonRaphson(tols)
     Uᵏ = rand(9)
     Fₑₓₜᵏ = rand(9)
     Fᵢₙₜᵏ = rand(9)
-    Kₛᵏ = rand(2, 2)
+    Kₛᵏ = rand(9, 9)
     ϵᵏ = rand(2)
     σᵏ = rand(2)
     s_assembler = Assembler(2)
     iter_residuals = ResidualsIterationStep()
 
-    sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ,
-        s_assembler, iter_residuals)
+    sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, s_assembler, iter_residuals)
 
     # Accessors
     @test displacements(sst_rand) == Uᵏ
@@ -99,7 +98,6 @@ nr = NewtonRaphson(tols)
     @test stress(sst_rand) == σᵏ
     @test structure(sst_rand) == s
     @test free_dofs(sst_rand) == free_dofs(s)
-
 
     # Iteration 
     @test assembler(sst_rand) == s_assembler
@@ -120,24 +118,60 @@ nr = NewtonRaphson(tols)
 
     # Reset the assembled magnitudes
     _reset!(sst_rand)
-    @test isempty(assembler(sst_rand).V) 
-    @test isempty(assembler(sst_rand).I) 
+    @test isempty(assembler(sst_rand).V)
+    @test isempty(assembler(sst_rand).I)
     @test isempty(assembler(sst_rand).J)
-    @test iszero(internal_forces(sst_rand)) 
-    @test iszero(tangent_matrix(sst_rand)) 
+    @test iszero(internal_forces(sst_rand))
+    @test iszero(tangent_matrix(sst_rand))
 
     # Default static analysis of the structure 
     default_s = StaticState(s)
 
+    # Assemble process
+    # truss₁ element
+    fᵢₙₜ_e_1 = rand(6)
+    k_e_1 = rand(6, 6)
+    σ_e_1 = rand(1)
+    ϵ_e_1 = rand(1)
+    _assemble!(default_s, fᵢₙₜ_e_1, truss₁)
+    @test internal_forces(default_s)[1:6] == fᵢₙₜ_e_1
+    _assemble!(default_s, k_e_1, truss₁)
+    @test internal_forces(default_s)[1:6] == fᵢₙₜ_e_1
+    _assemble!(default_s, σ_e_1..., ϵ_e_1..., truss₁)
+    # truss₂ element
+    fᵢₙₜ_e_2 = rand(6)
+    k_e_2 = rand(6, 6)
+    σ_e_2 = rand(1)
+    ϵ_e_2 = rand(1)
+    _assemble!(default_s, fᵢₙₜ_e_2, truss₂)
+    _assemble!(default_s, k_e_2, truss₂)
+    _assemble!(default_s, σ_e_2..., ϵ_e_2..., truss₂)
+    # End assemble 
+    _end_assemble!(default_s)
+
+
+    # Manufactured assemble 
+    Fᵢₙₜ = zeros(9)
+    Fᵢₙₜ[1:6] += fᵢₙₜ_e_1
+    Fᵢₙₜ[4:9] += fᵢₙₜ_e_2
+    K_system = zeros(9, 9)
+    K_system[1:6, 1:6] += k_e_1
+    K_system[4:9, 4:9] += k_e_2
+
+    @test internal_forces(default_s) == Fᵢₙₜ
+    @test tangent_matrix(default_s) == K_system
+    @test strain(default_s) == [ϵ_e_1..., ϵ_e_2...]
+    @test stress(default_s) == [σ_e_1..., σ_e_2...]
+
 end
 
 @testset "ONSAS.StructuralAnalyses..StaticAnalyses.StaticAnalysis" begin
-    
+
     # StaticAnalysis with a final load factor
     λ₁ = 10
     NSTEPS = 9
     init_step = 7
-    
+
     sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
     sa_init = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, initial_step=init_step)
 
@@ -151,17 +185,14 @@ end
     @test load_factors(sa_init) == λᵥ
 
     # Next step 
-    next!(sa_init)
+    _next!(sa_init)
     @test current_time(sa_init) == λᵥ[init_step+1]
     @test current_load_factor(sa_init) == (init_step + 1) * λ₁ / NSTEPS
     @test !is_done(sa_init)
-    next!(sa_init)
+    _next!(sa_init)
+    _next!(sa_init)
     @test is_done(sa_init)
 
-    # Reset and solve 
-    sa = StaticAnalysis(s, NSTEPS=NSTEPS)
 
-    solve(sa, nr)
 end
 
-=#

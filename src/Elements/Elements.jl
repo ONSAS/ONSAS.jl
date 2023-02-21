@@ -10,6 +10,7 @@ using Reexport: @reexport
 using StaticArrays: SVector
 using ..Utils: row_vector
 
+@reexport using ..Materials
 @reexport using ..CrossSections
 @reexport import ..Utils: label
 @reexport import Dictionaries: index

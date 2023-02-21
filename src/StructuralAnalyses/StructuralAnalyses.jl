@@ -18,9 +18,9 @@ using ..Utils: row_vector
 
 import ..Elements: internal_forces, inertial_forces, strain, stress
 import ..StructuralModel: free_dofs
-import ..StructuralSolvers: _update!, _reset!
+import ..StructuralSolvers: _assemble!, _update!, _reset!, _end_assemble!
 
-export AbstractStructuralState, displacements, Δ_displacements, external_forces, residual_forces,
+export AbstractStructuralState, _assemble!, displacements, Δ_displacements, external_forces, residual_forces,
     tangent_matrix, residual_forces_norms, residual_displacements_norms, iteration_residuals, tangent_matrix, structure,
     assembler, iteration_residuals, residual_forces_norms, residual_displacements_norms
 
@@ -44,6 +44,7 @@ export _apply!
 
 
 ### Iteration:
+* [`_assemble!`](@ref)
 * [`assembler`](@ref)
 * [`iteration_residuals`](@ref)
 * [`residual_forces_norms`](@ref)
@@ -52,6 +53,12 @@ export _apply!
 abstract type AbstractStructuralState end
 
 #Accessors
+
+"Returns the `Assembler` used in the `AbstractStructuralState` `st`."
+assembler(st::AbstractStructuralState) = st.assembler
+
+"Returns current `ResidualsIterationStep` object form an `AbstractStructuralState` `st`."
+iteration_residuals(st::AbstractStructuralState) = st.iter_state
 
 "Returns current displacements vector at the current `AbstractStructuralState` `st`."
 displacements(st::AbstractStructuralState) = st.Uᵏ
@@ -80,15 +87,23 @@ structure(st::AbstractStructuralState) = st.s
 "Returns free `Dof`s of the structure in the `AbstractStructuralState` `st`."
 free_dofs(st::AbstractStructuralState) = free_dofs(structure(st))
 
-# Assembler
-"Returns the `Assembler` used in the `AbstractStructuralState` `st`."
-assembler(st::AbstractStructuralState) = st.assembler
+# Assemble
+"Assembles the element `e` internal forces `fᵢₙₜ_e` into the `AbstractState` `st`"
+_assemble!(st::AbstractStructuralState, fᵢₙₜ_e::AbstractVector, e::AbstractElement) =
+    view(internal_forces(st), index.(local_dofs(e))) .+= fᵢₙₜ_e
 
-"Assembles the `AbstractStructuralState` `st` with the each `Element` info."
-function _assemble!(st::AbstractStructuralState, args...; kwargs...) end
+"Assembles the element `e` stiffness matrix matrix `K_e` into the `AbstractState` `st`"
+_assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::AbstractElement) =
+    _assemble!(assembler(st), local_dofs(e), kₛ_e)
 
-"Returns current `ResidualsIterationStep` object form an `AbstractStructuralState` `st`."
-iteration_residuals(st::AbstractStructuralState) = st.iter_state
+"Assembles the element `e` stress σₑ and strain ϵₑ into the `AbstractState` `st`"
+function _assemble!(st::AbstractStructuralState, σₑ::E, ϵₑ::E, e::AbstractElement) where {E<:Union{Real,AbstractMatrix}}
+    push!(stress(st), σₑ)
+    push!(strain(st), ϵₑ)
+end
+
+"Fill the system tangent matrix in the `AbstractStructuralState` `st` once the `Assembler` object is built."
+_end_assemble!(st::AbstractStructuralState) = _end_assemble!(tangent_matrix(st), assembler(st))
 
 "Returns system tangent matrix in the `AbstractStructuralState` `st`."
 function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
@@ -112,7 +127,6 @@ function _update!(st::AbstractStructuralState, args...; kwargs...) end
 
 "Resets  the `AbstractStructuralState` assembled magnitudes before starting a new assembly."
 function _reset!(st::AbstractStructuralState, args...; kwargs...) end
-
 
 """ Abstract supertype for all structural analysis.
 
@@ -159,7 +173,7 @@ is_done(a::AbstractStructuralAnalysis) = current_time(a) > final_time(a)
 current_state(a::AbstractStructuralAnalysis) = a.state
 
 "Returns the current displacements iteration state of the `AbstractStructuralAnalysis` `a`."
-current_iteration(a::AbstractStructuralAnalysis) = a.state.iter_state
+current_iteration(a::AbstractStructuralAnalysis) = iteration_residuals(a.state)
 
 # ================
 # Common methods

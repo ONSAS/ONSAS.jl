@@ -121,7 +121,7 @@ end
 
     K_to_fill_assembler = SparseMatrixCSC(zeros(3, 3))
 
-    end_assemble!(K_to_fill_assembler, a)
+    _end_assemble!(K_to_fill_assembler, a)
 
     @test all([K_glob_assembler[ind] == val for (ind, val) in enumerate(K_glob_assembler)])
     @test all([K_glob_assembler[ind] == val for (ind, val) in enumerate(K_to_fill_assembler)])

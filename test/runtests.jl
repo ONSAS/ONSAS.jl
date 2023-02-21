@@ -5,11 +5,11 @@ MODULES = [
     # Input modules
     "materials.jl", "cross_sections.jl", "elements.jl", "meshes.jl",
     # Analysis modules
-    "structural_model.jl", "structural_solvers.jl"]
+    "structural_model.jl", "structural_solvers.jl", "static_analysis.jl"]
 
 EXAMPLES = [
-    joinpath("..", "examples", "vonMisesTruss", "von_misses_truss.jl"),
-    #joinpath("..", "examples", "uniaxialExtension", "uniaxialExtension.jl")
+# joinpath("..", "examples", "vonMisesTruss", "von_misses_truss.jl"),
+#joinpath("..", "examples", "uniaxialExtension", "uniaxialExtension.jl")
 ]
 
 function test(files::Vector)
