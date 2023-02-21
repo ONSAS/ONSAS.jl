@@ -17,7 +17,6 @@ using SparseArrays: SparseMatrixCSC, sparse
 
 end
 
-
 # Convergence settings
 tol_f = 1e-3
 tol_u = 1e-5
@@ -25,7 +24,6 @@ max_iter = 100
 tols = ConvergenceSettings(tol_u, tol_f, max_iter)
 
 @testset "ONSAS.StructuralSolvers.ResidualsIterationStep" begin
-
 
     @test residual_forces_tol(tols) == tol_f
     @test displacement_tol(tols) == tol_u
@@ -74,10 +72,8 @@ tols = ConvergenceSettings(tol_u, tol_f, max_iter)
 end
 
 @testset "ONSAS.StructuralSolvers.NewtonRaphson" begin
-
     nr = NewtonRaphson(tols)
     tolerances(nr) == tols
-
 end
 
 @testset "ONSAS.StructuralSolvers.Assembler" begin

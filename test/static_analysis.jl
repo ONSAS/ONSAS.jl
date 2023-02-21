@@ -2,8 +2,8 @@
 # Static Analysis tests #
 #########################
 using Test: @testset, @test
+using LinearAlgebra: norm
 using ONSAS.StructuralAnalyses.StaticAnalyses
-using Test
 
 ## scalar parameters
 E = 210e9  # Young modulus in Pa
@@ -75,35 +75,70 @@ nr = NewtonRaphson(tols)
 @testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticState" begin
 
     # Random static state
-    Δuᵏ = zeros(2)
-    Uᵏ = zeros(4)
-    Fₑₓₜᵏ = rand(4)
-    Fᵢₙₜᵏ = rand(4)
-    Kₛᵏ = rand(4, 4)
-    ϵ = Vector{}(undef, 2)
-    σ = Vector{}(undef, 2)
+    ΔUᵏ = rand(2)
+    Uᵏ = rand(9)
+    Fₑₓₜᵏ = rand(9)
+    Fᵢₙₜᵏ = rand(9)
+    Kₛᵏ = rand(2, 2)
+    ϵᵏ = rand(2)
+    σᵏ = rand(2)
     s_assembler = Assembler(2)
     iter_residuals = ResidualsIterationStep()
 
-    sst_rand = StaticState(s, Δuᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵ, σ,
+    sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ,
         s_assembler, iter_residuals)
 
-    @test assembler(sst_rand) == s_assembler
+    # Accessors
     @test displacements(sst_rand) == Uᵏ
-    @test Δ_displacements(sst_rand) == Δuᵏ
+    @test Δ_displacements(sst_rand) == ΔUᵏ
     @test external_forces(sst_rand) == Fₑₓₜᵏ
-    @test internal_forces(sst_rand) == iter_residuals
+    @test iteration_residuals(sst_rand) == iter_residuals
     @test residual_forces(sst_rand) == Fₑₓₜᵏ[free_dofs(s)] - Fᵢₙₜᵏ[free_dofs(s)]
     @test tangent_matrix(sst_rand) == Kₛᵏ
+    @test strain(sst_rand) == ϵᵏ
+    @test stress(sst_rand) == σᵏ
+    @test structure(sst_rand) == s
+    @test free_dofs(sst_rand) == free_dofs(s)
+
+
+    # Iteration 
+    @test assembler(sst_rand) == s_assembler
+    @test iteration_residuals(sst_rand) == iter_residuals
+    norm_r = norm(residual_forces(sst_rand))
+    relative_norm_res = norm_r / norm(external_forces(sst_rand))
+    @test residual_forces_norms(sst_rand) == (norm_r, relative_norm_res)
+    norm_ΔU = norm(Δ_displacements(sst_rand))
+    norm_U = norm(displacements(sst_rand))
+    @test residual_displacements_norms(sst_rand) == (norm_ΔU, norm_ΔU / norm_U)
+
+    ΔUᵏ⁺¹ = rand(2)
+    _update!(sst_rand, ΔUᵏ⁺¹)
+    @test Δ_displacements(sst_rand) == ΔUᵏ⁺¹
+    Uᵏ⁺¹ = Uᵏ
+    Uᵏ⁺¹[free_dofs(s)] += ΔUᵏ⁺¹
+    @test displacements(sst_rand) == Uᵏ⁺¹
+
+    # Reset the assembled magnitudes
+    _reset!(sst_rand)
+    @test isempty(assembler(sst_rand).V) 
+    @test isempty(assembler(sst_rand).I) 
+    @test isempty(assembler(sst_rand).J)
+    @test iszero(internal_forces(sst_rand)) 
+    @test iszero(tangent_matrix(sst_rand)) 
+
+    # Default static analysis of the structure 
+    default_s = StaticState(s)
 
 end
-#=
 
 @testset "ONSAS.StructuralAnalyses..StaticAnalyses.StaticAnalysis" begin
-    # Final load factor
+    
+    # StaticAnalysis with a final load factor
     λ₁ = 10
     NSTEPS = 9
     init_step = 7
+    
+    sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
     sa_init = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, initial_step=init_step)
 
     @test structure(sa_init) == s

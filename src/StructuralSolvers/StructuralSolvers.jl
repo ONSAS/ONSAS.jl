@@ -169,7 +169,7 @@ step_size(solver::AbstractSolver) = solver.Δt
 tolerances(solver::AbstractSolver) = solver.tol
 
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
-function _step!(solver::AbstractSolver, analysis::A, args...; kwargs...) where {A} end
+function _step!(solver::AbstractSolver, analysis::A,) where {A} end
 
 include("./NewtonRaphson.jl")
 

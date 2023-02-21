@@ -3,7 +3,6 @@
 #######################
 using Test: @testset, @test
 using ONSAS.Meshes
-using ONSAS.Utils
 
 @testset "ONSAS.Meshes.Mesh" begin
 

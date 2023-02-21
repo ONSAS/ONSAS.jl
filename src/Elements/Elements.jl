@@ -6,13 +6,13 @@ module Elements
 
 using AutoHashEquals: @auto_hash_equals
 using Reexport: @reexport
-@reexport using Dictionaries
+@reexport using Dictionaries: Dictionary, dictionary
 using StaticArrays: SVector
 using ..Utils: row_vector
 
 @reexport using ..CrossSections
 @reexport import ..Utils: label
-import Dictionaries: index
+@reexport import Dictionaries: index
 
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates

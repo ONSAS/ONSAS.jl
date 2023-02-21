@@ -3,17 +3,19 @@ module StaticAnalyses
 using Reexport: @reexport
 using StaticArrays: @MVector
 using SparseArrays: SparseMatrixCSC
-
 using IterativeSolvers: cg
 
-using ...Elements: local_dofs
-using ...StructuralModel: AbstractStructure, num_dofs, num_elements, boundary_conditions, fixed_dof_bcs, load_bcs
+@reexport using ..Materials
+@reexport using ...Elements
+@reexport using ...Meshes
+@reexport using ...StructuralModel: AbstractStructure, num_dofs, num_elements, boundary_conditions, fixed_dof_bcs, load_bcs
 @reexport using ..StructuralAnalyses
 @reexport using ...StructuralSolvers
 
 import ..StructuralAnalyses: _assemble!, initial_time, current_time, final_time, _next!,
     residual_forces, tangent_matrix, iteration_residuals, is_done
-import ...StructuralSolvers: _solve, _update!, _step!
+
+import ...StructuralSolvers: _solve, _update!, _step!, _reset!
 
 export StaticState
 export StaticAnalysis, load_factors, current_load_factor
@@ -25,19 +27,22 @@ export StaticAnalysis, load_factors, current_load_factor
 An `StaticState` object facilitates the process of storing the relevant static variables of the structure
 during the displacements iteration. 
 ### Fields:
-- `ΔUᵏ`   -- stores displacements vector increment.
-- `Uᵏ`    -- stores displacements vector.
-- `Fₑₓₜᵏ` -- stores external forces vector.
-- `Fᵢₙₜᵏ` -- stores internal forces vector.
+- `s`           -- stores the structure
+- `ΔUᵏ`         -- stores displacements vector increment.
+- `Uᵏ`          -- stores displacements vector.
+- `Fₑₓₜᵏ`       -- stores external forces vector.
+- `Fᵢₙₜᵏ`       -- stores internal forces vector.
+- `Kₛᵏ`         -- stores the system tangent matrix.
+- `ϵᵏ`          -- stores a vector with strains for each element.
+- `σᵏ`          -- stores a vector with stresses for each element.
 - `assembler`   -- assembler handler object 
-- `iter_state`   -- current Δu iteration state 
+- `iter_state`  -- current Δu iteration state 
 """
-mutable struct StaticState{
-    ST<:AbstractStructure,
+struct StaticState{ST<:AbstractStructure,
     DU<:AbstractVector,U<:AbstractVector,
-    FE<:AbstractVector,FI<:AbstractVector,
-    K<:AbstractMatrix,
-    E<:AbstractVector,S<:AbstractVector} <: AbstractStructuralState
+    FE<:AbstractVector,FI<:AbstractVector,K<:AbstractMatrix,
+    E<:AbstractVector,S<:AbstractVector
+} <: AbstractStructuralState
     # Structure
     s::ST
     #Displacements
@@ -52,6 +57,14 @@ mutable struct StaticState{
     # Iter
     assembler::Assembler
     iter_state::ResidualsIterationStep
+    function StaticState(s::ST, ΔUᵏ::DU, Uᵏ::U, Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Kₛᵏ::K, ϵᵏ::E, σᵏ::S,
+        assembler::Assembler, iter_state::ResidualsIterationStep) where {ST,DU,U,FE,FI,K,E,S}
+        # # Check dimensions
+        @assert size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == length(ΔUᵏ) == num_free_dofs(s)
+        @assert length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ) == num_dofs(s)
+        @assert length(ϵᵏ) == length(σᵏ) == num_elements(s)
+        new{ST,DU,U,FE,FI,K,E,S}(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assembler, iter_state)
+    end
 end
 
 "Constructor for `StaticState` given an `AbstractStructure` `s`."
@@ -63,7 +76,7 @@ function StaticState(s::AbstractStructure)
     ΔUᵏ = @MVector zeros(n_fdofs)
     Fₑₓₜᵏ = @MVector zeros(n_dofs)
     Fᵢₙₜᵏ = similar(Fₑₓₜᵏ)
-    Kₛᵏ = SparseMatrixCSC(zeros(1, 1))
+    Kₛᵏ = SparseMatrixCSC(zeros(n_fdofs, n_fdofs))
     ϵᵏ = Vector{}(undef, n_elements)
     σᵏ = Vector{}(undef, n_elements)
     assemblerᵏ = Assembler(s)
@@ -72,12 +85,23 @@ end
 
 "Returns the current residual forces of the `StaticState` `sc`."
 residual_forces(sc::StaticState) =
-    external_forces(sc)[free_dofs(structure(sc))] - internal_forces(sc)[free_dofs(structure(sc))]
+    external_forces(sc)[free_dofs(sc)] - internal_forces(sc)[free_dofs(sc)]
 
-"Returns the current residual forces of the `StaticState` `sc`."
+"Returns the current system tangent matrix of the `StaticState` `sc`."
 tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
-iteration_residuals(sc::StaticState) = sc.iter_state
+"Updates displacements in the `StaticState` `sc` with a displacements increment vector `ΔU`."
+function _update!(sc::StaticState, ΔU::AbstractVector)
+    sc.ΔUᵏ .= ΔU
+    sc.Uᵏ[index.(free_dofs(sc))] .+= ΔU
+end
+
+"Resets the `StaticState` assembled magnitudes."
+function _reset!(state::StaticState)
+    _reset!(assembler(state))
+    internal_forces(state) .= 0.0
+    tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
+end
 
 #================#
 # Static Analysis
@@ -144,59 +168,9 @@ end
 # Solve
 #================#
 
-"Internal function to solve different analysis problem"
-function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
-
-    s = structure(sa)
-
-    states = []
-
-    # load factors iteration 
-    while !is_done(sa)
-
-        _reset!(current_iteration(sa))
-
-        _apply!(sa, load_bcs(s)) # Compute Fext
-
-        @debug external_forces(current_state(sa))
-
-        while !isconverged!(current_iteration(sa), tolerances(alg))
-
-            # Computes system residual forces tangent system matrix    
-            _assemble_system!(s, sa, alg)
-
-            @debug view(internal_forces(current_state(sa)), index.(free_dofs(s)))
-            @debug residual_forces(current_state(sa))
-            @debug tangent_matrix(current_state(sa))[index.(s.free_dofs), index.(s.free_dofs)]
-
-            # Increment U 
-            _step!(sa, alg)
-
-            @debug current_iteration(sa)
-            @debug isconverged!(current_iteration(sa), tolerances(alg))
-
-        end
-
-        push!(states, deepcopy(current_state(sa)))
-
-        _next!(sa, alg)
-
-    end
-
-    return states
-end
-
-"Rests the assembler state"
-function _reset_assembler!(state::StaticState)
-    _reset!(state.assembler)
-    internal_forces(state) .= 0.0
-end
-
-
 "Computes system residual forces and tangent system matrix for the analysis"
 function _assemble_system!(s::AbstractStructure, sa::StaticAnalysis, ::NewtonRaphson)
 
-    s = structure(sa)
     state = current_state(sa)
 
     # Reset assembler
@@ -261,6 +235,51 @@ function _step!(sa::StaticAnalysis, alg::NewtonRaphson)
         Δ_displacements(c_state), displacements(c_state),
         residual_forces(c_state), external_forces(c_state)
     )
+
+
+    "Internal function to solve different analysis problem"
+    function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
+
+        s = structure(sa)
+
+        states = []
+
+        # load factors iteration 
+        while !is_done(sa)
+
+            _reset!(current_iteration(sa))
+
+            _apply!(sa, load_bcs(s)) # Compute Fext
+
+            @debug external_forces(current_state(sa))
+
+            while !isconverged!(current_iteration(sa), tolerances(alg))
+
+                # Computes system residual forces tangent system matrix    
+                _assemble_system!(s, sa, alg)
+
+                @debug view(internal_forces(current_state(sa)), index.(free_dofs(s)))
+                @debug residual_forces(current_state(sa))
+                @debug tangent_matrix(current_state(sa))[index.(s.free_dofs), index.(s.free_dofs)]
+
+                # Increment U 
+                _step!(sa, alg)
+
+                @debug current_iteration(sa)
+                @debug isconverged!(current_iteration(sa), tolerances(alg))
+
+            end
+
+            push!(states, deepcopy(current_state(sa)))
+
+            _next!(sa, alg)
+
+        end
+
+        return states
+    end
+
+
 
 end
 

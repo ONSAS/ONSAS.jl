@@ -1,6 +1,6 @@
-#############################
-# Materials interface tests #
-#############################
+###################################
+# BoundaryConditions module tests #
+###################################
 using Test: @testset, @test
 using ONSAS.BoundaryConditions
 
