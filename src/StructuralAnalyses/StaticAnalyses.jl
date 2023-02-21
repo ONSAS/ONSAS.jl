@@ -4,6 +4,7 @@ using Reexport: @reexport
 using StaticArrays: @MVector
 using SparseArrays: SparseMatrixCSC
 using IterativeSolvers: cg
+using LinearAlgebra: norm
 
 @reexport using ..Materials
 @reexport using ...Elements
@@ -159,19 +160,60 @@ current_load_factor(sa::StaticAnalysis) = current_time(sa)
 "Jumps to the next current load factor defined in the `StaticAnalysis` `sa`."
 _next!(sa::StaticAnalysis) = sa.current_step += 1
 
-#=
-
 #================#
 # Solve
 #================#
 
-"Assembles the Structure `s` during the `StaticAnalysis` `sa`."
-function _assemble_system!(s::AbstractStructure, sa::StaticAnalysis)
+"Solves an `StaticAnalysis` `sa` with an AbstractSolver `alg`."
+function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
+
+    s = structure(sa)
+
+    states = []
+
+
+    # load factors iteration 
+    while !is_done(sa)
+
+        _reset!(current_iteration(sa))
+
+        _apply!(sa, load_bcs(s)) # Compute Fext
+
+        @debug external_forces(current_state(sa))
+
+        while !isconverged!(current_iteration(sa), tolerances(alg))
+
+            # Computes residual forces and tangent matrix    
+            _assemble!(s, sa)
+
+            @debug view(internal_forces(current_state(sa)), index.(free_dofs(s)))
+            @debug residual_forces(current_state(sa))
+            @debug tangent_matrix(current_state(sa))[index.(free_dofs(s)), index.(free_dofs(s))]
+
+            # Increment U 
+            _step!(sa, alg)
+
+            @debug current_iteration(sa)
+            @debug isconverged!(current_iteration(sa), tolerances(alg))
+
+        end
+
+        push!(states, deepcopy(current_state(sa)))
+
+        _next!(sa)
+
+    end
+
+    return states
+end
+
+"Assembles the Structure `s` (internal forces) during the `StaticAnalysis` `sa`."
+function _assemble!(s::AbstractStructure, sa::StaticAnalysis)
 
     state = current_state(sa)
 
     # Reset assembler
-    _reset_assembler!(state)
+    _reset!(state)
 
     for (mat, mat_elements) in pairs(materials(s))
         for e in mat_elements
@@ -181,89 +223,45 @@ function _assemble_system!(s::AbstractStructure, sa::StaticAnalysis)
             fᵢₙₜ_e, kₛ_e, σ_e, ϵ_e = internal_forces(mat, e, u_e)
 
             # Assembles the element internal magnitudes 
-            _assemble!(state, fᵢₙₜ_e, kₛ_e, σ_e, ϵ_e, e)
+            _assemble!(state, fᵢₙₜ_e, e)
+            _assemble!(state, kₛ_e, e)
+            _assemble!(state, σ_e, ϵ_e, e)
 
         end
 
     end
 
-    # Insert values in the assembler objet into the tangent stiffness matrix
-    end_assemble!(tangent_matrix(state), assembler(state))
-
+    # Insert values in the assembler objet into the sysyem tangent stiffness matrix
+    _end_assemble!(state)
 
 end
 
-
-
-function _step!(sa::StaticAnalysis, alg::NewtonRaphson)
+"Computes ΔU for solving the `StaticAnalyses` `sa` with a `NewtonRaphson` method."
+function _step!(sa::StaticAnalysis, ::NewtonRaphson)
 
     # Extract state info
     c_state = current_state(sa)
-    f_dofs = free_dofs(structure(sa))
-    f_dofs_indexes = index.(f_dofs)
+    f_dofs_indexes = index.(free_dofs(c_state))
 
     # Compute Δu
     r = residual_forces(c_state)
     K = view(tangent_matrix(c_state), f_dofs_indexes, f_dofs_indexes)
     ΔU = cg(K, r)
 
-    # Update state
-    Δ_displacements(c_state) = ΔU
-    displacements(c_state)[f_dofs] += ΔU
+    # Compute norms
+    norm_ΔU = norm(ΔU)
+    rel_norm_ΔU = norm_ΔU / norm(displacements(c_state))
+    norm_r = norm(r)
+    rel_norm_r = norm_r / norm(external_forces(c_state))
+
+    # Update displacements into the state
+    _update!(c_state, ΔU)
 
     # Update iteration 
-    _update!(current_iteration(sa),
-        Δ_displacements(c_state), displacements(c_state),
-        residual_forces(c_state), external_forces(c_state)
-    )
-
-end
-    "Internal function to solve different analysis problem"
-    function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
-
-        s = structure(sa)
-
-        states = []
-
-        # load factors iteration 
-        while !is_done(sa)
-
-            _reset!(current_iteration(sa))
-
-            _apply!(sa, load_bcs(s)) # Compute Fext
-
-            @debug external_forces(current_state(sa))
-
-            while !isconverged!(current_iteration(sa), tolerances(alg))
-
-                # Computes system residual forces tangent system matrix    
-                _assemble_system!(s, sa, alg)
-
-                @debug view(internal_forces(current_state(sa)), index.(free_dofs(s)))
-                @debug residual_forces(current_state(sa))
-                @debug tangent_matrix(current_state(sa))[index.(s.free_dofs), index.(s.free_dofs)]
-
-                # Increment U 
-                _step!(sa, alg)
-
-                @debug current_iteration(sa)
-                @debug isconverged!(current_iteration(sa), tolerances(alg))
-
-            end
-
-            push!(states, deepcopy(current_state(sa)))
-
-            _next!(sa, alg)
-
-        end
-
-        return states
-    end
-
-
+    _update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)
 
 end
 
-=#
+
 
 end # module

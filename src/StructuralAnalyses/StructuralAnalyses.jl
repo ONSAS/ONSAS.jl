@@ -24,8 +24,7 @@ export AbstractStructuralState, _assemble!, displacements, Δ_displacements, ext
     tangent_matrix, residual_forces_norms, residual_displacements_norms, iteration_residuals, tangent_matrix, structure,
     assembler, iteration_residuals, residual_forces_norms, residual_displacements_norms
 
-export AbstractStructuralAnalysis, initial_time, current_time, final_time,
-    _next!, is_done, current_state, current_iteration
+export AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done, current_state, current_iteration
 export _apply!
 
 """ Abstract supertype to define a new structural state.
