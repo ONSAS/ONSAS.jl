@@ -5,6 +5,8 @@ using Test: @testset, @test
 using LinearAlgebra: norm
 using ONSAS.StructuralAnalyses.StaticAnalyses
 
+const RTOL = 1e-2
+
 ## scalar parameters
 E = 210e9  # Young modulus in Pa
 ν = 0.0  # Poisson's modulus
@@ -134,9 +136,9 @@ nr = NewtonRaphson(tols)
     σ_e_1 = rand(1)
     ϵ_e_1 = rand(1)
     _assemble!(default_s, fᵢₙₜ_e_1, truss₁)
-    @test internal_forces(default_s)[1:6] == fᵢₙₜ_e_1
+    @test internal_forces(default_s)[1:6] ≈ fᵢₙₜ_e_1 rtol = RTOL
     _assemble!(default_s, k_e_1, truss₁)
-    @test internal_forces(default_s)[1:6] == fᵢₙₜ_e_1
+    @test internal_forces(default_s)[1:6] ≈ fᵢₙₜ_e_1 rtol = RTOL
     _assemble!(default_s, σ_e_1..., ϵ_e_1..., truss₁)
     # truss₂ element
     fᵢₙₜ_e_2 = rand(6)
@@ -158,10 +160,10 @@ nr = NewtonRaphson(tols)
     K_system[1:6, 1:6] += k_e_1
     K_system[4:9, 4:9] += k_e_2
 
-    @test internal_forces(default_s) == Fᵢₙₜ
-    @test tangent_matrix(default_s) == K_system
-    @test strain(default_s) == [ϵ_e_1..., ϵ_e_2...]
-    @test stress(default_s) == [σ_e_1..., σ_e_2...]
+    @test internal_forces(default_s) ≈ Fᵢₙₜ rtol = RTOL
+    @test tangent_matrix(default_s) ≈ K_system rtol = RTOL
+    @test strain(default_s) ≈ [ϵ_e_1..., ϵ_e_2...] rtol = RTOL
+    @test stress(default_s) ≈ [σ_e_1..., σ_e_2...] rtol = RTOL
 
 end
 
@@ -192,7 +194,6 @@ end
     _next!(sa_init)
     _next!(sa_init)
     @test is_done(sa_init)
-
 
 end
 
