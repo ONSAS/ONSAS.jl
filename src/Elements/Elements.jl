@@ -17,8 +17,8 @@ using ..Utils: row_vector
 
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
-export AbstractElement, cross_section, coordinates, internal_forces, inertial_forces,
-    local_dof_symbol, local_dofs, nodes, strain, stress
+export AbstractFace, coordinates, nodes
+export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress
 
 # ========================
 # Degree of freedom (Dof)
@@ -102,6 +102,57 @@ end
 include("./Node.jl")
 
 # =================
+# Abstract Face
+# =================
+abstract type AbstractFace{dim,T} end
+
+""" Abstract supertype for all elements.
+
+An `AbstractFace` object facilitates the process of adding boundary conditions on a surface. 
+
+**Common methods:**
+
+* [`coordinates`](@ref)
+* [`dofs`](@ref)
+* [`label`](@ref)
+* [`nodes`](@ref)
+
+**Common fields:**
+* nodes
+* label
+"""
+
+"Returns the `AbstractFace` `f` coordinates."
+coordinates(f::AbstractFace) = coordinates.(nodes(f))
+
+"Returns the `AbstractFace` `f` dimension."
+dimension(::AbstractFace{dim}) where {dim} = dim
+
+"Returns the dofs of `AbstractFace` `f`."
+function dofs(f::AbstractFace)
+    vecdfs = dofs.(nodes(f))
+    dfs = mergewith(vcat, vecdfs[end], vecdfs[end-1])
+
+    for i in 1:length(vecdfs)-2
+        dfs = mergewith(vcat, dfs, vecdfs[end-(1+i)])
+    end
+    dfs
+end
+
+"Returns the dofs of a vector `vf` with `AbstractFace`s."
+dofs(vf::Vector{<:AbstractFace}) = unique(row_vector(dofs.(vf)))
+
+"Returns the label of `AbstractFace` `f`."
+label(f::AbstractFace) = f.label
+
+#==============================#
+# AbstractFace implementations #
+#==============================#
+
+include("./TriangularFace.jl")
+
+
+# =================
 # Abstract Element
 # =================
 
@@ -118,6 +169,7 @@ An `AbstractElement` object facilitates the process of evaluating:
 **Common methods:**
 
 * [`coordinates`](@ref)
+* [`dimension`](@ref)
 * [`dofs`](@ref)
 * [`local_dofs`](@ref)
 This method is a hard contract and must be implemented to define a new element.
@@ -142,6 +194,9 @@ coordinates(e::AbstractElement) = coordinates.(nodes(e))
 
 "Returns the `AbstractElement` `e` cross_section."
 cross_section(e::AbstractElement) = e.cross_section
+
+"Returns the `AbstractElement` `e` dimension."
+dimension(::AbstractElement{dim}) where {dim} = dim
 
 "Returns the dofs of `AbstractElement` `e`."
 dofs(e::AbstractElement) = mergewith(vcat, dofs.(nodes(e))...)
@@ -174,7 +229,7 @@ end
 "Returns the label of an `AbstractElement` `e`."
 label(e::AbstractElement) = e.label
 
-"Returns the `Node`s of an `AbstractElement` `e`."
+"Returns a `Vector` of `Node`s defined in the `AbstractElement` `e`."
 nodes(e::AbstractElement) = e.nodes
 
 "Returns the internal forces vector of an `AbstractElement` `e`."
@@ -192,7 +247,6 @@ function stress(e::AbstractElement, args...; kwargs...) end
 #=================================#
 # AbstractElement implementations #
 #=================================#
-
 
 include("./Truss.jl")
 

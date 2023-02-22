@@ -82,7 +82,7 @@ function add!(m::AbstractMesh, dof_symbol::Symbol, dofs_per_node::Int)
     end
 end
 
-"Returns the `Node`s of the `AbstractMesh` `m`."
+"Returns a `Vector` of `Node`s defined in the `AbstractMesh` `m`."
 nodes(m::AbstractMesh) = m.nodes
 
 "Returns the number of `Node`s of the `AbstractMesh` `m`."

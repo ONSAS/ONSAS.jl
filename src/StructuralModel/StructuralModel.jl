@@ -15,8 +15,6 @@ using ..Utils: row_vector, label
 import ..Elements: dofs, nodes
 import ..Meshes: num_dofs, elements, num_elements, num_nodes
 
-export StructuralMaterials
-export StructuralBoundaryConditions, node_bcs, element_bcs, displacement_bcs, load_bcs, fixed_dof_bcs
 export Structure, mesh, materials, boundary_conditions, num_free_dofs, free_dofs
 
 
@@ -73,7 +71,7 @@ free_dofs(s::AbstractStructure) = s.free_dofs
 "Returns the number of free `Dof`s of the `AbstractStructure` `s`"
 num_free_dofs(s::AbstractStructure) = length(free_dofs(s))
 
-"Returns the `Node`s of the `AbstractStructure` `s`"
+"Returns a `Vector` of `Node`s defined in the `AbstractStructure` `s`."
 nodes(s::AbstractStructure) = nodes(mesh(s))
 
 "Returns the number of `Node`s of the `AbstractStructure` `s`"

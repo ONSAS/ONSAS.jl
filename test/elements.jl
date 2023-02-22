@@ -19,24 +19,28 @@ using ONSAS.Elements
     u[θⱼ_dof] = new_val
     @test u[θⱼ_dof] == new_val
 
-
 end
+
+# Using StaticArrays, Tuples or Vector
+node_eltypes = [Float32, Float64, Int]
+node_eltype = rand(node_eltypes)
+xᵢ = node_eltype(rand(-100:100))
+x_sa2D = SVector(xᵢ, 2xᵢ)
+x_vec2D = [xᵢ, 2xᵢ, 3xᵢ]
+x_tup2D = (xᵢ, 2xᵢ)
+x_test_vec_2D = [x_sa2D, x_vec2D, x_tup2D]
+x_test_2D = rand(x_test_vec_2D)
+x_sa3D = SVector(xᵢ, 2xᵢ, 3xᵢ)
+x_vec3D = [xᵢ, 2xᵢ, 3xᵢ]
+x_tup3D = (xᵢ, 2xᵢ, 3xᵢ)
+x_test_vec_3D = [x_sa3D, x_vec3D, x_tup3D]
+x_test_3D = rand(x_test_vec_3D)
 
 @testset "ONSAS.Elements.Node 2D" begin
 
-    # Using StaticArrays, Tuples or Vector
-    node_eltypes = [Float32, Float64, Int]
-    node_eltype = rand(node_eltypes)
-    xᵢ = node_eltype(rand(-100:100))
-    x_sa = SVector(xᵢ, 2xᵢ)
-    x_vec = [xᵢ, 2xᵢ]
-    x_tup = (xᵢ, 2xᵢ)
-    x_test_vec = [x_sa, x_vec, x_tup]
-    x_test = rand([x_sa, x_vec, x_tup])
-
-    node = Node(x_test[1], x_test[2])
+    node = Node(x_test_2D[1], x_test_2D[2])
     @test all([node[i] == xᵢ for (i, xᵢ) in enumerate(coordinates(node))])
-    @test dimension(node) == length(x_test)
+    @test dimension(node) == length(x_test_2D)
 
     # Dofs
     first_dof = 1
@@ -52,21 +56,34 @@ end
 
 @testset "ONSAS.Elements.Node 3D" begin
 
-    # Using StaticArrays, Tuples or Vector
-    node_eltypes = [Float32, Float64, Int]
-    node_eltype = rand(node_eltypes)
-    xᵢ = node_eltype(rand(-100:100))
-    x_sa = SVector(xᵢ, 2xᵢ, 3xᵢ)
-    x_vec = [xᵢ, 2xᵢ, 3xᵢ]
-    x_tup = (xᵢ, 2xᵢ, 3xᵢ)
-    x_test_vec = [x_sa, x_vec, x_tup]
-    x_test = rand([x_sa, x_vec, x_tup])
-
-    node = Node(x_test[1], x_test[2], x_test[3])
+    node = Node(x_test_3D[1], x_test_3D[2], x_test_3D[3])
     @test all([node[i] == xᵢ for (i, xᵢ) in enumerate(coordinates(node))])
-    @test dimension(node) == length(x_test)
+    @test dimension(node) == length(x_test_3D)
 
 end
+
+@testset "ONSAS.Elements.TriangularFace" begin
+
+    x₁ = [-1, 0, 0]
+    x₂ = [0, 1, 0]
+    x₃ = [0, 0, 1]
+
+    n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(10), Dof(11), Dof(12)]]))
+    n₂ = Node(x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(13), Dof(14), Dof(15)]]))
+    n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(16), Dof(17), Dof(18)]]))
+
+
+    face_label = "my_face"
+    f₁ = TriangularFace(n₁, n₂, n₃, face_label)
+    @test nodes(f₁) == [n₁, n₂, n₃]
+    @test coordinates(f₁) == [coordinates(n₁), coordinates(n₂), coordinates(n₃)]
+    @test dimension(f₁) == dimension(n₁) == dimension(n₂) == dimension(n₃)
+    @test all([d ∈ dofs(f₁)[:u] for d in [Dof(1), Dof(2), Dof(3), Dof(4), Dof(5), Dof(6), Dof(7), Dof(8), Dof(9)]])
+    @test all([d ∈ dofs(f₁)[:θ] for d in [Dof(10), Dof(11), Dof(12), Dof(13), Dof(14), Dof(15), Dof(16), Dof(17), Dof(18)]])
+    @test label(f₁) == Symbol(face_label)
+
+end
+
 
 @testset "ONSAS.Elements.Truss 3D" begin
 
@@ -94,6 +111,7 @@ end
     my_label = "my_truss"
     t = Truss(n₁, n₂, square_corss_section, my_label)
 
+    @test dimension(t) == dimension(n₁) == dimension(n₂)
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
     @test x₁ ∈ coordinates(t) && x₂ ∈ coordinates(t)
     @test cross_section(t) == square_corss_section
