@@ -10,14 +10,14 @@ A `Node` is a point in space. The coordinates of the node are stored using `SVec
 - `x`     -- stores the coordinates.
 - `dofs`  -- stores the node degrees of freedom, maps symbol to dofs.
 """
-struct Node{dim,T} <: AbstractNode{dim,T}
-    x::AbstractArray{T}
+struct Node{dim,T,X} <: AbstractNode{dim,T}
+    x::X
     dofs::Dictionary{Symbol,Vector{Dof}}
     function Node(
-        x::AbstractArray{T}, dofs::Dictionary{Symbol,Vector{Dof}}=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real}
+        x::X, dofs::Dictionary{Symbol,Vector{Dof}}=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real,X<:AbstractVector{T}}
         dim = length(x)
         @assert dim ≤ 3 "Only 1D,2D or 3D nodes are supported"
-        new{dim,T}(x, dofs)
+        new{dim,T,X}(x, dofs)
     end
 end
 
