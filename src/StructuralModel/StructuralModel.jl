@@ -15,8 +15,6 @@ using ..Utils: row_vector, label
 import ..Elements: dofs, nodes
 import ..Meshes: num_dofs, elements, num_elements, num_nodes
 
-export StructuralMaterials
-export StructuralBoundaryConditions, node_bcs, element_bcs, displacement_bcs, load_bcs, fixed_dof_bcs
 export Structure, mesh, materials, boundary_conditions, num_free_dofs, free_dofs
 
 

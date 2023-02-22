@@ -1,3 +1,10 @@
+using ..Materials: AbstractMaterial
+using ..Elements: AbstractElement
+using Dictionaries: Dictionary, dictionary
+using ..Utils: label
+
+export StructuralMaterials
+
 """ Structural materials struct.
 A `StructuralMaterials` is a collection of `Material`s and `Element`s assigning materials to a vector of elements.
 ### Fields:

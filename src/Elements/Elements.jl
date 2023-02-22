@@ -17,8 +17,8 @@ using ..Utils: row_vector
 
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
-export AbstractElement, cross_section, coordinates, internal_forces, inertial_forces,
-    local_dof_symbol, local_dofs, nodes, strain, stress
+export AbstractFace, coordinates, nodes
+export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress
 
 # ========================
 # Degree of freedom (Dof)
