@@ -132,16 +132,14 @@ This method is a hard contract and for dynamic analysis must be implemented to d
 * [`inertial_forces`](@ref)
 
 **Common fields:**
-* nodes
 * label
-
 """
 
 "Returns the `AbstractElement` `e` coordinates."
 coordinates(e::AbstractElement) = coordinates.(nodes(e))
 
-"Returns the `AbstractElement` `e` cross_section."
-cross_section(e::AbstractElement) = e.cross_section
+"Returns the `AbstractElement` `e` cross-section."
+function cross_section(::AbstractElement) end
 
 "Returns the dofs of `AbstractElement` `e`."
 dofs(e::AbstractElement) = mergewith(vcat, dofs.(nodes(e))...)
@@ -175,7 +173,7 @@ end
 label(e::AbstractElement) = e.label
 
 "Returns the `Node`s of an `AbstractElement` `e`."
-nodes(e::AbstractElement) = e.nodes
+function nodes(::AbstractElement) end
 
 "Returns the internal forces vector of an `AbstractElement` `e`."
 function internal_forces(e::AbstractElement, args...; kwargs...) end
@@ -192,7 +190,6 @@ function stress(e::AbstractElement, args...; kwargs...) end
 #=================================#
 # AbstractElement implementations #
 #=================================#
-
 
 include("./Truss.jl")
 

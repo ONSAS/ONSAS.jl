@@ -3,7 +3,7 @@ using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye
 
-import ..Elements: nodes, internal_forces, local_dof_symbol, strain, stress
+import ..Elements: nodes, cross_section, internal_forces, local_dof_symbol, strain, stress
 
 export Truss
 
@@ -29,6 +29,9 @@ end
 #==============================#
 # Truss element hard contracts #
 #==============================#
+
+"Returns the cross-section of a `Truss` element `t`."
+cross_section(t::Truss) = t.cross_section
 
 "Returns the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]

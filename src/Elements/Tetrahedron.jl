@@ -1,6 +1,10 @@
-using ..Materials: AbstractMaterial, SVK
-using ..Utils: ScalarWrapper, eye
-using StaticArrays: @SMatrix, @SVector
+using ..Materials: SVK
+using ..Elements: AbstractElement, AbstractNode
+using ..CrossSections: AbstractCrossSection, area
+using ..Utils: eye
+
+import ..Elements: nodes, internal_forces, local_dof_symbol, strain, stress
+
 export Tetrahedron
 
 """
