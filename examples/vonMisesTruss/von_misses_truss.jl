@@ -1,15 +1,18 @@
-## Von Mises truss example problem
-using ONSAS
-using Test
+# ------------------------------------------------------------- 
+# Von Misses Truss Example from (Zerpa, Bazzano 2017 ) - 2.5.4
+# -------------------------------------------------------------
+using Test: @test
+using ONSAS.StaticAnalyses
 ## scalar parameters
-E = 210e9  # Young modulus in Pa
-ν = 0.0  # Poisson's modulus
-A = 2.5e-3   # Cross-section area in m^2
-ang = 65 # truss angle in degrees
-L = 2 # Length in m 
-d = L * cos(deg2rad(65))   # vertical distance in m
-h = L * sin(deg2rad(65))
-Fₖ = -3e8  # vertical   load in N
+const E = 210e9                 # Young modulus in Pa
+const ν = 0.0                   # Poisson's modulus
+const A₀ = 2.5e-3                # Cross-section area in m²
+const ANG = 65                  # truss angle in degrees
+const L = 2                     # Length in m 
+const V = L * cos(deg2rad(ANG)) # vertical distance in m 
+const H = L * sin(deg2rad(ANG)) # horizontal distance in m
+const Fₖ = -3e8                 # Vertical load in N
+const RTOL = 1e-4               # Relative tolerance for tests
 # -------------------------------
 # Materials
 # -------------------------------
@@ -17,20 +20,22 @@ steel = SVK(E, ν, "steel")
 # -------------------------------
 # Geometries
 # -------------------------------
-## Cross section
-a = sqrt(4 * A / pi)
-s = Circle(a)
+## Cross sections
+d = sqrt(4 * Aₒ / pi)
+s₁ = Circle(d)
+a = sqrt(Aₒ)
+s₂ = Square(a)
 # -------------------------------
 # Create mesh
 # -------------------------------
 ## Nodes
 n₁ = Node(0.0, 0.0, 0.0)
-n₂ = Node(d, 0.0, h)
-n₃ = Node(2d, 0.0, 0.0)
+n₂ = Node(V, 0.0, H)
+n₃ = Node(2V, 0.0, 0.0)
 vec_nodes = [n₁, n₂, n₃]
 ## Elements 
-truss₁ = Truss(n₁, n₂, s, "left_truss") # [n₁, n₂]
-truss₂ = Truss(n₂, n₃, s, "right_truss") # [n₂, n₃]
+truss₁ = Truss(n₁, n₂, s₁, "left_truss") # [n₁, n₂]
+truss₂ = Truss(n₂, n₃, s₁, "right_truss") # [n₂, n₃]
 vec_elems = [truss₁, truss₂]
 ## Mesh
 s_mesh = Mesh(vec_nodes, vec_elems)
@@ -54,7 +59,6 @@ bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed_uⱼ")
 bc₃ = GlobalLoadBoundaryCondition([:u], t -> [0, 0, Fₖ * t], "load in j")
 node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
 s_boundary_conditions = StructuralBoundaryConditions(node_bc)
-# Simplificar en un solo diccionario y que el constructor reciba las dos
 # -------------------------------
 # Structure
 # -------------------------------
@@ -67,18 +71,31 @@ s = Structure(s_mesh, s_materials, s_boundary_conditions)
 NSTEPS = 10
 sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
 # -------------------------------
-# Solve analysis
+# Algorithm
 # -------------------------------
 tol_f = 1e-7;
 tol_u = 1e-7;
 max_iter = 100;
 tols = ConvergenceSettings(tol_u, tol_f, max_iter)
 nr = NewtonRaphson(tols)
-states = solve(sa, nr)
+# -------------------------------
+# Numerical solution
+# -------------------------------
+states_sol = solve(sa, nr)
+numerical_uₖ = getindex.(displacements.(states_sol), index(Dof(6)))
+numerical_λᵥ = -load_factors(sa) * Fₖ
 #-----------------------------
-# Plot results 
+# Analytic solution  
 #-----------------------------
-numerical_uₖ = getindex.(displacements.(states), index(Dof(6)))
-values_from_ONSASm = -[0.0703, 0.1424, 0.2166, 0.2935, 0.3739, 0.4591, 0.5511, 0.6540, 0.7781, 0.9836]
-@test numerical_uₖ ≈ values_from_ONSASm rtol = 1e-3
-
+"Analytic load factor solution for the displacement `uₖ` towards z axis of node `n₂`."
+function load_factors_analytic(uₖ::Real, E::Real=E, A::Real=A₀, H::Real=H, V::Real=V, l₀=L)
+    λ = -2 * E * A *
+        ((H + uₖ)^2 + V^2 - l₀^2) /
+        (l₀ * (l₀ + sqrt((H + uₖ)^2 + V^2))) *
+        (H + uₖ) / sqrt((H + uₖ)^2 + V^2)
+end
+analytics_λᵥ = load_factors_analytic.(numerical_uₖ)
+#-----------------------------
+# Test boolean for CI  
+#-----------------------------
+@test analytics_λᵥ ≈ numerical_λᵥ rtol = RTOL

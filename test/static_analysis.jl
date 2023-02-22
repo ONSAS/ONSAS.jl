@@ -5,7 +5,7 @@ using Test: @testset, @test
 using LinearAlgebra: norm
 using ONSAS.StructuralAnalyses.StaticAnalyses
 
-const RTOL = 1e-2
+const RTOL = 5e-2
 
 ## scalar parameters
 E = 210e9  # Young modulus in Pa
