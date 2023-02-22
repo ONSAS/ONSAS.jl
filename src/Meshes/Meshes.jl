@@ -6,8 +6,6 @@ module Meshes
 
 using Reexport: @reexport
 
-@reexport using Dictionaries: Dictionary
-
 @reexport using ..Elements
 using ..Utils: row_vector
 

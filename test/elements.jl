@@ -1,10 +1,9 @@
-########################
-# Mesh interface tests #
-########################
+#########################
+# Elements module tests #
+#########################
 using Test: @testset, @test
 using LinearAlgebra: norm
 using StaticArrays: SVector
-using ONSAS.Materials: SVK
 using ONSAS.Elements
 
 @testset "ONSAS.Elements.Dof" begin

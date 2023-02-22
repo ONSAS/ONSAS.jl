@@ -6,7 +6,6 @@ module StructuralModel
 
 using Reexport: @reexport
 
-@reexport using Dictionaries: Dictionary
 @reexport using ..Materials
 @reexport using ..Elements
 @reexport using ..BoundaryConditions

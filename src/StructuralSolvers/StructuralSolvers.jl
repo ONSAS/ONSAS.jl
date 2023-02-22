@@ -91,21 +91,6 @@ residual_forces_tol(ri_step::ResidualsIterationStep) = (ri_step.Δr_rel, ri_step
 "Returns the current absolute and relative residual forces norm of the `ResidualsIterationStep` `i_step`."
 displacement_tol(ri_step::ResidualsIterationStep) = (ri_step.ΔU_rel, ri_step.ΔU_norm)
 
-"Updates displacement residuals in the `ResidualsIterationStep` struct `i_step`."
-function _update_U!(ri_step::ResidualsIterationStep, U::AbstractVector, ΔU_rel::AbstractVector)
-    ri_step.ΔU_norm = norm(ΔU_rel)
-    ri_step.ΔU_rel = ri_step.ΔU_norm / norm(U)
-end
-
-"Updates forces residuals in the `ResidualsIterationStep` struct `i_step`."
-function _update_r!(ri_step::ResidualsIterationStep, fₑₓₜ::AbstractVector{T}, Δr::AbstractVector{T}) where {T<:Real}
-    ri_step.Δr_norm = norm(Δr)
-    ri_step.Δr_rel = ri_step.Δr_norm / norm(fₑₓₜ)
-end
-
-"Updates the `ResidualsIterationStep` `i_step` current convergence criterion."
-_update!(ri_step::ResidualsIterationStep, criterion::AbstractConvergenceCriterion) = ri_step.criterion = criterion
-
 "Sets the `ResidualsIterationStep` `i_step` iteration step to 0."
 function _reset!(ri_step::ResidualsIterationStep{T}) where {T<:Real}
     ri_step.ΔU_norm = ri_step.Δr_norm = ri_step.ΔU_rel = ri_step.Δr_rel = 1e14 * ones(T)[1]
@@ -114,15 +99,18 @@ function _reset!(ri_step::ResidualsIterationStep{T}) where {T<:Real}
     return ri_step
 end
 
-"Updates the `ResidualsIterationStep` `i_step` iteration step with the current values of the
-displacement `U` and its increment `ΔU`, the residual increment `Δr`, the external forces vector `fₑₓₜ`
-and checks if the iteration has converged given a `ConvergenceSettings` `cs`."
-function _update!(ri_step::ResidualsIterationStep,
-    ΔU::AbstractVector, U::AbstractVector,
-    Δr::AbstractVector, fₑₓₜ::AbstractVector)
+"Updates the `ResidualsIterationStep` `i_step` current convergence criterion."
+_update!(ri_step::ResidualsIterationStep, criterion::AbstractConvergenceCriterion) = ri_step.criterion = criterion
 
-    _update_U!(ri_step, U, ΔU)
-    _update_r!(ri_step, fₑₓₜ, Δr)
+"Updates the `ResidualsIterationStep` `i_step` iteration step with the current values of the displacement residuals
+`ΔU_norm` and `ΔU_rel`, the norm of the residual forces increment `Δr_norm`, and the relative `Δr_rel`."
+function _update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real, Δr_norm::Real, Δr_rel::Real)
+
+    ri_step.ΔU_norm = ΔU_norm
+    ri_step.ΔU_rel = ΔU_rel
+    ri_step.Δr_norm = Δr_norm
+    ri_step.Δr_rel = Δr_rel
+
     _step!(ri_step)
 
     return ri_step
@@ -157,7 +145,7 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
         @warn "Maximum number of iterations was reached."
     end
 
-    if Δr_relᵏ ≤ Δr_rel_tol && ΔU_relᵏ ≤ ΔU_rel_tol || Δr_relᵏ < eps() || ΔU_relᵏ < eps()
+    if Δr_relᵏ ≤ Δr_rel_tol && ΔU_relᵏ ≤ ΔU_rel_tol || Δr_nromᵏ < eps() || ΔU_nromᵏ < eps()
         _update!(ri_step, ΔU_and_ResidualForce_Criteria())
         return true
     end
@@ -181,7 +169,7 @@ step_size(solver::AbstractSolver) = solver.Δt
 tolerances(solver::AbstractSolver) = solver.tol
 
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
-function _step!(solver::AbstractSolver, analysis::A, args...; kwargs...) where {A} end
+function _step!(solver::AbstractSolver, analysis::A,) where {A} end
 
 include("./NewtonRaphson.jl")
 

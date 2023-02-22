@@ -1,5 +1,11 @@
+#########################
+# Static Analysis tests #
+#########################
+using Test: @testset, @test
+using LinearAlgebra: norm
 using ONSAS.StructuralAnalyses.StaticAnalyses
-using Test
+
+const RTOL = 1e-2
 
 ## scalar parameters
 E = 210e9  # Young modulus in Pa
@@ -71,35 +77,104 @@ nr = NewtonRaphson(tols)
 @testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticState" begin
 
     # Random static state
-    Δuᵏ = zeros(2)
-    Uᵏ = zeros(4)
-    Fₑₓₜᵏ = rand(4)
-    Fᵢₙₜᵏ = rand(4)
-    Kₛᵏ = rand(4, 4)
-    ϵ = Vector{}(undef, 2)
-    σ = Vector{}(undef, 2)
+    ΔUᵏ = rand(2)
+    Uᵏ = rand(9)
+    Fₑₓₜᵏ = rand(9)
+    Fᵢₙₜᵏ = rand(9)
+    Kₛᵏ = rand(9, 9)
+    ϵᵏ = rand(2)
+    σᵏ = rand(2)
     s_assembler = Assembler(2)
     iter_residuals = ResidualsIterationStep()
 
-    sst_rand = StaticState(s, Δuᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵ, σ,
-        s_assembler, iter_residuals)
+    sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, s_assembler, iter_residuals)
 
-    @test assembler(sst_rand) == s_assembler
+    # Accessors
     @test displacements(sst_rand) == Uᵏ
-    @test Δ_displacements(sst_rand) == Δuᵏ
+    @test Δ_displacements(sst_rand) == ΔUᵏ
     @test external_forces(sst_rand) == Fₑₓₜᵏ
-    @test internal_forces(sst_rand) == iter_residuals
+    @test iteration_residuals(sst_rand) == iter_residuals
     @test residual_forces(sst_rand) == Fₑₓₜᵏ[free_dofs(s)] - Fᵢₙₜᵏ[free_dofs(s)]
     @test tangent_matrix(sst_rand) == Kₛᵏ
+    @test strain(sst_rand) == ϵᵏ
+    @test stress(sst_rand) == σᵏ
+    @test structure(sst_rand) == s
+    @test free_dofs(sst_rand) == free_dofs(s)
+
+    # Iteration 
+    @test assembler(sst_rand) == s_assembler
+    @test iteration_residuals(sst_rand) == iter_residuals
+    norm_r = norm(residual_forces(sst_rand))
+    relative_norm_res = norm_r / norm(external_forces(sst_rand))
+    @test residual_forces_norms(sst_rand) == (norm_r, relative_norm_res)
+    norm_ΔU = norm(Δ_displacements(sst_rand))
+    norm_U = norm(displacements(sst_rand))
+    @test residual_displacements_norms(sst_rand) == (norm_ΔU, norm_ΔU / norm_U)
+
+    ΔUᵏ⁺¹ = rand(2)
+    _update!(sst_rand, ΔUᵏ⁺¹)
+    @test Δ_displacements(sst_rand) == ΔUᵏ⁺¹
+    Uᵏ⁺¹ = Uᵏ
+    Uᵏ⁺¹[free_dofs(s)] += ΔUᵏ⁺¹
+    @test displacements(sst_rand) == Uᵏ⁺¹
+
+    # Reset the assembled magnitudes
+    _reset!(sst_rand)
+    @test isempty(assembler(sst_rand).V)
+    @test isempty(assembler(sst_rand).I)
+    @test isempty(assembler(sst_rand).J)
+    @test iszero(internal_forces(sst_rand))
+    @test iszero(tangent_matrix(sst_rand))
+
+    # Default static analysis of the structure 
+    default_s = StaticState(s)
+
+    # Assemble process
+    # truss₁ element
+    fᵢₙₜ_e_1 = rand(6)
+    k_e_1 = rand(6, 6)
+    σ_e_1 = rand(1)
+    ϵ_e_1 = rand(1)
+    _assemble!(default_s, fᵢₙₜ_e_1, truss₁)
+    @test internal_forces(default_s)[1:6] ≈ fᵢₙₜ_e_1 rtol = RTOL
+    _assemble!(default_s, k_e_1, truss₁)
+    @test internal_forces(default_s)[1:6] ≈ fᵢₙₜ_e_1 rtol = RTOL
+    _assemble!(default_s, σ_e_1..., ϵ_e_1..., truss₁)
+    # truss₂ element
+    fᵢₙₜ_e_2 = rand(6)
+    k_e_2 = rand(6, 6)
+    σ_e_2 = rand(1)
+    ϵ_e_2 = rand(1)
+    _assemble!(default_s, fᵢₙₜ_e_2, truss₂)
+    _assemble!(default_s, k_e_2, truss₂)
+    _assemble!(default_s, σ_e_2..., ϵ_e_2..., truss₂)
+    # End assemble 
+    _end_assemble!(default_s)
+
+
+    # Manufactured assemble 
+    Fᵢₙₜ = zeros(9)
+    Fᵢₙₜ[1:6] += fᵢₙₜ_e_1
+    Fᵢₙₜ[4:9] += fᵢₙₜ_e_2
+    K_system = zeros(9, 9)
+    K_system[1:6, 1:6] += k_e_1
+    K_system[4:9, 4:9] += k_e_2
+
+    @test internal_forces(default_s) ≈ Fᵢₙₜ rtol = RTOL
+    @test tangent_matrix(default_s) ≈ K_system rtol = RTOL
+    @test strain(default_s) ≈ [ϵ_e_1..., ϵ_e_2...] rtol = RTOL
+    @test stress(default_s) ≈ [σ_e_1..., σ_e_2...] rtol = RTOL
 
 end
-#=
 
 @testset "ONSAS.StructuralAnalyses..StaticAnalyses.StaticAnalysis" begin
-    # Final load factor
+
+    # StaticAnalysis with a final load factor
     λ₁ = 10
     NSTEPS = 9
     init_step = 7
+
+    sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
     sa_init = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, initial_step=init_step)
 
     @test structure(sa_init) == s
@@ -112,17 +187,13 @@ end
     @test load_factors(sa_init) == λᵥ
 
     # Next step 
-    next!(sa_init)
+    _next!(sa_init)
     @test current_time(sa_init) == λᵥ[init_step+1]
     @test current_load_factor(sa_init) == (init_step + 1) * λ₁ / NSTEPS
     @test !is_done(sa_init)
-    next!(sa_init)
+    _next!(sa_init)
+    _next!(sa_init)
     @test is_done(sa_init)
 
-    # Reset and solve 
-    sa = StaticAnalysis(s, NSTEPS=NSTEPS)
-
-    solve(sa, nr)
 end
 
-=#
