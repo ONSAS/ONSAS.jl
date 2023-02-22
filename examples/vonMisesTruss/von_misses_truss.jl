@@ -21,9 +21,9 @@ steel = SVK(E, ν, "steel")
 # Geometries
 # -------------------------------
 ## Cross sections
-d = sqrt(4 * Aₒ / pi)
+d = sqrt(4 * A₀ / pi)
 s₁ = Circle(d)
-a = sqrt(Aₒ)
+a = sqrt(A₀)
 s₂ = Square(a)
 # -------------------------------
 # Create mesh
@@ -35,7 +35,7 @@ n₃ = Node(2V, 0.0, 0.0)
 vec_nodes = [n₁, n₂, n₃]
 ## Elements 
 truss₁ = Truss(n₁, n₂, s₁, "left_truss") # [n₁, n₂]
-truss₂ = Truss(n₂, n₃, s₁, "right_truss") # [n₂, n₃]
+truss₂ = Truss(n₂, n₃, s₂, "right_truss") # [n₂, n₃]
 vec_elems = [truss₁, truss₂]
 ## Mesh
 s_mesh = Mesh(vec_nodes, vec_elems)
