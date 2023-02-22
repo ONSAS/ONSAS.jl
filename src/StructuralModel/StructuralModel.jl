@@ -71,7 +71,7 @@ free_dofs(s::AbstractStructure) = s.free_dofs
 "Returns the number of free `Dof`s of the `AbstractStructure` `s`"
 num_free_dofs(s::AbstractStructure) = length(free_dofs(s))
 
-"Returns the `Node`s of the `AbstractStructure` `s`"
+"Returns a `Vector` of `Node`s defined in the `AbstractStructure` `s`."
 nodes(s::AbstractStructure) = nodes(mesh(s))
 
 "Returns the number of `Node`s of the `AbstractStructure` `s`"

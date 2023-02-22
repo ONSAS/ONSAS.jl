@@ -33,7 +33,7 @@ end
 "Returns the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
 
-"Returns a vector of `Node`'s corresponding to a `Truss` element `t`."
+"Returns a `Vector` of `Node`s for the `Truss` element `t`."
 nodes(t::Truss) = [t.n₁, t.n₂]
 
 "Returns the internal force of a `Truss` element `t` doted with an `SVK` material and a global displacement vector `u_glob`."

@@ -22,6 +22,6 @@ struct TriangularFace{dim,N<:AbstractNode{dim},T<:Real} <: AbstractFace{dim,T}
     end
 end
 
-"Returns the nodes for the `TriangularFace` `tf`."
+"Returns a `Vector` of`Node`s for the `TriangularFace` `tf`."
 nodes(tf::TriangularFace) = [tf.n₁, tf.n₂, tf.n₃]
 

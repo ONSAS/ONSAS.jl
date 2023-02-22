@@ -229,7 +229,7 @@ end
 "Returns the label of an `AbstractElement` `e`."
 label(e::AbstractElement) = e.label
 
-"Returns the `Node`s of an `AbstractElement` `e`."
+"Returns a `Vector` of `Node`s defined in the `AbstractElement` `e`."
 nodes(e::AbstractElement) = e.nodes
 
 "Returns the internal forces vector of an `AbstractElement` `e`."
