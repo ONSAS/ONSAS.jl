@@ -1,7 +1,7 @@
 using ..Materials: SVK
 using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
-using ..Utils: eye, row_vector
+using ..Utils: eye
 
 import ..Elements: nodes, internal_forces, local_dof_symbol, strain, stress
 
@@ -15,14 +15,14 @@ A `Truss` represents an element composed by two `Node`s that transmits axial for
 - `cross_sections` -- stores the truss cross-section properties.
 - `label`          -- stores the truss label.
 """
-struct Truss{dim,G<:AbstractCrossSection,T<:Real} <: AbstractElement{dim,T}
-    n₁::AbstractNode{dim,T}
-    n₂::AbstractNode{dim,T}
+struct Truss{dim,N<:AbstractNode{dim},G<:AbstractCrossSection,T<:Real} <: AbstractElement{dim,T}
+    n₁::N
+    n₂::N
     cross_section::G
     label::Symbol
-    function Truss(n₁::AbstractNode{dim,T}, n₂::AbstractNode{dim,T}, g::G, label=:no_labelled_elem) where
-    {dim,G<:AbstractCrossSection,T<:Real}
-        new{dim,G,T}(n₁, n₂, g, Symbol(label))
+    function Truss(n₁::N, n₂::N, g::G, label=:no_labelled_elem) where
+    {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
+        new{dim,N,G,T}(n₁, n₂, g, Symbol(label))
     end
 end
 
@@ -61,7 +61,7 @@ function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}
 end
 
 "Returns the Green strain of given the reference length `l_ini` and the deformed length `l_def`. "
-_strain(l_ini::Number, l_def::Number) = (l_def^2 - l_ini^2) / (l_ini * (l_ini + l_def))# green lagrange strain
+_strain(l_ini::Number, l_def::Number) = (l_def^2 - l_ini^2) / (l_ini * (l_ini + l_def))# rotated engi lagrange strain
 
 "Returns the strain of given `Truss` element `t` with a element displacement vector `u_e`. "
 function strain(t::Truss{dim}, u_e::AbstractVector) where {dim}

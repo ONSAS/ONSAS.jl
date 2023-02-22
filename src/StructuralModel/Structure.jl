@@ -8,18 +8,18 @@ An `Structure` object facilitates the process of assembling and creating the str
 - `bcs`       -- Stores the structural boundary conditions of the structure.
 - `free_dofs` -- Stores the free degrees of freedom.
 """
-mutable struct Structure{dim,M,E,NB,LB} <: AbstractStructure{dim,M,E}
-    mesh::AbstractMesh{dim}
-    materials::StructuralMaterials{M,E}
+mutable struct Structure{dim,MESH,MAT,E,NB,LB} <: AbstractStructure{dim,MAT,E}
+    mesh::MESH
+    materials::StructuralMaterials{MAT,E}
     bcs::StructuralBoundaryConditions{NB,LB}
     free_dofs::Vector{Dof}
     function Structure(
-        mesh::AbstractMesh{dim},
-        materials::StructuralMaterials{M,E},
+        mesh::MESH,
+        materials::StructuralMaterials{MAT,E},
         bcs::StructuralBoundaryConditions{NB,LB},
         free_dofs::Vector{Dof}
-    ) where {dim,M,E,B,NB,LB}
-        return new{dim,M,E,NB,LB}(mesh, materials, bcs, free_dofs)
+    ) where {dim,MESH<:AbstractMesh{dim},MAT,E,NB,LB}
+        return new{dim,MESH,MAT,E,NB,LB}(mesh, materials, bcs, free_dofs)
     end
 end
 
