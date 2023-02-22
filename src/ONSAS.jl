@@ -1,11 +1,38 @@
 module ONSAS
 
-# load packages
-include("init.jl")
+using Reexport: @reexport
 
-# interface
-include("interface/input_structs.jl")
-include("interface/model_structs.jl")
+# Utils 
+include("./Utils.jl")
+@reexport using .Utils
+
+# Input modules
+include("Materials/Materials.jl")
+@reexport using .Materials
+
+include("CrossSections/CrossSections.jl")
+@reexport using .CrossSections
+
+include("Elements/Elements.jl")
+@reexport using .Elements
+
+include("BoundaryConditions/BoundaryConditions.jl")
+@reexport using .BoundaryConditions
+
+include("Meshes/Meshes.jl")
+@reexport using .Meshes
+
+# Structural model 
+include("StructuralModel/StructuralModel.jl")
+@reexport using .StructuralModel
+
+# Solvers
+include("StructuralSolvers/StructuralSolvers.jl")
+@reexport using .StructuralSolvers
+
+# Analysis
+include("StructuralAnalyses/StructuralAnalyses.jl")
+@reexport using .StructuralAnalyses
 
 
 end # module
