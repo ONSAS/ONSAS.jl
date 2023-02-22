@@ -20,7 +20,7 @@ struct Truss{dim,N<:AbstractNode{dim},G<:AbstractCrossSection,T<:Real} <: Abstra
     n₂::N
     cross_section::G
     label::Symbol
-    function Truss(n₁::N, n₂::N, g::G, label=:no_labelled_elem) where
+    function Truss(n₁::N, n₂::N, g::G, label=:no_labelled_element) where
     {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
         new{dim,N,G,T}(n₁, n₂, g, Symbol(label))
     end
