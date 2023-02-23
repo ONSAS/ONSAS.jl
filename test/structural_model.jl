@@ -37,7 +37,7 @@ bc₃ = GlobalLoadBoundaryCondition([:u], t -> [0, Fⱼ * t, 0], "load in j")
 bc₄ = GlobalLoadBoundaryCondition([:u], t -> [Fᵢ * sin(t), 0, 0], "load in i")
 node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
 face_bc = dictionary([bc₃ => [face₁]])
-elem_bc = dictionary([bc₄ => [truss₁, truss₂, truss₃]])
+elem_bc = dictionary([bc₄ => [truss₁, truss₂], bc₃ => [truss₃]])
 
 s_boundary_conditions_only_nodes = StructuralBoundaryConditions(node_bcs=node_bc)
 s_boundary_conditions_only_faces = StructuralBoundaryConditions(face_bcs=face_bc)
@@ -69,7 +69,9 @@ end
     @test bc₁ ∈ fixed_dof_bcs(s_boundary_conditions) && bc₂ ∈ fixed_dof_bcs(s_boundary_conditions)
 
     @test s_boundary_conditions["fixed_uⱼ"] == bc₂
-    @test truss₁ ∈ s_boundary_conditions[bc₄] && n₂ ∈ s_boundary_conditions[bc₃]
+    @test truss₁ ∈ s_boundary_conditions[bc₄]
+    @test truss₃ ∈ s_boundary_conditions[bc₃] && face₁ ∈ s_boundary_conditions[bc₃] && n₂ ∈ s_boundary_conditions[bc₃]
+    @test length(s_boundary_conditions[bc₃]) == 3
     @test bc₂ ∈ s_boundary_conditions[n₂] && bc₃ ∈ s_boundary_conditions[n₂]
     @test bc₄ ∈ s_boundary_conditions[truss₁]
 

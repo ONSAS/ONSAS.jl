@@ -1,4 +1,8 @@
-# Structure 
+using ..Meshes: AbstractMesh
+using ..BoundaryConditions: FixedDofBoundaryCondition
+using ..StructuralModel: AbstractStructure, StructuralMaterials, StructuralBoundaryConditions
+
+
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
 ### Fields:
@@ -50,7 +54,7 @@ function compute_fixed_dofs(bcs::StructuralBoundaryConditions, fbc::FixedDofBoun
     # Extract dofs to apply the bc
     fbc_dofs_symbols = dofs(fbc)
 
-    # Extract nodes and elements 
+    # Extract nodes, faces and elements 
     entities = bcs[fbc]
 
     dofs_to_delete = Dof[]
