@@ -10,36 +10,39 @@ A `StructuralBoundaryConditions` is a collection of `BoundaryConditions` definin
 - `element_bcs` -- Maps each boundary conditions for a vector of elements. 
 """
 Base.@kwdef struct StructuralBoundaryConditions{
-    NB<:AbstractBoundaryCondition,NF<:AbstractBoundaryCondition,NE<:AbstractBoundaryCondition,
+    NB<:AbstractBoundaryCondition,FB<:AbstractBoundaryCondition,EB<:AbstractBoundaryCondition,
     N<:AbstractNode,F<:AbstractFace,E<:AbstractElement
 }
     node_bcs::Dictionary{NB,Vector{N}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractNode}}()
-    face_bcs::Dictionary{NF,Vector{F}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractFace}}()
-    element_bcs::Dictionary{NE,Vector{E}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractElement}}()
+    face_bcs::Dictionary{FB,Vector{F}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractFace}}()
+    element_bcs::Dictionary{EB,Vector{E}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractElement}}()
 end
 
 "Returns the `BoundaryCondition` with the label `l` in the `StructuralBoundaryConditions` `sb`."
 function Base.getindex(sb::StructuralBoundaryConditions, l::L) where {L<:Union{Symbol,String}}
-    filter(bc -> label(bc) == Symbol(l), vcat(
-        collect(keys(node_bcs(sb))), collect(keys(face_bcs(sb))), collect(keys(element_bcs(sb)))))[1]
+    first(filter(bc -> label(bc) == Symbol(l), all_bcs(sb)))
 end
 
 "Returns the `Vector` of `Node`s and `Element`s where the `BoundaryCondition` `bc` is imposed."
-function Base.getindex(sb::StructuralBoundaryConditions{NB,LB}, bc::BC) where
-{NB<:AbstractBoundaryCondition,LB<:AbstractBoundaryCondition,BC<:AbstractBoundaryCondition}
+function Base.getindex(sb::StructuralBoundaryConditions{NB,NF,EB}, bc::BC) where
+{NB<:AbstractBoundaryCondition,NF<:AbstractBoundaryCondition,EB<:AbstractBoundaryCondition,BC<:AbstractBoundaryCondition}
 
-    bc_elements = Vector{Union{AbstractElement,AbstractNode}}()
+    bc_entities = Vector{Union{AbstractElement,AbstractNode,AbstractFace}}()
 
-    BC <: NB && bc ∈ keys(node_bcs(sb)) && push!(bc_elements, node_bcs(sb)[bc]...)
-    BC <: LB && bc ∈ keys(element_bcs(sb)) && push!(bc_elements, element_bcs(sb)[bc]...)
+    BC <: NB && bc ∈ keys(node_bcs(sb)) && push!(bc_entities, node_bcs(sb)[bc]...)
+    BC <: NF && bc ∈ keys(face_bcs(sb)) && push!(bc_entities, face_bcs(sb)[bc]...)
+    BC <: EB && bc ∈ keys(element_bcs(sb)) && push!(bc_entities, element_bcs(sb)[bc]...)
 
-    isempty(bc_elements) ? throw(KeyError("Boundary condition $bc not found")) : return bc_elements
+    isempty(bc_entities) ? throw(KeyError("Boundary condition $bc not found")) : return bc_entities
 end
 
-"Returns the `Vector` of `BoundaryConditions`s applied to the `Node` `n`."
+"Returns the `Vector` of `BoundaryConditions`s applied to the `AbstractNode` `n`."
 Base.getindex(sb::StructuralBoundaryConditions, n::AbstractNode) = keys(filter(x -> n ∈ x, node_bcs(sb)))
 
-"Returns the `Vector` of `BoundaryConditions`s applied to the `Element` `e`."
+"Returns the `Vector` of `BoundaryConditions`s applied to the `AbstractFace` `f`."
+Base.getindex(sb::StructuralBoundaryConditions, f::AbstractFace) = keys(filter(x -> f ∈ x, face_bcs(sb)))
+
+"Returns the `Vector` of `BoundaryConditions`s applied to the `AbstractElement` `e`."
 Base.getindex(sb::StructuralBoundaryConditions, e::AbstractElement) = keys(filter(x -> e ∈ x, element_bcs(sb)))
 
 "Returns the dictionary of `BoundaryConditions`s applied to `Node`s."
