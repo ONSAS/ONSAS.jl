@@ -1,24 +1,33 @@
+using StaticArrays: SVector, @SVector
 using ..Materials: SVK
 using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye
 
-import ..Elements: nodes, internal_forces, local_dof_symbol, strain, stress
+import ..Elements: internal_forces, local_dof_symbol, strain, stress
 
 export Tetrahedron
 
 """
-A `Tetrahedron` represents a 3D volume element.
+A `Tetrahedron` represents a 3D volume element with four nodes.
 ### Fields:
-- `nodes`          -- stores truss nodes.
-- `material`       -- stores truss material.
-- `label`          -- stores the truss label.
+- `nodes`    -- stores the tetrahedron nodes.
+- `material` -- stores tetrahedron material.
+- `label`    -- stores the tetrahedron label.
 """
-struct Tetrahedron{dim,M} <: AbstractElement{dim,M}
-  nodes::Vector{<:AbstractNode{dim}}
+struct Tetrahedron{dim,M,N<:AbstractNode{dim}} <: AbstractElement{dim,M}
+  nodes::SVector{4,N}
   material::M
-  label::ScalarWrapper{Symbol}
+  label::Symbol
 end
+
+Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, m::M, label=:no_labelled_element) where {dim,M,N<:AbstractNode{dim}} =
+  Tetrahedron(SVector(n₁, n₂, n₃, n₄), m, Symbol(label))
+
+"Returns the local dof symbol of a `Tetrahedron` element."
+local_dof_symbol(::Tetrahedron) = [:u]
+
+
 
 #TODO: Add tetrahedron element order as a parametric type
 "Derivatives of the linear shape functions (Order 1)"

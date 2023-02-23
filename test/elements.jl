@@ -62,34 +62,41 @@ end
 
 end
 
-@testset "ONSAS.Elements.TriangularFace" begin
+# Common nodes for testing 
+x₁ = x_test_3D
+x₂ = 2 .* x_test_3D
+x₃ = 3 .* x_test_3D
+x₄ = 4 .* x_test_3D
 
-    x₁ = [-1, 0, 0]
-    x₂ = [0, 1, 0]
-    x₃ = [0, 0, 1]
+n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
+n₂ = Node(x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
+n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
+n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)]]))
 
-    n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(10), Dof(11), Dof(12)]]))
-    n₂ = Node(x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(13), Dof(14), Dof(15)]]))
-    n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(16), Dof(17), Dof(18)]]))
 
+@testset "ONSAS.Elements.TriangularFace 3D" begin
+
+    n₁ = Node((0, 0, 0), dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
+    n₂ = Node((1, 0, 0), dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
+    n₃ = Node((0, 1, 0), dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
 
     face_label = "my_face"
     f₁ = TriangularFace(n₁, n₂, n₃, face_label)
-    @test nodes(f₁) == [n₁, n₂, n₃]
+    @test all([n ∈ nodes(f₁) for n in [n₁, n₂, n₃]])
     @test coordinates(f₁) == [coordinates(n₁), coordinates(n₂), coordinates(n₃)]
-    @test dimension(f₁) == dimension(n₁) == dimension(n₂) == dimension(n₃)
-    @test all([d ∈ dofs(f₁)[:u] for d in [Dof(1), Dof(2), Dof(3), Dof(4), Dof(5), Dof(6), Dof(7), Dof(8), Dof(9)]])
-    @test all([d ∈ dofs(f₁)[:θ] for d in [Dof(10), Dof(11), Dof(12), Dof(13), Dof(14), Dof(15), Dof(16), Dof(17), Dof(18)]])
+    @test dimension(f₁) == length(x₁)
+    @test all([d ∈ dofs(f₁)[:u] for d in Dof.(1:9)])
+    @test all([d ∈ dofs(f₁)[:θ] for d in Dof.(13:21)])
     @test label(f₁) == Symbol(face_label)
-
+    @test normal_direction(f₁) == [0, 0, 1]
 end
 
+# Common materials for testing 
+E = 1.0
+ν = 0.3
+my_svk_mat = SVK(E, ν)
 
-@testset "ONSAS.Elements.Truss 3D" begin
-
-    E = 1.0
-    ν = 0.3
-    my_mat = SVK(E, ν)
+@testset "ONSAS.Elements.Truss 3D SVK" begin
 
     # General case considering a mesh with rotations 
     x₁ = [-1, 0, 0]
@@ -111,9 +118,8 @@ end
     my_label = "my_truss"
     t = Truss(n₁, n₂, square_corss_section, my_label)
 
-    @test dimension(t) == dimension(n₁) == dimension(n₂)
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
-    @test x₁ ∈ coordinates(t) && x₂ ∈ coordinates(t)
+    @test all([n ∈ coordinates(t) for n in coordinates([n₁, n₂])])
     @test cross_section(t) == square_corss_section
     truss_dofs = dofs(t)
     @test all([d ∈ truss_dofs[:u] for d in [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]])
@@ -123,12 +129,27 @@ end
     @test all([d ∈ local_dofs(t) for d in [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]])
     @test string(label(t)) == my_label
 
-    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_mat, t, u_global_structure[local_dofs(t)])
+    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_svk_mat, t, u_global_structure[local_dofs(t)])
     strain(t, u_global_structure[local_dofs(t)]) == ϵ_e
     stress(t, u_global_structure[local_dofs(t)]) == σ_e
     @test norm(fᵢₙₜ_e) == 0
     @test Kᵢₙₜ_e[1] == E * A / l_def
     @test norm(σ_e) == 0
     @test norm(ϵ_e) == 0
+
+end
+
+@testset "ONSAS.Elements.Tetrahedron 3D SVK" begin
+
+    tetra = Tetrahedron(n₁, n₂, n₃, n₄, my_svk_mat, "my_tetrahedron")
+
+    @test length(nodes(tetra)) == 4
+    @test all([n ∈ nodes(tetra) for n in [n₁, n₂, n₃, n₄]])
+    @test all([n ∈ coordinates(tetra) for n in coordinates([n₁, n₂, n₃, n₄])])
+    truss_dofs = dofs(tetra)
+    @test all([d ∈ truss_dofs[:u] for d in Dof.(1:12)])
+    @test length(truss_dofs[:u]) == 12
+    @test all([d ∈ truss_dofs[:θ] for d in Dof.(13:24)])
+    @test length(truss_dofs[:θ]) == 12
 
 end

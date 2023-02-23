@@ -15,10 +15,13 @@ using ..Utils: row_vector
 @reexport import ..Utils: label
 @reexport import Dictionaries: index
 
+import ..CrossSections: area
+
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
-export AbstractFace, coordinates, nodes
-export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress
+export AbstractFace, normal_direction, nodes
+export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
+    local_dofs, nodes, strain, stress
 
 # ========================
 # Degree of freedom (Dof)
@@ -74,6 +77,9 @@ An `AbstractNode` object is a point in space.
 "Returns the `AbstractNode` `n` coordinates."
 coordinates(n::AbstractNode) = n.x
 
+"Returns each `AbstractNode` coordinates in a `Vector` of `Node`s vn."
+coordinates(vn::Vector{<:AbstractNode}) = coordinates.(vn)
+
 "Returns the `AbstractNode` `n` dimension (1D, 2D or 3D)."
 dimension(::AbstractNode{dim}) where {dim} = dim
 
@@ -112,18 +118,26 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 
 **Common methods:**
 
+* [`area`](@ref)
 * [`coordinates`](@ref)
 * [`dofs`](@ref)
 * [`label`](@ref)
 * [`nodes`](@ref)
+* [`normal_direction`](@ref)
 
 **Common fields:**
 * nodes
 * label
 """
 
+"Returns the `AbstractFace` `f` area."
+function area(f::AbstractFace) end
+
 "Returns the `AbstractFace` `f` coordinates."
 coordinates(f::AbstractFace) = coordinates.(nodes(f))
+
+"Returns each `AbstractFace` coordinates in a `Vector` of `Face`s `vf`."
+coordinates(vf::Vector{<:AbstractFace}) = coordinates.(vf)
 
 "Returns the `AbstractFace` `f` dimension."
 dimension(::AbstractFace{dim}) where {dim} = dim
@@ -142,15 +156,21 @@ end
 "Returns the dofs of a vector `vf` with `AbstractFace`s."
 dofs(vf::Vector{<:AbstractFace}) = unique(row_vector(dofs.(vf)))
 
+"Returns the `Node`s of an `AbstractFace` `e`."
+nodes(f::AbstractFace) = f.nodes
+
 "Returns the label of `AbstractFace` `f`."
 label(f::AbstractFace) = f.label
+
+"Returns the `AbstractFace` `f` normal."
+function normal_direction(f::AbstractFace) end
+
 
 #==============================#
 # AbstractFace implementations #
 #==============================#
 
 include("./TriangularFace.jl")
-
 
 # =================
 # Abstract Element
@@ -194,7 +214,15 @@ coordinates(e::AbstractElement) = coordinates.(nodes(e))
 cross_section(e::AbstractElement) = e.cross_section
 
 "Returns the dofs of `AbstractElement` `e`."
-dofs(e::AbstractElement) = mergewith(vcat, dofs.(nodes(e))...)
+function dofs(e::AbstractElement)
+    vecdfs = dofs.(nodes(e))
+    dfs = mergewith(vcat, vecdfs[end], vecdfs[end-1])
+
+    for i in 1:length(vecdfs)-2
+        dfs = mergewith(vcat, dfs, vecdfs[end-(1+i)])
+    end
+    dfs
+end
 
 "Returns the dofs of a vector `ve` with `AbstractElement`s."
 dofs(ve::Vector{<:AbstractElement}) = unique(row_vector(dofs.(ve)))
@@ -244,6 +272,7 @@ function stress(e::AbstractElement, args...; kwargs...) end
 #=================================#
 
 include("./Truss.jl")
+include("./Tetrahedron.jl")
 
 end # module
 

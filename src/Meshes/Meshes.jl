@@ -11,7 +11,7 @@ using ..Utils: row_vector
 
 @reexport import ..Elements: add!, dimension, dofs, nodes
 
-export AbstractMesh, Mesh, elements, element_sets, num_dofs, num_elements, num_nodes, node_sets
+export AbstractMesh, Mesh, faces, elements, num_dofs, num_elements, num_nodes
 
 """ Abstract supertype for all meshes.
 
@@ -24,11 +24,10 @@ The following methods are provided by the interface:
 * [`dofs`](@ref)
 * [`num_dofs`](@ref)
 * [`elements`](@ref)
+* [`faces`](@ref)
 * [`num_elements`](@ref)
-* [`element_sets`](@ref)
 * [`nodes`](@ref)
 * [`num_nodes`](@ref)
-* [`node_sets`](@ref)
 """
 
 abstract type AbstractMesh{dim} end
@@ -88,8 +87,8 @@ nodes(m::AbstractMesh) = m.nodes
 "Returns the number of `Node`s of the `AbstractMesh` `m`."
 num_nodes(m::AbstractMesh) = length(nodes(m))
 
-"Returns `Node` sets of the `AbstractMesh` `m`."
-node_sets(m::AbstractMesh) = m.node_sets
+"Returns a `Vector` of `Face`s defined in the `AbstractMesh` `m`."
+faces(m::AbstractMesh) = m.faces
 
 "Returns the `Element`s of the `AbstractMesh` `m`."
 elements(m::AbstractMesh) = m.elements
@@ -97,8 +96,17 @@ elements(m::AbstractMesh) = m.elements
 "Returns the number of elements of the `AbstractMesh` `m`."
 num_elements(m::AbstractMesh) = length(elements(m))
 
-"Returns the element sets of the `AbstractMesh` `m`."
-element_sets(m::AbstractMesh) = m.element_sets
+"Pushes a new `Node` into the `AbstractMesh` `m`."
+Base.push!(m::AbstractMesh, n::AbstractNode) = push!(nodes(m), n)
+
+"Pushes a new  `Vector of `Node`s into the `AbstractMesh` `m`."
+Base.push!(m::AbstractMesh, vn::Vector{<:AbstractNode}) = [push!(nodes(m), n) for n in vn]
+
+"Pushes a new `Face` `f` into the `AbstractMesh` `m`."
+Base.push!(m::AbstractMesh, f::AbstractFace) = push!(faces(m), f)
+
+"Pushes a new `Vector` of `Face`s `vf` into the `AbstractMesh` `m`."
+Base.push!(m::AbstractMesh, vf::Vector{<:AbstractFace}) = [push!(faces(m), f) for f in vf]
 
 "Pushes a new `Element` into the `AbstractMesh` `m`."
 Base.push!(m::AbstractMesh, e::AbstractElement) = push!(elements(m), e)
@@ -106,58 +114,31 @@ Base.push!(m::AbstractMesh, e::AbstractElement) = push!(elements(m), e)
 "Pushes a new vector of `Element`s into the `AbstractMesh` `m`."
 Base.push!(m::AbstractMesh, ve::Vector{<:AbstractElement}) = [push!(elements(m), e) for e in ve]
 
-"Pushes a new `Node` into the `AbstractMesh` `m`."
-Base.push!(m::AbstractMesh, n::AbstractNode) = push!(nodes(m), n)
-
-"Pushes a new  vector of `Node`s into the `AbstractMesh` `m`."
-Base.push!(m::AbstractMesh, vn::Vector{<:AbstractNode}) = [push!(nodes(m), n) for n in vn]
-
 
 """ Mesh.
 A `Mesh` is a collection of `Element`s and `Node`s that cover the discretized domain, 
-together with Sets of elements and nodes. These entities are gathered in the `element_sets` and `node_sets`.
-
+together with Sets of elements and nodes. 
 ### Fields:
-- `nodes`         -- Stores the `dim` dimensional nodes of the grid.
-- `elements`      -- Stores the `Element`s of the mesh.
-- `node_sets`     -- Maps a `String` key to a `Set` of nodes indexes.
-- `element_sets`   -- Maps a `String` key to a `Set` of elements indexes.
+- `nodes`    -- Stores the `dim` dimensional `Node`s of the grid.
+- `faces`     -- Stores the `Face`s of the grid.
+- `elements`  -- Stores the `Element`s of the mesh.
 """
-struct Mesh{dim,E<:AbstractElement,N<:AbstractNode{dim}} <: AbstractMesh{dim}
+struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace} <: AbstractMesh{dim}
     # Entities
     nodes::Vector{N}
     elements::Vector{E}
+    faces::Vector{F}
     # Sets
-    node_sets::Dictionary{String,Set{Int}}
-    element_sets::Dictionary{String,Set{Int}}
+    # node_sets::Dictionary{String,Set{Int}}
+    # face_sets::Dictionary{String,Set{Int}}
+    # element_sets::Dictionary{String,Set{Int}}
     function Mesh(
-        nodes::Vector{N}=Vector{AbstractNode}(),
+        nodes::Vector{N},
         elements::Vector{E}=Vector{AbstractElement}(),
-        node_sets::Dictionary{String,Set{Int}}=Dictionary{String,Set{Int}}(),
-        element_sets::Dictionary{String,Set{Int}}=Dictionary{String,Set{Int}}()
-    ) where {N<:AbstractNode,E<:AbstractElement}
+        faces::Vector{F}=Vector{AbstractFace}(),
+    ) where {dim,N<:AbstractNode{dim},F<:AbstractFace,E<:AbstractElement}
 
-        # Check nodes dimension
-        dims = dimension.(nodes)
-        @assert allequal(dims) throw(ArgumentError("All nodes must have the same dimension."))
-
-        # Check node sets indexes
-        for set in keys(node_sets)
-            check = all([i ≤ length(nodes) for i in node_sets[set]])
-            if check == false
-                throw(ArgumentError("Node set: $set contains invalid node indexes."))
-            end
-        end
-
-        # Check element sets indexes
-        for set in keys(element_sets)
-            check = all([i ≤ length(elements) for i in element_sets[set]])
-            if check == false
-                throw(ArgumentError("Element set: $set contains invalid element indexes."))
-            end
-        end
-
-        return new{first(dims),E,N}(nodes, elements, node_sets, element_sets)
+        return new{dim,N,E,F}(nodes, elements, faces)
 
     end
 end

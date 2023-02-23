@@ -4,7 +4,7 @@
 using Test: @testset, @test
 using ONSAS.Meshes
 
-@testset "ONSAS.Meshes.Mesh" begin
+@testset "ONSAS.Meshes.Mesh Node + Trusses" begin
 
     # Mesh considering only nodes
     # Nodes
