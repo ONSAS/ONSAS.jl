@@ -17,8 +17,8 @@ using ..Utils: row_vector
 
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
-export AbstractElement, cross_section, coordinates, internal_forces, inertial_forces,
-    local_dof_symbol, local_dofs, nodes, strain, stress
+export AbstractFace, coordinates, nodes
+export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress
 
 # ========================
 # Degree of freedom (Dof)
@@ -102,6 +102,57 @@ end
 include("./Node.jl")
 
 # =================
+# Abstract Face
+# =================
+abstract type AbstractFace{dim,T} end
+
+""" Abstract supertype for all elements.
+
+An `AbstractFace` object facilitates the process of adding boundary conditions on a surface. 
+
+**Common methods:**
+
+* [`coordinates`](@ref)
+* [`dofs`](@ref)
+* [`label`](@ref)
+* [`nodes`](@ref)
+
+**Common fields:**
+* nodes
+* label
+"""
+
+"Returns the `AbstractFace` `f` coordinates."
+coordinates(f::AbstractFace) = coordinates.(nodes(f))
+
+"Returns the `AbstractFace` `f` dimension."
+dimension(::AbstractFace{dim}) where {dim} = dim
+
+"Returns the dofs of `AbstractFace` `f`."
+function dofs(f::AbstractFace)
+    vecdfs = dofs.(nodes(f))
+    dfs = mergewith(vcat, vecdfs[end], vecdfs[end-1])
+
+    for i in 1:length(vecdfs)-2
+        dfs = mergewith(vcat, dfs, vecdfs[end-(1+i)])
+    end
+    dfs
+end
+
+"Returns the dofs of a vector `vf` with `AbstractFace`s."
+dofs(vf::Vector{<:AbstractFace}) = unique(row_vector(dofs.(vf)))
+
+"Returns the label of `AbstractFace` `f`."
+label(f::AbstractFace) = f.label
+
+#==============================#
+# AbstractFace implementations #
+#==============================#
+
+include("./TriangularFace.jl")
+
+
+# =================
 # Abstract Element
 # =================
 
@@ -118,6 +169,7 @@ An `AbstractElement` object facilitates the process of evaluating:
 **Common methods:**
 
 * [`coordinates`](@ref)
+* [`dimension`](@ref)
 * [`dofs`](@ref)
 * [`local_dofs`](@ref)
 This method is a hard contract and must be implemented to define a new element.
@@ -138,8 +190,8 @@ This method is a hard contract and for dynamic analysis must be implemented to d
 "Returns the `AbstractElement` `e` coordinates."
 coordinates(e::AbstractElement) = coordinates.(nodes(e))
 
-"Returns the `AbstractElement` `e` cross-section."
-function cross_section(::AbstractElement) end
+"Returns the `AbstractElement` `e` cross_section."
+cross_section(e::AbstractElement) = e.cross_section
 
 "Returns the dofs of `AbstractElement` `e`."
 dofs(e::AbstractElement) = mergewith(vcat, dofs.(nodes(e))...)
@@ -173,7 +225,7 @@ end
 label(e::AbstractElement) = e.label
 
 "Returns the `Node`s of an `AbstractElement` `e`."
-function nodes(::AbstractElement) end
+nodes(e::AbstractElement) = e.nodes
 
 "Returns the internal forces vector of an `AbstractElement` `e`."
 function internal_forces(e::AbstractElement, args...; kwargs...) end

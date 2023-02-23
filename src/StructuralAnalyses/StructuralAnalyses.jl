@@ -178,7 +178,7 @@ current_iteration(a::AbstractStructuralAnalysis) = iteration_residuals(a.state)
 # Common methods
 # ================
 
-"Applies a fixed displacement boundary condition to the structural analysis `sa` at the current analysis time `t`"
+"Applies an `AbstractLoadBoundaryCondition` lbc into the structural analysis `sa` at the current analysis time `t`"
 function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondition)
 
     t = current_time(sa)
@@ -187,7 +187,7 @@ function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondit
     # Extract dofs to apply the bc
     lbc_dofs_symbols = dofs(lbc)
 
-    # Extract nodes and elements 
+    # Extract nodes, faces and element 
     entities = bcs[lbc]
     dofs_lbc = Dof[]
 

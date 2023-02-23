@@ -1,4 +1,8 @@
-# Structure 
+using ..Meshes: AbstractMesh
+using ..BoundaryConditions: FixedDofBoundaryCondition
+using ..StructuralModel: AbstractStructure, StructuralMaterials, StructuralBoundaryConditions
+
+
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
 ### Fields:
@@ -36,7 +40,7 @@ function Structure(
         [push!(default_free_dofs, vec_dof...) for vec_dof in collect(values(node_dofs))]
     end
 
-    fixed_dofs = compte_fixed_dofs(bcs, fixed_dof_bcs(bcs))
+    fixed_dofs = compute_fixed_dofs(bcs, fixed_dof_bcs(bcs))
 
     deleteat!(default_free_dofs, findall(x -> x in fixed_dofs, default_free_dofs))
 
@@ -45,12 +49,12 @@ end
 
 #### BoundaryConditions Applied to the structure
 "Computes `Dof`s to delete given a `FixedDofBoundaryCondition` and a set of `StructuralBoundaryConditions` `bcs`."
-function compte_fixed_dofs(bcs::StructuralBoundaryConditions, fbc::FixedDofBoundaryCondition)
+function compute_fixed_dofs(bcs::StructuralBoundaryConditions, fbc::FixedDofBoundaryCondition)
 
     # Extract dofs to apply the bc
     fbc_dofs_symbols = dofs(fbc)
 
-    # Extract nodes and elements 
+    # Extract nodes, faces and elements 
     entities = bcs[fbc]
 
     dofs_to_delete = Dof[]
@@ -66,8 +70,8 @@ function compte_fixed_dofs(bcs::StructuralBoundaryConditions, fbc::FixedDofBound
 end
 
 "Applies a `Vector` of `FixedDofBoundaryCondition` `f_bcs` and a set of `StructuralBoundaryConditions` `bcs`."
-function compte_fixed_dofs(bcs::StructuralBoundaryConditions, f_bcs::Vector{<:FixedDofBoundaryCondition})
+function compute_fixed_dofs(bcs::StructuralBoundaryConditions, f_bcs::Vector{<:FixedDofBoundaryCondition})
     dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, compte_fixed_dofs(bcs, fbc)...) for fbc in f_bcs]
+    [push!(dofs_to_delete, compute_fixed_dofs(bcs, fbc)...) for fbc in f_bcs]
     return dofs_to_delete
 end
