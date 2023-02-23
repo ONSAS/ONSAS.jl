@@ -26,7 +26,7 @@ node_eltypes = [Float32, Float64, Int]
 node_eltype = rand(node_eltypes)
 xᵢ = node_eltype(rand(-100:100))
 x_sa2D = SVector(xᵢ, 2xᵢ)
-x_vec2D = [xᵢ, 2xᵢ, 3xᵢ]
+x_vec2D = [xᵢ, 2xᵢ]
 x_tup2D = (xᵢ, 2xᵢ)
 x_test_vec_2D = [x_sa2D, x_vec2D, x_tup2D]
 x_test_2D = rand(x_test_vec_2D)
@@ -40,7 +40,7 @@ x_test_3D = rand(x_test_vec_3D)
 
     node = Node(x_test_2D[1], x_test_2D[2])
     @test all([node[i] == xᵢ for (i, xᵢ) in enumerate(coordinates(node))])
-    @test dimension(node) == length(x_test_2D)
+    @test dimension(node) == length(x_vec2D)
 
     # Dofs
     first_dof = 1
