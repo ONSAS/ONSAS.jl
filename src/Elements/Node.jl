@@ -27,7 +27,8 @@ Node(x₁::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real}
 Node(x₁::T, x₂::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =
     Node(SVector((x₁, x₂)), dofs)
 
-"3D `Node` constructor with coordinates `x₁`, `x₂`  and `x₃`."
+
+"3D `Node` constructor with coordinates `x₁`, `x₂`  and `x₃` and an optional `Dof` dictionary `dofs`.."
 Node(x₁::T, x₂::T, x₃::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =
     Node(SVector(x₁, x₂, x₃), dofs)
 

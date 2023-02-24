@@ -19,8 +19,9 @@ import ..CrossSections: area
 
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
-export AbstractFace, coordinates, nodes
-export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress
+export AbstractFace, normal_direction, nodes
+export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
+    local_dofs, nodes, strain, stress
 
 # ========================
 # Degree of freedom (Dof)
@@ -124,11 +125,13 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 * [`nodes`](@ref)
 * [`normal_direction`](@ref)
 
-
 **Common fields:**
 * nodes
 * label
 """
+
+"Returns the `AbstractFace` `f` area."
+function area(f::AbstractFace) end
 
 "Returns the `AbstractFace` `f` coordinates."
 coordinates(f::AbstractFace) = coordinates.(nodes(f))
@@ -153,12 +156,17 @@ end
 "Returns the dofs of a vector `vf` with `AbstractFace`s."
 dofs(vf::Vector{<:AbstractFace}) = unique(row_vector(dofs.(vf)))
 
+"Returns the `Node`s of an `AbstractFace` `e`."
+nodes(f::AbstractFace) = f.nodes
+
 "Returns the label of `AbstractFace` `f`."
 label(f::AbstractFace) = f.label
 
 "Returns the `Node`s of an `AbstractElement` `e`."
 nodes(f::AbstractFace) = f.nodes
 
+"Returns the `AbstractFace` `f` normal."
+function normal_direction(f::AbstractFace) end
 
 #==============================#
 # AbstractFace implementations #
@@ -198,9 +206,7 @@ This method is a hard contract and for dynamic analysis must be implemented to d
 * [`inertial_forces`](@ref)
 
 **Common fields:**
-* nodes
 * label
-
 """
 
 "Returns the `AbstractElement` `e` coordinates."
@@ -209,11 +215,16 @@ coordinates(e::AbstractElement) = coordinates.(nodes(e))
 "Returns the `AbstractElement` `e` cross_section."
 cross_section(e::AbstractElement) = e.cross_section
 
-"Returns the `AbstractElement` `e` dimension."
-dimension(::AbstractElement{dim}) where {dim} = dim
-
 "Returns the dofs of `AbstractElement` `e`."
-dofs(e::AbstractElement) = mergewith(vcat, dofs.(nodes(e))...)
+function dofs(e::AbstractElement)
+    vecdfs = dofs.(nodes(e))
+    dfs = mergewith(vcat, vecdfs[end], vecdfs[end-1])
+
+    for i in 1:length(vecdfs)-2
+        dfs = mergewith(vcat, dfs, vecdfs[end-(1+i)])
+    end
+    dfs
+end
 
 "Returns the dofs of a vector `ve` with `AbstractElement`s."
 dofs(ve::Vector{<:AbstractElement}) = unique(row_vector(dofs.(ve)))
@@ -263,6 +274,7 @@ function stress(e::AbstractElement, args...; kwargs...) end
 #=================================#
 
 include("./Truss.jl")
+include("./Tetrahedron.jl")
 
 end # module
 

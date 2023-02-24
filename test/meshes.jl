@@ -4,7 +4,7 @@
 using Test: @testset, @test
 using ONSAS.Meshes
 
-@testset "ONSAS.Meshes.Mesh" begin
+@testset "ONSAS.Meshes.Mesh Node + Trusses" begin
 
     # Mesh considering only nodes
     # Nodes
@@ -23,20 +23,14 @@ using ONSAS.Meshes
     t₃ = Truss(n₃, n₄, s₁)
     vec_elements = [t₁, t₂, t₃]
 
-    # Sets
-    set_nodes = dictionary(["set₂" => Set([1, 2, 3]), "set₁" => Set([3, 4])])
-    set_elements = dictionary(["set₂" => Set([1, 2]), "set₁" => Set([1, 2])])
-
     # Constructors
-    mesh_with_sets = Mesh(vec_nodes, vec_elements, set_nodes, set_elements)
-    mesh = Mesh(vec_nodes, vec_elements, set_nodes)
+    mesh_with_sets = Mesh(vec_nodes, vec_elements)
+    mesh = Mesh(vec_nodes, vec_elements)
 
     @test dimension(mesh) == dimension(n₁)
     @test all(isempty.(dofs(mesh)))
     @test elements(mesh) == vec_elements
     @test nodes(mesh) == vec_nodes
-    @test element_sets(mesh_with_sets) == set_elements
-    @test node_sets(mesh_with_sets) == set_nodes
 
     # Add nodes and elements
     new_node₁ = Node(3L, 0, 5L)
@@ -55,4 +49,20 @@ using ONSAS.Meshes
     add!(mesh, :θ, θ_dim)
     @test num_nodes(mesh) * (u_dim + θ_dim) == num_dofs(mesh)
 
+end
+
+
+@testset "ONSAS.Meshes.Mesh Tetrahedron + TriangularFace" begin
+
+    # Mesh considering only nodes
+    # Nodes
+    L = 1
+    n₁ = Node(0, 0, 0)
+    n₂ = Node(L, L, L)
+    n₃ = Node(2L, 0, 5L)
+    n₄ = Node(2L, 0, 5L)
+    vec_nodes = [n₁, n₂, n₃, n₄]
+
+    ## Elements
+    d = 0.2
 end

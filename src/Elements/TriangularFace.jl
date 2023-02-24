@@ -12,7 +12,7 @@ A `TriangularFace` represents an element composed by three `Node`s.
 - `nodes`    -- stores triangle nodes.
 - `label` -- stores the triangle label.
 """
-struct TriangularFace{dim,N<:AbstractNode{dim}} <: AbstractFace{dim}
+struct TriangularFace{dim,N<:AbstractNode{dim},T<:Real} <: AbstractFace{dim,T}
     nodes::SVector{3,N}
     label::Symbol
     function TriangularFace(nodes::SVector{3,N}, label=:no_labelled_face) where
