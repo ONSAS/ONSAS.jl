@@ -89,6 +89,7 @@ n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22)
     @test all([d ∈ dofs(f₁)[:θ] for d in Dof.(13:21)])
     @test label(f₁) == Symbol(face_label)
     @test normal_direction(f₁) == [0, 0, 1]
+    @test area(f₁) == 0.5
 end
 
 # Common materials for testing 
