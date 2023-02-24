@@ -12,13 +12,13 @@ A `TriangularFace` represents an element composed by three `Node`s.
 - `nodes`    -- stores triangle nodes.
 - `label` -- stores the triangle label.
 """
-struct TriangularFace{dim,N<:AbstractNode{dim},T<:Real} <: AbstractFace{dim,T}
+struct TriangularFace{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractFace{dim,T}
     nodes::SVector{3,N}
     label::Symbol
     function TriangularFace(nodes::SVector{3,N}, label=:no_labelled_face) where
     {dim,T<:Real,N<:AbstractNode{dim,T}}
         @assert 2 < dim ≤ 3 "TriangularFace is only defined for 2 < dim ≤ 3"
-        new{dim,N}(nodes, Symbol(label))
+        new{dim,T,N}(nodes, Symbol(label))
     end
 end
 
@@ -32,7 +32,11 @@ end
 _area_vec(tf::TriangularFace) = cross(coordinates(tf)[2] - coordinates(tf)[1], coordinates(tf)[3] - coordinates(tf)[1]) / 2
 
 "Returns the area of a `TriangularFace` element `tf`."
-area(tf::TriangularFace) = norm(_area_vec(tf))
+function area(tf::TriangularFace)
+    A = norm(_area_vec(tf))
+    iszero(A) && error("Area of TriangularFace is zero. Check that nodes are not aligned.")
+    return A
+end
 
 "Returns the normal direction `n` of a `TriangularFace` element `tf`."
 function normal_direction(tf::TriangularFace)

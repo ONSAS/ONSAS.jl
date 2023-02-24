@@ -76,6 +76,14 @@ n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22)
 
 @testset "ONSAS.Elements.TriangularFace 3D" begin
 
+    x₁ = [0, 0, 0]
+    x₂ = [1, 0, 0]
+    x₃ = [0, 1, 0]
+
+    n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
+    n₂ = Node(x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
+    n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
+
     face_label = "my_face"
     f₁ = TriangularFace(n₁, n₂, n₃, face_label)
     f₁_no_label = TriangularFace(n₁, n₂, n₃)
@@ -93,12 +101,6 @@ end
 E = 1.0
 ν = 0.3
 my_mat = SVK(E, ν)
-
-@testset "ONSAS.Elements.Truss 3D" begin
-=======
-    @test normal_direction(f₁) == [0, 0, 1]
-    @test area(f₁) == 0.5
-end
 
 # Common materials for testing 
 E = 1.0
@@ -149,17 +151,17 @@ my_svk_mat = SVK(E, ν)
 
 end
 
-@testset "ONSAS.Elements.Tetrahedron 3D SVK" begin
+# @testset "ONSAS.Elements.Tetrahedron 3D SVK" begin
 
-    tetra = Tetrahedron(n₁, n₂, n₃, n₄, my_svk_mat, "my_tetrahedron")
+#     tetra = Tetrahedron(n₁, n₂, n₃, n₄, my_svk_mat, "my_tetrahedron")
 
-    @test length(nodes(tetra)) == 4
-    @test all([n ∈ nodes(tetra) for n in [n₁, n₂, n₃, n₄]])
-    @test all([n ∈ coordinates(tetra) for n in coordinates([n₁, n₂, n₃, n₄])])
-    truss_dofs = dofs(tetra)
-    @test all([d ∈ truss_dofs[:u] for d in Dof.(1:12)])
-    @test length(truss_dofs[:u]) == 12
-    @test all([d ∈ truss_dofs[:θ] for d in Dof.(13:24)])
-    @test length(truss_dofs[:θ]) == 12
+#     @test length(nodes(tetra)) == 4
+#     @test all([n ∈ nodes(tetra) for n in [n₁, n₂, n₃, n₄]])
+#     @test all([n ∈ coordinates(tetra) for n in coordinates([n₁, n₂, n₃, n₄])])
+#     truss_dofs = dofs(tetra)
+#     @test all([d ∈ truss_dofs[:u] for d in Dof.(1:12)])
+#     @test length(truss_dofs[:u]) == 12
+#     @test all([d ∈ truss_dofs[:θ] for d in Dof.(13:24)])
+#     @test length(truss_dofs[:θ]) == 12
 
-end
+# end

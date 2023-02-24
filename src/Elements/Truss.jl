@@ -14,13 +14,13 @@ A `Truss` represents an element composed by two `Node`s that transmits axial for
 - `cross_sections` -- stores the truss cross-section properties.
 - `label`          -- stores the truss label.
 """
-struct Truss{dim,N<:AbstractNode{dim},G<:AbstractCrossSection} <: AbstractElement{dim}
+struct Truss{dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection} <: AbstractElement{dim,T}
     nodes::SVector{2,N}
     cross_section::G
     label::Symbol
     function Truss(nodes::SVector{2,N}, g::G, label=:no_labelled_element) where
-    {dim,N<:AbstractNode{dim},G<:AbstractCrossSection}
-        new{dim,N,G}(nodes, g, Symbol(label))
+    {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
+        new{dim,T,N,G}(nodes, g, Symbol(label))
     end
 end
 
