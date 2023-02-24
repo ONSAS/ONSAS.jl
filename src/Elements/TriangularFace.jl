@@ -9,9 +9,7 @@ export TriangularFace, normal_direction
 """
 A `TriangularFace` represents an element composed by three `Node`s.
 ### Fields:
-- `n₁`    -- stores first triangle node.
-- `n₂`    -- stores second triangle node.
-- `n₂`    -- stores third triangle node.
+- `nodes`    -- stores triangle nodes.
 - `label` -- stores the triangle label.
 """
 struct TriangularFace{dim,N<:AbstractNode{dim}} <: AbstractFace{dim}

@@ -10,8 +10,7 @@ export Truss
 """
 A `Truss` represents an element composed by two `Node`s that transmits axial force only.
 ### Fields:
-- `n₁`             -- stores first truss node.
-- `n₂`             -- stores second truss node.
+- `nodes`          -- stores the truss nodes.
 - `cross_sections` -- stores the truss cross-section properties.
 - `label`          -- stores the truss label.
 """
