@@ -3,7 +3,7 @@ using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye
 
-import ..Elements: nodes, internal_forces, local_dof_symbol, strain, stress
+import ..Elements: cross_section, nodes, internal_forces, local_dof_symbol, strain, stress
 
 export Truss
 
@@ -15,15 +15,20 @@ A `Truss` represents an element composed by two `Node`s that transmits axial for
 - `cross_sections` -- stores the truss cross-section properties.
 - `label`          -- stores the truss label.
 """
-struct Truss{dim,N<:AbstractNode{dim},G<:AbstractCrossSection,T<:Real} <: AbstractElement{dim,T}
-    n₁::N
-    n₂::N
+struct Truss{dim,N<:AbstractNode{dim},G<:AbstractCrossSection} <: AbstractElement{dim}
+    nodes::SVector{2,N}
     cross_section::G
     label::Symbol
-    function Truss(n₁::N, n₂::N, g::G, label=:no_labelled_element) where
-    {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
-        new{dim,N,G,T}(n₁, n₂, g, Symbol(label))
+    function Truss(nodes::SVector{2,N}, g::G, label=:no_labelled_element) where
+    {dim,N<:AbstractNode{dim},G<:AbstractCrossSection}
+        new{dim,N,G}(nodes, g, Symbol(label))
     end
+end
+
+"Constructor for a `Truss` element considering the nodes `n₁` and `n₂` and the cross-section `g`."
+function Truss(n₁::N, n₂::N, g::G, label::L=:no_labelled_face) where
+{dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection,L<:Union{String,Symbol}}
+    Truss(SVector(n₁, n₂), g, Symbol(label))
 end
 
 #==============================#
@@ -32,9 +37,6 @@ end
 
 "Returns the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
-
-"Returns a `Vector` of `Node`s for the `Truss` element `t`."
-nodes(t::Truss) = [t.n₁, t.n₂]
 
 "Returns the internal force of a `Truss` element `t` doted with an `SVK` material and a global displacement vector `u_glob`."
 function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}

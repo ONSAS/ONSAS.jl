@@ -15,6 +15,8 @@ using ..Utils: row_vector
 @reexport import ..Utils: label
 @reexport import Dictionaries: index
 
+import ..CrossSections: area
+
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
 export AbstractFace, coordinates, nodes
@@ -74,6 +76,9 @@ An `AbstractNode` object is a point in space.
 "Returns the `AbstractNode` `n` coordinates."
 coordinates(n::AbstractNode) = n.x
 
+"Returns each `AbstractNode` coordinates in a `Vector` of `Node`s vn."
+coordinates(vn::Vector{<:AbstractNode}) = coordinates.(vn)
+
 "Returns the `AbstractNode` `n` dimension (1D, 2D or 3D)."
 dimension(::AbstractNode{dim}) where {dim} = dim
 
@@ -104,7 +109,7 @@ include("./Node.jl")
 # =================
 # Abstract Face
 # =================
-abstract type AbstractFace{dim,T} end
+abstract type AbstractFace{dim} end
 
 """ Abstract supertype for all elements.
 
@@ -112,10 +117,13 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 
 **Common methods:**
 
+* [`area`](@ref)
 * [`coordinates`](@ref)
 * [`dofs`](@ref)
 * [`label`](@ref)
 * [`nodes`](@ref)
+* [`normal_direction`](@ref)
+
 
 **Common fields:**
 * nodes
@@ -124,6 +132,9 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 
 "Returns the `AbstractFace` `f` coordinates."
 coordinates(f::AbstractFace) = coordinates.(nodes(f))
+
+"Returns each `AbstractFace` coordinates in a `Vector` of `Face`s `vf`."
+coordinates(vf::Vector{<:AbstractFace}) = coordinates.(vf)
 
 "Returns the `AbstractFace` `f` dimension."
 dimension(::AbstractFace{dim}) where {dim} = dim
@@ -145,18 +156,21 @@ dofs(vf::Vector{<:AbstractFace}) = unique(row_vector(dofs.(vf)))
 "Returns the label of `AbstractFace` `f`."
 label(f::AbstractFace) = f.label
 
+"Returns the `Node`s of an `AbstractElement` `e`."
+nodes(f::AbstractFace) = f.nodes
+
+
 #==============================#
 # AbstractFace implementations #
 #==============================#
 
 include("./TriangularFace.jl")
 
-
 # =================
 # Abstract Element
 # =================
 
-abstract type AbstractElement{dim,T} end
+abstract type AbstractElement{dim} end
 
 """ Abstract supertype for all elements.
 
@@ -229,7 +243,7 @@ end
 "Returns the label of an `AbstractElement` `e`."
 label(e::AbstractElement) = e.label
 
-"Returns a `Vector` of `Node`s defined in the `AbstractElement` `e`."
+"Returns the `Node`s of an `AbstractElement` `e`."
 nodes(e::AbstractElement) = e.nodes
 
 "Returns the internal forces vector of an `AbstractElement` `e`."
