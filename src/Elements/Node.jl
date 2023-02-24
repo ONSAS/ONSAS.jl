@@ -1,7 +1,6 @@
 using Dictionaries: Dictionary
 using ..Elements: AbstractNode, Dof
 using StaticArrays: SVector
-
 export Node
 
 """
@@ -27,6 +26,7 @@ Node(x₁::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real}
 "2D `Node` constructor with coordinates `x₁` and `x₂`."
 Node(x₁::T, x₂::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =
     Node(SVector((x₁, x₂)), dofs)
+
 
 "3D `Node` constructor with coordinates `x₁`, `x₂`  and `x₃` and an optional `Dof` dictionary `dofs`.."
 Node(x₁::T, x₂::T, x₃::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =

@@ -76,18 +76,26 @@ n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22)
 
 @testset "ONSAS.Elements.TriangularFace 3D" begin
 
-    n₁ = Node((0, 0, 0), dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
-    n₂ = Node((1, 0, 0), dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
-    n₃ = Node((0, 1, 0), dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
-
     face_label = "my_face"
     f₁ = TriangularFace(n₁, n₂, n₃, face_label)
+    f₁_no_label = TriangularFace(n₁, n₂, n₃)
     @test all([n ∈ nodes(f₁) for n in [n₁, n₂, n₃]])
     @test coordinates(f₁) == [coordinates(n₁), coordinates(n₂), coordinates(n₃)]
     @test dimension(f₁) == length(x₁)
     @test all([d ∈ dofs(f₁)[:u] for d in Dof.(1:9)])
     @test all([d ∈ dofs(f₁)[:θ] for d in Dof.(13:21)])
     @test label(f₁) == Symbol(face_label)
+    @test area(f₁) == 0.5
+    @test normal_direction(f₁) == [0, 0, 1]
+
+end
+
+E = 1.0
+ν = 0.3
+my_mat = SVK(E, ν)
+
+@testset "ONSAS.Elements.Truss 3D" begin
+=======
     @test normal_direction(f₁) == [0, 0, 1]
     @test area(f₁) == 0.5
 end
@@ -118,6 +126,7 @@ my_svk_mat = SVK(E, ν)
     square_corss_section = Square(A)
     my_label = "my_truss"
     t = Truss(n₁, n₂, square_corss_section, my_label)
+    t_no_label = Truss(n₁, n₂, square_corss_section)
 
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
     @test all([n ∈ coordinates(t) for n in coordinates([n₁, n₂])])

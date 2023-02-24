@@ -110,7 +110,7 @@ include("./Node.jl")
 # =================
 # Abstract Face
 # =================
-abstract type AbstractFace{dim,T} end
+abstract type AbstractFace{dim} end
 
 """ Abstract supertype for all elements.
 
@@ -162,9 +162,11 @@ nodes(f::AbstractFace) = f.nodes
 "Returns the label of `AbstractFace` `f`."
 label(f::AbstractFace) = f.label
 
+"Returns the `Node`s of an `AbstractElement` `e`."
+nodes(f::AbstractFace) = f.nodes
+
 "Returns the `AbstractFace` `f` normal."
 function normal_direction(f::AbstractFace) end
-
 
 #==============================#
 # AbstractFace implementations #
@@ -176,7 +178,7 @@ include("./TriangularFace.jl")
 # Abstract Element
 # =================
 
-abstract type AbstractElement{dim,T} end
+abstract type AbstractElement{dim} end
 
 """ Abstract supertype for all elements.
 
