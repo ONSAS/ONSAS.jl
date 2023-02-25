@@ -90,7 +90,7 @@ end
 "Returns a `Vector` of `FixedDofBoundaryCondition` `f_bcs` and a set of `StructuralBoundaryConditions` `bcs`."
 function apply(bcs::StructuralBoundaryConditions, f_bcs::Vector{<:FixedDofBoundaryCondition})
     dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, compute_fixed_dofs(bcs, fbc)...) for fbc in f_bcs]
+    [push!(dofs_to_delete, apply(bcs, fbc)...) for fbc in f_bcs]
     return unique!(dofs_to_delete)
 end
 
