@@ -59,7 +59,6 @@ all_bcs(se::StructuralBoundaryConditions) = unique(
     vcat(collect(keys(node_bcs(se))), collect(keys(face_bcs(se))), collect(keys(element_bcs(se))))
 )
 
-
 "Returns a `Vector` of `DisplacementBoundaryCondition`s applied to `Node`s and `Element`s in the `StructuralBoundaryConditions` `se`."
 function displacement_bcs(se::StructuralBoundaryConditions)
     vbc = Vector{DisplacementBoundaryCondition}()
