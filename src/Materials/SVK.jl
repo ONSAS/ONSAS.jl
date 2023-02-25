@@ -1,7 +1,10 @@
-using .Materials: AbstractMaterial
-using ..Utils: label
+using LinearAlgebra: tr
+using SparseArrays: SparseMatrixCSC
 
-import .Materials: parameters
+using .Materials: AbstractMaterial
+using ..Utils: label, eye
+
+import .Materials: parameters, cosserat
 
 export SVK, lame_parameters
 
@@ -29,7 +32,8 @@ function SVK(E::Real, ν::Real, label::L=:no_labelled_mat) where {L<:Union{Symbo
 end
 
 "Material `SVK` constructor lamé parameters `λ` and `G`"
-function SVK(; λ::Real, G::Real, ρ::Real, label)
+function SVK(; λ::Real, G::Real, ρ::R=nothing, label::L=:no_labelled_mat) where
+{R<:Union{Nothing,Real},L<:Union{Symbol,String}}
 
     # Compute E and ν given Lamé parameters λ and μ (μ = G)
     E = G * (3λ + 2G) / (λ + G)
@@ -53,3 +57,24 @@ function lame_parameters(svk::SVK)
 
     return λ, G
 end
+
+
+"Returns the Cosserat or Second-Piola Kirchoff tensor (𝕊) for a `Tetrahedron` element `t`
+considering a `SVK` material `m` and the strain tensor `𝔼`."
+function cosserat(m::SVK, 𝔼::AbstractMatrix, compute∂𝕊∂𝔼::Bool=true)
+
+    λ, G = lame_parameters(m)
+    𝕊 = λ * tr(𝔼) * eye(3) + 2 * G * 𝔼
+
+    if compute∂𝕊∂𝔼
+        ∂𝕊∂𝔼 = SparseMatrixCSC(zeros(6, 6))
+        ∂𝕊∂𝔼[1:3, 1:3] = λ * ones(3, 3) + 2 * G * eye(3)
+        ∂𝕊∂𝔼[4:6, 4:6] = G * eye(3)
+        return 𝕊, ∂𝕊∂𝔼
+    else
+        return 𝕊
+    end
+
+end
+
+

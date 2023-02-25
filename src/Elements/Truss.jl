@@ -20,6 +20,7 @@ struct Truss{dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection} <: Abst
     label::Symbol
     function Truss(nodes::SVector{2,N}, g::G, label=:no_labelled_element) where
     {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
+        @assert 1 ≤ dim ≤ 3 "Nodes of a truss element must comply  1 < dim < 3 ."
         new{dim,T,N,G}(nodes, g, Symbol(label))
     end
 end
@@ -40,7 +41,8 @@ cross_section(t::Truss) = t.cross_section
 "Returns the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
 
-"Returns the internal force of a `Truss` element `t` doted with an `SVK` material and a global displacement vector `u_glob`."
+"Returns the internal force of a `Truss` element `t` doted with an `SVK` material 
+and a an element displacement vector `u_e`."
 function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}
 
     E = m.E

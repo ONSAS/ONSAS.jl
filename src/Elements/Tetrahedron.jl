@@ -1,5 +1,7 @@
-using StaticArrays: SVector, @SVector
-using ..Materials: SVK
+using StaticArrays: SVector
+using LinearAlgebra: det, diagm
+
+using ..Materials: AbstractMaterial, SVK, cosserat
 using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye
@@ -12,157 +14,128 @@ export Tetrahedron
 A `Tetrahedron` represents a 3D volume element with four nodes.
 ### Fields:
 - `nodes`    -- stores the tetrahedron nodes.
-- `material` -- stores tetrahedron material.
 - `label`    -- stores the tetrahedron label.
 """
-struct Tetrahedron{dim,M,N<:AbstractNode{dim}} <: AbstractElement{dim,M}
+struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractElement{dim,T}
   nodes::SVector{4,N}
-  material::M
   label::Symbol
+  function Tetrahedron(nodes::SVector{4,N}, label=:no_labelled_element) where
+  {dim,T<:Real,N<:AbstractNode{dim,T}}
+    @assert dim == 3 "Nodes of a tetrahedron element must be 3D."
+    new{dim,T,N}(nodes, Symbol(label))
+  end
 end
 
-Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, m::M, label=:no_labelled_element) where {dim,M,N<:AbstractNode{dim}} =
-  Tetrahedron(SVector(n₁, n₂, n₃, n₄), m, Symbol(label))
+Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label=:no_labelled_element) where {N<:AbstractNode} =
+  Tetrahedron(SVector(n₁, n₂, n₃, n₄), Symbol(label))
 
 "Returns the local dof symbol of a `Tetrahedron` element."
 local_dof_symbol(::Tetrahedron) = [:u]
 
-
-
-#TODO: Add tetrahedron element order as a parametric type
-"Derivatives of the linear shape functions (Order 1)"
-function _shape_functions_derivatives()
+"Returns the shape functions derivatives of a `Tetrahedron` element."
+function _shape_functions_derivatives(::Tetrahedron, order =1)
   d = zeros(3, 4)
-  d[1, 1] = 1
-  d[1:3, 2] = [-1, -1, -1]
-  d[3, 3] = 1
-  d[2, 4] = 1
+  if order == 1
+    d[1, 1] = 1
+    d[1:3, 2] = [-1, -1, -1]
+    d[3, 3] = 1
+    d[2, 4] = 1
+  end
   return d
 end
 
-"Returns the reshaped coordinates of the tetrahedron element"
-_tetra_coords_mat(elem_coords) = reshape(transpose(elem_coords), 3, 4)
+"Returns the reshaped coordinates `elem_coords` of the tetrahedron element into a 4x3 matrix."
+_coordinates_matrix(t::Tetrahedron) = reduce(hcat,coordinates(t))
 
 "Computes Jacobian matrix"
 _jacobian_mat(tetrahedron_coords_matrix::AbstractMatrix, derivatives::AbstractMatrix) = tetrahedron_coords_matrix * derivatives'
 
-"Computes volume o"
+"Computes volume element of a tetrahedron given J = det(𝔽)."
 function _volume(jacobian_mat::AbstractMatrix)
   volume = det(jacobian_mat) / 6.0
-  volume < 0 && throw(ArgumentError("Element with negative volume, check connectivity."))
+  @assert volume > 0 throw(ArgumentError("Element with negative volume, check connectivity."))
   return volume
 end
 
 
-"Computes tetrahedron stiffness matrix."
-function _computes_cosserat_and_derivatives(t::Tetrahedron{3}, u_e::AbstractVector)
-
-  d = _shape_functions_derivatives()
-
-  tetra_coords = _tetra_coords_mat(coordinates(t))
-
-  jacobian_mat = _jacobian_mat(tetra_coords, d)
-
-  vol = _volume(jacobian_mat)
-
-  funder = inv(jacobian_mat)' * d
-
-  u_tetra_mat = reshape(u_e, 3, 4)
-
-  H = u_tetra_mat * funder
-
-  𝔽 = H + eye(e)
-
-  𝔼 = 0.5 * (H + H' + H' * H)
-
-  𝕊, ∂𝕊∂𝔼 = _cosserat_tensor(material(m), 𝔼)
-
-  return 𝕊, ∂𝕊∂𝔼
-end
-
-"Computes tetrahedron internal force"
-function internal_force(t::Tetrahedron{3}, u_e::AbstractVector)
-
-  fₑ = @SVector zeros(12)
-
-  d = _shape_functions_derivatives()
-
-  tetra_coords = _tetra_coords_mat(coordinates(t))
-
-  jacobian_mat = _jacobian_mat(tetra_coords, d)
-
-  vol = _volume(jacobian_mat)
-
-  funder = inv(jacobian_mat)' * d
-
-  u_tetra_mat = reshape(u_e, 3, 4)
-
-  H = u_tetra_mat * funder
-
-  𝔽 = H + eye(e)
-
-  𝔼 = 0.5 * (H + H' + H' * H)
-
-  𝕊, ∂𝕊∂𝔼 = _cosserat_tensor(material(m), 𝔼)
-
-  B = _compute_B_mat(funder, 𝔽)
-
-  𝕊_vogit = matrix2vogit(𝕊)
-
-  # Internal force
-  fₑ = SVector(B' * 𝕊_vogit * vol)
-
-  # Stiffness matrix
-  # Material component
-  Kₘ = B' * ∂𝕊∂𝔼 * B * vol
-  
-  # Geometric component
-  auxiliar_goe_matrix = funder' * S * funder  * vol 
-  Kᵧ = zeros(12,12) 
-  for i=1:4
-    for j=1:4
-      Kᵧ[(i-1)*3+1 , (j-1) * 3 + 1] = auxiliar_goe_matrix[i,j]
-      Kᵧ[(i-1)*3+2 , (j-1) * 3 + 2] = auxiliar_goe_matrix[i,j]
-      Kᵧ[(i-1)*3+3 , (j-1) * 3 + 3] = auxiliar_goe_matrix[i,j]
-    end
-  end
-
-  Kₑ = Kₘ + Kᵧ
-
-end
-
-_is_symetric(A) = (all(isapprox.(A - A', 0; rtol=1e-10)))
-
-function matrix2vogit(𝕋::AbstractMatrix, α::Real=1)
-
-  _is_symetric(A) || throw(ArgumentError("Tensor is not symetric"))
-
-   v = [𝕋(1,1),𝕋(2,2),𝕋(3,3),α*𝕋(2,3), α*𝕋(1,3), α*𝕋(1,2)]' 
-end
-
-function computes_cosserat_tensor(m::SVK)
-
-  λ, G = lambda(m)
-
-  𝕊 = λ * tr(𝔼) * eye(3) + 2 * G * 𝔼
-
-  ∂𝕊∂𝔼 = zeros(6, 6)
-  ∂𝕊∂𝔼[1:3, 1:3] = λ * ones(3) + 2 * G * eye(3)
-  ∂𝕊∂𝔼[4:6, 4:6] = G * eye(3)
-  return 𝕊,∂𝕊∂𝔼 
-end
-
-
-function compute_B_mat(deriv::AbstractMatrix , F::AbstractMatrix)
+function _B_mat(deriv::AbstractMatrix , 𝔽::AbstractMatrix)
 
   B = zeros(6, 12) 
 
-  B[1:3, :] = [diagm(deriv[:,1])*F' diagm(deriv[:,2])*F' diagm(deriv[:,3])*F' diagm(deriv[:,4])*F']
+  B[1:3, :] = [diagm(deriv[:,1])*𝔽' diagm(deriv[:,2])*𝔽' diagm(deriv[:,3])*𝔽' diagm(deriv[:,4])*𝔽']
 
   for k in 1:4
-      B[4:6 , (k-1)*3 .+ (1:3)] = [ deriv[2,k] * F[:,3]' + deriv[3,k]*F[:,2]'
-                                    deriv[1,k] * F[:,3]' + deriv[3,k]*F[:,1]'
-                                    deriv[1,k] * F[:,2]' + deriv[2,k]*F[:,1]' ] 
+      B[4:6 , (k-1)*3 .+ (1:3)] = [ deriv[2,k] * 𝔽[:,3]' + deriv[3,k] * 𝔽[:,2]'
+                                    deriv[1,k] * 𝔽[:,3]' + deriv[3,k] * 𝔽[:,1]'
+                                    deriv[1,k] * 𝔽[:,2]' + deriv[2,k] * 𝔽[:,1]' ] 
   end
   return B
 end
+
+_vogit(𝕋::AbstractMatrix, α::Real=1) = [𝕋[1,1],𝕋[2,2],𝕋[3,3],α*𝕋[2,3], α*𝕋[1,3], α*𝕋[1,2]]
+
+
+"Returns the internal force of a `Tetrahedron` element `t` doted with an `AbstractMaterial` `m` +
+and a an element displacement vector `u_e`."
+function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVector)
+
+  d = _shape_functions_derivatives(t)
+
+  coords = _coordinates_matrix(t)
+
+  disps = reshape(u_e, 3, 4)
+
+  J = _jacobian_mat(coords, d)
+
+  vol = _volume(J)
+
+  funder = inv(J)' * d
+  
+  ℍ = disps * funder'
+
+  # Deformation gradient 
+  𝔽 = ℍ + eye(3)
+
+  # Green-Lagrange strain  
+  𝔼 = 0.5 * (ℍ + ℍ' + ℍ' * ℍ)
+
+  𝕊, ∂𝕊∂𝔼 = cosserat(m, 𝔼)
+
+  B = _B_mat(funder, 𝔽)
+
+  𝕊_vogit = _vogit(𝕊)
+
+  fᵢₙₜ_e = B' * 𝕊_vogit * vol
+  
+  # Material stiffness
+  Kₘ = B' * ∂𝕊∂𝔼 * B* vol
+
+  # Geometric stiffness
+  aux = funder' * 𝕊 * funder  * vol 
+
+  Kᵧ = zeros(12,12) 
+
+  for i in 1:4
+    for j in 1:4
+      Kᵧ[(i-1)*3+1 , (j-1) * 3 + 1] = aux[i,j]
+      Kᵧ[(i-1)*3+2 , (j-1) * 3 + 2] = aux[i,j]
+      Kᵧ[(i-1)*3+3 , (j-1) * 3 + 3] = aux[i,j]
+    end
+  end
+
+  # Stifness matrix
+  Kᵢₙₜ_e = Kₘ + Kᵧ
+
+  # Piola stress
+  ℙ = 𝔽 * 𝕊
+
+  # Cuachy stress
+  σ_e = inv(J) * ℙ * 𝔽'
+  
+  return fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, 𝔼
+
+end
+
+
+
+

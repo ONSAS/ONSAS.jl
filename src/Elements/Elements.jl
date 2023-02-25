@@ -203,6 +203,7 @@ This method is a hard contract and for dynamic analysis must be implemented to d
 * [`inertial_forces`](@ref)
 
 **Common fields:**
+* nodes
 * label
 """
 
@@ -216,7 +217,7 @@ cross_section(e::AbstractElement) = e.cross_section
 function dofs(e::AbstractElement)
     vecdfs = dofs.(nodes(e))
     dfs = mergewith(vcat, vecdfs[1], vecdfs[2])
-    [mergewith(vcat, dfs, vecdfs[i]) for i in 3:length(vecdfs)]
+    [mergewith!(vcat, dfs, vecdfs[i]) for i in 3:length(vecdfs)]
     dfs
 end
 
@@ -251,11 +252,11 @@ label(e::AbstractElement) = e.label
 "Returns the `Node`s of an `AbstractElement` `e`."
 nodes(e::AbstractElement) = e.nodes
 
-"Returns the internal forces vector of an `AbstractElement` `e`."
-function internal_forces(e::AbstractElement, args...; kwargs...) end
+"Returns the internal forces vector of an `AbstractElement` `e` with an `AbstractMaterial` `m`."
+function internal_forces(m::AbstractMaterial, e::AbstractElement, args...; kwargs...) end
 
-"Returns the inertial forces vector of an `AbstractElement` `e`."
-function inertial_forces(e::AbstractElement, args...; kwargs...) end
+"Returns the inertial forces vector of an `AbstractElement` `e`. with an `AbstractMaterial` `m`"
+function inertial_forces(m::AbstractMaterial, e::AbstractElement, args...; kwargs...) end
 
 "Returns the `AbstractElement` `e` strain."
 function strain(e::AbstractElement, args...; kwargs...) end
@@ -268,7 +269,7 @@ function stress(e::AbstractElement, args...; kwargs...) end
 #=================================#
 
 include("./Truss.jl")
-# include("./Tetrahedron.jl")
+include("./Tetrahedron.jl")
 
 end # module
 

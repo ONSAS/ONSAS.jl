@@ -8,7 +8,7 @@ using Reexport: @reexport
 
 @reexport import ..Utils: label
 
-export AbstractMaterial, parameters
+export AbstractMaterial, parameters, cosserat
 
 """ Abstract supertype for all material models.
 
@@ -17,10 +17,14 @@ Different material models leads to different constitutive laws, internal forces 
 
 **Common methods:**
 
+* [`cosserat`](@ref)
 * [`parameters`](@ref)
 * [`label`](@ref)
 """
 abstract type AbstractMaterial end
+
+"Returns the Cosserat or Second-Piola Kirchhoff material parameters."
+function cosserat(m::AbstractMaterial) end
 
 "Returns the parameters of type `Number`."
 function parameters(m::T) where {T<:AbstractMaterial}
@@ -28,6 +32,7 @@ function parameters(m::T) where {T<:AbstractMaterial}
 end
 
 label(m::AbstractMaterial) = m.label
+
 
 #===========================#
 # AbstractElement Materials #
