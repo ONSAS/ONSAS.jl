@@ -6,6 +6,8 @@ using LinearAlgebra: norm
 using StaticArrays: SVector
 using ONSAS.Elements
 
+const RTOL = 1e-2
+
 @testset "ONSAS.Elements.Dof" begin
 
     # Default dof
@@ -62,34 +64,47 @@ end
 
 end
 
-@testset "ONSAS.Elements.TriangularFace" begin
+# Common nodes for testing 
+x₁ = x_test_3D
+x₂ = 2 .* x_test_3D
+x₃ = 3 .* x_test_3D
+x₄ = 4 .* x_test_3D
 
-    x₁ = [-1, 0, 0]
-    x₂ = [0, 1, 0]
-    x₃ = [0, 0, 1]
+n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
+n₂ = Node(x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
+n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
+n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)]]))
 
-    n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(10), Dof(11), Dof(12)]]))
-    n₂ = Node(x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(13), Dof(14), Dof(15)]]))
-    n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(16), Dof(17), Dof(18)]]))
 
+@testset "ONSAS.Elements.TriangularFace 3D" begin
+
+    x₁ = [0, 0, 0]
+    x₂ = [1, 0, 0]
+    x₃ = [0, 1, 0]
+
+    n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
+    n₂ = Node(x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
+    n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
 
     face_label = "my_face"
     f₁ = TriangularFace(n₁, n₂, n₃, face_label)
-    @test nodes(f₁) == [n₁, n₂, n₃]
+    f₁_no_label = TriangularFace(n₁, n₂, n₃)
+    @test all([n ∈ nodes(f₁) for n in [n₁, n₂, n₃]])
     @test coordinates(f₁) == [coordinates(n₁), coordinates(n₂), coordinates(n₃)]
-    @test dimension(f₁) == dimension(n₁) == dimension(n₂) == dimension(n₃)
-    @test all([d ∈ dofs(f₁)[:u] for d in [Dof(1), Dof(2), Dof(3), Dof(4), Dof(5), Dof(6), Dof(7), Dof(8), Dof(9)]])
-    @test all([d ∈ dofs(f₁)[:θ] for d in [Dof(10), Dof(11), Dof(12), Dof(13), Dof(14), Dof(15), Dof(16), Dof(17), Dof(18)]])
+    @test dimension(f₁) == length(x₁)
+    @test all([d ∈ dofs(f₁)[:u] for d in Dof.(1:9)])
+    @test all([d ∈ dofs(f₁)[:θ] for d in Dof.(13:21)])
     @test label(f₁) == Symbol(face_label)
+    @test area(f₁) == 0.5
+    @test normal_direction(f₁) == [0, 0, 1]
 
 end
 
-
-@testset "ONSAS.Elements.Truss 3D" begin
+@testset "ONSAS.Elements.Truss 3D SVK" begin
 
     E = 1.0
     ν = 0.3
-    my_mat = SVK(E, ν)
+    my_svk_mat = SVK(E, ν)
 
     # General case considering a mesh with rotations 
     x₁ = [-1, 0, 0]
@@ -110,10 +125,10 @@ end
     square_corss_section = Square(A)
     my_label = "my_truss"
     t = Truss(n₁, n₂, square_corss_section, my_label)
+    t_no_label = Truss(n₁, n₂, square_corss_section)
 
-    @test dimension(t) == dimension(n₁) == dimension(n₂)
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
-    @test x₁ ∈ coordinates(t) && x₂ ∈ coordinates(t)
+    @test all([n ∈ coordinates(t) for n in coordinates([n₁, n₂])])
     @test cross_section(t) == square_corss_section
     truss_dofs = dofs(t)
     @test all([d ∈ truss_dofs[:u] for d in [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]])
@@ -123,12 +138,89 @@ end
     @test all([d ∈ local_dofs(t) for d in [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]])
     @test string(label(t)) == my_label
 
-    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_mat, t, u_global_structure[local_dofs(t)])
+    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_svk_mat, t, u_global_structure[local_dofs(t)])
     strain(t, u_global_structure[local_dofs(t)]) == ϵ_e
     stress(t, u_global_structure[local_dofs(t)]) == σ_e
     @test norm(fᵢₙₜ_e) == 0
     @test Kᵢₙₜ_e[1] == E * A / l_def
     @test norm(σ_e) == 0
     @test norm(ϵ_e) == 0
+
+end
+
+@testset "ONSAS.Elements.Tetrahedron 3D SVK" begin
+
+    n₁ = Node(0, 0, 0, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
+    n₂ = Node(0, 1, 0, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
+    n₃ = Node(0, 0, 1, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
+    n₄ = Node(2, 0, 1, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)]]))
+
+    λ = 0.5769
+    G = 0.3846
+    my_svk_mat = SVK(λ=λ, G=G)
+
+    tetra_label = "my_tetrahedron"
+    tetra = Tetrahedron(n₁, n₂, n₃, n₄, tetra_label)
+    tetra_no_label = Tetrahedron(n₁, n₂, n₃, n₄)
+
+    @test length(nodes(tetra)) == 4
+    @test all([n ∈ nodes(tetra) for n in [n₁, n₂, n₃, n₄]])
+    @test all([n ∈ coordinates(tetra) for n in coordinates([n₁, n₂, n₃, n₄])])
+    tetra_dofs = dofs(tetra)
+    @test all([d ∈ tetra_dofs[:u] for d in Dof.(1:12)])
+    @test length(tetra_dofs[:u]) == 12
+    @test all([d ∈ tetra_dofs[:θ] for d in Dof.(13:24)])
+    @test length(tetra_dofs[:θ]) == 12
+    @test local_dof_symbol(tetra) == [:u]
+    local_dofs(tetra)
+    @test all([d ∈ local_dofs(tetra) for d in Dof.(1:12)])
+
+    # Global displacements vector of the nodes 
+    u_global₁_u = [0.1, 0.2, 0.3]
+    u_global₁_θ = rand(3)
+    u_global₂_u = [0.4, 0.5, 0.6]
+    u_global₂_θ = rand(3)
+    u_global₃_u = [0.7, 0.8, 0.9]
+    u_global₃_θ = rand(3)
+    u_global₄_u = [1.0, 1.1, 1.2]
+    u_global₄_θ = rand(3)
+
+    u_global_structure = vcat(
+        u_global₁_u, u_global₂_u, u_global₃_u, u_global₄_u,
+        u_global₁_θ, u_global₂_θ, u_global₃_θ, u_global₄_θ,
+    )
+
+    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e =
+        internal_forces(my_svk_mat, tetra, u_global_structure[local_dofs(tetra)])
+
+    # Values from ONSAS.m
+    fᵢₙₜ_e_test = [-0.9160, -1.3446, -1.5253, 0.3319, 0.7067, 0.4415,
+        0.3120, 0.5210, 0.9390, 0.2720, 0.1169, 0.1448]
+
+    Kᵢₙₜ_e_test = [2.1635e+00 7.8458e-01 8.6150e-01 -9.4812e-01 -4.1633e-01 -2.8172e-01 -9.4668e-01 -2.1522e-01 -4.2675e-01 -2.6874e-01 -1.5304e-01 -1.5304e-01
+        7.8458e-01 3.1379e+00 1.5089e+00 -3.7787e-01 -1.6917e+00 -6.0222e-01 -1.8797e-01 -1.2976e+00 -8.6102e-01 -2.1874e-01 -1.4855e-01 -4.5671e-02
+        8.6150e-01 1.5089e+00 3.2917e+00 -3.0095e-01 -7.2401e-01 -1.1596e+00 -3.4181e-01 -7.3923e-01 -1.9835e+00 -2.1874e-01 -4.5671e-02 -1.4855e-01
+        -9.4812e-01 -3.7787e-01 -3.0095e-01 7.0582e-01 2.4326e-01 1.8557e-01 1.4951e-01 3.4454e-02 8.8939e-02 9.2785e-02 1.0016e-01 2.6441e-02
+        -4.1633e-01 -1.6917e+00 -7.2401e-01 2.4326e-01 1.2571e+00 3.0095e-01 2.6441e-02 3.6585e-01 4.0143e-01 1.4663e-01 6.8747e-02 2.1634e-02
+        -2.8172e-01 -6.0222e-01 -1.1596e+00 1.8557e-01 3.0095e-01 8.2120e-01 6.0094e-02 2.8444e-01 2.9374e-01 3.6056e-02 1.6826e-02 4.4710e-02
+        -9.4668e-01 -1.8797e-01 -3.4181e-01 1.4951e-01 2.6441e-02 6.0094e-02 8.8031e-01 1.5204e-01 2.0812e-01 -8.3150e-02 9.4948e-03 7.3595e-02
+        -2.1522e-01 -1.2976e+00 -7.3923e-01 3.4454e-02 3.6585e-01 2.8444e-01 1.5204e-01 1.0165e+00 4.7654e-01 2.8725e-02 -8.4752e-02 -2.1754e-02
+        -4.2675e-01 -8.6102e-01 -1.9835e+00 8.8939e-02 4.0143e-01 2.9374e-01 2.0812e-01 4.7654e-01 1.7697e+00 1.2968e-01 -1.6946e-02 -7.9945e-02
+        -2.6874e-01 -2.1874e-01 -2.1874e-01 9.2785e-02 1.4663e-01 3.6056e-02 -8.3150e-02 2.8725e-02 1.2968e-01 2.5910e-01 4.3388e-02 5.3003e-02
+        -1.5304e-01 -1.4855e-01 -4.5671e-02 1.0016e-01 6.8747e-02 1.6826e-02 9.4948e-03 -8.4752e-02 -1.6946e-02 4.3388e-02 1.6456e-01 4.5791e-02
+        -1.5304e-01 -4.5671e-02 -1.4855e-01 2.6441e-02 2.1634e-02 4.4710e-02 7.3595e-02 -2.1754e-02 -7.9945e-02 5.3003e-02 4.5791e-02 1.8379e-01]
+
+    𝔼_e_test = [0.1838 0.2925 0.5100
+        0.2925 0.4350 0.7200
+        0.5100 0.7200 1.1400]
+
+    σ_e_test = [-5.9378 -7.8126 -9.5331
+        1.6136 1.2953 1.6735
+        1.7335 2.5078 4.0564]
+
+    @test fᵢₙₜ_e ≈ fᵢₙₜ_e_test rtol = RTOL
+    @test Kᵢₙₜ_e ≈ Kᵢₙₜ_e_test rtol = RTOL
+    @test 𝔼_e_test ≈ ϵ_e rtol = RTOL
+    @test σ_e_test ≈ σ_e rtol = RTOL
 
 end

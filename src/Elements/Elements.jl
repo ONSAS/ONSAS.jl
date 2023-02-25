@@ -15,10 +15,13 @@ using ..Utils: row_vector
 @reexport import ..Utils: label
 @reexport import Dictionaries: index
 
+import ..CrossSections: area
+
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
-export AbstractFace, coordinates, nodes
-export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress
+export AbstractFace, normal_direction, nodes
+export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
+    local_dofs, nodes, strain, stress
 
 # ========================
 # Degree of freedom (Dof)
@@ -36,22 +39,22 @@ end
 "Returns the dof index of the `Dof` `d` "
 @inline index(d::Dof) = d.index
 
-"Returns the dof index from a vector of `Dof`s `vd` "
+"Returns the dof index from a `Vector` of `Dof`s `vd` "
 @inline index(vd::Vector{Dof}) = index.(vd)
 
-"Returns the maximum dof index from a vector of `Dof`s `vd` "
+"Returns the maximum dof index from a `Vector` of `Dof`s `vd` "
 Base.maximum(vd::Vector{Dof}) = maximum(index.(vd))
 
-"Returns the entry of a vector `v` at index corresponding to the `Dof` `d` index."
+"Returns the entry of a `Vector` `v` at index corresponding to the `Dof` `d` index."
 @inline Base.getindex(v::AbstractVector, d::Dof) = v[index(d)]
 
-"Sets the index of a vector `v` with the index corresponding to the `Dof` `d`."
+"Sets the index of a `Vector` `v` with the index corresponding to the `Dof` `d`."
 @inline Base.setindex!(v::AbstractVector{T}, t::T, d::Dof) where {T} = v[index(d)] = t
 
-"Returns a vector of entries of a vector `v` at indexes corresponding to the `Dof`s vector `vd`."
+"Returns a `Vector` of entries of a `Vector` `v` at indexes corresponding to the `Dof`s vector `vd`."
 @inline Base.getindex(v::AbstractVector, vd::Vector{<:Dof}) = [v[index(d)] for d in vd]
 
-"Sets a vector of values `tv` to a vector `v` at indexes corresponding to the `Dof`s vector `vd`."
+"Sets a `Vector` of values `tv` to a `Vector` `v` at indexes corresponding to the `Dof`s vector `vd`."
 @inline Base.setindex!(v::AbstractVector, tv::Vector{T}, vd::Vector{<:Dof}) where {T} = [setindex!(v, ti, vi) for (ti, vi) in zip(tv, vd)]
 
 # =================
@@ -74,6 +77,9 @@ An `AbstractNode` object is a point in space.
 "Returns the `AbstractNode` `n` coordinates."
 coordinates(n::AbstractNode) = n.x
 
+"Returns each `AbstractNode` coordinates in a `Vector` of `Node`s vn."
+coordinates(vn::Vector{<:AbstractNode}) = coordinates.(vn)
+
 "Returns the `AbstractNode` `n` dimension (1D, 2D or 3D)."
 dimension(::AbstractNode{dim}) where {dim} = dim
 
@@ -89,7 +95,7 @@ dofs(vn::Vector{<:AbstractNode}) = vcat(dofs.(vn)...)
 "Returns `AbstractNode` `n` degrees of freedom with symbol `s`."
 dofs(n::AbstractNode, s::Symbol) = n.dofs[s]
 
-"Sets a vectors of dofs `vd` to the `AbstractNode` `n` assigned to the symbol `s`."
+"Sets a `Vector`s of dofs `vd` to the `AbstractNode` `n` assigned to the symbol `s`."
 function add!(n::AbstractNode, s::Symbol, vd::Vector{Dof})
     if s ∉ keys(dofs(n))
         insert!(dofs(n), s, vd)
@@ -112,18 +118,26 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 
 **Common methods:**
 
+* [`area`](@ref)
 * [`coordinates`](@ref)
 * [`dofs`](@ref)
 * [`label`](@ref)
 * [`nodes`](@ref)
+* [`normal_direction`](@ref)
 
 **Common fields:**
 * nodes
 * label
 """
 
+"Returns the `AbstractFace` `f` area."
+function area(f::AbstractFace) end
+
 "Returns the `AbstractFace` `f` coordinates."
 coordinates(f::AbstractFace) = coordinates.(nodes(f))
+
+"Returns each `AbstractFace` coordinates in a `Vector` of `Face`s `vf`."
+coordinates(vf::Vector{<:AbstractFace}) = coordinates.(vf)
 
 "Returns the `AbstractFace` `f` dimension."
 dimension(::AbstractFace{dim}) where {dim} = dim
@@ -139,18 +153,23 @@ function dofs(f::AbstractFace)
     dfs
 end
 
-"Returns the dofs of a vector `vf` with `AbstractFace`s."
+"Returns the dofs of a `Vector` `vf` with `AbstractFace`s."
 dofs(vf::Vector{<:AbstractFace}) = unique(row_vector(dofs.(vf)))
+
+"Returns the `Node`s of an `AbstractFace` `f`."
+nodes(f::AbstractFace) = f.nodes
 
 "Returns the label of `AbstractFace` `f`."
 label(f::AbstractFace) = f.label
+
+"Returns the `AbstractFace` `f` normal."
+function normal_direction(f::AbstractFace) end
 
 #==============================#
 # AbstractFace implementations #
 #==============================#
 
 include("./TriangularFace.jl")
-
 
 # =================
 # Abstract Element
@@ -186,7 +205,6 @@ This method is a hard contract and for dynamic analysis must be implemented to d
 **Common fields:**
 * nodes
 * label
-
 """
 
 "Returns the `AbstractElement` `e` coordinates."
@@ -195,13 +213,15 @@ coordinates(e::AbstractElement) = coordinates.(nodes(e))
 "Returns the `AbstractElement` `e` cross_section."
 cross_section(e::AbstractElement) = e.cross_section
 
-"Returns the `AbstractElement` `e` dimension."
-dimension(::AbstractElement{dim}) where {dim} = dim
+"Returns the `AbstractElement` `e` dofs."
+function dofs(e::AbstractElement)
+    vecdfs = dofs.(nodes(e))
+    dfs = mergewith(vcat, vecdfs[1], vecdfs[2])
+    [mergewith!(vcat, dfs, vecdfs[i]) for i in 3:length(vecdfs)]
+    dfs
+end
 
-"Returns the dofs of `AbstractElement` `e`."
-dofs(e::AbstractElement) = mergewith(vcat, dofs.(nodes(e))...)
-
-"Returns the dofs of a vector `ve` with `AbstractElement`s."
+"Returns the dofs of a `Vector` `ve` with `AbstractElement`s."
 dofs(ve::Vector{<:AbstractElement}) = unique(row_vector(dofs.(ve)))
 
 "Returns local dofs symbols of the `AbstractElement` `e` (for linear displacements `:u` is used) in a vector.
@@ -229,14 +249,14 @@ end
 "Returns the label of an `AbstractElement` `e`."
 label(e::AbstractElement) = e.label
 
-"Returns a `Vector` of `Node`s defined in the `AbstractElement` `e`."
+"Returns the `Node`s of an `AbstractElement` `e`."
 nodes(e::AbstractElement) = e.nodes
 
-"Returns the internal forces vector of an `AbstractElement` `e`."
-function internal_forces(e::AbstractElement, args...; kwargs...) end
+"Returns the internal forces vector of an `AbstractElement` `e` with an `AbstractMaterial` `m`."
+function internal_forces(m::AbstractMaterial, e::AbstractElement, args...; kwargs...) end
 
-"Returns the inertial forces vector of an `AbstractElement` `e`."
-function inertial_forces(e::AbstractElement, args...; kwargs...) end
+"Returns the inertial forces vector of an `AbstractElement` `e`. with an `AbstractMaterial` `m`"
+function inertial_forces(m::AbstractMaterial, e::AbstractElement, args...; kwargs...) end
 
 "Returns the `AbstractElement` `e` strain."
 function strain(e::AbstractElement, args...; kwargs...) end
@@ -249,6 +269,7 @@ function stress(e::AbstractElement, args...; kwargs...) end
 #=================================#
 
 include("./Truss.jl")
+include("./Tetrahedron.jl")
 
 end # module
 
