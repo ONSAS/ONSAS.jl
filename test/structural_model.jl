@@ -53,7 +53,6 @@ s_boundary_conditions = StructuralBoundaryConditions(node_bc, face_bc, elem_bc)
 
 end
 
-
 @testset "ONSAS.StructuralModel.StructuralBoundaryConditions" begin
 
 
@@ -67,9 +66,13 @@ end
     @test bc₃ ∈ load_bcs(s_boundary_conditions) && bc₄ ∈ load_bcs(s_boundary_conditions)
     @test length(fixed_dof_bcs(s_boundary_conditions)) == 2
     @test bc₁ ∈ fixed_dof_bcs(s_boundary_conditions) && bc₂ ∈ fixed_dof_bcs(s_boundary_conditions)
+    @test apply(s_boundary_conditions, bc₁) == vcat(Dof.(1:3), Dof.(7:9))
+    @test apply(s_boundary_conditions, bc₂) == [Dof(5)]
 
     @test s_boundary_conditions["fixed_uⱼ"] == bc₂
     @test truss₁ ∈ s_boundary_conditions[bc₄]
+    t_to_test = first(rand(1))
+    apply(s_boundary_conditions_only_nodes, bc₃, t_to_test)
     @test truss₃ ∈ s_boundary_conditions[bc₃] && face₁ ∈ s_boundary_conditions[bc₃] && n₂ ∈ s_boundary_conditions[bc₃]
     @test length(s_boundary_conditions[bc₃]) == 3
     @test bc₂ ∈ s_boundary_conditions[n₂] && bc₃ ∈ s_boundary_conditions[n₂]

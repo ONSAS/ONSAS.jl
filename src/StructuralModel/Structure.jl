@@ -48,30 +48,4 @@ function Structure(
 end
 
 #### BoundaryConditions Applied to the structure
-"Computes `Dof`s to delete given a `FixedDofBoundaryCondition` and a set of `StructuralBoundaryConditions` `bcs`."
-function compute_fixed_dofs(bcs::StructuralBoundaryConditions, fbc::FixedDofBoundaryCondition)
 
-    # Extract dofs to apply the bc
-    fbc_dofs_symbols = dofs(fbc)
-
-    # Extract nodes, faces and elements 
-    entities = bcs[fbc]
-
-    dofs_to_delete = Dof[]
-
-    for dof_symbol in fbc_dofs_symbols
-        dofs_entities = getindex.(dofs.(entities), dof_symbol)
-        for component in components(fbc)
-            dofs_to_delete_fbc = getindex.(dofs_entities, component)
-            push!(dofs_to_delete, dofs_to_delete_fbc...)
-        end
-    end
-    return dofs_to_delete
-end
-
-"Applies a `Vector` of `FixedDofBoundaryCondition` `f_bcs` and a set of `StructuralBoundaryConditions` `bcs`."
-function compute_fixed_dofs(bcs::StructuralBoundaryConditions, f_bcs::Vector{<:FixedDofBoundaryCondition})
-    dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, compute_fixed_dofs(bcs, fbc)...) for fbc in f_bcs]
-    return dofs_to_delete
-end

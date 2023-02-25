@@ -21,7 +21,6 @@ end
 GlobalLoadBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::String="no_labelled_bc") =
     GlobalLoadBoundaryCondition(dofs, values, Symbol(name))
 
-
 "Returns the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to 
 the `AbstractNode` `n` at time `t`. "
 function apply(lbc::GlobalLoadBoundaryCondition, n::AbstractNode, t::Real)
@@ -38,7 +37,6 @@ function apply(lbc::GlobalLoadBoundaryCondition, n::AbstractNode, t::Real)
     "The length of the force vector must be equal to the length of the dofs vector."
 
     return dofs_lbc, f_dofs
-
 end
 
 "Returns the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
