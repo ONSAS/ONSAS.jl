@@ -29,9 +29,8 @@ end
 Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label=:no_labelled_element) where {N<:AbstractNode} =
   Tetrahedron(SVector(n₁, n₂, n₃, n₄), Symbol(label))
 
-"Computes the `Tetrahedron` t volume"
+"Returns the `Tetrahedron` `t` volume in the reference configuration."
 function volume(t::Tetrahedron)
-  
   d = _shape_functions_derivatives(t)
   coords = _coordinates_matrix(t)
   J = _jacobian_mat(coords, d)

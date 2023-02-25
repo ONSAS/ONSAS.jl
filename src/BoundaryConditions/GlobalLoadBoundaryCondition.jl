@@ -1,7 +1,7 @@
 using ..BoundaryConditions: AbstractLoadBoundaryCondition
 using ..Elements: AbstractNode, AbstractFace, AbstractElement, area, volume
 
-import ..BoundaryConditions: apply
+import ..BoundaryConditions: _apply
 
 export GlobalLoadBoundaryCondition
 
@@ -23,7 +23,7 @@ GlobalLoadBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::String
 
 "Returns the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to 
 the `AbstractNode` `n` at time `t`. "
-function apply(lbc::GlobalLoadBoundaryCondition, n::AbstractNode, t::Real)
+function _apply(lbc::GlobalLoadBoundaryCondition, n::AbstractNode, t::Real)
 
     # Find dofs of the node corresponding to the dofs symbols of the boundary condition
     dofs_lbc = Dof[]
@@ -40,7 +40,7 @@ function apply(lbc::GlobalLoadBoundaryCondition, n::AbstractNode, t::Real)
 end
 
 "Returns the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
-function apply(lbc::GlobalLoadBoundaryCondition, f::AbstractFace, t::Real)
+function _apply(lbc::GlobalLoadBoundaryCondition, f::AbstractFace, t::Real)
 
     # Compute tension vector for each node 
     A = area(f)
@@ -63,7 +63,7 @@ end
 
 
 "Returns the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractElement` `e` at time `t`."
-function apply(lbc::GlobalLoadBoundaryCondition, e::AbstractElement, t::Real)
+function _apply(lbc::GlobalLoadBoundaryCondition, e::AbstractElement, t::Real)
 
     # Compute tension vector for each node 
     V = volume(e)

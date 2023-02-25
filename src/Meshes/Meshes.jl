@@ -29,7 +29,6 @@ The following methods are provided by the interface:
 * [`nodes`](@ref)
 * [`num_nodes`](@ref)
 """
-
 abstract type AbstractMesh{dim} end
 
 "Returns the dimension of an `AbstractMesh`."

@@ -1,7 +1,7 @@
 using ..Elements: AbstractNode, AbstractFace, AbstractElement
 using Reexport: @reexport
 
-@reexport import ..BoundaryConditions: apply
+@reexport import ..BoundaryConditions: _apply
 
 export StructuralBoundaryConditions, all_bcs, node_bcs, face_bcs, element_bcs, displacement_bcs, load_bcs, fixed_dof_bcs
 
@@ -79,18 +79,18 @@ function fixed_dof_bcs(se::StructuralBoundaryConditions)
 end
 
 "Returns a `Vector` of `Dof`s to delete given a `FixedDofBoundaryCondition` and a set of `StructuralBoundaryConditions` `bcs`."
-function apply(bcs::StructuralBoundaryConditions, fbc::FixedDofBoundaryCondition)
+function _apply(bcs::StructuralBoundaryConditions, fbc::FixedDofBoundaryCondition)
     # Extract nodes, faces and elements 
     entities = bcs[fbc]
     dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, apply(fbc, e)...) for e in entities]
+    [push!(dofs_to_delete, _apply(fbc, e)...) for e in entities]
     return unique!(dofs_to_delete)
 end
 
 "Returns a `Vector` of `FixedDofBoundaryCondition` `f_bcs` and a set of `StructuralBoundaryConditions` `bcs`."
-function apply(bcs::StructuralBoundaryConditions, f_bcs::Vector{<:FixedDofBoundaryCondition})
+function _apply(bcs::StructuralBoundaryConditions, f_bcs::Vector{<:FixedDofBoundaryCondition})
     dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, apply(bcs, fbc)...) for fbc in f_bcs]
+    [push!(dofs_to_delete, _apply(bcs, fbc)...) for fbc in f_bcs]
     return unique!(dofs_to_delete)
 end
 
@@ -104,15 +104,28 @@ end
 
 "Returns a `Vector` of `Dof`s and values to apply a `LoadDofBoundaryCondition` and a set of `StructuralBoundaryConditions` `bcs`
 at time `t`."
-function apply(bcs::StructuralBoundaryConditions, lbc::AbstractLoadBoundaryCondition, t::Real)
+function _apply(bcs::StructuralBoundaryConditions, lbc::AbstractLoadBoundaryCondition, t::Real)
     # Extract nodes, faces and elements 
     entities = bcs[lbc]
     dofs_to_load = Dof[]
     load_vec = Float64[]
+
     for e in entities
-        dofs_lbc_e, load_vec_e = apply(lbc, e, t)
+        dofs_lbc_e, load_vec_e = _apply(lbc, e, t)
         push!(load_vec, load_vec_e...)
         push!(dofs_to_load, dofs_lbc_e...)
     end
-    return dofs_to_load, load_vec
+
+    # Check if dofs are unique, if not add values
+    num_dofs_to_load = length(dofs_to_load)
+    unique_dofs_to_load = unique(dofs_to_load)
+    if num_dofs_to_load == length(unique_dofs_to_load)
+        return dofs_to_load, load_vec
+    else
+        dofs_load_dict = dictionary(zip(unique_dofs_to_load, zeros(num_dofs_to_load)))
+        [dofs_load_dict[dof] += val for (dof, val) in zip(dofs_to_load, load_vec)]
+        return collect(keys(dofs_load_dict)), collect(values(dofs_load_dict))
+    end
+
+    # TODO: Mergwirth built-in function can be used with each entity load and dofs dict 
 end

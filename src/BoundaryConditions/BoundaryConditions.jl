@@ -10,7 +10,7 @@ using Reexport: @reexport
 @reexport import ..Elements: dofs
 @reexport import ..Utils: label
 
-export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition, AbstractLoadBoundaryCondition, apply
+export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition, AbstractLoadBoundaryCondition, _apply
 export DisplacementBoundaryCondition, FixedDofBoundaryCondition, components
 export GlobalLoadBoundaryCondition, LocalLoadBoundaryCondition
 
@@ -30,7 +30,7 @@ An `AbstractBoundaryCondition` object facilitates the process of defining:
 abstract type AbstractBoundaryCondition end
 
 "Applies the boundary condition `bc` to an`entity`."
-function apply(bc::AbstractBoundaryCondition, entity) end
+function _apply(bc::AbstractBoundaryCondition, entity) end
 
 "Returns the degrees of freedom symbol where the boundary condition is imposed"
 dofs(bc::AbstractBoundaryCondition) = bc.dofs

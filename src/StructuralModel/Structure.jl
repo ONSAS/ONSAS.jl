@@ -1,5 +1,5 @@
 using ..Meshes: AbstractMesh
-using ..BoundaryConditions: FixedDofBoundaryCondition, apply
+using ..BoundaryConditions: FixedDofBoundaryCondition, _apply
 using ..StructuralModel: AbstractStructure, StructuralMaterials, StructuralBoundaryConditions
 
 
@@ -12,7 +12,7 @@ An `Structure` object facilitates the process of assembling and creating the str
 - `bcs`       -- Stores the structural boundary conditions of the structure.
 - `free_dofs` -- Stores the free degrees of freedom.
 """
-mutable struct Structure{dim,MESH,MAT,E,NB,LB} <: AbstractStructure{dim,MAT,E}
+struct Structure{dim,MESH,MAT,E,NB,LB} <: AbstractStructure{dim,MAT,E}
     mesh::MESH
     materials::StructuralMaterials{MAT,E}
     bcs::StructuralBoundaryConditions{NB,LB}
@@ -40,7 +40,7 @@ function Structure(
         [push!(default_free_dofs, vec_dof...) for vec_dof in collect(values(node_dofs))]
     end
 
-    fixed_dofs = apply(bcs, fixed_dof_bcs(bcs))
+    fixed_dofs = _apply(bcs, fixed_dof_bcs(bcs))
 
     deleteat!(default_free_dofs, findall(x -> x in fixed_dofs, default_free_dofs))
 

@@ -1,7 +1,7 @@
 using ..BoundaryConditions: AbstractLoadBoundaryCondition
 using ..Elements: AbstractNode, AbstractFace, AbstractElement, normal_direction
 
-import ..BoundaryConditions: apply
+import ..BoundaryConditions: _apply
 
 export LocalLoadBoundaryCondition
 
@@ -27,12 +27,12 @@ LocalLoadBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::String=
 
 
 "Returns the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
-function apply(lbc::LocalLoadBoundaryCondition, f::AbstractFace, t::Real)
+function _apply(lbc::LocalLoadBoundaryCondition, f::AbstractFace, t::Real)
 
     # Compute tension vector for each node 
     n = normal_direction(f)
     A = area(f)
-    p = lbc(t)[1] * A * n
+    p = first(lbc(t)) * A * n
     num_nodes = length(nodes(f))
     p_nodal = p / num_nodes
 

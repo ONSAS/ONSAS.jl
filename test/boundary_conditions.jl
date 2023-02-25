@@ -27,16 +27,15 @@ tetra = Tetrahedron(n₁, n₂, n₃, n₄)
     @test components(fixed_bc) == fixed_components
     @test label(fixed_bc) == generic_bc_label
 
-    @test apply(fixed_bc, n₃) == [Dof(7), Dof(9), Dof(19), Dof(21)]
-    @test apply(fixed_bc, t_face) == [Dof(1), Dof(3), Dof(13), Dof(15), Dof(4),
+    @test _apply(fixed_bc, n₃) == [Dof(7), Dof(9), Dof(19), Dof(21)]
+    @test _apply(fixed_bc, t_face) == [Dof(1), Dof(3), Dof(13), Dof(15), Dof(4),
         Dof(6), Dof(16), Dof(18), Dof(7), Dof(9), Dof(19), Dof(21)]
-    @test apply(fixed_bc, tetra) == [Dof(1), Dof(3), Dof(13), Dof(15), Dof(4), Dof(6), Dof(16),
+    @test _apply(fixed_bc, tetra) == [Dof(1), Dof(3), Dof(13), Dof(15), Dof(4), Dof(6), Dof(16),
         Dof(18), Dof(7), Dof(9), Dof(19), Dof(21), Dof(10), Dof(12), Dof(22), Dof(24)]
 
 end
 
 t_to_test = 2.0
-
 
 @testset "ONSAS.BoundaryConditions.GlobalLoadBoundaryCondition" begin
 
@@ -55,20 +54,20 @@ t_to_test = 2.0
     @test generic_bc(t_to_test) == values(generic_bc)(t_to_test)
 
     # Node force computation 
-    loaded_dofs, f_vec = apply(generic_bc, n₁, t_to_test)
+    loaded_dofs, f_vec = _apply(generic_bc, n₁, t_to_test)
     @test loaded_dofs == [Dof(1), Dof(2), Dof(3), Dof(13), Dof(14), Dof(15)]
     @test f_vec == repeat(generic_bc(t_to_test), 2)
 
     # Face tension computation 
-    loaded_dofs, p_vec = apply(generic_bc, t_face, t_to_test)
+    loaded_dofs, p_vec = _apply(generic_bc, t_face, t_to_test)
     @test loaded_dofs == vcat(Dof.(1:9), Dof.(13:21))
     @test p_vec == repeat(generic_bc(t_to_test) * area(t_face) / 3, 6)
 
     # Volume tension computation 
-    loaded_dofs, b_vec = apply(generic_bc, tetra, t_to_test)
+    loaded_dofs, b_vec = _apply(generic_bc, tetra, t_to_test)
     @test loaded_dofs == vcat(Dof.(1:24))
-    @test f_vec == repeat(generic_bc(t_to_test) * volume(t_face) / 3, 6) skip = true
 
+    @test b_vec == repeat(generic_bc(t_to_test) * volume(tetra) / 4, 8)
 
 end
 
@@ -86,11 +85,8 @@ end
     @test generic_bc(t_to_test) == values(generic_bc)(t_to_test)
 
     # Face tension computation 
-    loaded_dofs, p_vec = apply(generic_bc, t_face, t_to_test)
+    loaded_dofs, p_vec = _apply(generic_bc, t_face, t_to_test)
     @test loaded_dofs == vcat(Dof.(1:9))
     @test p_vec == repeat([generic_values(t_to_test)[1] * area(t_face) / 3, 0, 0], 3)
-
-
-
 end
 

@@ -1,7 +1,7 @@
 using ..BoundaryConditions: AbstractDisplacementBoundaryCondition
 using ..Elements: Dof, AbstractNode, AbstractFace, AbstractElement, nodes
 
-import ..BoundaryConditions: apply
+import ..BoundaryConditions: _apply
 
 export components
 
@@ -27,7 +27,7 @@ components(bc::FixedDofBoundaryCondition) = bc.components
 
 
 "Returns fixed `Dof`s of an `AbstractNode` imposed in the `FixedDofBoundaryCondition` `fbc`."
-function apply(fbc::FixedDofBoundaryCondition, n::AbstractNode)
+function _apply(fbc::FixedDofBoundaryCondition, n::AbstractNode)
     fbc_dofs_symbols = dofs(fbc)
     dofs_to_delete = Dof[]
     for dof_symbol in fbc_dofs_symbols
@@ -37,8 +37,8 @@ function apply(fbc::FixedDofBoundaryCondition, n::AbstractNode)
 end
 
 "Returns fixed `Dof`s of an `AbstractFace` or `AbstractElement` imposed in the `FixedDofBoundaryCondition` `fbc`."
-function apply(fbc::FixedDofBoundaryCondition, e::E) where {E<:Union{AbstractFace,AbstractElement}}
+function _apply(fbc::FixedDofBoundaryCondition, e::E) where {E<:Union{AbstractFace,AbstractElement}}
     dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, apply(fbc, n)...) for n in nodes(e)]
+    [push!(dofs_to_delete, _apply(fbc, n)...) for n in nodes(e)]
     dofs_to_delete
 end

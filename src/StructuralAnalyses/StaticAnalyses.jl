@@ -171,7 +171,6 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
     states = []
 
-
     # load factors iteration 
     while !is_done(sa)
 

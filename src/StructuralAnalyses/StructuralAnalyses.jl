@@ -20,12 +20,11 @@ import ..Elements: internal_forces, inertial_forces, strain, stress
 import ..StructuralModel: free_dofs
 import ..StructuralSolvers: _assemble!, _update!, _reset!, _end_assemble!
 
-export AbstractStructuralState, _assemble!, displacements, Δ_displacements, external_forces, residual_forces,
+export AbstractStructuralState, _apply!, _assemble!, displacements, Δ_displacements, external_forces, residual_forces,
     tangent_matrix, residual_forces_norms, residual_displacements_norms, iteration_residuals, tangent_matrix, structure,
     assembler, iteration_residuals, residual_forces_norms, residual_displacements_norms
 
 export AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done, current_state, current_iteration
-export _apply!
 
 """ Abstract supertype to define a new structural state.
 **Common methods:**
@@ -183,24 +182,9 @@ function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondit
 
     t = current_time(sa)
     bcs = boundary_conditions(structure(sa))
+    dofs_lbc, dofs_values = _apply(bcs, lbc, t)
 
-    # Extract dofs to apply the bc
-    lbc_dofs_symbols = dofs(lbc)
-
-    # Extract nodes, faces and element 
-    entities = bcs[lbc]
-    dofs_lbc = Dof[]
-
-    for dof_symbol in lbc_dofs_symbols
-        dofs_lbc_symbol = row_vector(getindex.(dofs.(entities), dof_symbol))
-        push!(dofs_lbc, dofs_lbc_symbol...)
-    end
-
-    # Repeat the bc values vector to fill a vector of dofs
-    dofs_values = lbc(t)
-    repeat_mod = Int(length(dofs_lbc) / length(dofs_values))
-
-    external_forces(current_state(sa))[dofs_lbc] = repeat(dofs_values, outer=repeat_mod)
+    external_forces(current_state(sa))[dofs_lbc] = dofs_values
 
 end
 
