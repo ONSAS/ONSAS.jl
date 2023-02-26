@@ -8,7 +8,7 @@ using ..Utils: eye
 
 import ..Elements: internal_forces, local_dof_symbol, strain, stress
 
-export Tetrahedron
+export Tetrahedron, volume
 
 """
 A `Tetrahedron` represents a 3D volume element with four nodes.
@@ -28,6 +28,16 @@ end
 
 Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label=:no_labelled_element) where {N<:AbstractNode} =
   Tetrahedron(SVector(n₁, n₂, n₃, n₄), Symbol(label))
+
+"Returns the `Tetrahedron` `t` volume in the reference configuration."
+function volume(t::Tetrahedron)
+  d = _shape_functions_derivatives(t)
+  coords = _coordinates_matrix(t)
+  J = _jacobian_mat(coords, d)
+  vol = _volume(J)
+  return vol
+end
+
 
 "Returns the local dof symbol of a `Tetrahedron` element."
 local_dof_symbol(::Tetrahedron) = [:u]

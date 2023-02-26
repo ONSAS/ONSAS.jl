@@ -190,6 +190,8 @@ end
         u_global₁_θ, u_global₂_θ, u_global₃_θ, u_global₄_θ,
     )
 
+    @test volume(tetra) == 2 * 1 / 6
+
     fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e =
         internal_forces(my_svk_mat, tetra, u_global_structure[local_dofs(tetra)])
 

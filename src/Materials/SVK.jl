@@ -58,7 +58,6 @@ function lame_parameters(svk::SVK)
     return λ, G
 end
 
-
 "Returns the Cosserat or Second-Piola Kirchoff tensor (𝕊) for a `Tetrahedron` element `t`
 considering a `SVK` material `m` and the strain tensor `𝔼`."
 function cosserat(m::SVK, 𝔼::AbstractMatrix, compute∂𝕊∂𝔼::Bool=true)

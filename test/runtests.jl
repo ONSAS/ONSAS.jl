@@ -3,7 +3,7 @@ using SafeTestsets: @safetestset
 
 MODULES = [
     # Input modules
-    "materials.jl", "cross_sections.jl", "elements.jl", "meshes.jl",
+    "materials.jl", "cross_sections.jl", "elements.jl", "boundary_conditions.jl", "meshes.jl",
     # Analysis modules
     "structural_model.jl", "structural_solvers.jl", "static_analysis.jl"]
 

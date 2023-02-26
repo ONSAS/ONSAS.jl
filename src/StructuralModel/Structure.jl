@@ -1,5 +1,5 @@
 using ..Meshes: AbstractMesh
-using ..BoundaryConditions: FixedDofBoundaryCondition
+using ..BoundaryConditions: FixedDofBoundaryCondition, _apply
 using ..StructuralModel: AbstractStructure, StructuralMaterials, StructuralBoundaryConditions
 
 
@@ -12,7 +12,7 @@ An `Structure` object facilitates the process of assembling and creating the str
 - `bcs`       -- Stores the structural boundary conditions of the structure.
 - `free_dofs` -- Stores the free degrees of freedom.
 """
-mutable struct Structure{dim,MESH,MAT,E,NB,LB} <: AbstractStructure{dim,MAT,E}
+struct Structure{dim,MESH,MAT,E,NB,LB} <: AbstractStructure{dim,MAT,E}
     mesh::MESH
     materials::StructuralMaterials{MAT,E}
     bcs::StructuralBoundaryConditions{NB,LB}
@@ -40,7 +40,7 @@ function Structure(
         [push!(default_free_dofs, vec_dof...) for vec_dof in collect(values(node_dofs))]
     end
 
-    fixed_dofs = compute_fixed_dofs(bcs, fixed_dof_bcs(bcs))
+    fixed_dofs = _apply(bcs, fixed_dof_bcs(bcs))
 
     deleteat!(default_free_dofs, findall(x -> x in fixed_dofs, default_free_dofs))
 
@@ -48,30 +48,4 @@ function Structure(
 end
 
 #### BoundaryConditions Applied to the structure
-"Computes `Dof`s to delete given a `FixedDofBoundaryCondition` and a set of `StructuralBoundaryConditions` `bcs`."
-function compute_fixed_dofs(bcs::StructuralBoundaryConditions, fbc::FixedDofBoundaryCondition)
 
-    # Extract dofs to apply the bc
-    fbc_dofs_symbols = dofs(fbc)
-
-    # Extract nodes, faces and elements 
-    entities = bcs[fbc]
-
-    dofs_to_delete = Dof[]
-
-    for dof_symbol in fbc_dofs_symbols
-        dofs_entities = getindex.(dofs.(entities), dof_symbol)
-        for component in components(fbc)
-            dofs_to_delete_fbc = getindex.(dofs_entities, component)
-            push!(dofs_to_delete, dofs_to_delete_fbc...)
-        end
-    end
-    return dofs_to_delete
-end
-
-"Applies a `Vector` of `FixedDofBoundaryCondition` `f_bcs` and a set of `StructuralBoundaryConditions` `bcs`."
-function compute_fixed_dofs(bcs::StructuralBoundaryConditions, f_bcs::Vector{<:FixedDofBoundaryCondition})
-    dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, compute_fixed_dofs(bcs, fbc)...) for fbc in f_bcs]
-    return dofs_to_delete
-end
