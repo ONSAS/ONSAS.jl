@@ -9,7 +9,7 @@ MODULES = [
 
 EXAMPLES = [
     joinpath("..", "examples", "vonMisesTruss", "von_misses_truss.jl"),
-    #joinpath("..", "examples", "uniaxialExtension", "uniaxialExtension.jl")
+    joinpath("..", "examples", "uniaxialExtension", "uniaxial_extension.jl")
 ]
 
 function test(files::Vector)
