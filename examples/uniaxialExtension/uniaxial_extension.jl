@@ -92,8 +92,15 @@ nr = NewtonRaphson(tols)
 # -------------------------------
 states_sol = solve(sa, nr)
 numerical_uₖ = getindex.(displacements.(states_sol), index(Dof(19)))
-
-
-u_ONSAS = [0.5251, 0.8623, 1.1243, 1.3434, 1.5340, 1.7040, 1.8582, 2.0000]
-
-@test numerical_uₖ ≈ u_ONSAS rtol = RTOL
+numerical_λᵥ = load_factors(sa)
+#-----------------------------
+# Analytic solution  
+#-----------------------------
+"Analytic load factor solution for the displacement `uᵢ` towards `x` axis at node `n₆`."
+load_factors_analytic(uᵢ::Real, p::Real=p, E::Real=E, Lᵢ::Real=Lᵢ) =
+    1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
+analytics_λᵥ = load_factors_analytic.(numerical_uₖ)
+#-----------------------------
+# Test boolean for CI  
+#-----------------------------
+@test analytics_λᵥ ≈ numerical_λᵥ rtol = RTOL
