@@ -106,6 +106,9 @@ function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVecto
   # Deformation gradient 
   𝔽 = ℍ + eye(3)
 
+  # Cauchy strain tensor
+  ℂ = 𝔽' * 𝔽 
+
   # Green-Lagrange strain  
   𝔼 = 0.5 * (ℍ + ℍ' + ℍ' * ℍ)
 
@@ -140,9 +143,9 @@ function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVecto
   ℙ = 𝔽 * 𝕊
 
   # Cuachy stress
-  σ_e = inv(J) * ℙ * 𝔽'
+  # σ_e = ℙ
   
-  return fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, 𝔼
+  return fᵢₙₜ_e, Kᵢₙₜ_e, ℙ, ℂ
 
 end
 
