@@ -4,15 +4,15 @@
 using Test: @test
 using ONSAS.StaticAnalyses
 ## scalar parameters
-const E = 210e9                 # Young modulus in Pa
-const ν = 0.0                   # Poisson's modulus
-const A₀ = 2.5e-3                # Cross-section area in m²
-const ANG = 65                  # truss angle in degrees
-const L = 2                     # Length in m 
-const V = L * cos(deg2rad(ANG)) # vertical distance in m 
-const H = L * sin(deg2rad(ANG)) # horizontal distance in m
-const Fₖ = -3e8                 # Vertical load in N
-const RTOL = 1e-4               # Relative tolerance for tests
+E = 210e9                 # Young modulus in Pa
+ν = 0.0                   # Poisson's modulus
+A₀ = 2.5e-3                # Cross-section area in m²
+ANG = 65                  # truss angle in degrees
+L = 2                     # Length in m 
+V = L * cos(deg2rad(ANG)) # vertical distance in m 
+H = L * sin(deg2rad(ANG)) # horizontal distance in m
+Fₖ = -3e8                 # Vertical load in N
+RTOL = 1e-4               # Relative tolerance for tests
 # -------------
 # Mesh
 # -------------

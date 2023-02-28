@@ -55,13 +55,18 @@ function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}
     e₁_def = B_dif * X_def / l_def
     TTcl = B_dif' * e₁_def
 
-    ϵ_e = _strain(l_ref, l_def)
-    σ_e = E * ϵ_e
-    fᵢₙₜ_e = A * σ_e * TTcl
+    ϵ = _strain(l_ref, l_def)
+    σ = E * ϵ
+    fᵢₙₜ_e = A * σ * TTcl
 
     Kₘ = E * A / l_ref * (TTcl * (TTcl'))
-    K_geo = σ_e * A / l_def * (B_dif' * B_dif - TTcl * (TTcl'))
+    K_geo = σ * A / l_def * (B_dif' * B_dif - TTcl * (TTcl'))
     Kᵢₙₜ_e = Kₘ + K_geo
+
+    σ_e = zeros(3, 3)
+    ϵ_e = zeros(3, 3)
+    σ_e[1, 1] = σ
+    ϵ_e[1, 1] = ϵ
 
     return fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e
 end

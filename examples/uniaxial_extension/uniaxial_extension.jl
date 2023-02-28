@@ -149,4 +149,5 @@ p₁, p₂ = lame_parameters(svk)
 @test analytics_λᵥ ≈ numerical_λᵥ rtol = RTOL
 @test ℙ_analytic ≈ ℙ_analytic rtol = RTOL
 @test α_analytic ≈ last(numerical_α) rtol = RTOL
+@test β_analytic ≈ last(numerical_β) rtol = RTOL
 @test ℂ_numeric ≈ ℂ_analytic rtol = RTOL
