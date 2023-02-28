@@ -1,5 +1,6 @@
 module StaticAnalyses
 
+using Dictionaries: dictionary
 using Reexport: @reexport
 using StaticArrays: @MVector
 using SparseArrays: SparseMatrixCSC
@@ -42,7 +43,7 @@ during the displacements iteration.
 struct StaticState{ST<:AbstractStructure,
     DU<:AbstractVector,U<:AbstractVector,
     FE<:AbstractVector,FI<:AbstractVector,K<:AbstractMatrix,
-    E<:AbstractVector,S<:AbstractVector
+    E<:Dictionary,S<:Dictionary
 } <: AbstractStructuralState
     # Structure
     s::ST
@@ -71,14 +72,14 @@ end
 function StaticState(s::AbstractStructure)
     n_dofs = num_dofs(s)
     n_fdofs = num_free_dofs(s)
-    n_elements = num_elements(s)
     Uᵏ = @MVector zeros(n_dofs)
     ΔUᵏ = @MVector zeros(n_fdofs)
     Fₑₓₜᵏ = @MVector zeros(n_dofs)
     Fᵢₙₜᵏ = similar(Fₑₓₜᵏ)
     Kₛᵏ = SparseMatrixCSC(zeros(n_dofs, n_dofs))
-    ϵᵏ = Vector{Any}(undef, 0)
-    σᵏ = Vector{Any}(undef, 0)
+    # Initialize pairs strains 
+    ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
+    σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     assemblerᵏ = Assembler(s)
     StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, ResidualsIterationStep())
 end

@@ -96,8 +96,8 @@ _assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::AbstractEleme
 
 "Assembles the element `e` stress σₑ and strain ϵₑ into the `AbstractState` `st`"
 function _assemble!(st::AbstractStructuralState, σₑ::E, ϵₑ::E, e::AbstractElement) where {E<:Union{Real,AbstractMatrix}}
-    push!(stress(st), σₑ)
-    push!(strain(st), ϵₑ)
+    stress(st)[e] = σₑ
+    strain(st)[e] = ϵₑ
 end
 
 "Fill the system tangent matrix in the `AbstractStructuralState` `st` once the `Assembler` object is built."

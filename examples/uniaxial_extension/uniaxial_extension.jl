@@ -1,8 +1,12 @@
 # -------------------------------------------------------------------------- 
 # Uniaxial Extension ExampleExercise 4 from section 6.5 in (Holzapfel,2000).
+# For notation see: https://onsas.github.io/ONSAS.m/dev/examples/uniaxialExtension/
 # --------------------------------------------------------------------------
 using ONSAS.StaticAnalyses
+using ONSAS.Utils: eye
 using Test: @test
+using LinearAlgebra: det, tr
+using Roots: find_zero
 ## scalar parameters
 # scalar parameters
 E = 1.0 # Young modulus in Pa
@@ -91,16 +95,58 @@ nr = NewtonRaphson(tols)
 # Numerical solution
 # -------------------------------
 states_sol = solve(sa, nr)
-numerical_uₖ = getindex.(displacements.(states_sol), index(Dof(19)))
+# Displacements in the x (component 1) axis at node 7
+numerical_uᵢ = getindex.(displacements.(states_sol), index(dofs(n₇)[:u][1]))
+numerical_α = 1 .+ numerical_uᵢ / Lᵢ
+# Displacements in the y (component 2) axis at node 7
+numerical_uⱼ = getindex.(displacements.(states_sol), index(dofs(n₇)[:u][2]))
+numerical_β = 1 .+ numerical_uⱼ / Lⱼ
+# Displacements in the z (component 3) axis at node 7
+numerical_uₖ = getindex.(displacements.(states_sol), index(dofs(n₇)[:u][3]))
+numerical_γ = 1 .+ numerical_uᵢ / Lₖ
+# Extract ℙ and ℂ from the last state
+element_index = 5
+# Cosserat or second Piola-Kirchhoff stress tensor
+ℙ_numeric = collect(values(stress(last(states_sol))))[element_index]
+# Right hand Cauchy strain tensor 
+ℂ_numeric = collect(values(strain(last(states_sol))))[element_index]
+# Load factors 
 numerical_λᵥ = load_factors(sa)
 #-----------------------------
 # Analytic solution  
 #-----------------------------
+# Test with load factors
 "Analytic load factor solution for the displacement `uᵢ` towards `x` axis at node `n₆`."
 load_factors_analytic(uᵢ::Real, p::Real=p, E::Real=E, Lᵢ::Real=Lᵢ) =
     1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
-analytics_λᵥ = load_factors_analytic.(numerical_uₖ)
+analytics_λᵥ = load_factors_analytic.(numerical_uᵢ)
+# Test last step σ and ϵ
+α_analytic = find_zero(α -> E / 2 * α * (α^2 - 1) - p * last(load_factors(sa)), 1e-2)
+β_analytic = sqrt(-ν * (α_analytic^2 - 1) + 1)
+# Gradient tensor
+# 𝕦 = (αx, βy, γz)
+𝔽_analytic = [
+    α_analytic 0 0
+    0 β_analytic 0
+    0 0 β_analytic
+]
+# Right hand Cauchy tensor 
+ℂ_analytic = 𝔽_analytic' * 𝔽_analytic
+𝕁 = det(ℂ_analytic)
+# Green-Lagrange strain tensor
+𝕀 = eye(3)
+𝔼_analytic = 1 / 2 * (ℂ_analytic - 𝕀)
+# Cosserat or second Piola-Kirchhoff stress tensor
+p₁, p₂ = lame_parameters(svk)
+𝕊_analytic = p₁ * tr(𝔼_analytic) * eye(3) + 2 * p₂ * 𝔼_analytic
+# First Piola-Kirchhoff stress tensor
+ℙ_analytic = 𝔽_analytic * 𝕊_analytic
+# Cauchy stress tensor
+# σ = ℙ_analytic * 𝔽_analytic'
 #-----------------------------
 # Test boolean for CI  
 #-----------------------------
 @test analytics_λᵥ ≈ numerical_λᵥ rtol = RTOL
+@test ℙ_analytic ≈ ℙ_analytic rtol = RTOL
+@test α_analytic ≈ last(numerical_α) rtol = RTOL
+@test ℂ_numeric ≈ ℂ_analytic rtol = RTOL
