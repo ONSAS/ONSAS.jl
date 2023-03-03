@@ -167,7 +167,7 @@ nr = NewtonRaphson(tols)
 
 end
 
-@testset "ONSAS.StructuralAnalyses..StaticAnalyses.StaticAnalysis" begin
+@testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticAnalysis" begin
 
     # StaticAnalysis with a final load factor
     λ₁ = 10

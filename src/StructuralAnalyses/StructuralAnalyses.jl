@@ -19,9 +19,9 @@ using ..Utils: row_vector
 import ..Elements: internal_forces, inertial_forces, strain, stress
 import ..StructuralModel: free_dofs
 import ..StructuralSolvers: _assemble!, _update!, _reset!, _end_assemble!
+@reexport import ..StructuralSolvers: displacements, external_forces
 
-export AbstractStructuralState, _apply!, _assemble!, displacements, Δ_displacements, external_forces, residual_forces,
-    tangent_matrix, residual_forces_norms, residual_displacements_norms, iteration_residuals, tangent_matrix, structure,
+export AbstractStructuralState, _apply!, _assemble!, Δ_displacements, tangent_matrix, residual_forces_norms, residual_displacements_norms, iteration_residuals, tangent_matrix, structure,
     assembler, iteration_residuals, residual_forces_norms, residual_displacements_norms
 
 export AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done, current_state, current_iteration

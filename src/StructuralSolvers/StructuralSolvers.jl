@@ -5,7 +5,10 @@ A _step! method is used to perform a single iteration step.
 """
 module StructuralSolvers
 
+using ..Elements: AbstractElement, AbstractNode, Dof, dofs
 using LinearAlgebra: norm
+
+import ..Elements: internal_forces, inertial_forces, strain, stress
 
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
     MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet
@@ -13,6 +16,7 @@ export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
 export ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol
 export ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!
 export AbstractSolver, step_size, tolerances, _step!, solve, _solve
+export AbstractSolution, StatesSolution, stresses, strains
 
 """ ConvergenceSettings struct.
 Facilitates the process of defining and checking numerical convergence. 
@@ -173,6 +177,7 @@ function _step!(solver::AbstractSolver, analysis::A,) where {A} end
 
 include("./NewtonRaphson.jl")
 
+
 # ===============
 # Solve function
 # ===============
@@ -200,5 +205,56 @@ function _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
 end
 
 include("./Assembler.jl")
+
+#=================#
+# AbstractSolution
+#=================#
+
+"""
+Abstract supertype for all structural analysis solutions.
+"""
+abstract type AbstractSolution end
+
+"""
+Structural analysis solution containing the full history of states.
+**Common methods:**
+* [`displacements`](@ref)
+* [`external_forces`](@ref)
+* [`internal_forces`](@ref)
+* [`stresses`](@ref)
+* [`strains`](@ref)
+
+**Common fields:**
+
+
+"""
+struct StatesSolution{S,ST<:Vector{S},A,SS<:AbstractSolver} <: AbstractSolution
+    states::ST
+    analysis::A
+    solver::SS
+end
+
+"Return the solved `AbstractStrcturalState`s. "
+states(sol::StatesSolution) = sol.states
+"Return the `AbstractAnalysis` solved. "
+analysis(sol::StatesSolution) = sol.analysis
+"Return the `AbstractSolver` solved. "
+solver(sol::StatesSolution) = sol.solver
+
+
+for f in [:iteration_residuals, :displacements, :internal_forces, :external_forces]
+    "Returns the $f vector Uᵏ at every time step."
+    @eval $f(st_sol::StatesSolution) = $f.(states(st_sol))
+
+    "Returns the $f U of the `Dof` at every time step."
+    @eval $f(st_sol::StatesSolution, dof::Dof) = getindex.($f(st_sol), index(dof))
+
+    "Returns the a $f `Vector` at a `Vector` of `Dof`s at every time step."
+    @eval $f(st_sol::StatesSolution, vdof::Vector{Dof}) = [$f(st_sol, dof) for dof in vdof]
+
+    "Returns the $f U of a `Node` `n` every time step."
+    @eval $f(st_sol::StatesSolution, n::AbstractNode) = $f(st_sol, reduce(vcat, collect(dofs(n))))
+end
+
 
 end # module
