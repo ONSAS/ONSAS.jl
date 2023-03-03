@@ -29,6 +29,10 @@ end
 Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label=:no_labelled_element) where {N<:AbstractNode} =
   Tetrahedron(SVector(n₁, n₂, n₃, n₄), Symbol(label))
 
+"Constructor for a `Tetrahedron` element without nodes and a `label`. This function is used to create meshes via GMSH."
+Tetrahedron(label::L=:no_labelled_face) where {L<:Union{String,Symbol}} = 
+Tetrahedron(SVector(Node(0,0,0),Node(0,0,0),Node(0,0,0),Node(0,0,0)), Symbol(label))
+
 "Returns the `Tetrahedron` `t` volume in the reference configuration."
 function volume(t::Tetrahedron)
   d = _shape_functions_derivatives(t)
@@ -101,6 +105,7 @@ function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVecto
 
   funder = inv(J)' * d
   
+  # ∂u∂X in global coordinats 
   ℍ = disps * funder'
 
   # Deformation gradient 

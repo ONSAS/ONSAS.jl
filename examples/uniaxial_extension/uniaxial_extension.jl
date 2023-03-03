@@ -17,6 +17,9 @@ Lⱼ = 1.0   # Dimension in y of the box in m
 Lₖ = 1.0   # Dimension in z of the box in m
 const RTOL = 1e-4               # Relative tolerance for tests
 # -------------------------------
+# Case 1 - Manufactured mesh
+#--------------------------------
+# -------------------------------
 # Mesh
 #--------------------------------
 n₁ = Node(0.0, 0.0, 0.0)
@@ -57,16 +60,16 @@ add!(s_mesh, :u, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------
-svk = SVK(E, ν, "steel")
+svk = SVK(E, ν, "my-svk")
 mat_dict = dictionary([svk => [t₁, t₂, t₃, t₄, t₅, t₆]])
 s_materials = StructuralMaterials(mat_dict)
 # -------------------------------
 # Boundary conditions
 # -------------------------------
 # Fixed dofs
-bc₁ = FixedDofBoundaryCondition([:u], [1], "fixed_uₓ")
-bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed_uⱼ")
-bc₃ = FixedDofBoundaryCondition([:u], [3], "fixed_uₖ")
+bc₁ = FixedDofBoundaryCondition([:u], [1], "fixed-ux")
+bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed-uj")
+bc₃ = FixedDofBoundaryCondition([:u], [3], "fixed-uk")
 # Load
 bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], "tension")
 # Assign this to faces 
@@ -151,3 +154,42 @@ p₁, p₂ = lame_parameters(svk)
 @test α_analytic ≈ last(numerical_α) rtol = RTOL
 @test β_analytic ≈ last(numerical_β) rtol = RTOL
 @test ℂ_numeric ≈ ℂ_analytic rtol = RTOL
+# -------------------------------
+# Case 2 - GMSH mesh
+#--------------------------------
+# Create material, element and boundary conditions types mapped to keys
+material_types = dictionary(["mat_label" => svk])
+entities_types = dictionary(["tetra_label" => Tetrahedron(), "face_label" => TriangularFace()])
+bcs_types = dictionary(["fixed-ux" => bc₁, "fixed-uj" => bc₂, "fixed-uk" => bc₃, "tension" => bc₄])
+# Load MSH file
+file_name = "examples/uniaxial_extension/uniaxial_extension.msh"
+msh_file = MSHFile(file_name)
+
+#=
+# Create mesh 
+s_mesh = Mesh(msh_file)
+# Create structural materials 
+s_materials = StructuralMaterials(msh_file, s_mesh, mat_dict)
+# Create structural bcs 
+s_materials = StructuralBoundaryConditions(msh_file, s_mesh, mat_dict)
+# Create Structure
+s = Structure(s_mesh, s_materials, s_boundary_conditions)
+
+# TODO Wrap everythinng up in a only constructor for the Structure
+
+=#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
