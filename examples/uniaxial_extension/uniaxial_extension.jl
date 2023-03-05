@@ -60,7 +60,7 @@ add!(s_mesh, :u, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------
-svk = SVK(E, ν, "my-svk")
+svk = SVK(E, ν, "svk")
 mat_dict = dictionary([svk => [t₁, t₂, t₃, t₄, t₅, t₆]])
 s_materials = StructuralMaterials(mat_dict)
 # -------------------------------
@@ -157,28 +157,34 @@ p₁, p₂ = lame_parameters(svk)
 # -------------------------------
 # Case 2 - GMSH mesh
 #--------------------------------
-# Create material, element and boundary conditions types mapped to keys
-material_types = dictionary(["mat_label" => svk])
-entities_types = dictionary(["tetra_label" => Tetrahedron(), "face_label" => TriangularFace()])
-bcs_types = dictionary(["fixed-ux" => bc₁, "fixed-uj" => bc₂, "fixed-uk" => bc₃, "tension" => bc₄])
+# Material types without assigned elements
+mat_types = [svk]
+empty_s_materials = StructuralMaterials(mat_types)
+# BoundaryConditions types without assigned node, feces and elements
+vbc = [bc₁, bc₂, bc₃, bc₄]
+empty_s_boundary_conditions = StructuralBoundaryConditions(vbc)
+# Entities types without assigned nodes, faces and elements
+vfaces = [TriangularFace("triangle")]
+velems = [Tetrahedron("tetrahedron")]
+empty_entities = StructuralEntities(velems, vfaces)
 # Load MSH file
-file_name = "examples/uniaxial_extension/uniaxial_extension.msh"
+file_name = joinpath("examples", "uniaxial_extension", "uniaxial_extension.msh")
+# generate .msh
+run(`gmsh -3 $file_name`)
 msh_file = MSHFile(file_name)
 
-#=
 # Create mesh 
-s_mesh = Mesh(msh_file)
+s_mesh = Mesh(msh_file, empty_entities)
 # Create structural materials 
 s_materials = StructuralMaterials(msh_file, s_mesh, mat_dict)
 # Create structural bcs 
-s_materials = StructuralBoundaryConditions(msh_file, s_mesh, mat_dict)
+s_boundary_conditions = StructuralBoundaryConditions(msh_file, s_mesh, mat_dict)
 # Create Structure
 s = Structure(s_mesh, s_materials, s_boundary_conditions)
 
+
+
 # TODO Wrap everythinng up in a only constructor for the Structure
-
-=#
-
 
 
 

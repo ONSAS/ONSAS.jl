@@ -3,11 +3,10 @@ Module defining meshes created in GMSH software.
 """
 module Gmsh
 
-using ..Meshes: Node
-
 using MshReader: MshFileReader
+using ..Elements: Node
 
-export MSHFile, read
+export MSHFile
 
 
 """ MSHFile.
@@ -32,9 +31,6 @@ end
 
 "Constructor of the `MSHFile` object with a file name `filename`."
 function MSHFile(filename::String)
-
-    filename = "examples/uniaxial_extension/uniaxial_extension.msh"
-
     nodes_coords, connectivity, physical_names, physical_indexes = MshFileReader(filename)
 
     material_labels, entities_labels, bcs_labels = _getlabels(physical_names)

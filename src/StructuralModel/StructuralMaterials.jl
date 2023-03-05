@@ -17,6 +17,10 @@ struct StructuralMaterials{M<:AbstractMaterial,E<:AbstractElement}
     end
 end
 
+"Constructor for empty `StructuralMaterials` with a `Vector` of materials `vmats`. This will assign an empty `Vector` of `Element`s to each material."
+StructuralMaterials(vmats::Vector{M}) where {M<:AbstractMaterial} =
+    StructuralMaterials(dictionary(map(mat -> mat => Vector{AbstractElement}(), vmats)))
+
 "Returns the `Material` mapped with the label `l`."
 Base.getindex(sm::StructuralMaterials, l::L) where {L<:Union{Symbol,String}} =
     first(collect(filter(m -> label(m) == Symbol(l), keys(sm.mats_to_elems))))
