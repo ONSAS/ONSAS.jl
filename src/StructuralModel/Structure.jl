@@ -33,7 +33,7 @@ and `AbstractMesh` `mesh` seting fixed dofs with `FixedDofBoundaryCondition` def
 function Structure(
     mesh::AbstractMesh{dim},
     materials::StructuralMaterials{M,E},
-    bcs::StructuralBoundaryConditions{NB,LB},
+    bcs::StructuralBoundaryConditions{NB,LB}
 ) where {dim,M,E,NB,LB}
 
     default_free_dofs = Vector{Dof}()
@@ -51,7 +51,9 @@ end
 
 "Constructor of a `Structure` given a `MshFile` `msh_file`, `StructuralMaterials` `materials`,  `StructuralBoundaryConditions` `bcs`."
 
-function Structure(msh_file::MshFile, materials::StructuralMaterials, bcs::StructuralBoundaryConditions, s_entities::StructuralEntities)
+function Structure(msh_file::MshFile,
+    materials::StructuralMaterials, bcs::StructuralBoundaryConditions, s_entities::StructuralEntities,
+    dofs_to_dim::Dictionary{Symbol,<:Integer}=dictionary([:u => 3]))
 
     nodes = msh_file.vec_nodes
     mesh = Mesh(nodes)
@@ -92,9 +94,9 @@ function Structure(msh_file::MshFile, materials::StructuralMaterials, bcs::Struc
 
     end
 
-    dof_dim = dimension(mesh)
-    add!(mesh, :u, dof_dim)
-
+    for (dof_symbol, dof_dim) in pairs(dofs_to_dim)
+        add!(mesh, dof_symbol, dof_dim)
+    end
 
     return Structure(mesh, materials, bcs)
 end
