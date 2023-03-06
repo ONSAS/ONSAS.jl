@@ -2,7 +2,7 @@ using ..Elements: AbstractFace, AbstractNode
 using ..Utils: eye
 using LinearAlgebra: cross, norm
 
-import ..Elements: area, normal_direction
+import ..Elements: area, create_entity, normal_direction
 
 export TriangularFace, normal_direction
 
@@ -17,7 +17,7 @@ struct TriangularFace{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractFace{dim,T}
     label::Symbol
     function TriangularFace(nodes::SVector{3,N}, label=:no_labelled_face) where
     {dim,T<:Real,N<:AbstractNode{dim,T}}
-        @assert 2 < dim ≤ 3 "TriangularFace is only defined for 2 < dim ≤ 3"
+        @assert 2 ≤ dim ≤ 3 "TriangularFace is only defined for 2 < dim ≤ 3"
         new{dim,T,N}(nodes, Symbol(label))
     end
 end
@@ -27,6 +27,10 @@ function TriangularFace(n₁::N, n₂::N, n₃::N, label::L=:no_labelled_face) w
 {dim,T<:Real,N<:AbstractNode{dim,T},L<:Union{String,Symbol}}
     TriangularFace(SVector(n₁, n₂, n₃), Symbol(label))
 end
+
+"Constructor for a `TriangularFace` element without nodes and a `label`. This function is used to create meshes via GMSH."
+TriangularFace(label::L=:no_labelled_face) where {L<:Union{String,Symbol}} =
+    TriangularFace(SVector(Node(0, 0), Node(0, 0), Node(0, 0)), Symbol(label))
 
 "Returns the area vector with direction and modulus of a `TriangularFace` element `tf`."
 _area_vec(tf::TriangularFace) = cross(coordinates(tf)[2] - coordinates(tf)[1], coordinates(tf)[3] - coordinates(tf)[1]) / 2
@@ -38,8 +42,12 @@ function area(tf::TriangularFace)
     return A
 end
 
+"Returns a `TriangularFace` given an empty `TriangularFace` `tf` and a `Vector` of `Node`s `vn`."
+create_entity(tf::TriangularFace, vn::AbstractVector{<:AbstractNode}) = TriangularFace(vn[1], vn[2], vn[3], label(tf))
+
 "Returns the normal direction `n` of a `TriangularFace` element `tf`."
 function normal_direction(tf::TriangularFace)
     Atf = _area_vec(tf)
     return Atf / norm(Atf)
 end
+

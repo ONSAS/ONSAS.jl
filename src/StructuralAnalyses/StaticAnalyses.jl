@@ -204,6 +204,7 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
     end
 
+    # Main.@infiltrate
     return StatesSolution(states, sa, alg)
 end
 

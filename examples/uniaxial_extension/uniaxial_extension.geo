@@ -53,9 +53,9 @@ Surface Loop(1) = {5, 6, 2, 1, 4, 3};
 Volume(1) = {1};
 
 //+
-Physical Surface ("00_01_02_00") = {5};
-Physical Surface ("00_01_03_00") = {6};
-Physical Surface ("00_01_04_00") = {2};
-Physical Surface ("00_01_01_00") = {3};
+Physical Surface ("_triangle_fixed-ux") = {5};
+Physical Surface ("_triangle_fixed-uj") = {6};
+Physical Surface ("_triangle_fixed-uk") = {2};
+Physical Surface ("_triangle_tension") = {3};
 //+
-Physical Volume  ("01_02_00_00") = {1};
+Physical Volume  ("svk_tetrahedron_") = {1};

@@ -18,9 +18,10 @@ import ..Meshes: num_dofs, elements, num_elements, num_nodes
 export Structure, mesh, materials, boundary_conditions, num_free_dofs, free_dofs
 
 
-# Structure 
+# Structural properties 
 include("./StructuralMaterials.jl")
 include("./StructuralBoundaryConditions.jl")
+include("./StructuralEntities.jl")
 
 
 # ==========
