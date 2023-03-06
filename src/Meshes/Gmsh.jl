@@ -6,11 +6,11 @@ module Gmsh
 using MshReader: MshFileReader
 using ..Elements: Node
 
-export MSHFile
+export MshFile
 
 
-""" MSHFile.
-A `MSHFile` is a collection of `Node`s. Also the filename   
+""" MshFile.
+A `MshFile` is a collection of `Node`s. Also the filename   
 ### Fields:
 - `filename`              -- Stores the .geo file name.
 - `vec_nodes`              -- Stores the `Nodes`s of the mesh.
@@ -19,7 +19,7 @@ A `MSHFile` is a collection of `Node`s. Also the filename
 - `element_face_labels`   -- Stores a `Vector` of `String`s with the face and element type labels defined in the .geo.
 - `bc_labels`             -- Stores a `Vector` of `String`s with the boundary condition type labels defined in the .geo.
 """
-struct MSHFile{dim,T,S,I1<:Integer,I2<:Integer}
+struct MshFile{dim,T,S,I1<:Integer,I2<:Integer}
     filename::String
     vec_nodes::Vector{Node{dim,T}}
     connectivity::Vector{Vector{I1}}
@@ -29,15 +29,15 @@ struct MSHFile{dim,T,S,I1<:Integer,I2<:Integer}
     bc_labels::Vector{S}
 end
 
-"Constructor of the `MSHFile` object with a file name `filename`."
-function MSHFile(filename::String)
+"Constructor of the `MshFile` object with a file name `filename`."
+function MshFile(filename::String)
     nodes_coords, connectivity, physical_names, physical_indexes = MshFileReader(filename)
 
     material_labels, entities_labels, bcs_labels = _getlabels(physical_names)
 
     vec_nodes = [Node(n) for n in eachrow(nodes_coords)]
 
-    MSHFile(filename, vec_nodes, connectivity, physical_indexes, material_labels, entities_labels, bcs_labels)
+    MshFile(filename, vec_nodes, connectivity, physical_indexes, material_labels, entities_labels, bcs_labels)
 end
 
 function _getlabels(physical_names::Vector{String})

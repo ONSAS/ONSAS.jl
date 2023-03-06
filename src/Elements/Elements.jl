@@ -19,7 +19,7 @@ import ..CrossSections: area
 
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
-export AbstractFace, normal_direction, nodes
+export AbstractFace, create_entity, normal_direction, nodes
 export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
     local_dofs, nodes, strain, stress
 
@@ -119,6 +119,7 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 **Common methods:**
 
 * [`area`](@ref)
+* [`create_entity`](@ref)
 * [`coordinates`](@ref)
 * [`dofs`](@ref)
 * [`label`](@ref)
@@ -138,6 +139,9 @@ coordinates(f::AbstractFace) = coordinates.(nodes(f))
 
 "Returns each `AbstractFace` coordinates in a `Vector` of `Face`s `vf`."
 coordinates(vf::Vector{<:AbstractFace}) = coordinates.(vf)
+
+"Returns an `AbstractFace` f given an empty `AbstractFace` `f` and a `Vector` of `Node`s `vn`."
+function create_entity(f::AbstractFace, vn::AbstractVector{<:AbstractNode}) end
 
 "Returns the `AbstractFace` `f` dimension."
 dimension(::AbstractFace{dim}) where {dim} = dim

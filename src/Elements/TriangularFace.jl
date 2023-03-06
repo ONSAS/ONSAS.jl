@@ -2,7 +2,7 @@ using ..Elements: AbstractFace, AbstractNode
 using ..Utils: eye
 using LinearAlgebra: cross, norm
 
-import ..Elements: area, normal_direction
+import ..Elements: area, create_entity, normal_direction
 
 export TriangularFace, normal_direction
 
@@ -41,6 +41,9 @@ function area(tf::TriangularFace)
     iszero(A) && error("Area of TriangularFace is zero. Check that nodes are not aligned.")
     return A
 end
+
+"Returns a `TriangularFace` given an empty `TriangularFace` `tf` and a `Vector` of `Node`s `vn`."
+create_entity(tf::TriangularFace, vn::AbstractVector{<:AbstractNode}) = TriangularFace(vn[1], vn[2], vn[3], label(tf))
 
 "Returns the normal direction `n` of a `TriangularFace` element `tf`."
 function normal_direction(tf::TriangularFace)

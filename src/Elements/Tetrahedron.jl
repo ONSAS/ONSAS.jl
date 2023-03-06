@@ -6,7 +6,7 @@ using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye
 
-import ..Elements: internal_forces, local_dof_symbol, strain, stress
+import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress
 
 export Tetrahedron, volume
 
@@ -32,6 +32,10 @@ Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label=:no_labelled_element) wher
 "Constructor for a `Tetrahedron` element without nodes and a `label`. This function is used to create meshes via GMSH."
 Tetrahedron(label::L=:no_labelled_face) where {L<:Union{String,Symbol}} = 
 Tetrahedron(SVector(Node(0,0,0),Node(0,0,0),Node(0,0,0),Node(0,0,0)), Symbol(label))
+
+"Returns a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
+create_entity(t::Tetrahedron, vn::AbstractVector{<:AbstractNode}) = Tetrahedron(vn[1], vn[2], vn[3], vn[4], label(t))
+
 
 "Returns the `Tetrahedron` `t` volume in the reference configuration."
 function volume(t::Tetrahedron)

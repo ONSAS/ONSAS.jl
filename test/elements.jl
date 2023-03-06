@@ -64,18 +64,6 @@ end
 
 end
 
-# Common nodes for testing 
-x₁ = x_test_3D
-x₂ = 2 .* x_test_3D
-x₃ = 3 .* x_test_3D
-x₄ = 4 .* x_test_3D
-
-n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
-n₂ = Node(x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
-n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
-n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)]]))
-
-
 @testset "ONSAS.Elements.TriangularFace 3D" begin
 
     x₁ = [0, 0, 0]
@@ -89,6 +77,7 @@ n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22)
     face_label = "my_face"
     f₁ = TriangularFace(n₁, n₂, n₃, face_label)
     f₁_no_label = TriangularFace(n₁, n₂, n₃)
+
     @test all([n ∈ nodes(f₁) for n in [n₁, n₂, n₃]])
     @test coordinates(f₁) == [coordinates(n₁), coordinates(n₂), coordinates(n₃)]
     @test dimension(f₁) == length(x₁)
@@ -97,6 +86,13 @@ n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22)
     @test label(f₁) == Symbol(face_label)
     @test area(f₁) == 0.5
     @test normal_direction(f₁) == [0, 0, 1]
+
+    # create entity for gmsh
+    empty_entity = TriangularFace(face_label)
+    tf = create_entity(empty_entity, [n₁, n₂, n₃])
+    @test all([n ∈ nodes(tf) for n in [n₁, n₂, n₃]])
+    @test coordinates(tf) == [coordinates(n₁), coordinates(n₂), coordinates(n₃)]
+    @test label(empty_entity) == label(tf)
 
 end
 
@@ -224,5 +220,10 @@ end
     @test Kᵢₙₜ_e ≈ Kᵢₙₜ_e_test rtol = RTOL
     @test 𝔼_e_test ≈ ϵ_e rtol = RTOL skip = true
     @test σ_e_test ≈ σ_e rtol = RTOL skip = true
+
+    # create entity for gmsh
+    empty_tetrahedron = Tetrahedron(tetra_label)
+    new_tetra = create_entity(empty_tetrahedron, [n₁, n₂, n₃, n₄])
+
 
 end

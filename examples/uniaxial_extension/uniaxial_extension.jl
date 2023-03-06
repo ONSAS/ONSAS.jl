@@ -160,34 +160,27 @@ p₁, p₂ = lame_parameters(svk)
 #--------------------------------
 # Material types without assigned elements
 mat_types = [svk]
-empty_s_materials = StructuralMaterials(mat_types)
+s_materials = StructuralMaterials(mat_types)
 # BoundaryConditions types without assigned node, feces and elements
 vbc = [bc₁, bc₂, bc₃, bc₄]
-empty_s_boundary_conditions = StructuralBoundaryConditions(vbc)
+s_boundary_conditions = StructuralBoundaryConditions(vbc)
 # Entities types without assigned nodes, faces and elements
 vfaces = [TriangularFace("triangle")]
 velems = [Tetrahedron("tetrahedron")]
-empty_entities = StructuralEntities(velems, vfaces)
+s_entities = StructuralEntities(velems, vfaces)
 # Load MSH file
 file_name = joinpath("examples", "uniaxial_extension", "uniaxial_extension.msh")
 # generate .msh
 run(`gmsh -3 $file_name`)
-msh_file = MSHFile(file_name)
-
+msh_file = MshFile(file_name)
 # Create mesh 
-s_mesh = Mesh(msh_file, empty_entities)
+s_mesh = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
 # Create structural materials 
-s_materials = StructuralMaterials(msh_file, s_mesh, mat_dict)
+# s_materials = StructuralMaterials(msh_file, s_mesh, mat_dict)
 # Create structural bcs 
-s_boundary_conditions = StructuralBoundaryConditions(msh_file, s_mesh, mat_dict)
+# s_boundary_conditions = StructuralBoundaryConditions(msh_file, s_mesh, mat_dict)
 # Create Structure
-s = Structure(s_mesh, s_materials, s_boundary_conditions)
-
-
-
-# TODO Wrap everythinng up in a only constructor for the Structure
-
-
+# s = Structure(s_mesh, s_materials, s_boundary_conditions)
 
 
 

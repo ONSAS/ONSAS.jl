@@ -70,6 +70,6 @@ end
 @testset "ONSAS.Meshes.GMSH " begin
 
     file_name = "examples/uniaxial_extension/uniaxial_extension.msh"
-    msh_file = MSHFile(file_name)
+    msh_file = MshFile(file_name)
 
 end

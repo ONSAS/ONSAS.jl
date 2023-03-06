@@ -19,6 +19,7 @@ Base.@kwdef struct StructuralBoundaryConditions{
     node_bcs::Dictionary{NB,Vector{N}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractNode}}()
     face_bcs::Dictionary{FB,Vector{F}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractFace}}()
     element_bcs::Dictionary{EB,Vector{E}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractElement}}()
+
 end
 
 "Constructor for empty `StructuralBoundaryConditions` with a `Vector` of `AbstractBoundaryCondition`s `vbc`."
@@ -48,6 +49,10 @@ function Base.getindex(sb::StructuralBoundaryConditions{NB,NF,EB}, bc::BC) where
 
     isempty(bc_entities) ? throw(KeyError("Boundary condition $bc not found")) : return bc_entities
 end
+
+"Returns a the `BoundaryConditions` with the label `l` in the `StructuralEntities` `sb`."
+Base.getindex(sb::StructuralBoundaryConditions, l::L) where {L<:Union{Symbol,AbstractString}} =
+    first(filter(bc -> label(bc) == Symbol(l), all_bcs(sb)))
 
 "Returns the `Vector` of `BoundaryConditions`s applied to the `AbstractNode` `n`."
 Base.getindex(sb::StructuralBoundaryConditions, n::AbstractNode) = keys(filter(x -> n ∈ x, node_bcs(sb)))

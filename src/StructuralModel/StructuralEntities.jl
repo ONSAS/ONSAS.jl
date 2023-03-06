@@ -1,11 +1,11 @@
 using ..Elements: AbstractElement, AbstractFace
 using Dictionaries: Dictionary, dictionary
 using ..Utils: label
-using ..Meshes: MSHFile
+using ..Meshes: MshFile
 
 import ..Meshes: Mesh
 
-export StructuralEntities
+export StructuralEntities, all_entities, face_types_to_faces, face_types, elem_types_to_elements, elem_types
 
 """ Structural elements struct.
 A `StructuralMaterials` is a collection of `Element`s and `Faces`s types assigning to a vector of `Face`s and `Element`s.
@@ -29,6 +29,17 @@ struct StructuralEntities{F<:AbstractFace,E<:AbstractElement}
     end
 end
 
+"Returns a `Dictionary` with `Element` types as keys and the corresponding `Element`s as values."
+elem_types_to_elements(s_entities::StructuralEntities) = s_entities.elem_types_to_elements
+
+"Returns a `Dictionary` with `Face` types as keys and the corresponding `Face`s as values."
+face_types_to_faces(s_entities::StructuralEntities) = s_entities.face_types_to_faces
+
+"Returns the `Vector` of `Element` types defined in the `StructuralEntities` `s_entities`."
+elem_types(s_entities::StructuralEntities) = collect(keys(s_entities.elem_types_to_elements))
+
+"Returns the `Vector` of `Face` types defined in the `StructuralEntities` `s_entities`."
+face_types(s_entities::StructuralEntities) = collect(keys(s_entities.face_types_to_faces))
 
 "Constructor for an empty `StructuralEntities` with a `Vector` of `Element`s `velems` and `Face`s `vfaces`."
 function StructuralEntities(velems::Vector{E}, vfaces::Vector{F}=Vector{AbstractFace}()) where {E<:AbstractElement,F<:AbstractFace}
@@ -37,15 +48,9 @@ function StructuralEntities(velems::Vector{E}, vfaces::Vector{F}=Vector{Abstract
     StructuralEntities(elem_types_to_elements, face_types_to_faces)
 end
 
+"Returns all `Entity`s defined into `StructuralEntities`."
+all_entities(s_entities::StructuralEntities) = unique(vcat(face_types(s_entities), elem_types(s_entities)))
 
-function Mesh(msh_file::MSHFile, s_entities::StructuralEntities)
-
-
-
-    for (index_entity, entity_nodes_indexes) in enumerate(eachcol(msh_file.connectivity))
-        nodes_entity = [msh_file.vec_nodes[node_index] for node_index in entity_nodes_indexes]
-        entity_type_label = mesh_file.entities_labels[index_entity]
-        entity_type = s_entities[entity_type_label]
-        entity = create_entity(entity_type, nodes_entity)
-
-end
+"Returns the `Entity` with the label `l` in the `StructuralEntities` `s_entities`."
+Base.getindex(s_entities::StructuralEntities, l::L) where {L<:Union{Symbol,AbstractString}} =
+    first(filter(ent -> label(ent) == Symbol(l), all_entities(s_entities)))

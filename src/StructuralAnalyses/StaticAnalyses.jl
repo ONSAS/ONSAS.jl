@@ -170,7 +170,7 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
     s = structure(sa)
 
-    states = Vector{typeof(current_state(sa))}(undef, length(load_factors(sa)))
+    states = []
 
     # load factors iteration 
     while !is_done(sa)
@@ -204,6 +204,7 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
     end
 
+    # Main.@infiltrate
     return StatesSolution(states, sa, alg)
 end
 
