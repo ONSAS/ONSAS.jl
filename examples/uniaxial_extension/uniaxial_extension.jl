@@ -116,15 +116,15 @@ function αβγ_numeric(states_sol::AbstractSolution)
     return numerical_α, numerical_β, numerical_γ, numerical_uᵢ, numerical_uⱼ, numerical_uₖ
 end
 # Numeric solution for testing
-numeric_α_case₁, numeric_β_case₁, numeric_γ_case₁, numeric_uᵢ_case₁, _, _ = αβγ_numeric(states_sol)
+numeric_α_case₁, numeric_β_case₁, numeric_γ_case₁, numeric_uᵢ_case₁, _, _ = αβγ_numeric(states_sol_case₁)
 # Extract ℙ and ℂ from the last state
 element_index = 5
 # Cosserat or second Piola-Kirchhoff stress tensor
-ℙ_numeric_case₁ = collect(values(stress(last(states_sol.states))))[element_index]
+ℙ_numeric_case₁ = collect(values(stress(last(states(states_sol_case₁)))))[element_index]
 # Right hand Cauchy strain tensor 
-ℂ_numeric_case₁ = collect(values(strain(last(states_sol.states))))[element_index]
+ℂ_numeric_case₁ = collect(values(strain(last(states(states_sol_case₁)))))[element_index]
 # Load factors 
-numeric_λᵥ_case₁ = load_factors(sa)
+numeric_λᵥ_case₁ = load_factors(sa₁)
 # -------------------------------
 # Case 2 - GMSH mesh
 #--------------------------------
@@ -159,21 +159,21 @@ msh_file = MshFile(file_name)
 # -------------------------------
 s = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
 # Final load factor
-sa = StaticAnalysis(s, NSTEPS=NSTEPS)
+sa₂ = StaticAnalysis(s, NSTEPS=NSTEPS)
 # -------------------------------
 # Numerical solution
 # -------------------------------
-states_sol_case₂ = solve(sa, nr)
+states_sol_case₂ = solve(sa₂, nr)
 # Numeric solution for testing
 numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, numeric_uᵢ_case₂, _, _ = αβγ_numeric(states_sol_case₂)
 # Extract ℙ and ℂ from the last state
 element_index = 5
 # Cosserat or second Piola-Kirchhoff stress tensor
-ℙ_numeric_case₂ = collect(values(stress(last(states_sol.states))))[element_index]
+ℙ_numeric_case₂ = collect(values(stress(last(states(states_sol_case₂)))))[element_index]
 # Right hand Cauchy strain tensor 
-ℂ_numeric_case₂ = collect(values(strain(last(states_sol.states))))[element_index]
+ℂ_numeric_case₂ = collect(values(strain(last(states(states_sol_case₂)))))[element_index]
 # Load factors 
-numeric_λᵥ_case₂ = load_factors(sa)
+numeric_λᵥ_case₂ = load_factors(sa₂)
 #-----------------------------
 # Analytic solution  
 #-----------------------------
@@ -181,10 +181,11 @@ numeric_λᵥ_case₂ = load_factors(sa)
 "Analytic load factor solution for the displacement `uᵢ` towards `x` axis at node `n₆`."
 load_factors_analytic(uᵢ::Real, p::Real=p, E::Real=E, Lᵢ::Real=Lᵢ) = 1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
 # Compute load factors with numerical solutions
-analytics_λᵥ_case₁ = load_factors_analytic.(numerical_uᵢ_case₁)
-analytics_λᵥ_case₂ = load_factors_analytic.(numerical_uᵢ_case₂)
+analytics_λᵥ_case₁ = load_factors_analytic.(numeric_uᵢ_case₁)
+analytics_λᵥ_case₂ = load_factors_analytic.(numeric_uᵢ_case₂)
 # Test last step σ and ϵ
-α_analytic = find_zero(α -> E / 2 * α * (α^2 - 1) - p * last(load_factors(sa)), 1e-2)
+@test load_factors(sa₁) == load_factors(sa₂)
+α_analytic = find_zero(α -> E / 2 * α * (α^2 - 1) - p * last(load_factors(sa₁)), 1e-2)
 β_analytic = sqrt(-ν * (α_analytic^2 - 1) + 1)
 # Gradient tensor
 # 𝕦 = (αx, βy, γz)
@@ -215,24 +216,5 @@ p₁, p₂ = lame_parameters(svk)
 @test ℙ_analytic ≈ ℙ_numeric_case₂ rtol = RTOL
 @test α_analytic ≈ last(numeric_α_case₁) rtol = RTOL
 @test β_analytic ≈ last(numeric_β_case₂) rtol = RTOL
-@test ℂ_numeric ≈ ℂ_analytic rtol = RTOL
-
-
-# Create structural materials 
-# s_materials = StructuralMaterials(msh_file, s_mesh, mat_dict)
-# Create structural bcs 
-# s_boundary_conditions = StructuralBoundaryConditions(msh_file, s_mesh, mat_dict)
-# Create Structure
-# s = Structure(s_mesh, s_materials, s_boundary_conditions)
-
-
-
-
-
-
-
-
-
-
-
-
+@test ℂ_analytic ≈ ℂ_numeric_case₁ rtol = RTOL
+@test ℂ_analytic ≈ ℂ_numeric_case₂ rtol = RTOL
