@@ -16,7 +16,7 @@ export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
 export ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol
 export ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!
 export AbstractSolver, step_size, tolerances, _step!, solve, _solve
-export AbstractSolution, StatesSolution, stresses, strains
+export AbstractSolution, StatesSolution, stresses, strains, states, analysis, solver, iteration_residuals
 
 """ ConvergenceSettings struct.
 Facilitates the process of defining and checking numerical convergence. 
@@ -234,15 +234,17 @@ struct StatesSolution{S,ST<:Vector{S},A,SS<:AbstractSolver} <: AbstractSolution
     solver::SS
 end
 
-"Return the solved `AbstractStrcturalState`s. "
+"Returns the solved `AbstractStrcturalState`s. "
 states(sol::StatesSolution) = sol.states
-"Return the `AbstractAnalysis` solved. "
+
+"Returns the `AbstractAnalysis` solved. "
 analysis(sol::StatesSolution) = sol.analysis
-"Return the `AbstractSolver` solved. "
+
+"Returns the `AbstractSolver` solved. "
 solver(sol::StatesSolution) = sol.solver
 
 
-for f in [:iteration_residuals, :displacements, :internal_forces, :external_forces]
+for f in [:displacements, :internal_forces, :external_forces]
     "Returns the $f vector Uᵏ at every time step."
     @eval $f(st_sol::StatesSolution) = $f.(states(st_sol))
 
@@ -255,6 +257,9 @@ for f in [:iteration_residuals, :displacements, :internal_forces, :external_forc
     "Returns the $f U of a `Node` `n` every time step."
     @eval $f(st_sol::StatesSolution, n::AbstractNode) = $f(st_sol, reduce(vcat, collect(dofs(n))))
 end
+
+"Returns the `IterationResidual`s object at every time step."
+iteration_residuals(st_sol::StatesSolution) = iteration_residuals.(states(st_sol))
 
 
 end # module
