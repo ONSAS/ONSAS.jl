@@ -174,7 +174,25 @@ file_name = joinpath("examples", "uniaxial_extension", "uniaxial_extension.msh")
 run(`gmsh -3 $file_name`)
 msh_file = MshFile(file_name)
 # Create mesh 
-s_mesh = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
+structure = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
+# Final load factor
+NSTEPS = 8
+sa = StaticAnalysis(s, NSTEPS=NSTEPS)
+# -------------------------------
+# Algorithm
+# -------------------------------
+tol_f = 1e-8;
+tol_u = 1e-8;
+max_iter = 30;
+tols = ConvergenceSettings(tol_u, tol_f, max_iter)
+nr = NewtonRaphson(tols)
+# -------------------------------
+# Numerical solution
+# -------------------------------
+states_sol = solve(sa, nr)
+
+
+
 # Create structural materials 
 # s_materials = StructuralMaterials(msh_file, s_mesh, mat_dict)
 # Create structural bcs 

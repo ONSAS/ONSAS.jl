@@ -22,8 +22,11 @@ StructuralMaterials(vmats::Vector{M}) where {M<:AbstractMaterial} =
     StructuralMaterials(dictionary(map(mat -> mat => Vector{AbstractElement}(), vmats)))
 
 "Returns the `Material` mapped with the label `l`."
-Base.getindex(sm::StructuralMaterials, l::L) where {L<:Union{Symbol,AbstractString}} =
-    first(collect(filter(m -> label(m) == Symbol(l), keys(sm.mats_to_elems))))
+function Base.getindex(sm::StructuralMaterials, l::L) where {L<:Union{Symbol,AbstractString}}
+    materials_label_l = collect(filter(m -> label(m) == Symbol(l), keys(sm.mats_to_elems)))
+    @assert length(materials_label_l) == 1 throw(ArgumentError("The label $l is not unique. Please label each material differently."))
+    first(materials_label_l)
+end
 
 "Returns the `Vector` of `Element`s that are conformed by the `Material `m`."
 Base.getindex(sm::StructuralMaterials, m::M) where {M<:AbstractMaterial} = sm.mats_to_elems[m]

@@ -1,3 +1,4 @@
+using ..Elements: AbstractNode, AbstractFace, AbstractElement
 using ..Meshes: AbstractMesh, Mesh, MshFile
 using ..BoundaryConditions: FixedDofBoundaryCondition, _apply
 using ..StructuralModel: AbstractStructure, StructuralMaterials, StructuralBoundaryConditions, StructuralEntities
@@ -79,10 +80,21 @@ function Structure(msh_file::MshFile, materials::StructuralMaterials, bcs::Struc
         bc_type_label = msh_file.bc_labels[physical_entity_index]
         if ~isempty(bc_type_label)
             bc_type = bcs[bc_type_label]
-            push!(bcs[bc_type], entity)
+            # Push the entity in the corresponding node, face or element dict in bcs
+            if entity isa AbstractNode
+                push!(node_bcs(bcs)[bc_type], entity)
+            elseif entity isa AbstractFace
+                push!(face_bcs(bcs)[bc_type], entity)
+            elseif entity isa AbstractElement
+                push!(element_bcs(bcs)[bc_type], entity)
+            end
         end
 
     end
 
-    return mesh, materials, bcs
+    dof_dim = dimension(mesh)
+    add!(mesh, :u, dof_dim)
+
+
+    return Structure(mesh, materials, bcs)
 end
