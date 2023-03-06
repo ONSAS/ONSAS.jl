@@ -76,7 +76,7 @@ nr = NewtonRaphson(tols)
 # Numerical solution
 # -------------------------------
 states_sol = solve(sa, nr)
-numerical_uₖ = getindex.(displacements.(states_sol), index(Dof(6)))
+numerical_uₖ = displacements(states_sol, Dof(6))
 numerical_λᵥ = -load_factors(sa) * Fₖ
 #-----------------------------
 # Analytic solution  

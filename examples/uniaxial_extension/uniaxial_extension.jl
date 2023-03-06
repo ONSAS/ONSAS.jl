@@ -98,21 +98,22 @@ nr = NewtonRaphson(tols)
 # Numerical solution
 # -------------------------------
 states_sol = solve(sa, nr)
+displacements_n₇ = displacements(states_sol, n₇)
 # Displacements in the x (component 1) axis at node 7
-numerical_uᵢ = getindex.(displacements.(states_sol), index(dofs(n₇)[:u][1]))
+numerical_uᵢ = displacements_n₇[1]
 numerical_α = 1 .+ numerical_uᵢ / Lᵢ
 # Displacements in the y (component 2) axis at node 7
-numerical_uⱼ = getindex.(displacements.(states_sol), index(dofs(n₇)[:u][2]))
+numerical_uⱼ = displacements_n₇[2]
 numerical_β = 1 .+ numerical_uⱼ / Lⱼ
 # Displacements in the z (component 3) axis at node 7
-numerical_uₖ = getindex.(displacements.(states_sol), index(dofs(n₇)[:u][3]))
+numerical_uₖ = displacements_n₇[3]
 numerical_γ = 1 .+ numerical_uᵢ / Lₖ
 # Extract ℙ and ℂ from the last state
 element_index = 5
 # Cosserat or second Piola-Kirchhoff stress tensor
-ℙ_numeric = collect(values(stress(last(states_sol))))[element_index]
+ℙ_numeric = collect(values(stress(last(states_sol.states))))[element_index]
 # Right hand Cauchy strain tensor 
-ℂ_numeric = collect(values(strain(last(states_sol))))[element_index]
+ℂ_numeric = collect(values(strain(last(states_sol.states))))[element_index]
 # Load factors 
 numerical_λᵥ = load_factors(sa)
 #-----------------------------
