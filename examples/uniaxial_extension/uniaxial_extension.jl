@@ -150,9 +150,9 @@ s_entities = StructuralEntities(velems, vfaces)
 # -------------------------------
 # Mesh
 # -------------------------------
-file_name = joinpath("examples", "uniaxial_extension", "uniaxial_extension.msh")
+file_name = joinpath(@__DIR__, "uniaxial_extension.msh")
 # generate .msh
-run(`gmsh -3 $file_name`)
+# run(`gmsh -3 $file_name`)
 msh_file = MshFile(file_name)
 # -------------------------------
 # Structure
