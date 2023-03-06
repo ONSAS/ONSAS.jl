@@ -31,7 +31,7 @@ n₆ = Node(Lᵢ, 0.0, Lₖ)
 n₇ = Node(Lᵢ, Lⱼ, Lₖ)
 n₈ = Node(Lᵢ, Lⱼ, 0.0)
 vec_nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
-s_mesh = Mesh(vec_nodes)
+s₁_mesh = Mesh(vec_nodes)
 ## Faces 
 f₁ = TriangularFace(n₅, n₈, n₆, "loaded_face_1")
 f₂ = TriangularFace(n₆, n₈, n₇, "loaded_face_2")
@@ -42,7 +42,7 @@ f₆ = TriangularFace(n₆, n₁, n₅, "y=0_face_2")
 f₇ = TriangularFace(n₁, n₄, n₅, "z=0_face_1")
 f₈ = TriangularFace(n₄, n₈, n₅, "z=0_face_2")
 vec_faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
-push!(s_mesh, vec_faces)
+push!(s₁_mesh, vec_faces)
 ## Elements 
 t₁ = Tetrahedron(n₁, n₄, n₂, n₆, "tetra_1")
 t₂ = Tetrahedron(n₆, n₂, n₃, n₄, "tetra_2")
@@ -51,18 +51,18 @@ t₄ = Tetrahedron(n₄, n₁, n₅, n₆, "tetra_4")
 t₅ = Tetrahedron(n₄, n₆, n₅, n₈, "tetra_5")
 t₆ = Tetrahedron(n₄, n₇, n₆, n₈, "tetra_6")
 vec_elems = [t₁, t₂, t₃, t₄, t₅, t₆]
-push!(s_mesh, vec_elems)
+push!(s₁_mesh, vec_elems)
 # -------------------------------
 # Dofs
 #--------------------------------
 dof_dim = 3
-add!(s_mesh, :u, dof_dim)
+add!(s₁_mesh, :u, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------
 svk = SVK(E, ν, "svk")
 mat_dict = dictionary([svk => [t₁, t₂, t₃, t₄, t₅, t₆]])
-s_materials = StructuralMaterials(mat_dict)
+s₁_materials = StructuralMaterials(mat_dict)
 # -------------------------------
 # Boundary conditions
 # -------------------------------
@@ -75,17 +75,17 @@ bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], "tension")
 # Assign this to faces 
 face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
 # Crete boundary conditions struct
-s_boundary_conditions = StructuralBoundaryConditions(face_bcs=face_bc)
+s₁_boundary_conditions = StructuralBoundaryConditions(face_bcs=face_bc)
 # -------------------------------
 # Structure
 # -------------------------------
-s = Structure(s_mesh, s_materials, s_boundary_conditions)
+s₁ = Structure(s₁_mesh, s₁_materials, s₁_boundary_conditions)
 # -------------------------------
 # Structural Analysis
 # -------------------------------
 # Final load factor
 NSTEPS = 8
-sa = StaticAnalysis(s, NSTEPS=NSTEPS)
+sa₁ = StaticAnalysis(s₁, NSTEPS=NSTEPS)
 # -------------------------------
 # Algorithm
 # -------------------------------
@@ -97,33 +97,92 @@ nr = NewtonRaphson(tols)
 # -------------------------------
 # Numerical solution
 # -------------------------------
-states_sol = solve(sa, nr)
-displacements_n₇ = displacements(states_sol, n₇)
-# Displacements in the x (component 1) axis at node 7
-numerical_uᵢ = displacements_n₇[1]
-numerical_α = 1 .+ numerical_uᵢ / Lᵢ
-# Displacements in the y (component 2) axis at node 7
-numerical_uⱼ = displacements_n₇[2]
-numerical_β = 1 .+ numerical_uⱼ / Lⱼ
-# Displacements in the z (component 3) axis at node 7
-numerical_uₖ = displacements_n₇[3]
-numerical_γ = 1 .+ numerical_uᵢ / Lₖ
+states_sol_case₁ = solve(sa₁, nr)
+"Computes numeric solution α, β and γ for analytic validation."
+function αβγ_numeric(states_sol::AbstractSolution)
+    s = structure(analysis(states_sol))
+    # Node at (Lᵢ, Lⱼ, Lₖ)
+    n₇ = nodes(s)[7]
+    displacements_n₇ = displacements(states_sol_case₁, n₇)
+    # Displacements in the x (component 1) axis at node 7
+    numerical_uᵢ = displacements_n₇[1]
+    numerical_α = 1 .+ numerical_uᵢ / Lᵢ
+    # Displacements in the y (component 2) axis at node 7
+    numerical_uⱼ = displacements_n₇[2]
+    numerical_β = 1 .+ numerical_uⱼ / Lⱼ
+    # Displacements in the z (component 3) axis at node 7
+    numerical_uₖ = displacements_n₇[3]
+    numerical_γ = 1 .+ numerical_uₖ / Lₖ
+    return numerical_α, numerical_β, numerical_γ, numerical_uᵢ, numerical_uⱼ, numerical_uₖ
+end
+# Numeric solution for testing
+numeric_α_case₁, numeric_β_case₁, numeric_γ_case₁, numeric_uᵢ_case₁, _, _ = αβγ_numeric(states_sol)
 # Extract ℙ and ℂ from the last state
 element_index = 5
 # Cosserat or second Piola-Kirchhoff stress tensor
-ℙ_numeric = collect(values(stress(last(states_sol.states))))[element_index]
+ℙ_numeric_case₁ = collect(values(stress(last(states_sol.states))))[element_index]
 # Right hand Cauchy strain tensor 
-ℂ_numeric = collect(values(strain(last(states_sol.states))))[element_index]
+ℂ_numeric_case₁ = collect(values(strain(last(states_sol.states))))[element_index]
 # Load factors 
-numerical_λᵥ = load_factors(sa)
+numeric_λᵥ_case₁ = load_factors(sa)
+# -------------------------------
+# Case 2 - GMSH mesh
+#--------------------------------
+# -------------------------------
+# Materials
+# -------------------------------
+# Material types without assigned elements
+mat_types = [svk]
+s_materials = StructuralMaterials(mat_types)
+# -------------------------------
+# Boundary Conditions
+# -------------------------------
+# BoundaryConditions types without assigned node, feces and elements
+vbc = [bc₁, bc₂, bc₃, bc₄]
+s_boundary_conditions = StructuralBoundaryConditions(vbc)
+# -------------------------------
+# Entities
+# -------------------------------
+# Entities types without assigned nodes, faces and elements
+vfaces = [TriangularFace("triangle")]
+velems = [Tetrahedron("tetrahedron")]
+s_entities = StructuralEntities(velems, vfaces)
+# -------------------------------
+# Mesh
+# -------------------------------
+file_name = joinpath("examples", "uniaxial_extension", "uniaxial_extension.msh")
+# generate .msh
+run(`gmsh -3 $file_name`)
+msh_file = MshFile(file_name)
+# -------------------------------
+# Structure
+# -------------------------------
+s = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
+# Final load factor
+sa = StaticAnalysis(s, NSTEPS=NSTEPS)
+# -------------------------------
+# Numerical solution
+# -------------------------------
+states_sol_case₂ = solve(sa, nr)
+# Numeric solution for testing
+numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, numeric_uᵢ_case₂, _, _ = αβγ_numeric(states_sol_case₂)
+# Extract ℙ and ℂ from the last state
+element_index = 5
+# Cosserat or second Piola-Kirchhoff stress tensor
+ℙ_numeric_case₂ = collect(values(stress(last(states_sol.states))))[element_index]
+# Right hand Cauchy strain tensor 
+ℂ_numeric_case₂ = collect(values(strain(last(states_sol.states))))[element_index]
+# Load factors 
+numeric_λᵥ_case₂ = load_factors(sa)
 #-----------------------------
 # Analytic solution  
 #-----------------------------
 # Test with load factors
 "Analytic load factor solution for the displacement `uᵢ` towards `x` axis at node `n₆`."
-load_factors_analytic(uᵢ::Real, p::Real=p, E::Real=E, Lᵢ::Real=Lᵢ) =
-    1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
-analytics_λᵥ = load_factors_analytic.(numerical_uᵢ)
+load_factors_analytic(uᵢ::Real, p::Real=p, E::Real=E, Lᵢ::Real=Lᵢ) = 1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
+# Compute load factors with numerical solutions
+analytics_λᵥ_case₁ = load_factors_analytic.(numerical_uᵢ_case₁)
+analytics_λᵥ_case₂ = load_factors_analytic.(numerical_uᵢ_case₂)
 # Test last step σ and ϵ
 α_analytic = find_zero(α -> E / 2 * α * (α^2 - 1) - p * last(load_factors(sa)), 1e-2)
 β_analytic = sqrt(-ν * (α_analytic^2 - 1) + 1)
@@ -150,47 +209,13 @@ p₁, p₂ = lame_parameters(svk)
 #-----------------------------
 # Test boolean for CI  
 #-----------------------------
-@test analytics_λᵥ ≈ numerical_λᵥ rtol = RTOL
-@test ℙ_analytic ≈ ℙ_analytic rtol = RTOL
-@test α_analytic ≈ last(numerical_α) rtol = RTOL
-@test β_analytic ≈ last(numerical_β) rtol = RTOL
+@test analytics_λᵥ_case₁ ≈ numeric_λᵥ_case₁ rtol = RTOL
+@test analytics_λᵥ_case₂ ≈ numeric_λᵥ_case₂ rtol = RTOL
+@test ℙ_analytic ≈ ℙ_numeric_case₁ rtol = RTOL
+@test ℙ_analytic ≈ ℙ_numeric_case₂ rtol = RTOL
+@test α_analytic ≈ last(numeric_α_case₁) rtol = RTOL
+@test β_analytic ≈ last(numeric_β_case₂) rtol = RTOL
 @test ℂ_numeric ≈ ℂ_analytic rtol = RTOL
-# -------------------------------
-# Case 2 - GMSH mesh
-#--------------------------------
-# Material types without assigned elements
-mat_types = [svk]
-s_materials = StructuralMaterials(mat_types)
-# BoundaryConditions types without assigned node, feces and elements
-vbc = [bc₁, bc₂, bc₃, bc₄]
-s_boundary_conditions = StructuralBoundaryConditions(vbc)
-# Entities types without assigned nodes, faces and elements
-vfaces = [TriangularFace("triangle")]
-velems = [Tetrahedron("tetrahedron")]
-s_entities = StructuralEntities(velems, vfaces)
-# Load MSH file
-file_name = joinpath("examples", "uniaxial_extension", "uniaxial_extension.msh")
-# generate .msh
-run(`gmsh -3 $file_name`)
-msh_file = MshFile(file_name)
-# Create mesh 
-structure = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
-# Final load factor
-NSTEPS = 8
-sa = StaticAnalysis(s, NSTEPS=NSTEPS)
-# -------------------------------
-# Algorithm
-# -------------------------------
-tol_f = 1e-8;
-tol_u = 1e-8;
-max_iter = 30;
-tols = ConvergenceSettings(tol_u, tol_f, max_iter)
-nr = NewtonRaphson(tols)
-# -------------------------------
-# Numerical solution
-# -------------------------------
-states_sol = solve(sa, nr)
-
 
 
 # Create structural materials 
