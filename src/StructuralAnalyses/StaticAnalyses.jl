@@ -17,7 +17,7 @@ using LinearAlgebra: norm
 import ..StructuralAnalyses: _assemble!, initial_time, current_time, final_time, _next!,
     residual_forces, tangent_matrix, iteration_residuals, is_done
 
-import ...StructuralSolvers: _solve, _update!, _step!, _reset!
+import ...StructuralSolvers: _solve, _update!, _step!, _reset!, external_forces
 
 export StaticState
 export StaticAnalysis, load_factors, current_load_factor
@@ -204,7 +204,7 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
     end
 
-    return states
+    return StatesSolution(states, sa, alg)
 end
 
 "Assembles the Structure `s` (internal forces) during the `StaticAnalysis` `sa`."
