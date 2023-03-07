@@ -104,14 +104,24 @@ end
 
 @testset "ONSAS.StructuralModel.StructuralEntities" begin
 
-    vec_elems = [Tetrahedron("tetra_label"), Truss("truss_label")]
-    vec_faces = [TriangularFace("triangle_label")]
+    sec = Square(1)
 
-    s_entities = StructuralEntities(vec_elems, vec_faces)
+    tetra_label = "tetra_label"
+    truss_label = "truss_label"
+    face_label = "triangle_label"
 
+    velems = [Tetrahedron(tetra_label), Truss(sec, truss_label)]
+    vfaces = [TriangularFace(face_label)]
 
-    @test elem_types_to_elements(s_entities)
+    s_entities = StructuralEntities(velems, vfaces)
 
+    @test elem_types_to_elements(s_entities) == s_entities.elem_types_to_elements
+    @test face_types_to_faces(s_entities) == s_entities.face_types_to_faces
+    @test elem_types(s_entities) == velems
+    @test face_types(s_entities) == vfaces
+    @test all([e ∈ all_entities(s_entities) for e in vcat(velems, vfaces)])
+    @test s_entities[tetra_label] == velems[1]
+    @test s_entities[truss_label] == velems[2]
 
 end
 

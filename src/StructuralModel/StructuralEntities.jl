@@ -16,16 +16,16 @@ as keys and the corresponding elements created.
 - `face_types_to_faces` -- Store a dictionary with `Face` types (`Face`s without assigned `Node`s) 
 as keys and the corresponding faces created.
 """
-struct StructuralEntities{F<:AbstractFace,E<:AbstractElement}
-    elem_types_to_elements::Dictionary{E,Vector{E}}
-    face_types_to_faces::Dictionary{F,Vector{F}}
-    function StructuralEntities(elem_types_to_elements::Dictionary{E,Vector{E}}, face_types_to_faces::Dictionary{F,Vector{F}}) where
-    {F<:AbstractFace,E<:AbstractElement}
+struct StructuralEntities{F<:AbstractFace,VF<:Vector,E<:AbstractElement,VE<:Vector}
+    elem_types_to_elements::Dictionary{E,VE}
+    face_types_to_faces::Dictionary{F,VF}
+    function StructuralEntities(elem_types_to_elements::Dictionary{E,VE}, face_types_to_faces::Dictionary{F,VF}) where
+    {F<:AbstractFace,VF<:Vector,E<:AbstractElement,VE<:Vector}
         velems = collect(keys(elem_types_to_elements))
         vfaces = collect(keys(face_types_to_faces))
         vlabels = vcat(label.(velems), label.(vfaces))
         @assert length(vlabels) == length(unique(vlabels)) "Every `Face` and `Element` type labels must be different"
-        new{F,E}(elem_types_to_elements, face_types_to_faces)
+        new{F,VF,E,VE}(elem_types_to_elements, face_types_to_faces)
     end
 end
 
