@@ -71,14 +71,14 @@ t_to_test = 2.0
 
 end
 
-@testset "ONSAS.BoundaryConditions.LocalLoadBoundaryCondition" begin
+@testset "ONSAS.BoundaryConditions.LocalPressureBoundaryCondition" begin
 
     # Generic labeled global load boundary condition
     dofs_to_apply_bc = [:u]
     load_fact_generic(t) = t^2
     generic_values = t -> load_fact_generic(t) .* [1]
     generic_bc_label = :bc_generic
-    generic_bc = LocalLoadBoundaryCondition(dofs_to_apply_bc, generic_values)
+    generic_bc = LocalPressureBoundaryCondition(dofs_to_apply_bc, generic_values)
 
     @test dofs(generic_bc) == dofs_to_apply_bc
     @test values(generic_bc) == generic_values
