@@ -75,8 +75,12 @@ end
     n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
 
     face_label = "my_face"
+    f_empty_nodes = TriangularFace(face_label)
+    @test label(f_empty_nodes) == Symbol(face_label)
     f₁ = TriangularFace(n₁, n₂, n₃, face_label)
     f₁_no_label = TriangularFace(n₁, n₂, n₃)
+    f₁ = create_entity(f_empty_nodes, [n₁, n₂, n₃])
+
 
     @test all([n ∈ nodes(f₁) for n in [n₁, n₂, n₃]])
     @test coordinates(f₁) == [coordinates(n₁), coordinates(n₂), coordinates(n₃)]
@@ -122,6 +126,9 @@ end
     my_label = "my_truss"
     t = Truss(n₁, n₂, square_corss_section, my_label)
     t_no_label = Truss(n₁, n₂, square_corss_section)
+    t_empty_nodes = Truss(square_corss_section, my_label)
+    t = create_entity(t_empty_nodes, [n₁, n₂])
+    @test label(t_empty_nodes) == Symbol(my_label)
 
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
     @test all([n ∈ coordinates(t) for n in coordinates([n₁, n₂])])
@@ -158,6 +165,10 @@ end
     tetra_label = "my_tetrahedron"
     tetra = Tetrahedron(n₁, n₂, n₃, n₄, tetra_label)
     tetra_no_label = Tetrahedron(n₁, n₂, n₃, n₄)
+    tetra_empty_nodes = Tetrahedron(tetra_label)
+    @test label(tetra_empty_nodes) == Symbol(tetra_label)
+    tetra = create_entity(tetra_empty_nodes, [n₁, n₂, n₃, n₄])
+
 
     @test length(nodes(tetra)) == 4
     @test all([n ∈ nodes(tetra) for n in [n₁, n₂, n₃, n₄]])

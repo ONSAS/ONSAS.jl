@@ -102,6 +102,20 @@ end
 
 end
 
+@testset "ONSAS.StructuralModel.StructuralEntities" begin
+
+    vec_elems = [Tetrahedron("tetra_label"), Truss("truss_label")]
+    vec_faces = [TriangularFace("triangle_label")]
+
+    s_entities = StructuralEntities(vec_elems, vec_faces)
+
+
+    @test elem_types_to_elements(s_entities)
+
+
+end
+
+
 @testset "ONSAS.StructuralModel.Structure" begin
 
     n₁ = Node(0, 0, 0)
