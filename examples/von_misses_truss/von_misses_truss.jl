@@ -2,6 +2,7 @@
 # Von Misses Truss Example from (Zerpa, Bazzano 2017 ) - 2.5.4
 # -------------------------------------------------------------
 using Test: @test
+using LinearAlgebra: norm
 using ONSAS.StaticAnalyses
 ## scalar parameters
 E = 210e9                 # Young modulus in Pa
@@ -76,8 +77,17 @@ nr = NewtonRaphson(tols)
 # Numerical solution
 # -------------------------------
 states_sol = solve(sa, nr)
-numerical_uₖ = displacements(states_sol, Dof(6))
+n₂_displacements = displacements(states_sol, n₂)
+numerical_uᵢ = n₂_displacements[1]
+numerical_uⱼ = n₂_displacements[2]
+numerical_uₖ = n₂_displacements[3]
+@test norm(numerical_uᵢ) ≤ RTOL
+@test norm(numerical_uⱼ) ≤ RTOL
 numerical_λᵥ = -load_factors(sa) * Fₖ
+# Test stress and strains 
+σ_truss₂ = stress(states_sol, truss₂)
+ϵ_truss₂ = strain(states_sol, truss₂)
+@test σ_truss₂ == E * ϵ_truss₂
 #-----------------------------
 # Analytic solution  
 #-----------------------------
