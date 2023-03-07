@@ -1,3 +1,4 @@
+using SparseArrays: sparse
 using ..Materials: SVK
 using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
@@ -63,8 +64,8 @@ function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}
     K_geo = σ * A / l_def * (B_dif' * B_dif - TTcl * (TTcl'))
     Kᵢₙₜ_e = Kₘ + K_geo
 
-    σ_e = zeros(3, 3)
-    ϵ_e = zeros(3, 3)
+    σ_e = sparse(zeros(3, 3))
+    ϵ_e = sparse(zeros(3, 3))
     σ_e[1, 1] = σ
     ϵ_e[1, 1] = ϵ
 

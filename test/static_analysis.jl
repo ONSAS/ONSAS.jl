@@ -164,8 +164,10 @@ sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, �
 
     @test internal_forces(default_s) ≈ Fᵢₙₜ rtol = RTOL
     @test tangent_matrix(default_s) ≈ K_system rtol = RTOL
-    @test strain(default_s) ≈ [ϵ_e_1..., ϵ_e_2...] rtol = RTOL skip = true
-    @test stress(default_s) ≈ [σ_e_1..., σ_e_2...] rtol = RTOL skip = true
+    @test strain(default_s)[truss₁] == ϵ_e_1
+    @test strain(default_s)[truss₂] == ϵ_e_2
+    @test stress(default_s)[truss₁] == σ_e_1
+    @test stress(default_s)[truss₂] == σ_e_2
 
 end
 
@@ -203,11 +205,13 @@ end
 
 @testset "ONSAS.StructuralSolvers.StatesSolution" begin
 
-    sol_states = [sst_rand, sst_rand, sst_rand]
+    solved_states = [sst_rand, sst_rand, sst_rand]
+    num_states = length(solved_states)
     nr = NewtonRaphson()
-    states_sol = StatesSolution(sol_states, sa, nr)
+    states_sol = StatesSolution(sa, nr)
+    [push!(states_sol, st) for st in solved_states]
 
-    @test states(states_sol) == sol_states
+    @test length(states(states_sol)) == num_states
     @test analysis(states_sol) == sa
     @test solver(states_sol) == nr
 
@@ -215,47 +219,45 @@ end
     vdof = [Dof(1), Dof(4)]
 
 
-    @test displacements(states_sol, dof) == repeat([displacements(sst_rand)[dof]], length(sol_states))
+    @test displacements(states_sol, dof) == repeat([displacements(sst_rand)[dof]], num_states)
 
     @test displacements(states_sol, vdof) == [
-        repeat([displacements(sst_rand)[vdof[1]]], length(sol_states)),
-        repeat([displacements(sst_rand)[vdof[2]]], length(sol_states))
+        repeat([displacements(sst_rand)[vdof[1]]], num_states),
+        repeat([displacements(sst_rand)[vdof[2]]], num_states)
     ]
 
     @test displacements(states_sol, n₁) == [
-        repeat([displacements(sst_rand)[dofs(n₁)[:u][1]]], length(sol_states)),
-        repeat([displacements(sst_rand)[dofs(n₁)[:u][2]]], length(sol_states)),
-        repeat([displacements(sst_rand)[dofs(n₁)[:u][3]]], length(sol_states)),
+        repeat([displacements(sst_rand)[dofs(n₁)[:u][1]]], num_states),
+        repeat([displacements(sst_rand)[dofs(n₁)[:u][2]]], num_states),
+        repeat([displacements(sst_rand)[dofs(n₁)[:u][3]]], num_states),
     ]
 
-
-    @test internal_forces(states_sol, dof) == repeat([internal_forces(sst_rand)[dof]], length(sol_states))
+    @test internal_forces(states_sol, dof) == repeat([internal_forces(sst_rand)[dof]], num_states)
 
     @test internal_forces(states_sol, vdof) == [
-        repeat([internal_forces(sst_rand)[vdof[1]]], length(sol_states)),
-        repeat([internal_forces(sst_rand)[vdof[2]]], length(sol_states))
+        repeat([internal_forces(sst_rand)[vdof[1]]], num_states),
+        repeat([internal_forces(sst_rand)[vdof[2]]], num_states)
     ]
 
     @test internal_forces(states_sol, n₁) == [
-        repeat([internal_forces(sst_rand)[dofs(n₁)[:u][1]]], length(sol_states)),
-        repeat([internal_forces(sst_rand)[dofs(n₁)[:u][2]]], length(sol_states)),
-        repeat([internal_forces(sst_rand)[dofs(n₁)[:u][3]]], length(sol_states)),
+        repeat([internal_forces(sst_rand)[dofs(n₁)[:u][1]]], num_states),
+        repeat([internal_forces(sst_rand)[dofs(n₁)[:u][2]]], num_states),
+        repeat([internal_forces(sst_rand)[dofs(n₁)[:u][3]]], num_states),
     ]
 
-    @test external_forces(states_sol, dof) == repeat([external_forces(sst_rand)[dof]], length(sol_states))
+    @test external_forces(states_sol, dof) == repeat([external_forces(sst_rand)[dof]], num_states)
 
     @test external_forces(states_sol, vdof) == [
-        repeat([external_forces(sst_rand)[vdof[1]]], length(sol_states)),
-        repeat([external_forces(sst_rand)[vdof[2]]], length(sol_states))
+        repeat([external_forces(sst_rand)[vdof[1]]], num_states),
+        repeat([external_forces(sst_rand)[vdof[2]]], num_states)
     ]
 
     @test external_forces(states_sol, n₁) == [
-        repeat([external_forces(sst_rand)[dofs(n₁)[:u][1]]], length(sol_states)),
-        repeat([external_forces(sst_rand)[dofs(n₁)[:u][2]]], length(sol_states)),
-        repeat([external_forces(sst_rand)[dofs(n₁)[:u][3]]], length(sol_states)),
+        repeat([external_forces(sst_rand)[dofs(n₁)[:u][1]]], num_states),
+        repeat([external_forces(sst_rand)[dofs(n₁)[:u][2]]], num_states),
+        repeat([external_forces(sst_rand)[dofs(n₁)[:u][3]]], num_states),
     ]
 
     iteration_residuals(states_sol)
-
 
 end
