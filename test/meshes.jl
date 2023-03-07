@@ -73,7 +73,7 @@ end
     msh_file = MshFile(file_name)
 
     @test nodes(msh_file) == msh_file.vec_nodes
-    @test length(physical_indexes(msh_file)) == length(connectivity(msh_file))
+    @test length(physical_index(msh_file)) == length(connectivity(msh_file))
     @test dimension(msh_file) == dimension(first(nodes(msh_file)))
     @test material_label(msh_file) == ["", "", "", "", "svk"]
     @test entity_label(msh_file) == ["triangle", "triangle", "triangle", "triangle", "tetrahedron"]
@@ -83,6 +83,6 @@ end
     @test entity_label(msh_file, entity_index) == "tetrahedron"
     @test material_label(msh_file, entity_index) == "svk"
     @test bc_label(msh_file, entity_index) == ""
-
+    @test physical_index(msh_file, entity_index) == 5
 
 end
