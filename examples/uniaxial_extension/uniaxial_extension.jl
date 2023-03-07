@@ -117,12 +117,12 @@ function αβγ_numeric(states_sol::AbstractSolution)
 end
 # Numeric solution for testing
 numeric_α_case₁, numeric_β_case₁, numeric_γ_case₁, numeric_uᵢ_case₁, _, _ = αβγ_numeric(states_sol_case₁)
-# Extract ℙ and ℂ from the last state
-element_index = 5
+# Extract ℙ and ℂ from the last state using a random element
+e = rand(elements(s₁))
 # Cosserat or second Piola-Kirchhoff stress tensor
-ℙ_numeric_case₁ = collect(values(stress(last(states(states_sol_case₁)))))[element_index]
+ℙ_numeric_case₁ = last(stress(states_sol_case₁, e))
 # Right hand Cauchy strain tensor 
-ℂ_numeric_case₁ = collect(values(strain(last(states(states_sol_case₁)))))[element_index]
+ℂ_numeric_case₁ = last(strain(states_sol_case₁, e))
 # Load factors 
 numeric_λᵥ_case₁ = load_factors(sa₁)
 # -------------------------------
@@ -159,21 +159,21 @@ msh_file = MshFile(file_name)
 # -------------------------------
 # Structure
 # -------------------------------
-s = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
+s₂ = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
 # Final load factor
-sa₂ = StaticAnalysis(s, NSTEPS=NSTEPS)
+sa₂ = StaticAnalysis(s₂, NSTEPS=NSTEPS)
 # -------------------------------
 # Numerical solution
 # -------------------------------
 states_sol_case₂ = solve(sa₂, nr)
 # Numeric solution for testing
 numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, numeric_uᵢ_case₂, _, _ = αβγ_numeric(states_sol_case₂)
-# Extract ℙ and ℂ from the last state
-element_index = 5
+# Extract ℙ and ℂ from the last state using a random element
+e = rand(elements(s₂))
 # Cosserat or second Piola-Kirchhoff stress tensor
-ℙ_numeric_case₂ = collect(values(stress(last(states(states_sol_case₂)))))[element_index]
+ℙ_numeric_case₂ = last(stress(states_sol_case₂, e))
 # Right hand Cauchy strain tensor 
-ℂ_numeric_case₂ = collect(values(strain(last(states(states_sol_case₂)))))[element_index]
+ℂ_numeric_case₂ = last(strain(states_sol_case₂, e))
 # Load factors 
 numeric_λᵥ_case₂ = load_factors(sa₂)
 #-----------------------------

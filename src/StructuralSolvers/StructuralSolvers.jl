@@ -228,11 +228,16 @@ Structural analysis solution containing the full history of states.
 
 
 """
-struct StatesSolution{S,ST<:Vector{S},A,SS<:AbstractSolver} <: AbstractSolution
+struct StatesSolution{ST<:Vector,A,SS<:AbstractSolver} <: AbstractSolution
     states::ST
     analysis::A
     solver::SS
+    "Constructor with empty `AbstractStructuralState`s `Vector` and type `S`."
+    function StatesSolution(analysis::A, solver::SS) where {ST<:Vector,A,SS<:AbstractSolver}
+        new{Vector{Any},A,SS}([], analysis, solver)
+    end
 end
+
 
 "Returns the solved `AbstractStrcturalState`s. "
 states(sol::StatesSolution) = sol.states
@@ -260,6 +265,17 @@ end
 
 "Returns the `IterationResidual`s object at every time step."
 iteration_residuals(st_sol::StatesSolution) = iteration_residuals.(states(st_sol))
+
+for f in [:stress, :strain]
+    "Returns the $f at every time step."
+    @eval $f(st_sol::StatesSolution) = $f.(states(st_sol))
+
+    "Returns the $f of an `Element` `e` every time step."
+    @eval $f(st_sol::StatesSolution, e) = [getindex($f.(states(st_sol))[step], e) for step in 1:length(states(st_sol))]
+
+end
+
+
 
 
 end # module
