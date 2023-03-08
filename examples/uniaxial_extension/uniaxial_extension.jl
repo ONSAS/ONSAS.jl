@@ -137,6 +137,8 @@ s_materials = StructuralMaterials(mat_types)
 # -------------------------------
 # Boundary Conditions
 # -------------------------------
+# Redefine the load boundary condition 
+bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], "tension")
 # BoundaryConditions types without assigned node, feces and elements
 vbc = [bc₁, bc₂, bc₃, bc₄]
 s_boundary_conditions = StructuralBoundaryConditions(vbc)

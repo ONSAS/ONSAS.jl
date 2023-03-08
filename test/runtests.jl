@@ -3,9 +3,9 @@ using SafeTestsets: @safetestset
 
 MODULES = [
     # Input modules
-    "materials.jl", "cross_sections.jl", "elements.jl", "boundary_conditions.jl", "meshes.jl",
+    "test_Materials.jl", "test_CrossSections.jl", "test_Elements.jl", "test_BoundaryConditions.jl", "test_Meshes.jl",
     # Analysis modules
-    "structural_model.jl", "structural_solvers.jl", "static_analysis.jl"]
+    "test_StructuralModel.jl", "test_StructuralSolvers.jl", "test_StaticAnalysis.jl"]
 
 EXAMPLES = [
     joinpath("..", "examples", "von_misses_truss", "von_misses_truss.jl"),

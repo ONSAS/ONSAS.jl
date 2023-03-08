@@ -58,20 +58,17 @@ function Structure(msh_file::MshFile,
     nodes = msh_file.vec_nodes
     mesh = Mesh(nodes)
 
-    for (index_entity, entity_nodes_indexes) in enumerate(msh_file.connectivity)
-
-        # Find physical entities index
-        physical_entity_index = msh_file.physical_indexes[index_entity]
+    for (entity_index, entity_nodes_indexes) in enumerate(msh_file.connectivity)
 
         # Create entity and push it into the mesh
         nodes_entity = view(nodes, entity_nodes_indexes)
-        entity_type_label = msh_file.entities_labels[physical_entity_index]
+        entity_type_label = entity_label(msh_file, entity_index)
         entity_type = s_entities[entity_type_label]
         entity = create_entity(entity_type, nodes_entity)
         push!(mesh, entity)
 
         # Find material and push 
-        material_type_label = msh_file.material_labels[physical_entity_index]
+        material_type_label = material_label(msh_file, entity_index)
         # If has material defined is an element not a surface
         if ~isempty(material_type_label)
             material_type = materials[material_type_label]
@@ -79,7 +76,7 @@ function Structure(msh_file::MshFile,
         end
 
         # Find boundary conditions 
-        bc_type_label = msh_file.bc_labels[physical_entity_index]
+        bc_type_label = bc_label(msh_file, entity_index)
         if ~isempty(bc_type_label)
             bc_type = bcs[bc_type_label]
             # Push the entity in the corresponding node, face or element dict in bcs

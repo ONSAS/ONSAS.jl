@@ -12,7 +12,7 @@ using Reexport: @reexport
 
 export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition, AbstractLoadBoundaryCondition, _apply
 export DisplacementBoundaryCondition, FixedDofBoundaryCondition, components
-export GlobalLoadBoundaryCondition, LocalLoadBoundaryCondition
+export GlobalLoadBoundaryCondition, LocalPressureBoundaryCondition
 
 
 """ Abstract supertype for all elements.
@@ -63,7 +63,7 @@ abstract type AbstractLoadBoundaryCondition <: AbstractBoundaryCondition end
 (lbc::AbstractLoadBoundaryCondition)(t::Real) = values(lbc)(t)
 
 include("GlobalLoadBoundaryCondition.jl")
-include("LocalLoadBoundaryCondition.jl")
+include("LocalPressureBoundaryCondition.jl")
 
 end # module
 
