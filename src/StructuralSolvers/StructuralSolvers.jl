@@ -151,10 +151,10 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
 
     if Δr_relᵏ ≤ Δr_rel_tol && ΔU_relᵏ ≤ ΔU_rel_tol || Δr_nromᵏ < eps() || ΔU_nromᵏ < eps()
         _update!(ri_step, ΔU_and_ResidualForce_Criteria())
-        return true
+        return ΔU_and_ResidualForce_Criteria()
     end
 
-    return false
+    return NotConvergedYet()
 end
 
 #==========#

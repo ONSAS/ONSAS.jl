@@ -108,9 +108,59 @@ end
 include("./Node.jl")
 
 # =================
+# Abstract Entity
+# =================
+""" Abstract supertype for all `Face`s and `Element`s.
+
+An `AbstractEntity` object is an entity defined by dofs and node/s with certain coordinates and dimension.
+
+**Common methods:**
+
+* [`create_entity`](@ref)
+* [`coordinates`](@ref)
+* [`dimension`](@ref)
+* [`dofs`](@ref)
+
+**Common fields:**
+* nodes
+* label
+"""
+
+abstract type AbstractEntity{dim,T} end
+
+"Returns the `AbstractEntity` `e` coordinates."
+coordinates(e::AbstractEntity) = coordinates.(nodes(e))
+
+"Returns each `AbstractFace` coordinates in a `Vector` of `Face`s `vf`."
+coordinates(ve::Vector{<:AbstractEntity}) = coordinates.(ve)
+
+"Returns an `AbstractEntity` given an empty `AbstractEntity` `e` and a `Vector` of `Node`s `vn`."
+function create_entity(e::AbstractEntity, vn::AbstractVector{<:AbstractNode}) end
+
+"Returns the `AbstractEntity` dimension."
+dimension(::AbstractEntity{dim}) where {dim} = dim
+
+"Returns the dofs of an `AbstractEntity` `e`."
+function dofs(e::AbstractEntity)
+    vecdfs = dofs.(nodes(e))
+    dfs = mergewith(vcat, vecdfs[1], vecdfs[2])
+    [mergewith!(vcat, dfs, vecdfs[i]) for i in 3:length(vecdfs)]
+    dfs
+end
+
+"Returns the dofs of a `Vector` `ve` with `AbstractEntity`es."
+dofs(ve::Vector{<:AbstractEntity}) = unique(row_vector(dofs.(ve)))
+
+"Returns the `Node`s an `AbstractEntity` `e`."
+nodes(e::AbstractEntity) = e.nodes
+
+"Returns the label of an `AbstractEntity` `e`."
+label(e::AbstractEntity) = e.label
+
+# =================
 # Abstract Face
 # =================
-abstract type AbstractFace{dim,T} end
+abstract type AbstractFace{dim,T} <: AbstractEntity{dim,T} end
 
 """ Abstract supertype for all elements.
 
@@ -134,38 +184,6 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 "Returns the `AbstractFace` `f` area."
 function area(f::AbstractFace) end
 
-"Returns the `AbstractFace` `f` coordinates."
-coordinates(f::AbstractFace) = coordinates.(nodes(f))
-
-"Returns each `AbstractFace` coordinates in a `Vector` of `Face`s `vf`."
-coordinates(vf::Vector{<:AbstractFace}) = coordinates.(vf)
-
-"Returns an `AbstractFace` f given an empty `AbstractFace` `f` and a `Vector` of `Node`s `vn`."
-function create_entity(f::AbstractFace, vn::AbstractVector{<:AbstractNode}) end
-
-"Returns the `AbstractFace` `f` dimension."
-dimension(::AbstractFace{dim}) where {dim} = dim
-
-"Returns the dofs of `AbstractFace` `f`."
-function dofs(f::AbstractFace)
-    vecdfs = dofs.(nodes(f))
-    dfs = mergewith(vcat, vecdfs[end], vecdfs[end-1])
-
-    for i in 1:length(vecdfs)-2
-        dfs = mergewith(vcat, dfs, vecdfs[end-(1+i)])
-    end
-    dfs
-end
-
-"Returns the dofs of a `Vector` `vf` with `AbstractFace`s."
-dofs(vf::Vector{<:AbstractFace}) = unique(row_vector(dofs.(vf)))
-
-"Returns the `Node`s of an `AbstractFace` `f`."
-nodes(f::AbstractFace) = f.nodes
-
-"Returns the label of `AbstractFace` `f`."
-label(f::AbstractFace) = f.label
-
 "Returns the `AbstractFace` `f` normal."
 function normal_direction(f::AbstractFace) end
 
@@ -175,22 +193,18 @@ function normal_direction(f::AbstractFace) end
 
 include("./TriangularFace.jl")
 
-# =================
+## =================
 # Abstract Element
 # =================
 
-abstract type AbstractElement{dim,T} end
+abstract type AbstractElement{dim,T} <: AbstractEntity{dim,T} end
 
 """ Abstract supertype for all elements.
-
 An `AbstractElement` object facilitates the process of evaluating:
-
     - The internal forces vector and its tangent matrices.
     - The inertial forces vector and its tangent matrices.
     - The mechanical stresses and strains.
-
 **Common methods:**
-
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
@@ -200,33 +214,17 @@ This method is a hard contract and must be implemented to define a new element.
 * [`label`](@ref)
 This method is a hard contract and must be implemented to define a new element.
 * [`nodes`](@ref)
-
 This method is a hard contract and for static analysis must be implemented to define a new element.
 * [`internal_forces`](@ref)
 This method is a hard contract and for dynamic analysis must be implemented to define a new element.
 * [`inertial_forces`](@ref)
-
 **Common fields:**
 * nodes
 * label
 """
 
-"Returns the `AbstractElement` `e` coordinates."
-coordinates(e::AbstractElement) = coordinates.(nodes(e))
-
 "Returns the `AbstractElement` `e` cross_section."
 cross_section(e::AbstractElement) = e.cross_section
-
-"Returns the `AbstractElement` `e` dofs."
-function dofs(e::AbstractElement)
-    vecdfs = dofs.(nodes(e))
-    dfs = mergewith(vcat, vecdfs[1], vecdfs[2])
-    [mergewith!(vcat, dfs, vecdfs[i]) for i in 3:length(vecdfs)]
-    dfs
-end
-
-"Returns the dofs of a `Vector` `ve` with `AbstractElement`s."
-dofs(ve::Vector{<:AbstractElement}) = unique(row_vector(dofs.(ve)))
 
 "Returns local dofs symbols of the `AbstractElement` `e` (for linear displacements `:u` is used) in a vector.
 Since global degrees of freedom are for the assemble process this function is used to compute the global dofs of the element by 
@@ -248,13 +246,6 @@ function local_dofs(e::AbstractElement)
     end
     return local_dofs
 end
-
-
-"Returns the label of an `AbstractElement` `e`."
-label(e::AbstractElement) = e.label
-
-"Returns the `Node`s of an `AbstractElement` `e`."
-nodes(e::AbstractElement) = e.nodes
 
 "Returns the internal forces vector of an `AbstractElement` `e` with an `AbstractMaterial` `m`."
 function internal_forces(m::AbstractMaterial, e::AbstractElement, args...; kwargs...) end
