@@ -31,5 +31,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/ONSAS/ONSAS.jl",
-    devbranch="main"
+    push_preview=true
 )
