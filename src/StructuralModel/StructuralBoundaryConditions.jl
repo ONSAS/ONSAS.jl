@@ -1,4 +1,4 @@
-using ..Elements: AbstractNode, AbstractFace, AbstractElement
+using ..Elements: AbstractNode, AbstractEntity, AbstractFace, AbstractElement
 using Reexport: @reexport
 
 @reexport import ..BoundaryConditions: _apply
@@ -41,7 +41,7 @@ end
 function Base.getindex(sb::StructuralBoundaryConditions{NB,NF,EB}, bc::BC) where
 {NB<:AbstractBoundaryCondition,NF<:AbstractBoundaryCondition,EB<:AbstractBoundaryCondition,BC<:AbstractBoundaryCondition}
 
-    bc_entities = Vector{Union{AbstractElement,AbstractNode,AbstractFace}}()
+    bc_entities = Vector{Union{AbstractNode,AbstractEntity}}()
 
     BC <: NB && bc ∈ keys(node_bcs(sb)) && push!(bc_entities, node_bcs(sb)[bc]...)
     BC <: NF && bc ∈ keys(face_bcs(sb)) && push!(bc_entities, face_bcs(sb)[bc]...)
