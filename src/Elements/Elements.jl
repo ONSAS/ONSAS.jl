@@ -19,7 +19,8 @@ import ..CrossSections: area
 
 export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
-export AbstractFace, create_entity, normal_direction, nodes
+export AbstractEntity, nodes, coordinates, create_entity
+export AbstractFace, normal_direction
 export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
     local_dofs, nodes, strain, stress
 
@@ -61,8 +62,6 @@ Base.maximum(vd::Vector{Dof}) = maximum(index.(vd))
 # Abstract Node
 # =================
 
-abstract type AbstractNode{dim,T} end
-
 """ Abstract supertype for all nodes.
 
 An `AbstractNode` object is a point in space.
@@ -73,6 +72,7 @@ An `AbstractNode` object is a point in space.
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 """
+abstract type AbstractNode{dim,T} end
 
 "Returns the `AbstractNode` `n` coordinates."
 coordinates(n::AbstractNode) = n.x
@@ -125,7 +125,6 @@ An `AbstractEntity` object is an entity defined by dofs and node/s with certain 
 * nodes
 * label
 """
-
 abstract type AbstractEntity{dim,T} end
 
 "Returns the `AbstractEntity` `e` coordinates."
@@ -160,7 +159,6 @@ label(e::AbstractEntity) = e.label
 # =================
 # Abstract Face
 # =================
-abstract type AbstractFace{dim,T} <: AbstractEntity{dim,T} end
 
 """ Abstract supertype for all elements.
 
@@ -180,6 +178,7 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 * nodes
 * label
 """
+abstract type AbstractFace{dim,T} <: AbstractEntity{dim,T} end
 
 "Returns the `AbstractFace` `f` area."
 function area(f::AbstractFace) end
@@ -196,8 +195,6 @@ include("./TriangularFace.jl")
 ## =================
 # Abstract Element
 # =================
-
-abstract type AbstractElement{dim,T} <: AbstractEntity{dim,T} end
 
 """ Abstract supertype for all elements.
 An `AbstractElement` object facilitates the process of evaluating:
@@ -218,10 +215,12 @@ This method is a hard contract and for static analysis must be implemented to de
 * [`internal_forces`](@ref)
 This method is a hard contract and for dynamic analysis must be implemented to define a new element.
 * [`inertial_forces`](@ref)
+
 **Common fields:**
 * nodes
 * label
 """
+abstract type AbstractElement{dim,T} <: AbstractEntity{dim,T} end
 
 "Returns the `AbstractElement` `e` cross_section."
 cross_section(e::AbstractElement) = e.cross_section
