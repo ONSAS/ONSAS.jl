@@ -6,7 +6,7 @@ using LinearAlgebra: norm
 using StaticArrays: SVector
 using ONSAS.Elements
 
-const RTOL = 1e-2
+const RTOL = 1e-3
 
 @testset "ONSAS.Elements.Dof" begin
 
@@ -100,11 +100,57 @@ end
 
 end
 
-@testset "ONSAS.Elements.Truss 3D SVK" begin
+E = 1.0
+ν = 0.3
+my_svk_mat = SVK(E, ν)
 
-    E = 1.0
-    ν = 0.3
-    my_svk_mat = SVK(E, ν)
+
+@testset "ONSAS.Elements.Truss 1D" begin
+
+    # General case considering a mesh with rotations 
+    x₁ = [-1]
+    x₂ = [1]
+    n₁ = Node(x₁, dictionary([:u => [Dof(1)], :T => [Dof(2)]]))
+    n₂ = Node(x₂, dictionary([:u => [Dof(3)], :T => [Dof(4)]]))
+    # global displacements 
+    u_gobal_₁ = [0.1, 273] # uᵢ, Tᵢ (node 1)
+    u_gobal_₂ = [0.25, 273] # uᵢ, Tᵢ (node 2)
+    u_global_structure = vcat(u_gobal_₁, u_gobal_₂)
+    l_ref = norm(x₂ - x₁)
+    l_def = norm(x₂ + u_global_structure[[Dof(3)]] - (x₁ + u_global_structure[[Dof(1)]]))
+
+    A = 1
+    d = sqrt(4 * A / pi)
+    circle_cross_section = Circle(d)
+    my_label = "my_1D_truss"
+
+    t = Truss(n₁, n₂, circle_cross_section, my_label)
+    t_no_label = Truss(n₁, n₂, circle_cross_section)
+    t_empty_nodes = Truss(circle_cross_section, my_label)
+    t = create_entity(t_empty_nodes, [n₁, n₂])
+
+    @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
+    @test all([n ∈ coordinates(t) for n in coordinates([n₁, n₂])])
+    @test cross_section(t) == circle_cross_section
+    truss_dofs = dofs(t)
+    @test all([d ∈ truss_dofs[:u] for d in [Dof(1), Dof(3)]])
+    @test all([d ∈ truss_dofs[:T] for d in [Dof(2), Dof(4)]])
+    @test local_dof_symbol(t) == [:u]
+    @test local_dofs(t) == [Dof(1), Dof(3)]
+    @test string(label(t)) == my_label
+
+    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_svk_mat, t, u_global_structure[local_dofs(t)])
+    ϵ_green = (l_def^2 - l_ref^2) / (l_ref * (l_ref + l_def))
+
+
+    @test ϵ_e[1, 1] ≈ ϵ_green rtol = RTOL
+    @test σ_e[1, 1] ≈ E * ϵ_green rtol = RTOL
+    @test fᵢₙₜ_e[1] ≈ -E * ϵ_green * A rtol = RTOL
+    @test fᵢₙₜ_e[2] ≈ E * ϵ_green * A rtol = RTOL
+    @test Kᵢₙₜ_e ≈ Kᵢₙₜ_e[1, 1] * [1 -1; -1 1] rtol = RTOL
+end
+
+@testset "ONSAS.Elements.Truss 3D" begin
 
     # General case considering a mesh with rotations 
     x₁ = [-1, 0, 0]
@@ -122,23 +168,22 @@ end
     )
 
     A = 1
-    square_corss_section = Square(A)
-    my_label = "my_truss"
-    t = Truss(n₁, n₂, square_corss_section, my_label)
-    t_no_label = Truss(n₁, n₂, square_corss_section)
-    t_empty_nodes = Truss(square_corss_section, my_label)
+    square_cross_section = Square(A)
+    my_label = "my_3D_truss"
+    t = Truss(n₁, n₂, square_cross_section, my_label)
+    t_no_label = Truss(n₁, n₂, square_cross_section)
+    t_empty_nodes = Truss(square_cross_section, my_label)
     t = create_entity(t_empty_nodes, [n₁, n₂])
     @test label(t_empty_nodes) == Symbol(my_label)
 
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
     @test all([n ∈ coordinates(t) for n in coordinates([n₁, n₂])])
-    @test cross_section(t) == square_corss_section
+    @test cross_section(t) == square_cross_section
     truss_dofs = dofs(t)
     @test all([d ∈ truss_dofs[:u] for d in [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]])
     @test all([d ∈ truss_dofs[:θ] for d in [Dof(2), Dof(4), Dof(6), Dof(8), Dof(10), Dof(12)]])
     @test local_dof_symbol(t) == [:u]
-    local_dofs(t)
-    @test all([d ∈ local_dofs(t) for d in [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]])
+    @test local_dofs(t) == [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]
     @test string(label(t)) == my_label
 
     fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_svk_mat, t, u_global_structure[local_dofs(t)])

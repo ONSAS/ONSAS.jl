@@ -79,7 +79,7 @@ function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}
     return fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e
 end
 
-"Returns the Green strain of given the reference length `l_ini` and the deformed length `l_def`. "
+"Returns the rotated engineering strain for a given reference and deformed length `l_ini` and the deformed length `l_def`. "
 _strain(l_ini::Number, l_def::Number) = (l_def^2 - l_ini^2) / (l_ini * (l_ini + l_def))# rotated engi lagrange strain
 
 "Returns the strain of given `Truss` element `t` with a element displacement vector `u_e`. "

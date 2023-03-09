@@ -81,8 +81,8 @@ numeric_F_tip = F * load_factors(sa)
 # Analytic solution  
 #-----------------------------
 # Compute the analytic values for the strain, stress and force at the tip
-"Analytic Green strain solution for the displacement `uᵢ` towards x axis at the tip node."
-analytic_ϵ(uᵢ::Real, l₀::Real=L) = ((l₀ + uᵢ)^2 - l₀^2) / (2 * l₀^2)
+"Analytic rotated engineering strain solution for the displacement `uᵢ` towards x axis at the tip node."
+analytic_ϵ(uᵢ::Real, l₀::Real=L) = ((l₀ + uᵢ)^2 - l₀^2) / (l₀ * (l₀ + (l₀ + uᵢ)))
 "Analytic stress value for a given strain `ϵ`."
 analytic_σ(analytic_ϵ::Vector{<:Real}, E::Real=E) = analytic_ϵ * E
 "Analytic force value for a given strain `ϵ`."
