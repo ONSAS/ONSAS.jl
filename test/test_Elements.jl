@@ -219,9 +219,9 @@ end
         -1.5304e-01 -1.4855e-01 -4.5671e-02 1.0016e-01 6.8747e-02 1.6826e-02 9.4948e-03 -8.4752e-02 -1.6946e-02 4.3388e-02 1.6456e-01 4.5791e-02
         -1.5304e-01 -4.5671e-02 -1.4855e-01 2.6441e-02 2.1634e-02 4.4710e-02 7.3595e-02 -2.1754e-02 -7.9945e-02 5.3003e-02 4.5791e-02 1.8379e-01]
 
-    𝔼_e_test = [0.1838 0.2925 0.5100
-        0.2925 0.4350 0.7200
-        0.5100 0.7200 1.1400]
+    𝔼_e_test = [1.3675 0.585 1.02
+        0.585 1.87 1.44
+        1.02 1.44 3.28]
 
     σ_e_test = [-5.9378 -7.8126 -9.5331
         1.6136 1.2953 1.6735
@@ -229,8 +229,8 @@ end
 
     @test fᵢₙₜ_e ≈ fᵢₙₜ_e_test rtol = RTOL
     @test Kᵢₙₜ_e ≈ Kᵢₙₜ_e_test rtol = RTOL
-    @test 𝔼_e_test ≈ ϵ_e rtol = RTOL skip = true
-    @test σ_e_test ≈ σ_e rtol = RTOL skip = true
+    @test 𝔼_e_test ≈ ϵ_e rtol = RTOL
+    # @test σ_e_test ≈ σ_e rtol = RTOL skip = true
 
     # create entity for gmsh
     empty_tetrahedron = Tetrahedron(tetra_label)

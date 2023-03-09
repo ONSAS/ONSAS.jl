@@ -182,7 +182,7 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
         @debug external_forces(current_state(sa))
 
-        while !isconverged!(current_iteration(sa), tolerances(alg))
+        while isconverged!(current_iteration(sa), tolerances(alg)) isa NotConvergedYet
 
             # Computes residual forces and tangent matrix    
             _assemble!(s, sa)
