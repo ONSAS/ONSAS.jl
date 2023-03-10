@@ -39,10 +39,9 @@ All forms of contributing are kindly welcome (bug reports, docs, features, sugge
 
 ---
 ## 📓 [Manual](http://onsas.github.io/ONSAS.jl/dev/)
-Insde [docs](http://onsas.github.io/ONSAS.jl/dev/) resources are available for help with using [ONSAS.jl](https://github.com/ONSAS/ONSAS.jl), including internal documentation for interfaces, algorithms, and examples. 
+To help you get started with using ONSAS.jl, we have provided resources in the [docs](http://onsas.github.io/ONSAS.jl/dev/). This includes internal documentation for interfaces, algorithms, and examples
 
 ---
 ## ⚙️ [Software architecture](http://juliareach.github.io/ONSAS.jl/dev/)
-Project has been partitioned into three major groups for simultaneous development.The input packege for defining the structure, the fea package for the Finite Element Analysis and the output zone for writing and visualization. [Here](https://github.com/ONSAS/ONSAS.jl/blob/main/UML.drawio) an  UML Diagram can be found.
-
+Project has been partitioned into three major groups for simultaneous development.The input group for defining the structure(mesh, materials, elements and boundary conditions), the fea package for the Finite Element Analysis and the output to post-process and visualize the simulation results. For a better understanding of the system architecture, please refer to the [UML diagram](https://github.com/ONSAS/ONSAS.jl/blob/main/UML.drawio) provided in this repository. 
 
