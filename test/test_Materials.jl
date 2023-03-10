@@ -3,41 +3,35 @@
 ##########################
 using Test: @testset, @test
 using ONSAS.Materials
-
-const TOLERANCE = 1e-2
+const RTOL = 1e-3
 
 @testset "ONSAS.Materials SVK" begin
 
-    E = 2e9
-    ν = 1 / 3
+    # Steel 
+    E = 210e9
+    ν = 0.3
+    G = E / (2 * (1 + ν))
+    λ = E * ν / ((1 + ν) * (1 - 2 * ν))
+    K = E / (3 * (1 - 2 * ν))
 
     # SVK for static analysis
-    svk_static = SVK(E, ν)
-    @test svk_static.E == E
-    @test svk_static.ν == ν
-    @test svk_static.ρ == nothing
+    svk_static = SVK(λ, G)
+    @test lame_parameters(svk_static) == (λ, G)
+    @test density(svk_static) == nothing
+    @test elasticity_modulus(svk_static) ≈ E rtol = RTOL
+    @test shear_modulus(svk_static) == G
+    @test bulk_modulus(svk_static) ≈ K rtol = RTOL
+    @test poisson_ratio(svk_static) == ν
 
     # SVK for dynamic analysis
-    ρ = 1454
-    svk_dynamic = SVK(E, ν, ρ, "mat1")
-    @test svk_dynamic.E == E
-    @test svk_dynamic.ν == ν
-    @test svk_dynamic.ρ == ρ
+    ρ = 7500.0
+    label_lame = "steel"
+    svk_dynamic = SVK(E=E, ν=ν, ρ=ρ, label=label_lame)
+    @test density(svk_dynamic) == ρ
+    @test lame_parameters(svk_dynamic)[1] ≈ λ rtol = RTOL
+    @test lame_parameters(svk_dynamic)[2] ≈ G rtol = RTOL
 
-    # SVK with lamé parameters (λ, G)
-    G = E / (2 * (1 + ν))
-    λ = E * ν / ((1 + ν) * (1 - 2ν))
-    label_lame = :test_label
-    svk_lame = SVK(λ=λ, G=G, ρ=ρ, label=label_lame)
-
-    # Compute lamé parameters back
-    lame_params = lame_parameters(svk_lame)
-    @test lame_params[1] ≈ λ atol = TOLERANCE
-    @test lame_params[2] ≈ G atol = TOLERANCE
-
-    # Test Abstract Material interface
-    @test parameters(svk_lame)[1] ≈ E atol = TOLERANCE
-    @test parameters(svk_lame)[2] ≈ ν atol = TOLERANCE
-    @test label(svk_lame) == label_lame
+    @test strain_energy(svk_dynamic) == :((λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2))
+    @test label(svk_dynamic) == Symbol(label_lame)
 
 end
