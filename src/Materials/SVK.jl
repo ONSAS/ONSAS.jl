@@ -49,7 +49,7 @@ end
 "Returns the strain energy expression for a `SVK` material `m`."
 strain_energy(::SVK) = :(λ / 2 * tr(𝔼)^2 + G * tr(𝔼^2))
 
-"Returns lamé parameters `λ` and `G` from a `SVK`` material `m`."
+"Returns lamé parameters `λ` and `G` from a `SVK` material `m`."
 lame_parameters(m::SVK) = m.λ, m.G
 
 "Returns the shear modulus `G` from a `SVK` material `m`."
