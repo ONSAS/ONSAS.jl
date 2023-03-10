@@ -115,7 +115,7 @@ Base.push!(m::AbstractMesh, ve::Vector{<:AbstractElement}) = [push!(elements(m),
 
 
 """ Mesh.
-A `Mesh` is a collection of `Element`s and `Node`s that cover the discretized domain, 
+A `Mesh` is a collection of `Element`s, `Face`s and `Node`s that cover the discretized domain, 
 together with Sets of elements and nodes. 
 ### Fields:
 - `nodes`    -- Stores the `dim` dimensional `Node`s of the grid.
@@ -142,5 +142,7 @@ struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace} <: Abst
     end
 end
 
+include("./Gmsh.jl")
+@reexport using .Gmsh
 
 end # module

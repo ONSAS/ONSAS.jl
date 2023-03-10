@@ -1,4 +1,4 @@
-using ..Elements: AbstractNode, AbstractFace, AbstractElement
+using ..Elements: AbstractNode, AbstractEntity, AbstractFace, AbstractElement
 using Reexport: @reexport
 
 @reexport import ..BoundaryConditions: _apply
@@ -19,6 +19,17 @@ Base.@kwdef struct StructuralBoundaryConditions{
     node_bcs::Dictionary{NB,Vector{N}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractNode}}()
     face_bcs::Dictionary{FB,Vector{F}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractFace}}()
     element_bcs::Dictionary{EB,Vector{E}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractElement}}()
+
+end
+
+"Constructor for empty `StructuralBoundaryConditions` with a `Vector` of `AbstractBoundaryCondition`s `vbc`."
+function StructuralBoundaryConditions(vbc::Vector{BC}) where {BC<:AbstractBoundaryCondition}
+
+    bcs_nodes = dictionary(map(bc -> bc => Vector{AbstractNode}(), vbc))
+    bcs_faces = dictionary(map(bc -> bc => Vector{AbstractFace}(), vbc))
+    bcs_elements = dictionary(map(bc -> bc => Vector{AbstractElement}(), vbc))
+
+    StructuralBoundaryConditions(bcs_nodes, bcs_faces, bcs_elements)
 end
 
 "Returns the `BoundaryCondition` with the label `l` in the `StructuralBoundaryConditions` `sb`."
@@ -30,13 +41,20 @@ end
 function Base.getindex(sb::StructuralBoundaryConditions{NB,NF,EB}, bc::BC) where
 {NB<:AbstractBoundaryCondition,NF<:AbstractBoundaryCondition,EB<:AbstractBoundaryCondition,BC<:AbstractBoundaryCondition}
 
-    bc_entities = Vector{Union{AbstractElement,AbstractNode,AbstractFace}}()
+    bc_entities = Vector{Union{AbstractNode,AbstractEntity}}()
 
     BC <: NB && bc ∈ keys(node_bcs(sb)) && push!(bc_entities, node_bcs(sb)[bc]...)
     BC <: NF && bc ∈ keys(face_bcs(sb)) && push!(bc_entities, face_bcs(sb)[bc]...)
     BC <: EB && bc ∈ keys(element_bcs(sb)) && push!(bc_entities, element_bcs(sb)[bc]...)
 
     isempty(bc_entities) ? throw(KeyError("Boundary condition $bc not found")) : return bc_entities
+end
+
+"Returns a the `BoundaryConditions` with the label `l` in the `StructuralEntities` `sb`."
+function Base.getindex(sb::StructuralBoundaryConditions, l::L) where {L<:Union{Symbol,AbstractString}}
+    bcs_label_l = collect(filter(bc -> label(bc) == Symbol(l), all_bcs(sb)))
+    @assert length(bcs_label_l) == 1 throw(ArgumentError("The label $l is not unique. Please label each bc differently."))
+    first(bcs_label_l)
 end
 
 "Returns the `Vector` of `BoundaryConditions`s applied to the `AbstractNode` `n`."

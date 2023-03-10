@@ -25,7 +25,6 @@ FixedDofBoundaryCondition(dofs::Vector{Symbol}, components::Vector{Int}, name::S
 "Returns the fixed components of the `Dof`s defined in the boundary condition `bc`."
 components(bc::FixedDofBoundaryCondition) = bc.components
 
-
 "Returns fixed `Dof`s of an `AbstractNode` imposed in the `FixedDofBoundaryCondition` `fbc`."
 function _apply(fbc::FixedDofBoundaryCondition, n::AbstractNode)
     fbc_dofs_symbols = dofs(fbc)

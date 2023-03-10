@@ -18,9 +18,10 @@ import ..Meshes: num_dofs, elements, num_elements, num_nodes
 export Structure, mesh, materials, boundary_conditions, num_free_dofs, free_dofs
 
 
-# Structure 
+# Structural properties 
 include("./StructuralMaterials.jl")
 include("./StructuralBoundaryConditions.jl")
+include("./StructuralEntities.jl")
 
 
 # ==========
@@ -90,7 +91,7 @@ boundary_conditions(s::AbstractStructure) = s.bcs
 "Returns the `DisplacementBoundaryCondition`s of the `AbstractStructure` `s`"
 displacement_bcs(s::AbstractStructure) = displacement_bcs(s.bcs)
 
-"Returns the `LocalLoadBoundaryCondition`s of the `AbstractStructure` `s`"
+"Returns the `LocalPressureBoundaryCondition`s of the `AbstractStructure` `s`"
 load_bcs(s::AbstractStructure) = load_bcs(s.bcs)
 
 "Returns the `AbstractBoundaryCondition`s imposed to `Node`s in the `AbstractStructure` `s`"

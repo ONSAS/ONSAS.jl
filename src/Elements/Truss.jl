@@ -1,9 +1,10 @@
+using SparseArrays: sparse
 using ..Materials: SVK
 using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye
 
-import ..Elements: nodes, cross_section, internal_forces, local_dof_symbol, strain, stress
+import ..Elements: nodes, create_entity, cross_section, internal_forces, local_dof_symbol, strain, stress
 
 export Truss
 
@@ -31,12 +32,19 @@ function Truss(n₁::N, n₂::N, g::G, label::L=:no_labelled_face) where
     Truss(SVector(n₁, n₂), g, Symbol(label))
 end
 
+"Constructor for a `Truss` element without nodes and a `label`. This function is used to create meshes via GMSH."
+Truss(g::AbstractCrossSection, label::L=:no_labelled_face) where {L<:Union{String,Symbol}} =
+    Truss(Node(0, 0, 0), Node(0, 0, 0), g, Symbol(label))
+
 #==============================#
 # Truss element hard contracts #
 #==============================#
 
 "Returns the cross-section of a `Truss` element `t`."
 cross_section(t::Truss) = t.cross_section
+
+"Returns a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
+create_entity(t::Truss, vn::AbstractVector{<:AbstractNode}) = Truss(vn[1], vn[2], cross_section(t), label(t))
 
 "Returns the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
@@ -63,8 +71,8 @@ function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}
     K_geo = σ * A / l_def * (B_dif' * B_dif - TTcl * (TTcl'))
     Kᵢₙₜ_e = Kₘ + K_geo
 
-    σ_e = zeros(3, 3)
-    ϵ_e = zeros(3, 3)
+    σ_e = sparse(zeros(3, 3))
+    ϵ_e = sparse(zeros(3, 3))
     σ_e[1, 1] = σ
     ϵ_e[1, 1] = ϵ
 

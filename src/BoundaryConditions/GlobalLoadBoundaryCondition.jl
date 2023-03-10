@@ -17,7 +17,7 @@ struct GlobalLoadBoundaryCondition <: AbstractLoadBoundaryCondition
     name::Symbol
 end
 
-"Constructor for `LocalLoadBoundaryCondition` with a string label."
+"Constructor for `LocalPressureBoundaryCondition` with a string label."
 GlobalLoadBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::String="no_labelled_bc") =
     GlobalLoadBoundaryCondition(dofs, values, Symbol(name))
 

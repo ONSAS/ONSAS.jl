@@ -64,18 +64,6 @@ end
 
 end
 
-# Common nodes for testing 
-x₁ = x_test_3D
-x₂ = 2 .* x_test_3D
-x₃ = 3 .* x_test_3D
-x₄ = 4 .* x_test_3D
-
-n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
-n₂ = Node(x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
-n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
-n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)]]))
-
-
 @testset "ONSAS.Elements.TriangularFace 3D" begin
 
     x₁ = [0, 0, 0]
@@ -87,8 +75,13 @@ n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22)
     n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
 
     face_label = "my_face"
+    f_empty_nodes = TriangularFace(face_label)
+    @test label(f_empty_nodes) == Symbol(face_label)
     f₁ = TriangularFace(n₁, n₂, n₃, face_label)
     f₁_no_label = TriangularFace(n₁, n₂, n₃)
+    f₁ = create_entity(f_empty_nodes, [n₁, n₂, n₃])
+
+
     @test all([n ∈ nodes(f₁) for n in [n₁, n₂, n₃]])
     @test coordinates(f₁) == [coordinates(n₁), coordinates(n₂), coordinates(n₃)]
     @test dimension(f₁) == length(x₁)
@@ -97,6 +90,13 @@ n₄ = Node(x₄, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22)
     @test label(f₁) == Symbol(face_label)
     @test area(f₁) == 0.5
     @test normal_direction(f₁) == [0, 0, 1]
+
+    # create entity for gmsh
+    empty_entity = TriangularFace(face_label)
+    tf = create_entity(empty_entity, [n₁, n₂, n₃])
+    @test all([n ∈ nodes(tf) for n in [n₁, n₂, n₃]])
+    @test coordinates(tf) == [coordinates(n₁), coordinates(n₂), coordinates(n₃)]
+    @test label(empty_entity) == label(tf)
 
 end
 
@@ -126,6 +126,9 @@ end
     my_label = "my_truss"
     t = Truss(n₁, n₂, square_corss_section, my_label)
     t_no_label = Truss(n₁, n₂, square_corss_section)
+    t_empty_nodes = Truss(square_corss_section, my_label)
+    t = create_entity(t_empty_nodes, [n₁, n₂])
+    @test label(t_empty_nodes) == Symbol(my_label)
 
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
     @test all([n ∈ coordinates(t) for n in coordinates([n₁, n₂])])
@@ -162,6 +165,10 @@ end
     tetra_label = "my_tetrahedron"
     tetra = Tetrahedron(n₁, n₂, n₃, n₄, tetra_label)
     tetra_no_label = Tetrahedron(n₁, n₂, n₃, n₄)
+    tetra_empty_nodes = Tetrahedron(tetra_label)
+    @test label(tetra_empty_nodes) == Symbol(tetra_label)
+    tetra = create_entity(tetra_empty_nodes, [n₁, n₂, n₃, n₄])
+
 
     @test length(nodes(tetra)) == 4
     @test all([n ∈ nodes(tetra) for n in [n₁, n₂, n₃, n₄]])
@@ -212,9 +219,9 @@ end
         -1.5304e-01 -1.4855e-01 -4.5671e-02 1.0016e-01 6.8747e-02 1.6826e-02 9.4948e-03 -8.4752e-02 -1.6946e-02 4.3388e-02 1.6456e-01 4.5791e-02
         -1.5304e-01 -4.5671e-02 -1.4855e-01 2.6441e-02 2.1634e-02 4.4710e-02 7.3595e-02 -2.1754e-02 -7.9945e-02 5.3003e-02 4.5791e-02 1.8379e-01]
 
-    𝔼_e_test = [0.1838 0.2925 0.5100
-        0.2925 0.4350 0.7200
-        0.5100 0.7200 1.1400]
+    𝔼_e_test = [1.3675 0.585 1.02
+        0.585 1.87 1.44
+        1.02 1.44 3.28]
 
     σ_e_test = [-5.9378 -7.8126 -9.5331
         1.6136 1.2953 1.6735
@@ -222,7 +229,12 @@ end
 
     @test fᵢₙₜ_e ≈ fᵢₙₜ_e_test rtol = RTOL
     @test Kᵢₙₜ_e ≈ Kᵢₙₜ_e_test rtol = RTOL
-    @test 𝔼_e_test ≈ ϵ_e rtol = RTOL skip = true
-    @test σ_e_test ≈ σ_e rtol = RTOL skip = true
+    @test 𝔼_e_test ≈ ϵ_e rtol = RTOL
+    # @test σ_e_test ≈ σ_e rtol = RTOL skip = true
+
+    # create entity for gmsh
+    empty_tetrahedron = Tetrahedron(tetra_label)
+    new_tetra = create_entity(empty_tetrahedron, [n₁, n₂, n₃, n₄])
+
 
 end

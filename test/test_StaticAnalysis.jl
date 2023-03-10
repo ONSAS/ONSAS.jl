@@ -74,20 +74,22 @@ max_iter = 100;
 tols = ConvergenceSettings(tol_f, tol_u, max_iter)
 nr = NewtonRaphson(tols)
 
+
+# Random static state
+ΔUᵏ = rand(2)
+Uᵏ = rand(9)
+Fₑₓₜᵏ = rand(9)
+Fᵢₙₜᵏ = rand(9)
+Kₛᵏ = rand(9, 9)
+ϵᵏ = dictionary([truss₁ => rand(3, 3), truss₂ => rand(3, 3)])
+σᵏ = dictionary([truss₁ => rand(3, 3), truss₂ => rand(3, 3)])
+s_assembler = Assembler(2)
+iter_residuals = ResidualsIterationStep()
+
+sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, s_assembler, iter_residuals)
+
+
 @testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticState" begin
-
-    # Random static state
-    ΔUᵏ = rand(2)
-    Uᵏ = rand(9)
-    Fₑₓₜᵏ = rand(9)
-    Fᵢₙₜᵏ = rand(9)
-    Kₛᵏ = rand(9, 9)
-    ϵᵏ = dictionary([truss₁ => rand(3, 3), truss₂ => rand(3, 3)])
-    σᵏ = dictionary([truss₁ => rand(3, 3), truss₂ => rand(3, 3)])
-    s_assembler = Assembler(2)
-    iter_residuals = ResidualsIterationStep()
-
-    sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, s_assembler, iter_residuals)
 
     # Accessors
     @test displacements(sst_rand) == Uᵏ
@@ -162,20 +164,24 @@ nr = NewtonRaphson(tols)
 
     @test internal_forces(default_s) ≈ Fᵢₙₜ rtol = RTOL
     @test tangent_matrix(default_s) ≈ K_system rtol = RTOL
-    @test strain(default_s) ≈ [ϵ_e_1..., ϵ_e_2...] rtol = RTOL skip = true
-    @test stress(default_s) ≈ [σ_e_1..., σ_e_2...] rtol = RTOL skip = true
+    @test strain(default_s)[truss₁] == ϵ_e_1
+    @test strain(default_s)[truss₂] == ϵ_e_2
+    @test stress(default_s)[truss₁] == σ_e_1
+    @test stress(default_s)[truss₂] == σ_e_2
 
 end
 
-@testset "ONSAS.StructuralAnalyses..StaticAnalyses.StaticAnalysis" begin
+# StaticAnalysis with a final load factor
+λ₁ = 10
+NSTEPS = 9
+init_step = 7
 
-    # StaticAnalysis with a final load factor
-    λ₁ = 10
-    NSTEPS = 9
-    init_step = 7
+sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
+sa_init = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, initial_step=init_step)
 
-    sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
-    sa_init = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, initial_step=init_step)
+
+@testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticAnalysis" begin
+
 
     @test structure(sa_init) == s
     λ₀ = λ₁ / NSTEPS
@@ -197,3 +203,61 @@ end
 
 end
 
+@testset "ONSAS.StructuralSolvers.StatesSolution" begin
+
+    solved_states = [sst_rand, sst_rand, sst_rand]
+    num_states = length(solved_states)
+    nr = NewtonRaphson()
+    states_sol = StatesSolution(sa, nr)
+    [push!(states_sol, st) for st in solved_states]
+
+    @test length(states(states_sol)) == num_states
+    @test analysis(states_sol) == sa
+    @test solver(states_sol) == nr
+
+    dof = Dof(5)
+    vdof = [Dof(1), Dof(4)]
+
+
+    @test displacements(states_sol, dof) == repeat([displacements(sst_rand)[dof]], num_states)
+
+    @test displacements(states_sol, vdof) == [
+        repeat([displacements(sst_rand)[vdof[1]]], num_states),
+        repeat([displacements(sst_rand)[vdof[2]]], num_states)
+    ]
+
+    @test displacements(states_sol, n₁) == [
+        repeat([displacements(sst_rand)[dofs(n₁)[:u][1]]], num_states),
+        repeat([displacements(sst_rand)[dofs(n₁)[:u][2]]], num_states),
+        repeat([displacements(sst_rand)[dofs(n₁)[:u][3]]], num_states),
+    ]
+
+    @test internal_forces(states_sol, dof) == repeat([internal_forces(sst_rand)[dof]], num_states)
+
+    @test internal_forces(states_sol, vdof) == [
+        repeat([internal_forces(sst_rand)[vdof[1]]], num_states),
+        repeat([internal_forces(sst_rand)[vdof[2]]], num_states)
+    ]
+
+    @test internal_forces(states_sol, n₁) == [
+        repeat([internal_forces(sst_rand)[dofs(n₁)[:u][1]]], num_states),
+        repeat([internal_forces(sst_rand)[dofs(n₁)[:u][2]]], num_states),
+        repeat([internal_forces(sst_rand)[dofs(n₁)[:u][3]]], num_states),
+    ]
+
+    @test external_forces(states_sol, dof) == repeat([external_forces(sst_rand)[dof]], num_states)
+
+    @test external_forces(states_sol, vdof) == [
+        repeat([external_forces(sst_rand)[vdof[1]]], num_states),
+        repeat([external_forces(sst_rand)[vdof[2]]], num_states)
+    ]
+
+    @test external_forces(states_sol, n₁) == [
+        repeat([external_forces(sst_rand)[dofs(n₁)[:u][1]]], num_states),
+        repeat([external_forces(sst_rand)[dofs(n₁)[:u][2]]], num_states),
+        repeat([external_forces(sst_rand)[dofs(n₁)[:u][3]]], num_states),
+    ]
+
+    iteration_residuals(states_sol)
+
+end

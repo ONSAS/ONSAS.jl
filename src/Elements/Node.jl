@@ -36,6 +36,6 @@ Node(x₁::T, x₂::T, x₃::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}(
 Node(t::NTuple{dim,T}, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {dim,T<:Real} =
     Node(SVector(t), dofs)
 
-"`Node` constructor with a `Vector` `v`."
-Node(v::Vector{T}, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =
+"`Node` constructor with an `AbstractVector` `v`."
+Node(v::AbstractVector{T}, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =
     Node(SVector(v...), dofs)

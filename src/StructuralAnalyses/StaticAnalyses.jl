@@ -17,7 +17,7 @@ using LinearAlgebra: norm
 import ..StructuralAnalyses: _assemble!, initial_time, current_time, final_time, _next!,
     residual_forces, tangent_matrix, iteration_residuals, is_done
 
-import ...StructuralSolvers: _solve, _update!, _step!, _reset!
+import ...StructuralSolvers: _solve, _update!, _step!, _reset!, external_forces
 
 export StaticState
 export StaticAnalysis, load_factors, current_load_factor
@@ -170,7 +170,8 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
     s = structure(sa)
 
-    states = []
+    # Initialize solution
+    sol = StatesSolution(sa, alg)
 
     # load factors iteration 
     while !is_done(sa)
@@ -181,7 +182,7 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
         @debug external_forces(current_state(sa))
 
-        while !isconverged!(current_iteration(sa), tolerances(alg))
+        while isconverged!(current_iteration(sa), tolerances(alg)) isa NotConvergedYet
 
             # Computes residual forces and tangent matrix    
             _assemble!(s, sa)
@@ -198,13 +199,14 @@ function _solve(sa::StaticAnalysis, alg::AbstractSolver, args...; kwargs...)
 
         end
 
-        push!(states, deepcopy(current_state(sa)))
+        # Save current state
+        push!(sol, current_state(sa))
 
         _next!(sa)
 
     end
 
-    return states
+    return sol
 end
 
 "Assembles the Structure `s` (internal forces) during the `StaticAnalysis` `sa`."
@@ -260,6 +262,27 @@ function _step!(sa::StaticAnalysis, ::NewtonRaphson)
     # Update iteration 
     _update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)
 
+end
+
+
+"Pushes the current state `c_state` into the `StatesSolution` `st_sol`."
+function Base.push!(st_sol::StatesSolution, c_state::StaticState)
+
+    # Pointers
+    s = structure(c_state)
+    assemblerᵏ = assembler(c_state)
+
+    # Deep copies 
+    Uᵏ = deepcopy(displacements(c_state))
+    ΔUᵏ = deepcopy(Δ_displacements(c_state))
+    fₑₓₜᵏ = deepcopy(external_forces(c_state))
+    fᵢₙₜᵏ = deepcopy(internal_forces(c_state))
+    Kₛᵏ = deepcopy(tangent_matrix(c_state))
+    σᵏ = dictionary([e => deepcopy(σ) for (e, σ) in pairs(stress(c_state))])
+    ϵᵏ = dictionary([e => deepcopy(ϵ) for (e, ϵ) in pairs(strain(c_state))])
+    iter_state = deepcopy(iteration_residuals(c_state))
+
+    push!(states(st_sol), StaticState(s, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, iter_state))
 end
 
 
