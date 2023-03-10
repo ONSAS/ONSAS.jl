@@ -9,7 +9,7 @@
 
 
 [dev-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[dev-url]: https://ONSAS.github.io/ONSAS.jl/stable/
+[dev-url]: https://ONSAS.github.io/ONSAS.jl/dev/
 [ci-img]: https://github.com/ONSAS/ONSAS.jl/actions/workflows/CI.yml/badge.svg?branch=main
 [ci-url]: https://github.com/ONSAS/ONSAS.jl/actions/workflows/CI.yml?query=branch%3Amain
 [cov-img]: https://codecov.io/gh/ONSAS/ONSAS.jl/branch/main/graph/badge.svg
