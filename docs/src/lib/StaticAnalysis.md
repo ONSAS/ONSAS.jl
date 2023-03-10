@@ -3,5 +3,5 @@
 This section describes the interfaces to handle with static analysis.
 
 ```@autodocs
-Modules = [ONSAS.StructuralAnalysis.StaticAnalysis]
+Modules = [ONSAS.StructuralAnalyses.StaticAnalyses]
 ```
