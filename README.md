@@ -1,4 +1,6 @@
 # ONSAS.jl
+
+---
 ## *An Open Nonlinear Structural Analysis Solver*
 
 | **Documentation** |**Status** |**License** |  **Community** |
@@ -17,7 +19,8 @@
 [lic-img]: https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000
 [lic-url]: https://github.com/mvanzulli/ONSAS.jl/blob/main/LICENSE
 [com-url]: https://app.slack.com/client/T04QWNG5T2Q/C04R6TMDV0R
-[com-img]: https://user-images.githubusercontent.com/1389908/31940975-06afbd5a-b8b8-11e7-84a3-c9f6d6307f94.png
+[com-img]: https://user-images.githubusercontent.com/50339940/224228295-4ff7c201-975f-4e87-af51-86036a10f289.svg
+
 
 
 ---
