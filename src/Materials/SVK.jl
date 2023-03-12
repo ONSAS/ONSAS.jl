@@ -78,8 +78,8 @@ function bulk_modulus(m::SVK)
     return λ + 2 * G / 3
 end
 
-"Returns the Cosserat or Second-Piola Kirchoff tensor (𝕊) for a `Tetrahedron` element `t`
-considering a `SVK` material `m` and the Lagrangian Green strain tensor `𝔼`."
+"Returns the Cosserat or Second-Piola Kirchoff tensor `𝕊` considering a `SVK` material `m` 
+and the Lagrangian Green strain tensor `𝔼`."
 function cosserat(m::SVK, 𝔼::AbstractMatrix)
 
     λ, G = lame_parameters(m)

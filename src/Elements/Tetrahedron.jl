@@ -1,5 +1,5 @@
 using StaticArrays: SVector
-using LinearAlgebra: det, diagm
+using LinearAlgebra: Symmetric, det, diagm
 
 using ..Materials: AbstractMaterial, SVK, cosserat
 using ..Elements: AbstractElement, AbstractNode
@@ -112,11 +112,8 @@ function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVecto
   # Deformation gradient 
   𝔽 = ℍ + eye(3)
 
-  # Cauchy strain tensor
-  ℂ = 𝔽' * 𝔽 
-
   # Green-Lagrange strain  
-  𝔼 = 0.5 * (ℍ + ℍ' + ℍ' * ℍ)
+  𝔼 = Symmetric(0.5 * (ℍ + ℍ' + ℍ' * ℍ))
 
   𝕊, ∂𝕊∂𝔼 = cosserat(m, 𝔼)
 
@@ -127,12 +124,12 @@ function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVecto
   fᵢₙₜ_e = B' * 𝕊_vogit * vol
   
   # Material stiffness
-  Kₘ = B' * ∂𝕊∂𝔼 * B* vol
+  Kₘ = Symmetric(B' * ∂𝕊∂𝔼 * B* vol)
 
   # Geometric stiffness
   aux = funder' * 𝕊 * funder  * vol 
 
-  Kᵧ = zeros(12,12) 
+  Kᵧ = zeros(12,12) #TODO: Use Symmetriy and avoid indexes 
 
   for i in 1:4
     for j in 1:4
@@ -145,11 +142,13 @@ function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVecto
   # Stifness matrix
   Kᵢₙₜ_e = Kₘ + Kᵧ
 
+  # Compute stress and strian just for post-process
   # Piola stress
-  ℙ = 𝔽 * 𝕊
+  ℙ = Symmetric(𝔽 * 𝕊)
 
-  # Cuachy stress
-  # σ_e = ℙ
+  # Cauchy strain tensor
+  ℂ = Symmetric( 𝔽' * 𝔽 )
+
   
   return fᵢₙₜ_e, Kᵢₙₜ_e, ℙ, ℂ
 
