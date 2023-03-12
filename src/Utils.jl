@@ -33,4 +33,8 @@ eye(m::Integer, T=Bool) = Diagonal(ones(T, m))
 "Transforms a vector of vectors into a 1D row vector."
 row_vector(v::Vector{<:AbstractVector{T}}) where {T} = reduce(vcat, v)
 
+"Returns the Voigt notation of tensor `𝕋`."
+_vogit(𝕋::AbstractMatrix, α::Real=1) = [𝕋[1, 1], 𝕋[2, 2], 𝕋[3, 3], α * 𝕋[2, 3], α * 𝕋[1, 3], α * 𝕋[1, 2]]
+
+
 end # module

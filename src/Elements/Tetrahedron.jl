@@ -4,7 +4,7 @@ using LinearAlgebra: det, diagm
 using ..Materials: AbstractMaterial, SVK, cosserat
 using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
-using ..Utils: eye
+using ..Utils: eye, _vogit
 
 import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress
 
@@ -90,12 +90,9 @@ function _B_mat(deriv::AbstractMatrix , 𝔽::AbstractMatrix)
   return B
 end
 
-_vogit(𝕋::AbstractMatrix, α::Real=1) = [𝕋[1,1],𝕋[2,2],𝕋[3,3],α*𝕋[2,3], α*𝕋[1,3], α*𝕋[1,2]]
-
-
 "Returns the internal force of a `Tetrahedron` element `t` doted with an `AbstractMaterial` `m` +
 and a an element displacement vector `u_e`."
-function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVector)
+function internal_forces(f)
 
   d = _shape_functions_derivatives(t)
 
