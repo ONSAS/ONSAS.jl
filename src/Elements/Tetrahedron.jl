@@ -92,7 +92,7 @@ end
 
 "Returns the internal force of a `Tetrahedron` element `t` doted with an `AbstractMaterial` `m` +
 and a an element displacement vector `u_e`."
-function internal_forces(f)
+function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVector)
 
   d = _shape_functions_derivatives(t)
 
