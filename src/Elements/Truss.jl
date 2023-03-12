@@ -49,11 +49,11 @@ create_entity(t::Truss, vn::AbstractVector{<:AbstractNode}) = Truss(vn[1], vn[2]
 "Returns the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
 
-"Returns the internal force of a `Truss` element `t` doted with an `SVK` material 
+"Returns the internal force of a `Truss` element `t` formed by an `AbstractMaterial` `m` 
 and a an element displacement vector `u_e`."
-function internal_forces(m::SVK, e::Truss{dim}, u_e::AbstractVector) where {dim}
+function internal_forces(m::AbstractMaterial, e::Truss{dim}, u_e::AbstractVector) where {dim}
 
-    E = m.E
+    E = elasticity_modulus(m)
     A = area(cross_section(e))
     X_ref, X_def = _X_rows(e, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)

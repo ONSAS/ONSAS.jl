@@ -104,7 +104,6 @@ E = 1.0
 ν = 0.3
 my_svk_mat = SVK(E, ν)
 
-
 @testset "ONSAS.Elements.Truss 1D" begin
 
     # General case considering a mesh with rotations 
@@ -205,7 +204,7 @@ end
 
     λ = 0.5769
     G = 0.3846
-    my_svk_mat = SVK(λ=λ, G=G)
+    my_svk_mat = SVK(λ, G)
 
     tetra_label = "my_tetrahedron"
     tetra = Tetrahedron(n₁, n₂, n₃, n₄, tetra_label)
@@ -213,7 +212,6 @@ end
     tetra_empty_nodes = Tetrahedron(tetra_label)
     @test label(tetra_empty_nodes) == Symbol(tetra_label)
     tetra = create_entity(tetra_empty_nodes, [n₁, n₂, n₃, n₄])
-
 
     @test length(nodes(tetra)) == 4
     @test all([n ∈ nodes(tetra) for n in [n₁, n₂, n₃, n₄]])
@@ -280,6 +278,5 @@ end
     # create entity for gmsh
     empty_tetrahedron = Tetrahedron(tetra_label)
     new_tetra = create_entity(empty_tetrahedron, [n₁, n₂, n₃, n₄])
-
 
 end

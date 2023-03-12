@@ -19,7 +19,7 @@ makedocs(;
         "Modules" => [
             "Materials" => "lib/Materials.md",
             "Elements" => "lib/Elements.md",
-            "CrossSections" => "lib/Elements.md",
+            "CrossSections" => "lib/CrossSections.md",
             "Meshes" => "lib/Meshes.md",
             "StructuralModel" => "lib/StructuralModel.md",
             "StructuralSolvers" => "lib/StructuralSolvers.md",

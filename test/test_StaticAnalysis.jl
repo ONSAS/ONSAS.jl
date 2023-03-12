@@ -19,7 +19,7 @@ Fₖ = -3e8  # vertical   load in N
 # -------------------------------
 # Materials
 # -------------------------------
-steel = SVK(E, ν, "steel")
+steel = SVK(E=E, ν=ν, label="steel")
 # -------------------------------
 # Geometries
 # -------------------------------
@@ -60,7 +60,6 @@ bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed_uⱼ")
 bc₃ = GlobalLoadBoundaryCondition([:u], t -> [0, 0, Fₖ * t], "load in j")
 node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
 s_boundary_conditions = StructuralBoundaryConditions(node_bcs=node_bc)
-# Simplificar en un solo diccionario y que el constructor reciba las dos
 # -------------------------------
 # Structure
 # -------------------------------

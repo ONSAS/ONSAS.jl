@@ -41,7 +41,7 @@ add!(s_mesh, :u, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------
-steel = SVK(E, ν, "steel")
+steel = SVK(E=E, ν=ν, label="steel")
 mat_dict = dictionary([steel => [truss₁, truss₂]])
 s_materials = StructuralMaterials(mat_dict)
 # -------------------------------
