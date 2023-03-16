@@ -131,8 +131,13 @@ numeric_λᵥ_case₁ = load_factors(sa₁)
 # -------------------------------
 # Materials
 # -------------------------------
+# Define a new HyperElastic material from the strain energy function
+strain_energy_svk(𝔼::AbstractMatrix, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
+λ, G = lame_parameters(svk)
+params = [λ, G] # The order must be the same defined in the strain energy(splatting)
+svk_hyper_elastic = HyperElastic(params, strain_energy_svk, "svkHyper")
 # Material types without assigned elements
-mat_types = [svk]
+mat_types = [svk_hyper_elastic]
 s_materials = StructuralMaterials(mat_types)
 # -------------------------------
 # Boundary Conditions

@@ -8,9 +8,7 @@ using Reexport: @reexport
 
 @reexport import ..Utils: label
 
-export AbstractMaterial, density, parameters, cosserat, strain_energy,
-    elasticity_modulus, bulk_modulus, shear_modulus, poisson_ratio
-
+export AbstractMaterial, density, parameters, cosserat, strain_energy
 """ Abstract supertype for all material models.
 
 An `AbstractMaterial` object facilitates the process of defining new material models. 
@@ -18,51 +16,42 @@ Different material models leads to different constitutive laws, internal forces 
 
 **Common methods:**
 
-
 * [`strain_energy`](@ref)
 * [`parameters`](@ref)
 * [`density`](@ref)
-* [`bulk_modulus`](@ref)
-* [`elasticity_modulus`](@ref)
-* [`shear_modulus`](@ref)
-* [`poisson_ratio`](@ref)
 * [`cosserat`](@ref)
 * [`label`](@ref)
+
+**Common fields:**
+* label
+* ρ(density)
 """
 abstract type AbstractMaterial end
 
 "Returns the parameters of type `Number` in the `AbstractMaterial` `m`."
 parameters(m::T) where {T<:AbstractMaterial} = Tuple([getfield(f, n) for n in fieldlabels(T) if fieldtype(T, n) isa Number])
 
-"Returns the Cosserat or Second-Piola Kirchhoff stress tensor `𝕊``."
-function cosserat(m::AbstractMaterial) end
+"Returns the Cosserat or Second-Piola Kirchhoff stress tensor `𝕊` given an `AbstractMaterial` `m` and the 
+Green-Lagrange strain tensor `𝔼`."
+function cosserat(m::AbstractMaterial, 𝔼::AbstractMatrix) end
 
 "Returns the `AbstractMaterial` `m` density `ρ`."
-function density(m::AbstractMaterial) end
-
-"Returns the equivalent elasticity modulus `E` for the `AbstractMaterial` `m`."
-function elasticity_modulus(m::AbstractMaterial) end
-
-"Returns the equivalent Shear modulus `G` for the `AbstractMaterial` `m`."
-function shear_modulus(m::AbstractMaterial) end
-
-"Returns the equivalent Poisson's ratio `ν` for the `AbstractMaterial` `m`."
-function poisson_ratio(m::AbstractMaterial) end
-
-"Returns the equivalent Bulk modulus `K` for the `AbstractMaterial` `m`."
-function bulk_modulus(m::AbstractMaterial) end
+density(m::AbstractMaterial) = m.ρ
 
 "Returns the `AbstractMaterial` `m` label."
 label(m::AbstractMaterial) = m.label
 
-"Returns the `AbstractMaterial` `m` strain energy expression ϕ(𝔼) ."
-function strain_energy(m::AbstractMaterial) end
+"Returns the strain energy value for an `AbstractMaterial` `m`, and the Green-Lagrange 
+strain tensor `𝔼`."
+function strain_energy(m::AbstractMaterial, 𝔼) end
 
 #===================================#
 # AbstractMaterial implementations #
 #==================================#
 
 include("./SVK.jl")
+include("./HyperElastic.jl")
+
 # include("./NeoHookean.jl")
 
 end # module
