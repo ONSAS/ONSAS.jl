@@ -58,4 +58,4 @@ Physical Surface ("_triangle_fixed-uj") = {6};
 Physical Surface ("_triangle_fixed-uk") = {2};
 Physical Surface ("_triangle_tension") = {3};
 //+
-Physical Volume  ("svk_tetrahedron_") = {1};
+Physical Volume  ("svkHyper_tetrahedron_") = {1};
