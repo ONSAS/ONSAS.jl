@@ -24,7 +24,8 @@ import ..StructuralSolvers: _assemble!, _update!, _reset!, _end_assemble!
 export AbstractStructuralState, _apply!, _assemble!, Δ_displacements, tangent_matrix, residual_forces,
     tangent_matrix, structure, assembler, residual_forces_norms, residual_displacements_norms
 
-export AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done, current_state, current_iteration
+export AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done,
+    current_state, current_iteration, reset!
 
 """ Abstract supertype to define a new structural state.
 **Common methods:**
@@ -145,6 +146,7 @@ to be solved.
 * [`current_iteration`](@ref)
 * [`_next!`](@ref)
 * [`is_done`](@ref)
+* [`reset!`](@ref)
 
 """
 abstract type AbstractStructuralAnalysis end
@@ -172,6 +174,9 @@ current_state(a::AbstractStructuralAnalysis) = a.state
 
 "Returns the current displacements iteration state of the `AbstractStructuralAnalysis` `a`."
 current_iteration(a::AbstractStructuralAnalysis) = iteration_residuals(a.state)
+
+"Rests the `AbstractStructuralAnalysis` `a` (set the initial time or step to the current step)."
+reset!(a::AbstractStructuralAnalysis) = a.current_time = initial_time(a)
 
 # ================
 # Common methods

@@ -15,7 +15,7 @@ using LinearAlgebra: norm
 @reexport using ...StructuralSolvers
 
 import ..StructuralAnalyses: _assemble!, initial_time, current_time, final_time, _next!,
-    residual_forces, tangent_matrix, iteration_residuals, is_done
+    residual_forces, tangent_matrix, iteration_residuals, is_done, reset!
 
 import ...StructuralSolvers: _solve, _update!, _step!, _reset!, external_forces
 
@@ -160,6 +160,9 @@ current_load_factor(sa::StaticAnalysis) = current_time(sa)
 
 "Jumps to the next current load factor defined in the `StaticAnalysis` `sa`."
 _next!(sa::StaticAnalysis) = sa.current_step += 1
+
+"Rests the current load factor of the `StaticAnalysis` `sa` (set to 1)."
+reset!(sa::StaticAnalysis) = sa.current_step = 1
 
 #================#
 # Solve

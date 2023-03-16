@@ -15,9 +15,9 @@ Lᵢ = 2.0   # Dimension in x of the box in m
 Lⱼ = 1.0   # Dimension in y of the box in m
 Lₖ = 1.0   # Dimension in z of the box in m
 const RTOL = 1e-4               # Relative tolerance for tests
-# -------------------------------
-# Case 1 - Manufactured mesh
-#--------------------------------
+# -----------------------------------------------
+# Case 1 - Manufactured mesh and `SVK` material
+#------------------------------------------------
 # -------------------------------
 # Mesh
 #--------------------------------
@@ -124,9 +124,9 @@ e = rand(elements(s₁))
 ℂ_numeric_case₁ = last(strain(states_sol_case₁, e))
 # Load factors 
 numeric_λᵥ_case₁ = load_factors(sa₁)
-# -------------------------------
-# Case 2 - GMSH mesh
-#--------------------------------
+# -----------------------------------------------
+# Case 2 - GMSH mesh and `HyperElastic` material
+#------------------------------------------------
 # -------------------------------
 # Materials
 # -------------------------------
@@ -216,11 +216,16 @@ p₁, p₂ = lame_parameters(svk)
 #-----------------------------
 # Test boolean for CI  
 #-----------------------------
-@test analytics_λᵥ_case₁ ≈ numeric_λᵥ_case₁ rtol = RTOL
-@test analytics_λᵥ_case₂ ≈ numeric_λᵥ_case₂ rtol = RTOL
-@test ℙ_analytic ≈ ℙ_numeric_case₁ rtol = RTOL
-@test ℙ_analytic ≈ ℙ_numeric_case₂ rtol = RTOL
-@test α_analytic ≈ last(numeric_α_case₁) rtol = RTOL
-@test β_analytic ≈ last(numeric_β_case₂) rtol = RTOL
-@test ℂ_analytic ≈ ℂ_numeric_case₁ rtol = RTOL
-@test ℂ_analytic ≈ ℂ_numeric_case₂ rtol = RTOL
+@testset "Case 1 Uniaxial Extension Example" begin
+    @test analytics_λᵥ_case₁ ≈ numeric_λᵥ_case₁ rtol = RTOL
+    @test ℙ_analytic ≈ ℙ_numeric_case₁ rtol = RTOL
+    @test α_analytic ≈ last(numeric_α_case₁) rtol = RTOL
+    @test ℂ_analytic ≈ ℂ_numeric_case₁ rtol = RTOL
+end
+
+@testset "Case 2 Uniaxial Extension Example" begin
+    @test analytics_λᵥ_case₂ ≈ numeric_λᵥ_case₂ rtol = RTOL
+    @test ℂ_analytic ≈ ℂ_numeric_case₂ rtol = RTOL
+    @test ℙ_analytic ≈ ℙ_numeric_case₂ rtol = RTOL
+    @test β_analytic ≈ last(numeric_β_case₂) rtol = RTOL
+end

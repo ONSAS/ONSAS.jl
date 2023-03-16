@@ -16,6 +16,10 @@ K = E / (3 * (1 - 2 * ν))
 ρ = 7500.0
 mat_label = "steel"
 
+# More soft hyperelastic material   
+Ghyper = μ = 0.3846
+λhyper = 0.5769
+Khyper = λhyper + 2 * Ghyper / 3
 # Green-Lagrange strain tensor for testing
 𝔼 = Symmetric(
     [
@@ -48,9 +52,6 @@ mat_label = "steel"
     @test strain_energy(svk_dynamic, 𝔼) == strain_energy_svk(𝔼, lame_parameters(svk_static)...)
 
 
-    # Create a generic HyperElastic material with an SVK   
-    Ghyper = μ = 0.3846
-    λhyper = 0.5769
     l = "svk_HyperElastic"
     svk_hyper = HyperElastic([λhyper, Ghyper], strain_energy_svk, l)
     svk = SVK(λhyper, Ghyper)
@@ -109,9 +110,12 @@ end
     @test elasticity_modulus(neo_withρ) ≈ E rtol = RTOL
     @test label(neo_withρ) == Symbol(mat_label)
 
+    # More flexible noe-hookean to test strain and stresses
+    neo_flexible = NeoHookean(Khyper, Ghyper)
+
     # Create an hyper-elastic material with the same strain energy and test 𝕊 and 𝔼
     l = "neo_HyperElastic"
-    function strain_energy_neo(𝔼::AbstractMatrix, μ::Real, K::Real)
+    function strain_energy_neo(𝔼::AbstractMatrix, K::Real, μ::Real)
         # Right hand Cauchy strain tensor
         ℂ = Symmetric(2 * 𝔼 + eye(3))
         J = sqrt(det(ℂ))
@@ -121,10 +125,12 @@ end
         Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
     end
 
-    neo_hyper = HyperElastic([bulk_modulus(neo), shear_modulus(neo)], strain_energy_neo, l)
+    neo_hyper = HyperElastic(
+        [bulk_modulus(neo_flexible), shear_modulus(neo_flexible)], strain_energy_neo, l
+    )
 
     𝕊_hyper, ∂𝕊∂𝔼_hyper = cosserat(neo_hyper, 𝔼)
-    𝕊_neo, ∂𝕊∂𝔼_neo = cosserat(neo, 𝔼)
+    𝕊_neo, ∂𝕊∂𝔼_neo = cosserat(neo_flexible, 𝔼)
 
     @test 𝕊_hyper ≈ 𝕊_neo rtol = RTOL
     @test ∂𝕊∂𝔼_hyper ≈ ∂𝕊∂𝔼_neo rtol = RTOL

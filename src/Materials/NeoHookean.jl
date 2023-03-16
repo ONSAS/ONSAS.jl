@@ -96,7 +96,7 @@ function _𝕊_analytic(m::NeoHookean, 𝔼::AbstractMatrix)
     ℂ⁻¹ = inv(ℂ)
     J = sqrt(det(ℂ))
     # Compute 𝕊 
-    bulk_modulus(m) * (eye(3) - ℂ⁻¹) + shear_modulus(m) * (J * (J - 1) * ℂ⁻¹)
+    shear_modulus(m) * (eye(3) - ℂ⁻¹) + bulk_modulus(m) * (J * (J - 1) * ℂ⁻¹)
 end
 
 "Returns the `∂𝕊∂𝔼` for a material `m`, the Gree-Lagrange strain tensor `𝔼` and a
