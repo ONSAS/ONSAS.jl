@@ -8,7 +8,6 @@ using Test: @test
 using LinearAlgebra: det, tr
 using Roots: find_zero
 ## scalar parameters
-# scalar parameters
 E = 1.0 # Young modulus in Pa
 ν = 0.3  # Poisson's ratio
 p = 3   # Tension load in Pa

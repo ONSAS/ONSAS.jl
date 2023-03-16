@@ -4,7 +4,7 @@
 using ONSAS.StaticAnalyses
 using ONSAS.Utils: eye
 using Test: @test
-using LinearAlgebra: norm, det, tr
+using LinearAlgebra: Symmetric, norm, det, tr
 using Roots: find_zero
 ## scalar parameters
 E = 1.0                   # Young modulus in Pa
@@ -67,7 +67,7 @@ add!(s₁_mesh, :u, dof_dim)
 tensor `𝔼`, second lamé parameter μ and bulk modulus `K`."
 function strain_energy_neo(𝔼::AbstractMatrix, μ::Real, K::Real)
     # Right hand Cauchy strain tensor
-    ℂ = 2 * 𝔼 + eye(3)
+    ℂ = Symmetric(2 * 𝔼 + eye(3))
     J = sqrt(det(ℂ))
     # First invariant
     I₁ = tr(ℂ)

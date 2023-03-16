@@ -9,6 +9,7 @@ using Reexport: @reexport
 @reexport import ..Utils: label
 
 export AbstractMaterial, density, parameters, cosserat, strain_energy
+
 """ Abstract supertype for all material models.
 
 An `AbstractMaterial` object facilitates the process of defining new material models. 
@@ -16,11 +17,13 @@ Different material models leads to different constitutive laws, internal forces 
 
 **Common methods:**
 
-* [`strain_energy`](@ref)
 * [`parameters`](@ref)
 * [`density`](@ref)
-* [`cosserat`](@ref)
 * [`label`](@ref)
+
+**Common methods for hyper-elastic materials:**
+* [`cosserat`](@ref)
+* [`strain_energy`](@ref)
 
 **Common fields:**
 * label
@@ -50,8 +53,8 @@ function strain_energy(m::AbstractMaterial, 𝔼) end
 #==================================#
 
 include("./SVK.jl")
+include("./NeoHookean.jl")
 include("./HyperElastic.jl")
 
-# include("./NeoHookean.jl")
 
 end # module

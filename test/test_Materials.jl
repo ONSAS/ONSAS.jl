@@ -3,19 +3,30 @@
 ##########################
 using Test: @testset, @test
 using ONSAS.Materials
-using LinearAlgebra: Symmetric, tr
+using ONSAS.Utils: eye
+using LinearAlgebra: Symmetric, tr, det, inv
 const RTOL = 1e-3
 
-strain_energy_svk(𝔼, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
+# Steel 
+E = 210e9
+ν = 0.3
+G = E / (2 * (1 + ν))
+λ = E * ν / ((1 + ν) * (1 - 2 * ν))
+K = E / (3 * (1 - 2 * ν))
+ρ = 7500.0
+mat_label = "steel"
+
+# Green-Lagrange strain tensor for testing
+𝔼 = Symmetric(
+    [
+        0.18375 0.2925 0.51
+        0.2925 0.435 0.72
+        0.51 0.72 1.14
+    ]
+)
+
 
 @testset "ONSAS.Materials.SVK" begin
-
-    # Steel 
-    E = 210e9
-    ν = 0.3
-    G = E / (2 * (1 + ν))
-    λ = E * ν / ((1 + ν) * (1 - 2 * ν))
-    K = E / (3 * (1 - 2 * ν))
 
     # SVK for static analysis
     svk_static = SVK(λ, G)
@@ -28,25 +39,22 @@ strain_energy_svk(𝔼, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼
     @test poisson_ratio(svk_static) == ν
 
     # SVK for dynamic analysis
-    ρ = 7500.0
-    label_lame = "steel"
-    svk_dynamic = SVK(E=E, ν=ν, ρ=ρ, label=label_lame)
+    svk_dynamic = SVK(E=E, ν=ν, ρ=ρ, label=mat_label)
     @test density(svk_dynamic) == ρ
-    @test lame_parameters(svk_dynamic)[1] ≈ λ rtol = RTOL
-    @test lame_parameters(svk_dynamic)[2] ≈ G rtol = RTOL
-
-    𝔼 = Symmetric(rand(3, 3))
-
+    @test lame_parameters(svk_dynamic) |> collect ≈ [λ, G] rtol = RTOL
+    @test label(svk_dynamic) == Symbol(mat_label)
+    # SVK strain energy
+    strain_energy_svk(𝔼, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
     @test strain_energy(svk_dynamic, 𝔼) == strain_energy_svk(𝔼, lame_parameters(svk_static)...)
-    @test label(svk_dynamic) == Symbol(label_lame)
-
-end
 
 
-@testset "ONSAS.Materials.HyperElastic(SVK)" begin
+    # Create a generic HyperElastic material with an SVK   
+    Ghyper = μ = 0.3846
+    λhyper = 0.5769
+    l = "svk_HyperElastic"
+    svk_hyper = HyperElastic([λhyper, Ghyper], strain_energy_svk, l)
+    svk = SVK(λhyper, Ghyper)
 
-    λ = 0.5769
-    G = μ = 0.3846
 
     𝕊_test = Symmetric(
         [
@@ -66,20 +74,7 @@ end
     ]
 
 
-    𝔼 = Symmetric(
-        [
-            0.18375 0.2925 0.51
-            0.2925 0.435 0.72
-            0.51 0.72 1.14
-        ]
-    )
-
-    svk = SVK(λ, G)
-    # Create a generic HyperElastic material with an SVK   
-    l = "svk_HyperElastic"
-    svk_hyper = HyperElastic([λ, G], strain_energy_svk, l)
-
-    @test parameters(svk_hyper) == [λ, G]
+    @test parameters(svk_hyper) == [λhyper, Ghyper]
     @test density(svk_hyper) == nothing
     @test label(svk_hyper) == Symbol(l)
 
@@ -93,5 +88,45 @@ end
 
     @test 𝕊_hyper ≈ 𝕊_test rtol = RTOL
     @test ∂𝕊∂𝔼_svk ≈ ∂𝕊∂𝔼_test rtol = RTOL
+
+end
+
+@testset "ONSAS.Materials.NeoHookean" begin
+
+    neo = NeoHookean(K, G)
+    @test bulk_modulus(neo) == K
+    @test shear_modulus(neo) == G
+    @test lame_parameters(neo) |> collect ≈ [λ, G] rtol = RTOL
+    @test poisson_ratio(neo) ≈ ν rtol = RTOL
+    @test elasticity_modulus(neo) ≈ E rtol = RTOL
+
+    # NeoHookean defined with ρ E and  ν
+    neo_withρ = NeoHookean(E=E, ν=ν, ρ=ρ, label=mat_label)
+    @test bulk_modulus(neo_withρ) ≈ K rtol = RTOL
+    @test shear_modulus(neo_withρ) ≈ G rtol = RTOL
+    @test lame_parameters(neo_withρ) |> collect ≈ [λ, G] rtol = RTOL
+    @test poisson_ratio(neo_withρ) ≈ ν rtol = RTOL
+    @test elasticity_modulus(neo_withρ) ≈ E rtol = RTOL
+    @test label(neo_withρ) == Symbol(mat_label)
+
+    # Create an hyper-elastic material with the same strain energy and test 𝕊 and 𝔼
+    l = "neo_HyperElastic"
+    function strain_energy_neo(𝔼::AbstractMatrix, μ::Real, K::Real)
+        # Right hand Cauchy strain tensor
+        ℂ = Symmetric(2 * 𝔼 + eye(3))
+        J = sqrt(det(ℂ))
+        # First invariant
+        I₁ = tr(ℂ)
+        # Strain energy function 
+        Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
+    end
+
+    neo_hyper = HyperElastic([bulk_modulus(neo), shear_modulus(neo)], strain_energy_neo, l)
+
+    𝕊_hyper, ∂𝕊∂𝔼_hyper = cosserat(neo_hyper, 𝔼)
+    𝕊_neo, ∂𝕊∂𝔼_neo = cosserat(neo, 𝔼)
+
+    @test 𝕊_hyper ≈ 𝕊_neo rtol = RTOL
+    @test ∂𝕊∂𝔼_hyper ≈ ∂𝕊∂𝔼_neo rtol = RTOL
 
 end

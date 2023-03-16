@@ -7,8 +7,10 @@ using ..Utils: eye
 import .Materials: density, cosserat, strain_energy
 export SVK, lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
 
+""" Saint-Venant-Kirchhoff material struct.
 
-""" SVK material struct.
+The strain energy `Ψ` is: `Ψ(𝔼)` = `λ`/2 tr(`𝔼`)^2 + `G` tr(`𝔼`^2)
+
 ### Fields:
 - `λ`     -- first Lamé parameter.
 - `G`     -- shear modulus or second Lamé parameter (μ).
@@ -27,14 +29,16 @@ struct SVK{T<:Real,R<:Union{T,Nothing}} <: AbstractMaterial
         if ρ isa Real
             ρ > 0 || error("Density must be positive.")
         end
+        @assert λ ≥ 0 "The first Lamé parameter `λ` must be positive."
+        @assert G ≥ 0 "The second Lamé parameter or shear modulus `G` must be positive."
         return new{T,R}(λ, G, ρ, Symbol(label))
     end
 end
 
+
 "Material `SVK` constructor with no density parameter `ρ`."
-function SVK(λ::Real, G::Real, label::L=:no_labelled_mat) where {L<:Union{Symbol,String}}
-    return SVK(λ, G, nothing, label)
-end
+SVK(λ::Real, G::Real, label::L=:no_labelled_mat) where {L<:Union{Symbol,String}} =
+    SVK(λ, G, nothing, label)
 
 "Material `SVK` constructor with elasticity and shear modulus `E`, `ν` and density `ρ`. 
 See [this ref](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters)."
@@ -45,16 +49,16 @@ function SVK(; E::Real, ν::Real, ρ::R=nothing, label::L=:no_labelled_mat) wher
     λ = E * ν / ((1 + ν) * (1 - 2 * ν))
     G = E / (2 * (1 + ν))
 
-    return SVK(λ, G, ρ, Symbol(label))
+    SVK(λ, G, ρ, Symbol(label))
 end
 
-"Returns the strain energy expression for a `SVK` material `m`."
-function strain_energy(m::SVK, 𝔼)
+"Returns the strain energy for a `SVK` material `m` and the Green-Lagrange strain tensor `𝔼`."
+function strain_energy(m::SVK, 𝔼::AbstractMatrix)
     λ, G = lame_parameters(m)
     λ / 2 * tr(𝔼)^2 + G * tr(𝔼^2)
 end
 
-"Returns lamé parameters `λ` and `G` from a `SVK` material `m`."
+"Returns Lamé parameters `λ` and `G` from a `SVK` material `m`."
 lame_parameters(m::SVK) = m.λ, m.G
 
 "Returns the shear modulus `G` from a `SVK` material `m`."
@@ -63,23 +67,24 @@ shear_modulus(m::SVK) = m.G
 "Returns the Poisson's ration `ν` form a `SVK` material `m`."
 function poisson_ratio(m::SVK)
     λ, G = lame_parameters(m)
-    return λ / (2 * (λ + G))
+    λ / (2 * (λ + G))
 end
 
 "Returns the elasticity modulus `E` form a `SVK` material `m`."
 function elasticity_modulus(m::SVK)
     λ, G = lame_parameters(m)
-    return G * (3 * λ + 2 * G) / (λ + G)
+    G * (3 * λ + 2 * G) / (λ + G)
 end
 
 "Returns the bulk_modulus `K` for a `SVK` material `m`."
 function bulk_modulus(m::SVK)
     λ, G = lame_parameters(m)
-    return λ + 2 * G / 3
+    λ + 2 * G / 3
 end
 
-"Returns the Cosserat or Second-Piola Kirchoff tensor `𝕊` considering a `SVK` material `m` 
-and the Lagrangian Green strain tensor `𝔼`."
+"Returns the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
+considering a `SVK` material `m` and the Lagrangian Green 
+strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
 function cosserat(m::SVK, 𝔼::AbstractMatrix)
 
     λ, G = lame_parameters(m)
