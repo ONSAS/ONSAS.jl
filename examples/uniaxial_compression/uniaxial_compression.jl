@@ -183,7 +183,7 @@ s_entities = StructuralEntities(velems, vfaces)
 file_name_msh = joinpath(@__DIR__, "uniaxial_compression.msh")
 if GENERATE_MSH
     file_name_geo = joinpath(@__DIR__, "uniaxial_compression.geo")
-    run(`gmsh -3 $file_name_geo -o $file_name`)
+    run(`gmsh -3 $file_name_geo -o $file_name_msh`)
 end
 msh_file = MshFile(file_name_msh)
 # -------------------------------
