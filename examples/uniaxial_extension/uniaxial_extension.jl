@@ -8,13 +8,14 @@ using Test: @test
 using LinearAlgebra: det, tr
 using Roots: find_zero
 ## scalar parameters
-E = 1.0 # Young modulus in Pa
-ν = 0.3  # Poisson's ratio
-p = 3   # Tension load in Pa
-Lᵢ = 2.0   # Dimension in x of the box in m 
-Lⱼ = 1.0   # Dimension in y of the box in m
-Lₖ = 1.0   # Dimension in z of the box in m
-const RTOL = 1e-4               # Relative tolerance for tests
+E = 1.0                    # Young modulus in Pa
+ν = 0.3                    # Poisson's ratio
+p = 3                      # Tension load in Pa
+Lᵢ = 2.0                   # Dimension in x of the box in m 
+Lⱼ = 1.0                   # Dimension in y of the box in m
+Lₖ = 1.0                   # Dimension in z of the box in m
+const RTOL = 1e-4          # Relative tolerance for tests
+const GENERATE_MSH = false # Boolean to generate the .msh form .geo
 # -----------------------------------------------
 # Case 1 - Manufactured mesh and `SVK` material
 #------------------------------------------------
@@ -156,10 +157,12 @@ s_entities = StructuralEntities(velems, vfaces)
 # -------------------------------
 # Mesh
 # -------------------------------
-file_name = joinpath(@__DIR__, "uniaxial_extension.msh")
-# generate .msh
-# run(`gmsh -3 $file_name`)
-msh_file = MshFile(file_name)
+file_name_msh = joinpath(@__DIR__, "uniaxial_extension.msh")
+if GENERATE_MSH
+    file_name_geo = joinpath(@__DIR__, "uniaxial_extension.geo")
+    run(`gmsh -3 $file_name_geo -o $file_name`)
+end
+msh_file = MshFile(file_name_msh)
 # -------------------------------
 # Structure
 # -------------------------------
