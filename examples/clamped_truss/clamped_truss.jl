@@ -15,13 +15,13 @@ using Test: @test
 using LinearAlgebra: norm
 using ONSAS.StaticAnalyses
 # Parameters
-N = 1000    # Number of elements.
+N = 100    # Number of elements.
 E = 30e6    # Young's modulus.
 ν = 0.3     # Poisson's ratio. 
 ρ = 7.3e-4  # Density.
 L = 200     # Element length.
 A = 1       # Cross section area.
-F = 10e3    # Force at the tip
+F = 10e6    # Force at the tip
 # -------------
 # Mesh
 # -------------
@@ -36,7 +36,7 @@ add!(s_mesh, :u, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------
-steel = SVK(E, ν, ρ, "steel")
+steel = SVK(E=E, ν=ν, ρ=ρ, label="steel")
 mat_dict = dictionary([steel => v_elements])
 s_materials = StructuralMaterials(mat_dict)
 # -------------------------------
@@ -81,7 +81,8 @@ numeric_F_tip = F * load_factors(sa)
 # Analytic solution  
 #-----------------------------
 # Compute the analytic values for the strain, stress and force at the tip
-"Analytic rotated engineering strain solution for the displacement `uᵢ` towards x axis at the tip node."
+"Analytic rotated engineering strain solution for the displacement 
+`uᵢ` towards x axis at the tip node."
 analytic_ϵ(uᵢ::Real, l₀::Real=L) = ((l₀ + uᵢ)^2 - l₀^2) / (l₀ * (l₀ + (l₀ + uᵢ)))
 "Analytic stress value for a given strain `ϵ`."
 analytic_σ(analytic_ϵ::Vector{<:Real}, E::Real=E) = analytic_ϵ * E

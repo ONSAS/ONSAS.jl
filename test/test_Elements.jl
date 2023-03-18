@@ -102,7 +102,7 @@ end
 
 E = 1.0
 ν = 0.3
-my_svk_mat = SVK(E, ν)
+my_svk_mat = SVK(E=E, ν=ν)
 
 @testset "ONSAS.Elements.Truss 1D" begin
 
@@ -139,13 +139,13 @@ my_svk_mat = SVK(E, ν)
     @test string(label(t)) == my_label
 
     fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_svk_mat, t, u_global_structure[local_dofs(t)])
-    ϵ_green = (l_def^2 - l_ref^2) / (l_ref * (l_ref + l_def))
+    ϵ_rot_ing = (l_def^2 - l_ref^2) / (l_ref * (l_ref + l_def))
 
 
-    @test ϵ_e[1, 1] ≈ ϵ_green rtol = RTOL
-    @test σ_e[1, 1] ≈ E * ϵ_green rtol = RTOL
-    @test fᵢₙₜ_e[1] ≈ -E * ϵ_green * A rtol = RTOL
-    @test fᵢₙₜ_e[2] ≈ E * ϵ_green * A rtol = RTOL
+    @test ϵ_e[1, 1] ≈ ϵ_rot_ing rtol = RTOL
+    @test σ_e[1, 1] ≈ E * ϵ_rot_ing rtol = RTOL
+    @test fᵢₙₜ_e[1] ≈ -E * ϵ_rot_ing * A rtol = RTOL
+    @test fᵢₙₜ_e[2] ≈ E * ϵ_rot_ing * A rtol = RTOL
     @test Kᵢₙₜ_e ≈ Kᵢₙₜ_e[1, 1] * [1 -1; -1 1] rtol = RTOL
 end
 
