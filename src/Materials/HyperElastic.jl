@@ -39,8 +39,9 @@ strain_energy(m::HyperElastic) = m.Ψ
 "Returns the strain energy parameters `params` for a `HyperElastic` material `m`."
 parameters(m::HyperElastic) = m.params
 
-"Returns the Cosserat or Second-Piola Kirchoff tensor (𝕊) considering an `HyperElastic`
-material `m` and the Lagrangian Green strain tensor `𝔼`."
+"Returns the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
+considering a `SVK` material `m` and the Lagrangian Green 
+strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
 function cosserat(m::HyperElastic, 𝔼::AbstractMatrix)
 
     𝔼 = SymmetricTensor{2,3}(𝔼)

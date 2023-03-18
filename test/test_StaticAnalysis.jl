@@ -200,6 +200,9 @@ sa_init = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, initial_step=init_step)
     _next!(sa_init)
     @test is_done(sa_init)
 
+    # Reset
+    reset!(sa_init)
+    @test current_time(sa_init) == first(λᵥ)
 end
 
 @testset "ONSAS.StructuralSolvers.StatesSolution" begin

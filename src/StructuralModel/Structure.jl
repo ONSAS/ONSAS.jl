@@ -50,7 +50,6 @@ end
 
 
 "Constructor of a `Structure` given a `MshFile` `msh_file`, `StructuralMaterials` `materials`,  `StructuralBoundaryConditions` `bcs`."
-
 function Structure(msh_file::MshFile,
     materials::StructuralMaterials, bcs::StructuralBoundaryConditions, s_entities::StructuralEntities,
     dofs_to_dim::Dictionary{Symbol,<:Integer}=dictionary([:u => 3]))
@@ -58,7 +57,7 @@ function Structure(msh_file::MshFile,
     nodes = msh_file.vec_nodes
     mesh = Mesh(nodes)
 
-    for (entity_index, entity_nodes_indexes) in enumerate(msh_file.connectivity)
+    for (entity_index, entity_nodes_indexes) in enumerate(msh_file.connectivity)#
 
         # Create entity and push it into the mesh
         nodes_entity = view(nodes, entity_nodes_indexes)
@@ -79,14 +78,7 @@ function Structure(msh_file::MshFile,
         bc_type_label = bc_label(msh_file, entity_index)
         if ~isempty(bc_type_label)
             bc_type = bcs[bc_type_label]
-            # Push the entity in the corresponding node, face or element dict in bcs
-            if entity isa AbstractNode
-                push!(node_bcs(bcs)[bc_type], entity)
-            elseif entity isa AbstractFace
-                push!(face_bcs(bcs)[bc_type], entity)
-            elseif entity isa AbstractElement
-                push!(element_bcs(bcs)[bc_type], entity)
-            end
+            push!(bcs, bc_type, entity)
         end
 
     end
