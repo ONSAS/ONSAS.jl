@@ -14,14 +14,17 @@ E = 2e9
 n₁ = Node(0, 0, 0, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)], :T => [Dof(25)]]))
 n₂ = Node(0, 1, 0, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)], :T => [Dof(26)]]))
 n₃ = Node(0, 0, 1, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)], :T => [Dof(27)]]))
+n₄ = Node(1, 1, 1, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)], :T => [Dof(28)]]))
 # Faces 
 face₁ = TriangularFace(n₁, n₂, n₃)
+face₂ = TriangularFace(n₃, n₄, n₃)
 # Cross section
 s = Square(d)
 # Elements
 truss₁ = Truss(n₁, n₂, s)
 truss₂ = Truss(n₂, n₃, s)
 truss₃ = Truss(n₁, n₃, s)
+truss₄ = Truss(n₄, n₃, s)
 # Mesh
 # Materials
 steel = SVK(E, ν, "steel")
@@ -99,6 +102,17 @@ end
 
     @test dofs_bc₃_to_test == dofs_bc₃
     @test f_bc₃_to_test == f_bc₃
+
+
+    # Push an entity to a boundary condition 
+    push!(s_boundary_conditions, bc₃, n₁)
+    push!(s_boundary_conditions, bc₃, face₂)
+    push!(s_boundary_conditions, bc₄, truss₄)
+
+    @test n₁ ∈ s_boundary_conditions[bc₃] &&
+          face₂ ∈ s_boundary_conditions[bc₃] &&
+          truss₄ ∈ s_boundary_conditions[bc₄]
+
 
 end
 

@@ -66,6 +66,18 @@ Base.getindex(sb::StructuralBoundaryConditions, f::AbstractFace) = keys(filter(x
 "Returns the `Vector` of `BoundaryConditions`s applied to the `AbstractElement` `e`."
 Base.getindex(sb::StructuralBoundaryConditions, e::AbstractElement) = keys(filter(x -> e ∈ x, element_bcs(sb)))
 
+"Pushes to the `AbstractNode` `n` the `BoundaryCondition` `bc` in the `StructuralBoundaryConditions` `sb`."
+Base.push!(sb::StructuralBoundaryConditions, bc::AbstractBoundaryCondition, n::AbstractNode) =
+    push!(node_bcs(sb)[bc], n)
+
+"Pushes to the `AbstractElement` `e` the `BoundaryCondition` `bc` in the `StructuralBoundaryConditions` `sb`."
+Base.push!(sb::StructuralBoundaryConditions, bc::AbstractBoundaryCondition, e::AbstractElement) =
+    push!(element_bcs(sb)[bc], e)
+
+"Pushes to the `AbstractFace` `f` the `BoundaryCondition` `bc` in the `StructuralBoundaryConditions` `sb`."
+Base.push!(sb::StructuralBoundaryConditions, bc::AbstractBoundaryCondition, f::AbstractFace) =
+    push!(face_bcs(sb)[bc], f)
+
 "Returns the dictionary of `BoundaryConditions`s applied to `Node`s."
 node_bcs(se::StructuralBoundaryConditions) = se.node_bcs
 

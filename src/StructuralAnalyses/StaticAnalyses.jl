@@ -273,7 +273,8 @@ function Base.push!(st_sol::StatesSolution, c_state::StaticState)
 
     # Pointers
     s = structure(c_state)
-    assemblerᵏ = assembler(c_state)
+    # Empty assembler since the info is stored in k
+    assemblerᵏ = Assembler(s)
 
     # Deep copies 
     Uᵏ = deepcopy(displacements(c_state))

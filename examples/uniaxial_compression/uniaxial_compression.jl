@@ -1,24 +1,26 @@
-# -------------------------------------------------------------------------- 
-# Uniaxial Extension ExampleExercise 4 from section 6.5 in (Holzapfel,2000).
-# For notation see: https://onsas.github.io/ONSAS.m/dev/examples/uniaxialExtension/
-# --------------------------------------------------------------------------
+# ----------------------------- 
+# Uniaxial Compression Example
+# -----------------------------
 using ONSAS.StaticAnalyses
 using ONSAS.Utils: eye
-using Test: @test
-using LinearAlgebra: det, tr
+using Test: @test, @testset
+using LinearAlgebra: Symmetric, norm, det, tr
 using Roots: find_zero
 ## scalar parameters
 E = 1.0                    # Young modulus in Pa
 ν = 0.3                    # Poisson's ratio
-p = 3                      # Tension load in Pa
+μ = G = E / (2 * (1 + ν))  # Second Lamé parameter 
+K = E / (3 * (1 - 2 * ν))  # Bulk modulus
+p = 5                      # Tension load in Pa
 Lᵢ = 2.0                   # Dimension in x of the box in m 
 Lⱼ = 1.0                   # Dimension in y of the box in m
 Lₖ = 1.0                   # Dimension in z of the box in m
 const RTOL = 1e-4          # Relative tolerance for tests
+const ATOL = 1e-10         # Absolute tolerance for tests
 const GENERATE_MSH = false # Boolean to generate the .msh form .geo
-# -----------------------------------------------
-# Case 1 - Manufactured mesh and `SVK` material
-#------------------------------------------------
+# -----------------------------------------------------
+# Case 1 - Manufactured mesh and `NeoHookean` material
+#------------------------------------------------------
 # -------------------------------
 # Mesh
 #--------------------------------
@@ -60,8 +62,9 @@ add!(s₁_mesh, :u, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------
-svk = SVK(E=E, ν=ν, label="svk")
-mat_dict = dictionary([svk => [t₁, t₂, t₃, t₄, t₅, t₆]])
+# Built neo hookian material with E and ν
+neo_hookean = NeoHookean(K, μ, "NeoBuiltIn")
+mat_dict = dictionary([neo_hookean => [t₁, t₂, t₃, t₄, t₅, t₆]])
 s₁_materials = StructuralMaterials(mat_dict)
 # -------------------------------
 # Boundary conditions
@@ -71,7 +74,7 @@ bc₁ = FixedDofBoundaryCondition([:u], [1], "fixed-ux")
 bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed-uj")
 bc₃ = FixedDofBoundaryCondition([:u], [3], "fixed-uk")
 # Load
-bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], "tension")
+bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], "compression")
 # Assign this to faces 
 face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
 # Crete boundary conditions struct
@@ -86,11 +89,13 @@ s₁ = Structure(s₁_mesh, s₁_materials, s₁_boundary_conditions)
 # Final load factor
 NSTEPS = 8
 sa₁ = StaticAnalysis(s₁, NSTEPS=NSTEPS)
+# Resets the analysis in order to run it multiple times
+reset!(sa₁)
 # -------------------------------
 # Algorithm
 # -------------------------------
-tol_f = 1e-8;
-tol_u = 1e-8;
+tol_f = 1e-10;
+tol_u = 1e-10;
 max_iter = 30;
 tols = ConvergenceSettings(tol_u, tol_f, max_iter)
 nr = NewtonRaphson(tols)
@@ -98,7 +103,8 @@ nr = NewtonRaphson(tols)
 # Numerical solution
 # -------------------------------
 states_sol_case₁ = solve(sa₁, nr)
-"Computes numeric solution α, β and γ for analytic validation."
+"Computes numeric solution α(L_def/L_ref), β(L_def/L_ref) and γ(L_def/L_ref)
+ for analytic validation."
 function αβγ_numeric(states_sol::AbstractSolution)
     s = structure(analysis(states_sol))
     # Node at (Lᵢ, Lⱼ, Lₖ)
@@ -120,11 +126,19 @@ numeric_α_case₁, numeric_β_case₁, numeric_γ_case₁, numeric_uᵢ_case₁
 # Extract ℙ and ℂ from the last state using a random element
 e = rand(elements(s₁))
 # Cosserat or second Piola-Kirchhoff stress tensor
-ℙ_numeric_case₁ = last(stress(states_sol_case₁, e))
-# Right hand Cauchy strain tensor 
-ℂ_numeric_case₁ = last(strain(states_sol_case₁, e))
+ℙ_numeric_case₁ = stress(states_sol_case₁, e)
+# ℙᵢᵢ component: 
+ℙᵢᵢ_numeric_case₁ = getindex.(ℙ_numeric_case₁, 1, 1)
+# ℙⱼⱼ component: 
+ℙⱼⱼ_numeric_case₁ = getindex.(ℙ_numeric_case₁, 2, 2)
+# ℙₖₖ component: 
+ℙₖₖ_numeric_case₁ = getindex.(ℙ_numeric_case₁, 3, 3)
+# Get the Right hand Cauchy strain tensor ℂ at a random state 
+ℂ_rand_numeric_case₁ = rand(strain(states_sol_case₁, e))
+# Get the Second Piola Kirchhoff stress tensor ℙ at a random state 
+ℙ_rand_numeric_case₁ = rand(stress(states_sol_case₁, e))
 # Load factors 
-numeric_λᵥ_case₁ = load_factors(sa₁)
+load_factors_case₁ = load_factors(sa₁)
 # -----------------------------------------------
 # Case 2 - GMSH mesh and `HyperElastic` material
 #------------------------------------------------
@@ -132,12 +146,21 @@ numeric_λᵥ_case₁ = load_factors(sa₁)
 # Materials
 # -------------------------------
 # Define a new HyperElastic material from the strain energy function
-strain_energy_svk(𝔼::AbstractMatrix, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
-λ, G = lame_parameters(svk)
-params = [λ, G] # The order must be the same defined in the strain energy(splatting)
-svk_hyper_elastic = HyperElastic(params, strain_energy_svk, "svkHyper")
+"Neo-Hookean strain energy function given the Green-Lagrange strain
+tensor `𝔼`, second lamé parameter `μ` and bulk modulus `K`."
+function strain_energy_neo(𝔼::AbstractMatrix, K::Real, μ::Real)
+    # Right hand Cauchy strain tensor
+    ℂ = Symmetric(2 * 𝔼 + eye(3))
+    J = sqrt(det(ℂ))
+    # First invariant
+    I₁ = tr(ℂ)
+    # Strain energy function 
+    Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
+end
+params = [K, μ] # The order must be the same defined in the strain energy (splatting)
+neo_hookean_hyper = HyperElastic(params, strain_energy_neo, "neoHyper")
 # Material types without assigned elements
-mat_types = [svk_hyper_elastic]
+mat_types = [neo_hookean_hyper]
 s_materials = StructuralMaterials(mat_types)
 # -------------------------------
 # Boundary Conditions
@@ -157,9 +180,9 @@ s_entities = StructuralEntities(velems, vfaces)
 # -------------------------------
 # Mesh
 # -------------------------------
-file_name_msh = joinpath(@__DIR__, "uniaxial_extension.msh")
+file_name_msh = joinpath(@__DIR__, "uniaxial_compression.msh")
 if GENERATE_MSH
-    file_name_geo = joinpath(@__DIR__, "uniaxial_extension.geo")
+    file_name_geo = joinpath(@__DIR__, "uniaxial_compression.geo")
     run(`gmsh -3 $file_name_geo -o $file_name_msh`)
 end
 msh_file = MshFile(file_name_msh)
@@ -169,66 +192,72 @@ msh_file = MshFile(file_name_msh)
 s₂ = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
 # Final load factor
 sa₂ = StaticAnalysis(s₂, NSTEPS=NSTEPS)
+reset!(sa₂)
 # -------------------------------
 # Numerical solution
 # -------------------------------
+# Extract ℙ and ℂ from the last state using a random element
+e = rand(elements(s₂))
 states_sol_case₂ = solve(sa₂, nr)
 # Numeric solution for testing
 numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, numeric_uᵢ_case₂, _, _ = αβγ_numeric(states_sol_case₂)
-# Extract ℙ and ℂ from the last state using a random element
-e = rand(elements(s₂))
 # Cosserat or second Piola-Kirchhoff stress tensor
-ℙ_numeric_case₂ = last(stress(states_sol_case₂, e))
-# Right hand Cauchy strain tensor 
-ℂ_numeric_case₂ = last(strain(states_sol_case₂, e))
+ℙ_numeric_case₂ = stress(states_sol_case₂, e)
+# ℙᵢᵢ component: 
+ℙᵢᵢ_numeric_case₂ = getindex.(ℙ_numeric_case₂, 1, 1)
+# ℙⱼⱼ component: 
+ℙⱼⱼ_numeric_case₂ = getindex.(ℙ_numeric_case₂, 2, 2)
+# ℙₖₖ component: 
+ℙₖₖ_numeric_case₂ = getindex.(ℙ_numeric_case₂, 3, 3)
+# Get the Right hand Cauchy strain tensor ℂ at a random state 
+ℂ_rand_numeric_case₂ = rand(strain(states_sol_case₂, e))
+# Get the Second Piola Kirchhoff stress tensor ℙ at a random state 
+ℙ_rand_numeric_case₂ = rand(stress(states_sol_case₂, e))
 # Load factors 
-numeric_λᵥ_case₂ = load_factors(sa₂)
+load_factors_case₂ = load_factors(sa₂)
 #-----------------------------
 # Analytic solution  
 #-----------------------------
-# Test with load factors
-"Analytic load factor solution for the displacement `uᵢ` towards `x` axis at node `n₆`."
-load_factors_analytic(uᵢ::Real, p::Real=p, E::Real=E, Lᵢ::Real=Lᵢ) = 1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
-# Compute load factors with numerical solutions
-analytics_λᵥ_case₁ = load_factors_analytic.(numeric_uᵢ_case₁)
-analytics_λᵥ_case₂ = load_factors_analytic.(numeric_uᵢ_case₂)
-# Test last step σ and ϵ
-@test load_factors(sa₁) == load_factors(sa₂)
-α_analytic = find_zero(α -> E / 2 * α * (α^2 - 1) - p * last(load_factors(sa₁)), 1e-2)
-β_analytic = sqrt(-ν * (α_analytic^2 - 1) + 1)
-# Gradient tensor
-# 𝕦 = (αx, βy, γz)
-𝔽_analytic = [
-    α_analytic 0 0
-    0 β_analytic 0
-    0 0 β_analytic
-]
-# Right hand Cauchy tensor 
-ℂ_analytic = 𝔽_analytic' * 𝔽_analytic
-𝕁 = det(ℂ_analytic)
-# Green-Lagrange strain tensor
-𝕀 = eye(3)
-𝔼_analytic = 1 / 2 * (ℂ_analytic - 𝕀)
-# Cosserat or second Piola-Kirchhoff stress tensor
-p₁, p₂ = lame_parameters(svk)
-𝕊_analytic = p₁ * tr(𝔼_analytic) * eye(3) + 2 * p₂ * 𝔼_analytic
-# First Piola-Kirchhoff stress tensor
-ℙ_analytic = 𝔽_analytic * 𝕊_analytic
-# Cauchy stress tensor
-# σ = ℙ_analytic * 𝔽_analytic'
+# Test with Second Piola-Kirchoff stress tensor `ℙ`.
+"Computes ℙ(1,1) given α, β and γ."
+analytic_ℙᵢᵢ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K) =
+    μ * α - μ * (α .^ (-1)) + K * (β .^ 2) .* (α .* (β .^ 2) .- 1)
+"Computes ℙ(2,2) given α, β and γ."
+analytic_ℙⱼⱼ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K) =
+    μ * β - μ * (β .^ (-1)) + K * β .* ((α .^ 2) .* (β .^ 2) - α)
+"Computes ℙ(2,2) given α, β and γ."
+analytic_ℙₖₖ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K) =
+    analytic_ℙⱼⱼ(α, β, μ, K)
+# Compute the analytic Second Piola-Kirchoff stress tensor `ℙ` for the numeric vectors α and β
+# Case 1 
+ℙᵢᵢ_analytic_case₁ = analytic_ℙᵢᵢ(numeric_α_case₁, numeric_β_case₁)
+ℙⱼⱼ_analytic_case₁ = analytic_ℙⱼⱼ(numeric_α_case₁, numeric_β_case₁)
+ℙₖₖ_analytic_case₁ = analytic_ℙₖₖ(numeric_α_case₁, numeric_β_case₁)
+# Case 2 
+ℙᵢᵢ_analytic_case₂ = analytic_ℙᵢᵢ(numeric_α_case₂, numeric_β_case₂)
+ℙⱼⱼ_analytic_case₂ = analytic_ℙⱼⱼ(numeric_α_case₂, numeric_β_case₂)
+ℙₖₖ_analytic_case₂ = analytic_ℙₖₖ(numeric_α_case₂, numeric_β_case₂)
 #-----------------------------
 # Test boolean for CI  
 #-----------------------------
-@testset "Case 1 Uniaxial Extension Example" begin
-    @test analytics_λᵥ_case₁ ≈ numeric_λᵥ_case₁ rtol = RTOL
-    @test ℙ_analytic ≈ ℙ_numeric_case₁ rtol = RTOL
-    @test α_analytic ≈ last(numeric_α_case₁) rtol = RTOL
-    @test ℂ_analytic ≈ ℂ_numeric_case₁ rtol = RTOL
+
+@testset "Case 1 Uniaxial Compression Example" begin
+    @test ℙᵢᵢ_analytic_case₁ ≈ ℙᵢᵢ_numeric_case₁ rtol = RTOL
+    @test ℙᵢᵢ_analytic_case₁ ≈ ℙᵢᵢ_numeric_case₁ rtol = RTOL
+    @test ℙⱼⱼ_analytic_case₁ ≈ ℙⱼⱼ_numeric_case₁ atol = ATOL
+    @test ℙₖₖ_analytic_case₁ ≈ ℙₖₖ_numeric_case₁ atol = ATOL
+    @test norm(ℙⱼⱼ_analytic_case₁) ≈ 0 atol = ATOL
+    @test norm(ℙₖₖ_analytic_case₁) ≈ 0 atol = ATOL
+    @test p * load_factors_case₁ ≈ ℙᵢᵢ_analytic_case₁ rtol = RTOL
 end
 
-@testset "Case 2 Uniaxial Extension Example" begin
-    @test analytics_λᵥ_case₂ ≈ numeric_λᵥ_case₂ rtol = RTOL
-    @test ℂ_analytic ≈ ℂ_numeric_case₂ rtol = RTOL
-    @test ℙ_analytic ≈ ℙ_numeric_case₂ rtol = RTOL
-    @test β_analytic ≈ last(numeric_β_case₂) rtol = RTOL
+@testset "Case 2 Uniaxial Compression Example" begin
+    @test ℙᵢᵢ_analytic_case₂ ≈ ℙᵢᵢ_numeric_case₂ rtol = RTOL
+    @test ℙᵢᵢ_analytic_case₂ ≈ ℙᵢᵢ_numeric_case₂ rtol = RTOL
+    @test ℙⱼⱼ_analytic_case₂ ≈ ℙⱼⱼ_numeric_case₂ atol = ATOL
+    @test ℙₖₖ_analytic_case₂ ≈ ℙₖₖ_numeric_case₂ atol = ATOL
+    @test norm(ℙⱼⱼ_analytic_case₂) ≈ 0 atol = ATOL
+    @test norm(ℙₖₖ_analytic_case₂) ≈ 0 atol = ATOL
+    @test p * load_factors_case₂ ≈ ℙᵢᵢ_analytic_case₂ rtol = RTOL
 end
+

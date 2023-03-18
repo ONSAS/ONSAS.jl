@@ -146,6 +146,7 @@ to be solved.
 * [`current_iteration`](@ref)
 * [`_next!`](@ref)
 * [`is_done`](@ref)
+* [`reset!`](@ref)
 
 """
 abstract type AbstractStructuralAnalysis end
@@ -176,7 +177,6 @@ current_iteration(a::AbstractStructuralAnalysis) = iteration_residuals(a.state)
 
 "Rests the `AbstractStructuralAnalysis` `sa` (sets the current time to the initial time)."
 function reset!(a::AbstractStructuralState) end
-
 
 # ================
 # Common methods
