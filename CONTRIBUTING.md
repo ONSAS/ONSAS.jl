@@ -12,7 +12,6 @@ Here you can find things about:
 
 If you want to contribute to a software package, but you're new to open source development you can check on [this page][contributing] to get started. Additionally, if you're interested in contributing to a Julia package, you may find the video [Open source, Julia packages, git, and GitHub][tim-git] to be a valuable resource. 
 
-
 ## Issues
 
 If you have found a bug or a problem with ONSAS.jl you can open an [issue][new-issue]. Try to include as much information about the problem as possible and preferably some code that can be copy-pasted to reproduce it (see [How to create a Minimal, Reproducible Example][create-rep-example]). If you can identify a fix for the bug you can submit a pull request without first opening an issue, see [Code changes](#code-changes).
@@ -43,6 +42,9 @@ A new `docs/build/` folder will be automatically created, to preview the docs op
 In case you encounter a bug or issue with ONSAS.jl, you can create an [issue][open-issues] by providing as much information as possible about the problem. Ideally, include some code that can be easily copied and pasted to replicate the issue (refer to [How to create a Minimal, Reproducible Example][create-rep-example]). If you're able to identify a solution for the bug, please create an [issue][open-issues] and then a [pull request][open-pull-request] solving it.  
 
 
+## Authors 
+
+The authorship of the code is based on the criteria defined by the [JOSS journal][joss]. The co-authors have collaborated in tasks such as: design, important new features development or extensive documentation contributions.
 
 
 [documenter]: https://juliadocs.github.io/Documenter.jl/
@@ -58,3 +60,4 @@ In case you encounter a bug or issue with ONSAS.jl, you can create an [issue][op
 [mailto-mvanzulli]: mailto:mvanzulli@fing.edu.uy
 [mailto-mforets]: mailto:mforets@gmail.com
 [slack-link]: https://app.slack.com/client/T04QWNG5T2Q/C04R6TMDV0R
+[joss]: https://joss.theoj.org/
