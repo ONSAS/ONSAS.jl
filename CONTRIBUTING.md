@@ -9,6 +9,7 @@ Here you can find things about:
  - [Reporting issues](#issues)
  - [Docs](#docs)
  - [Code changes](#code-changes)
+ - [Authors](#authors)
 
 If you want to contribute to a software package, but you're new to open source development you can check on [this page][contributing] to get started. Additionally, if you're interested in contributing to a Julia package, you may find the video [Open source, Julia packages, git, and GitHub][tim-git] to be a valuable resource. 
 
