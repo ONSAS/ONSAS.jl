@@ -17,7 +17,6 @@ Lⱼ = 1.0                   # Dimension in y of the box in m
 Lₖ = 1.0                   # Dimension in z of the box in m
 const RTOL = 1e-4          # Relative tolerance for tests
 const ATOL = 1e-10         # Absolute tolerance for tests
-const GENERATE_MSH = false # Boolean to generate the .msh form .geo
 # -----------------------------------------------------
 # Case 1 - Manufactured mesh and `NeoHookean` material
 #------------------------------------------------------
@@ -70,15 +69,20 @@ s₁_materials = StructuralMaterials(mat_dict)
 # Boundary conditions
 # -------------------------------
 # Fixed dofs
-bc₁ = FixedDofBoundaryCondition([:u], [1], "fixed-ux")
-bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed-uj")
-bc₃ = FixedDofBoundaryCondition([:u], [3], "fixed-uk")
+bc₁_label = "fixed-ux"
+bc₁ = FixedDofBoundaryCondition([:u], [1], bc₁_label)
+bc₂_label = "fixed-uj"
+bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
+bc₃_label = "fixed-uk"
+bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
 # Load
-bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], "compression")
+bc₄_label = "compression"
+bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], bc₄_label)
 # Assign this to faces 
 face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
 # Crete boundary conditions struct
 s₁_boundary_conditions = StructuralBoundaryConditions(face_bcs=face_bc)
+bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
 # -------------------------------
 # Structure
 # -------------------------------
@@ -158,7 +162,8 @@ function strain_energy_neo(𝔼::AbstractMatrix, K::Real, μ::Real)
     Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
 end
 params = [K, μ] # The order must be the same defined in the strain energy (splatting)
-neo_hookean_hyper = HyperElastic(params, strain_energy_neo, "neoHyper")
+mat_label = "neoHyper"
+neo_hookean_hyper = HyperElastic(params, strain_energy_neo, mat_label)
 # Material types without assigned elements
 mat_types = [neo_hookean_hyper]
 s_materials = StructuralMaterials(mat_types)
@@ -166,7 +171,7 @@ s_materials = StructuralMaterials(mat_types)
 # Boundary Conditions
 # -------------------------------
 # Redefine the load boundary condition 
-bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], "tension")
+bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], bc₄_label)
 # BoundaryConditions types without assigned node, feces and elements
 vbc = [bc₁, bc₂, bc₃, bc₄]
 s_boundary_conditions = StructuralBoundaryConditions(vbc)
@@ -174,18 +179,21 @@ s_boundary_conditions = StructuralBoundaryConditions(vbc)
 # Entities
 # -------------------------------
 # Entities types without assigned nodes, faces and elements
-vfaces = [TriangularFace("triangle")]
-velems = [Tetrahedron("tetrahedron")]
+faces_label = "triangle"
+elems_label = "tetrahedron"
+vfaces = [TriangularFace(faces_label)]
+velems = [Tetrahedron(elems_label)]
 s_entities = StructuralEntities(velems, vfaces)
+entities_labels = [faces_label, elems_label]
 # -------------------------------
 # Mesh
 # -------------------------------
-file_name_msh = joinpath(@__DIR__, "uniaxial_compression.msh")
-if GENERATE_MSH
-    file_name_geo = joinpath(@__DIR__, "uniaxial_compression.geo")
-    run(`gmsh -3 $file_name_geo -o $file_name_msh`)
-end
-msh_file = MshFile(file_name_msh)
+problem_name = "uniaxial_compression"
+labels = [mat_label, entities_labels, bc_labels]
+include("uniaxial_compression_mesh.jl")
+file_name_mesh = create_mesh(Lᵢ, Lⱼ, Lₖ, problem_name, labels)
+
+msh_file = MshFile(file_name_mesh)
 # -------------------------------
 # Structure
 # -------------------------------
