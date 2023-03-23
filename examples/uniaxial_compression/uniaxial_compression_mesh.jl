@@ -60,19 +60,28 @@ function create_mesh(
     gmsh.model.geo.addPlaneSurface([5], 5)
     gmsh.model.geo.addCurveLoop([-8, -7, -6, -5], 6)
     gmsh.model.geo.addPlaneSurface([6], 6)
+    gmsh.model.geo.addSurfaceLoop([5, 6, 2, 1, 4, 3], 1)
+
+    # Physical Surfaces
+    gmsh.model.addPhysicalGroup(2, [5], 1)
+    gmsh.model.addPhysicalGroup(2, [6], 2)
+    gmsh.model.addPhysicalGroup(2, [2], 3)
+    gmsh.model.addPhysicalGroup(2, [3], 4)
 
     #Volume
-    gmsh.model.geo.addSurfaceLoop([5, 6, 2, 1, 4, 3], 1)
     gmsh.model.geo.addVolume([1], 1)
+    gmsh.model.addPhysicalGroup(3, [1], 5)
+
 
     #Physical names
+    dim_surface = 2
     dim_vol = 3
-    dim_surface = 3
 
-    gmsh.model.setPhysicalName(dim_surface, 5, "_$(face_label)_$(ux_bc_label)")
-    gmsh.model.setPhysicalName(dim_surface, 6, "_$(face_label)_$(uj_bc_label)")
-    gmsh.model.setPhysicalName(dim_surface, 2, "_$(face_label)_$(uk_bc_label)")
-    gmsh.model.setPhysicalName(dim_vol, 1, "$(mat_label)_$(element_label)_")
+    gmsh.model.setPhysicalName(dim_surface, 1, "_$(face_label)_$(ux_bc_label)")
+    gmsh.model.setPhysicalName(dim_surface, 2, "_$(face_label)_$(uj_bc_label)")
+    gmsh.model.setPhysicalName(dim_surface, 3, "_$(face_label)_$(uk_bc_label)")
+    gmsh.model.setPhysicalName(dim_surface, 4, "_$(face_label)_$(load_label)")
+    gmsh.model.setPhysicalName(dim_vol, 5, "$(mat_label)_$(element_label)_")
 
     gmsh.model.geo.synchronize()
     gmsh.model.mesh.generate(dim_vol)
