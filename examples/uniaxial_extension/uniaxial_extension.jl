@@ -4,7 +4,7 @@
 # --------------------------------------------------------------------------
 using ONSAS.StaticAnalyses
 using ONSAS.Utils: eye
-using Test: @test
+using Test: @test, @testset
 using LinearAlgebra: det, tr
 using Roots: find_zero
 ## scalar parameters
