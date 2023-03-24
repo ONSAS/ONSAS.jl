@@ -4,18 +4,18 @@
 # --------------------------------------------------------------------------
 using ONSAS.StaticAnalyses
 using ONSAS.Utils: eye
-using Test: @test
+using Test: @test, @testset
 using LinearAlgebra: det, tr
 using Roots: find_zero
 ## scalar parameters
-E = 1.0                    # Young modulus in Pa
-ν = 0.3                    # Poisson's ratio
-p = 3                      # Tension load in Pa
-Lᵢ = 2.0                   # Dimension in x of the box in m 
-Lⱼ = 1.0                   # Dimension in y of the box in m
-Lₖ = 1.0                   # Dimension in z of the box in m
-const RTOL = 1e-4          # Relative tolerance for tests
-const GENERATE_MSH = false # Boolean to generate the .msh form .geo
+E = 1.0                          # Young modulus in Pa
+ν = 0.3                          # Poisson's ratio
+p = 3                            # Tension load in Pa
+Lᵢ = 2.0                         # Dimension in x of the box in m 
+Lⱼ = 1.0                         # Dimension in y of the box in m
+Lₖ = 1.0                         # Dimension in z of the box in m
+const RTOL = 1e-4                # Relative tolerance for tests
+include("uniaxial_cube_mesh.jl") # Mesh Cube with Gmsh.jl
 # -----------------------------------------------
 # Case 1 - Manufactured mesh and `SVK` material
 #------------------------------------------------
@@ -67,15 +67,20 @@ s₁_materials = StructuralMaterials(mat_dict)
 # Boundary conditions
 # -------------------------------
 # Fixed dofs
-bc₁ = FixedDofBoundaryCondition([:u], [1], "fixed-ux")
-bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed-uj")
-bc₃ = FixedDofBoundaryCondition([:u], [3], "fixed-uk")
+bc₁_label = "fixed-ux"
+bc₁ = FixedDofBoundaryCondition([:u], [1], bc₁_label)
+bc₂_label = "fixed-uj"
+bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
+bc₃_label = "fixed-uk"
+bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
 # Load
-bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], "tension")
+bc₄_label = "tension"
+bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], bc₄_label)
 # Assign this to faces 
 face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
 # Crete boundary conditions struct
 s₁_boundary_conditions = StructuralBoundaryConditions(face_bcs=face_bc)
+bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
 # -------------------------------
 # Structure
 # -------------------------------
@@ -135,7 +140,8 @@ numeric_λᵥ_case₁ = load_factors(sa₁)
 strain_energy_svk(𝔼::AbstractMatrix, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
 λ, G = lame_parameters(svk)
 params = [λ, G] # The order must be the same defined in the strain energy(splatting)
-svk_hyper_elastic = HyperElastic(params, strain_energy_svk, "svkHyper")
+mat_label = "svkHyper"
+svk_hyper_elastic = HyperElastic(params, strain_energy_svk, mat_label)
 # Material types without assigned elements
 mat_types = [svk_hyper_elastic]
 s_materials = StructuralMaterials(mat_types)
@@ -143,7 +149,7 @@ s_materials = StructuralMaterials(mat_types)
 # Boundary Conditions
 # -------------------------------
 # Redefine the load boundary condition 
-bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], "tension")
+bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], bc₄_label)
 # BoundaryConditions types without assigned node, feces and elements
 vbc = [bc₁, bc₂, bc₃, bc₄]
 s_boundary_conditions = StructuralBoundaryConditions(vbc)
@@ -151,18 +157,19 @@ s_boundary_conditions = StructuralBoundaryConditions(vbc)
 # Entities
 # -------------------------------
 # Entities types without assigned nodes, faces and elements
-vfaces = [TriangularFace("triangle")]
-velems = [Tetrahedron("tetrahedron")]
+faces_label = "triangle"
+elems_label = "tetrahedron"
+vfaces = [TriangularFace(faces_label)]
+velems = [Tetrahedron(elems_label)]
 s_entities = StructuralEntities(velems, vfaces)
+entities_labels = [faces_label, elems_label]
 # -------------------------------
 # Mesh
 # -------------------------------
-file_name_msh = joinpath(@__DIR__, "uniaxial_extension.msh")
-if GENERATE_MSH
-    file_name_geo = joinpath(@__DIR__, "uniaxial_extension.geo")
-    run(`gmsh -3 $file_name_geo -o $file_name_msh`)
-end
-msh_file = MshFile(file_name_msh)
+filename = "uniaxial_extension"
+labels = [mat_label, entities_labels, bc_labels]
+file_name_mesh = create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename)
+msh_file = MshFile(file_name_mesh)
 # -------------------------------
 # Structure
 # -------------------------------

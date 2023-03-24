@@ -17,6 +17,8 @@ Lⱼ = 1.0                   # Dimension in y of the box in m
 Lₖ = 1.0                   # Dimension in z of the box in m
 const RTOL = 1e-4          # Relative tolerance for tests
 const ATOL = 1e-10         # Absolute tolerance for tests
+# Mesh Cube with Gmsh.jl
+include("./../uniaxial_extension/uniaxial_cube_mesh.jl")
 # -----------------------------------------------------
 # Case 1 - Manufactured mesh and `NeoHookean` material
 #------------------------------------------------------
@@ -188,11 +190,9 @@ entities_labels = [faces_label, elems_label]
 # -------------------------------
 # Mesh
 # -------------------------------
-problem_name = "uniaxial_compression"
+filename = "uniaxial_compression"
 labels = [mat_label, entities_labels, bc_labels]
-include("uniaxial_compression_mesh.jl")
-file_name_mesh = create_mesh(Lᵢ, Lⱼ, Lₖ, problem_name, labels)
-
+file_name_mesh = create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename)
 msh_file = MshFile(file_name_mesh)
 # -------------------------------
 # Structure
@@ -204,9 +204,9 @@ reset!(sa₂)
 # -------------------------------
 # Numerical solution
 # -------------------------------
+states_sol_case₂ = solve(sa₂, nr)
 # Extract ℙ and ℂ from the last state using a random element
 e = rand(elements(s₂))
-states_sol_case₂ = solve(sa₂, nr)
 # Numeric solution for testing
 numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, numeric_uᵢ_case₂, _, _ = αβγ_numeric(states_sol_case₂)
 # Cosserat or second Piola-Kirchhoff stress tensor
@@ -248,7 +248,6 @@ analytic_ℙₖₖ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=
 #-----------------------------
 # Test boolean for CI  
 #-----------------------------
-
 @testset "Case 1 Uniaxial Compression Example" begin
     @test ℙᵢᵢ_analytic_case₁ ≈ ℙᵢᵢ_numeric_case₁ rtol = RTOL
     @test ℙᵢᵢ_analytic_case₁ ≈ ℙᵢᵢ_numeric_case₁ rtol = RTOL

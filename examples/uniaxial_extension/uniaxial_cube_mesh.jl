@@ -1,9 +1,10 @@
 using Gmsh
 
+"Creates a mesh for a cube with a loaded face and a fixed origin."
 function create_mesh(
     Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
-    problem_name::String,
     labels::Vector,
+    filename::String,
 )
 
     # Get Labels
@@ -19,8 +20,10 @@ function create_mesh(
 
     gmsh.initialize()
     gmsh.option.setNumber("General.Terminal", 1)
-    gmsh.model.add("$problem_name")
+    gmsh.model.add("$filename")
+
     ms = 0.5
+
     # Points
     # Face (x = 0)
     gmsh.model.geo.addPoint(0, 0, 0, ms, 1)
@@ -62,20 +65,19 @@ function create_mesh(
     gmsh.model.geo.addPlaneSurface([6], 6)
     gmsh.model.geo.addSurfaceLoop([5, 6, 2, 1, 4, 3], 1)
 
-    # Physical Surfaces
-    gmsh.model.addPhysicalGroup(2, [5], 1)
-    gmsh.model.addPhysicalGroup(2, [6], 2)
-    gmsh.model.addPhysicalGroup(2, [2], 3)
-    gmsh.model.addPhysicalGroup(2, [3], 4)
-
-    #Volume
-    gmsh.model.geo.addVolume([1], 1)
-    gmsh.model.addPhysicalGroup(3, [1], 5)
-
-
     #Physical names
     dim_surface = 2
     dim_vol = 3
+
+    # Physical Surfaces
+    gmsh.model.addPhysicalGroup(dim_surface, [5], 1)
+    gmsh.model.addPhysicalGroup(dim_surface, [6], 2)
+    gmsh.model.addPhysicalGroup(dim_surface, [2], 3)
+    gmsh.model.addPhysicalGroup(dim_surface, [3], 4)
+
+    #Volume
+    gmsh.model.geo.addVolume([1], 1)
+    gmsh.model.addPhysicalGroup(dim_vol, [1], 5)
 
     gmsh.model.setPhysicalName(dim_surface, 1, "_$(face_label)_$(ux_bc_label)")
     gmsh.model.setPhysicalName(dim_surface, 2, "_$(face_label)_$(uj_bc_label)")
@@ -85,7 +87,7 @@ function create_mesh(
 
     gmsh.model.geo.synchronize()
     gmsh.model.mesh.generate(dim_vol)
-    file_name_msh = joinpath(@__DIR__, "./$problem_name.msh")
+    file_name_msh = joinpath(@__DIR__, "./$filename.msh")
     gmsh.write(file_name_msh)
     gmsh.finalize()
 
