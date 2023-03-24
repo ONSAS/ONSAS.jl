@@ -175,8 +175,8 @@ current_state(a::AbstractStructuralAnalysis) = a.state
 "Returns the current displacements iteration state of the `AbstractStructuralAnalysis` `a`."
 current_iteration(a::AbstractStructuralAnalysis) = iteration_residuals(a.state)
 
-"Rests the `AbstractStructuralAnalysis` `a` (set the initial time or step to the current step)."
-reset!(a::AbstractStructuralAnalysis) = a.current_time = initial_time(a)
+"Rests the `AbstractStructuralAnalysis` `sa` (sets the current time to the initial time)."
+function reset!(a::AbstractStructuralState) end
 
 # ================
 # Common methods

@@ -72,11 +72,11 @@ tol_f = 1e-7;
 tol_u = 1e-7;
 max_iter = 100;
 tols = ConvergenceSettings(tol_u, tol_f, max_iter)
-nr = NewtonRaphson(tols)
+alg = NewtonRaphson(tols)
 # -------------------------------
 # Numerical solution
 # -------------------------------
-states_sol = solve(sa, nr)
+states_sol = solve(sa, alg)
 n₂_displacements = displacements(states_sol, n₂)
 numerical_uᵢ = n₂_displacements[1]
 numerical_uⱼ = n₂_displacements[2]
