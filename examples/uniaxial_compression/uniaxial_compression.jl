@@ -17,7 +17,8 @@ Lⱼ = 1.0                   # Dimension in y of the box in m
 Lₖ = 1.0                   # Dimension in z of the box in m
 const RTOL = 1e-4          # Relative tolerance for tests
 const ATOL = 1e-10         # Absolute tolerance for tests
-const GENERATE_MSH = false # Boolean to generate the .msh form .geo
+# Mesh Cube with Gmsh.jl
+include("./../uniaxial_extension/uniaxial_cube_mesh.jl")
 # -----------------------------------------------------
 # Case 1 - Manufactured mesh and `NeoHookean` material
 #------------------------------------------------------
@@ -70,15 +71,20 @@ s₁_materials = StructuralMaterials(mat_dict)
 # Boundary conditions
 # -------------------------------
 # Fixed dofs
-bc₁ = FixedDofBoundaryCondition([:u], [1], "fixed-ux")
-bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed-uj")
-bc₃ = FixedDofBoundaryCondition([:u], [3], "fixed-uk")
+bc₁_label = "fixed-ux"
+bc₁ = FixedDofBoundaryCondition([:u], [1], bc₁_label)
+bc₂_label = "fixed-uj"
+bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
+bc₃_label = "fixed-uk"
+bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
 # Load
-bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], "compression")
+bc₄_label = "compression"
+bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], bc₄_label)
 # Assign this to faces 
 face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
 # Crete boundary conditions struct
 s₁_boundary_conditions = StructuralBoundaryConditions(face_bcs=face_bc)
+bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
 # -------------------------------
 # Structure
 # -------------------------------
@@ -158,7 +164,8 @@ function strain_energy_neo(𝔼::AbstractMatrix, K::Real, μ::Real)
     Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
 end
 params = [K, μ] # The order must be the same defined in the strain energy (splatting)
-neo_hookean_hyper = HyperElastic(params, strain_energy_neo, "neoHyper")
+mat_label = "neoHyper"
+neo_hookean_hyper = HyperElastic(params, strain_energy_neo, mat_label)
 # Material types without assigned elements
 mat_types = [neo_hookean_hyper]
 s_materials = StructuralMaterials(mat_types)
@@ -166,7 +173,7 @@ s_materials = StructuralMaterials(mat_types)
 # Boundary Conditions
 # -------------------------------
 # Redefine the load boundary condition 
-bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], "tension")
+bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], bc₄_label)
 # BoundaryConditions types without assigned node, feces and elements
 vbc = [bc₁, bc₂, bc₃, bc₄]
 s_boundary_conditions = StructuralBoundaryConditions(vbc)
@@ -174,18 +181,19 @@ s_boundary_conditions = StructuralBoundaryConditions(vbc)
 # Entities
 # -------------------------------
 # Entities types without assigned nodes, faces and elements
-vfaces = [TriangularFace("triangle")]
-velems = [Tetrahedron("tetrahedron")]
+faces_label = "triangle"
+elems_label = "tetrahedron"
+vfaces = [TriangularFace(faces_label)]
+velems = [Tetrahedron(elems_label)]
 s_entities = StructuralEntities(velems, vfaces)
+entities_labels = [faces_label, elems_label]
 # -------------------------------
 # Mesh
 # -------------------------------
-file_name_msh = joinpath(@__DIR__, "uniaxial_compression.msh")
-if GENERATE_MSH
-    file_name_geo = joinpath(@__DIR__, "uniaxial_compression.geo")
-    run(`gmsh -3 $file_name_geo -o $file_name_msh`)
-end
-msh_file = MshFile(file_name_msh)
+filename = "uniaxial_compression"
+labels = [mat_label, entities_labels, bc_labels]
+file_name_mesh = create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename)
+msh_file = MshFile(file_name_mesh)
 # -------------------------------
 # Structure
 # -------------------------------
@@ -196,9 +204,9 @@ reset!(sa₂)
 # -------------------------------
 # Numerical solution
 # -------------------------------
+states_sol_case₂ = solve(sa₂, nr)
 # Extract ℙ and ℂ from the last state using a random element
 e = rand(elements(s₂))
-states_sol_case₂ = solve(sa₂, nr)
 # Numeric solution for testing
 numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, numeric_uᵢ_case₂, _, _ = αβγ_numeric(states_sol_case₂)
 # Cosserat or second Piola-Kirchhoff stress tensor
@@ -240,7 +248,6 @@ analytic_ℙₖₖ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=
 #-----------------------------
 # Test boolean for CI  
 #-----------------------------
-
 @testset "Case 1 Uniaxial Compression Example" begin
     @test ℙᵢᵢ_analytic_case₁ ≈ ℙᵢᵢ_numeric_case₁ rtol = RTOL
     @test ℙᵢᵢ_analytic_case₁ ≈ ℙᵢᵢ_numeric_case₁ rtol = RTOL
