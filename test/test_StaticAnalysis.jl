@@ -72,8 +72,6 @@ tol_u = 1e-10;
 max_iter = 100;
 tols = ConvergenceSettings(tol_f, tol_u, max_iter)
 nr = NewtonRaphson(tols)
-
-
 # Random static state
 ΔUᵏ = rand(2)
 Uᵏ = rand(9)
@@ -200,7 +198,7 @@ sa_init = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, initial_step=init_step)
     _next!(sa_init)
     @test is_done(sa_init)
 
-    # Reset
+    # Reset the analysis
     reset!(sa_init)
     @test current_time(sa_init) == first(λᵥ)
 end

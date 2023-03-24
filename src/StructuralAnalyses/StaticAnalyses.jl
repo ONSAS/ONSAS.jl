@@ -161,7 +161,7 @@ current_load_factor(sa::StaticAnalysis) = current_time(sa)
 "Jumps to the next current load factor defined in the `StaticAnalysis` `sa`."
 _next!(sa::StaticAnalysis) = sa.current_step += 1
 
-"Rests the current load factor of the `StaticAnalysis` `sa` (set to 1)."
+"Sets the current load factor of the `StaticAnalysis` `sa` to the initial load factor."
 reset!(sa::StaticAnalysis) = sa.current_step = 1
 
 #================#
