@@ -1,6 +1,7 @@
 name = "ONSAS"
 uuid = "7d8da659-23aa-453a-9a19-a3d1f6c795f5"
-authors = ["to be defined"]
+authors = ["M.C. Vanzulli  <mvanzullu@fing.edu.uy>", "jorgepz <jorgepz@fing.edu.uy>", "mforets  <mforets@gmail.com>"]
+
 version = "0.0.0"
 
 [deps]
