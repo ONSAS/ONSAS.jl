@@ -77,7 +77,7 @@ abstract type AbstractNode{dim,T} end
 coordinates(n::AbstractNode) = n.x
 
 "Returns each `AbstractNode` coordinates in a `Vector` of `Node`s vn."
-coordinates(vn::Vector{<:AbstractNode}) = coordinates.(vn)
+coordinates(vn::AbstractVector{<:AbstractNode}) = coordinates.(vn)
 
 "Returns the `AbstractNode` `n` dimension (1D, 2D or 3D)."
 dimension(::AbstractNode{dim}) where {dim} = dim
@@ -212,6 +212,7 @@ These methods is a hard contract and must be implemented to define a new element
 * [`label`](@ref)
 * [`nodes`](@ref)
 * [`weights`](@ref)
+* [`Base.:∈`](@ref)
 
 This method is a hard contract and for static analysis must be implemented to define a new element.
 * [`internal_forces`](@ref)
@@ -224,6 +225,9 @@ This method is a hard contract and for dynamic analysis must be implemented to d
 * label
 """
 abstract type AbstractElement{dim,T} <: AbstractEntity{dim,T} end
+
+"Returns true if a point `p` is inside the `AbstractElement` `e`."
+function Base.:∈(p::AbstractVector, ::AbstractElement) end
 
 "Returns the `AbstractElement` `e` cross_section."
 cross_section(e::AbstractElement) = e.cross_section

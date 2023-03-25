@@ -1,5 +1,6 @@
 using StaticArrays: SVector
 using LinearAlgebra: Symmetric, det, diagm
+using LazySets: VPolytope
 
 using ..Materials: AbstractMaterial, SVK, cosserat
 using ..Elements: AbstractElement, AbstractNode
@@ -192,3 +193,5 @@ function weights(t::Tetrahedron{3,T}, p::Point{dim,T}) where {dim,T}
   _interpolation_matrix(t) * [1,p...]
 end
 
+"Checks if a point `p` is inside a `Tetrahedron` element `t`."
+Base.:∈(p::Point, t::Tetrahedron) = p ∈ VPolytope(coordinates.(nodes(t)) |> collect)

@@ -134,9 +134,24 @@ numeric_λᵥ_case₁ = load_factors(sa₁)
 # -------------------------------
 # Interpolator
 #--------------------------------
-vec_points = coordinates.([first(nodes(s₁)), nodes(s₁)[2]])
-ph = PointEvalHandler(s₁_mesh, vec_points)
-disp_ph = displacements(states_sol_case₁, ph)
+# At the nodes
+nodes_to_interpolate = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
+vec_points = coordinates.(nodes_to_interpolate)
+ph_nodes = PointEvalHandler(s₁_mesh, vec_points)
+disp_ph_nodes = displacements(states_sol_case₁, ph)
+@test first(disp_ph_nodes) ≈ displacements(states_sol_case₁, first(nodes_to_interpolate))
+@test last(disp_ph_nodes) ≈ displacements(states_sol_case₁, last(nodes_to_interpolate))
+# At a generic point 
+points_to_interpolate = [[rand(1)[] * Lᵢ, rand(1)[] * Lⱼ, rand(1)[] * Lₖ] for i in 1:1]
+ph_not_nodes = PointEvalHandler(s₁_mesh, points_to_interpolate)
+disp_ph_nodes = displacements(states_sol_case₁, ph_not_nodes)
+rand_point_to_test = rand(points_to_interpolate)
+analytic_sol_uᵢ = (numeric_α_case₁ .- 1) * rand_point_to_test[1]
+analytic_sol_uⱼ = (numeric_β_case₁ .- 1) * rand_point_to_test[2]
+analytic_sol_uₖ = (numeric_γ_case₁ .- 1) * rand_point_to_test[3]
+@test analytic_sol_uᵢ ≈ disp_ph_nodes[1][1] atol = 1e-6
+@test analytic_sol_uⱼ ≈ disp_ph_nodes[1][2] atol = 1e-6
+@test analytic_sol_uₖ ≈ disp_ph_nodes[1][3] atol = 1e-6
 # Numerical solution at the interpolated nodes
 # -----------------------------------------------
 # Case 2 - GMSH mesh and `HyperElastic` material

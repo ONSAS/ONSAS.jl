@@ -48,26 +48,22 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) whe
     # weights using the shape function of the element 
     for e in elements(mesh)
 
+        e_nodes = nodes(e)
+
         # If the points have been already evaluated break out
         length(interpolated_vec_points_indexes) == length(vec_points) && break
 
-        element_coords = coordinates.(nodes(e))
-        min = first(minimum(element_coords, dims=1))
-        max = first(maximum(element_coords, dims=1))
-
-
         for (point_index, p) in enumerate(vec_points)
-            # If point is outside the box check and the element check the next point
-            all(p .>= min) && all(p .<= max) || continue
 
-            # Check if the point is inside the element
-            # p ⊄ e || continue
+            # If the point has been already evaluated skip it
+            point_index ∈ interpolated_vec_points_indexes && continue
+            # If the point is not inside the element skip it
+            p ∉ e && continue
 
-            # If p ⊄ e then compute weights
             weights_p = weights(e, p)
 
             # Store the weights for each node
-            node_to_weights_p = dictionary([node => weights_p[node_index] for (node_index, node) in enumerate(nodes(e))])
+            node_to_weights_p = dictionary([node => weights_p[node_index] for (node_index, node) in enumerate(e_nodes)])
             point_interpolators[point_index] = node_to_weights_p
 
             # Add the point to the interpolated points
