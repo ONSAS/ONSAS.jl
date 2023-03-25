@@ -263,7 +263,7 @@ function stress(e::AbstractElement, args...; kwargs...) end
 
 "Returns the weights to interpolate a scalar field at the `Node`s `Dof` corresponding 
 to the `AbstractElement` `e`."
-function weights(e::AbstractElement, p::AbstractVector{<:Real}, args...; kwargs...) end
+function weights(e::AbstractElement, p::Any, args...; kwargs...) end
 
 #=================================#
 # AbstractElement implementations #

@@ -8,6 +8,8 @@ using ..Utils: eye, _vogit
 
 import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress, weights
 
+const Point{dim,T} = Union{<:AbstractVector{T},<:NTuple{dim,T}} where {dim,T<:Real}
+
 export Tetrahedron, volume, reference_coordinates
 
 """
@@ -156,37 +158,37 @@ function _shape_functions_derivatives(::Tetrahedron, order =1)
   return d
 end
 
-"Returns the interpolation weights of a point `p` in a `Tetrahedron` element `t`."
-function weights(t::Tetrahedron, p::AbstractVector{<:Real})
-  
-  @assert length(p) == 3 "The point $p must be a 3D vector."
-    
-  𝑥₁, 𝑦₁, 𝑧₁ = coordinates.(nodes(t))[1]
-  𝑥₂, 𝑦₂, 𝑧₂ = coordinates.(nodes(t))[2]
-  𝑥₃, 𝑦₃, 𝑧₃ = coordinates.(nodes(t))[3]
-  𝑥₄, 𝑦₄, 𝑧₄ = coordinates.(nodes(t))[4]
-  
-  𝐴 = [ 1 𝑥₁  𝑦₁  𝑧₁
-        1  𝑥₂  𝑦₂  𝑧₂
-        1  𝑥₃  𝑦₃  𝑧₃
-        1  𝑥₄  𝑦₄  𝑧₄ ]  
+"Returns the interpolation matrix `𝑀` for a `Tetrahedron` element `t`."
+function _interpolation_matrix(t::Tetrahedron{3,T}) where {T <: Real}
+  # Node coordinates matrix 𝐴
+  𝐴 = Matrix{T}(undef, 4, 4)
+
+  for (node_index, node) in enumerate(nodes(t))
+    𝐴[node_index, 1] = ones(T,1)[]
+    𝐴[node_index, 2:4] = coordinates(node)
+  end
 
   # 𝑀 matrix 
   𝑀 = zeros(4,4)
   V = det(𝐴) / 6.0
 
-  # I indexes
+  # I and J indexes
   I_indexes = [1,2,3,4]
   J_indexes = [1,2,3,4]
 
   for I in 1:4 
     for J in 1:4
+      # Compute minors
       Â = det(𝐴[deleteat!(copy(I_indexes),I), deleteat!(copy(J_indexes),J)]) 
       𝑀[I,J] = Â / (6 * V) * (-1)^(I+J)
     end
   end
+  return 𝑀
+end
 
-  return 𝑀*[1,p...]
-
+"Returns the interpolation weights of a point `p` in a `Tetrahedron` element `t`."
+function weights(t::Tetrahedron{3,T}, p::Point{dim,T}) where {dim,T}
+  @assert length(p) == 3 "The point $p must be a 3D vector."
+  _interpolation_matrix(t) * [1,p...]
 end
 

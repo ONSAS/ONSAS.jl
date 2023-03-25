@@ -56,11 +56,12 @@ push!(s₁_mesh, vec_elems)
 # Dofs
 #--------------------------------
 dof_dim = 3
-add!(s₁_mesh, :u, dof_dim)
-Main.@infiltrate
-
-PointEvalHandler(s₁_mesh, [:u], [[0.0, 0.0, 0.0]])
-
+dof_u_symbol = :u
+add!(s₁_mesh, dof_u_symbol, dof_dim)
+# -------------------------------
+# Interpolator
+#--------------------------------
+ph = PointEvalHandler(s₁_mesh, [dof_u_symbol], coordinates.([first(vec_nodes)]))
 # -------------------------------
 # Materials
 # -------------------------------
@@ -134,6 +135,9 @@ e = rand(elements(s₁))
 ℂ_numeric_case₁ = last(strain(states_sol_case₁, e))
 # Load factors 
 numeric_λᵥ_case₁ = load_factors(sa₁)
+# Numerical solution at the interpolated nodes
+Main.@infiltrate
+length(ph[dof_u_symbol] .* displacements(states_sol_case₁))
 # -----------------------------------------------
 # Case 2 - GMSH mesh and `HyperElastic` material
 #------------------------------------------------
