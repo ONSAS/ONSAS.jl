@@ -21,8 +21,7 @@ export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
 export AbstractEntity, nodes, coordinates, create_entity
 export AbstractFace, normal_direction
-export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
-    local_dofs, nodes, strain, stress
+export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress, weights
 
 # ========================
 # Degree of freedom (Dof)
@@ -201,18 +200,22 @@ An `AbstractElement` object facilitates the process of evaluating:
     - The internal forces vector and its tangent matrices.
     - The inertial forces vector and its tangent matrices.
     - The mechanical stresses and strains.
+
 **Common methods:**
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
-* [`local_dofs`](@ref)
-This method is a hard contract and must be implemented to define a new element.
+* [`local_dofs`](@ref) 
+
+These methods is a hard contract and must be implemented to define a new element.
 * [`local_dof_symbol`](@ref)
 * [`label`](@ref)
-This method is a hard contract and must be implemented to define a new element.
 * [`nodes`](@ref)
+* [`weights`](@ref)
+
 This method is a hard contract and for static analysis must be implemented to define a new element.
 * [`internal_forces`](@ref)
+
 This method is a hard contract and for dynamic analysis must be implemented to define a new element.
 * [`inertial_forces`](@ref)
 
@@ -257,6 +260,10 @@ function strain(e::AbstractElement, args...; kwargs...) end
 
 "Returns the `AbstractElement` `e` stress."
 function stress(e::AbstractElement, args...; kwargs...) end
+
+"Returns the weights to interpolate a scalar field at the `Node`s `Dof` corresponding 
+to the `AbstractElement` `e`."
+function weights(e::AbstractElement, p::AbstractVector{<:Real}, args...; kwargs...) end
 
 #=================================#
 # AbstractElement implementations #

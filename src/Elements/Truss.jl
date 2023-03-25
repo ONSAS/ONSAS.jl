@@ -14,6 +14,10 @@ A `Truss` represents an element composed by two `Node`s that transmits axial for
 - `nodes`          -- stores the truss nodes.
 - `cross_sections` -- stores the truss cross-section properties.
 - `label`          -- stores the truss label.
+
+### References
+See [[ANLE]](@ref).
+
 """
 struct Truss{dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection} <: AbstractElement{dim,T}
     nodes::SVector{2,N}

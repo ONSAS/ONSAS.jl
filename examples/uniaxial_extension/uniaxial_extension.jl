@@ -57,6 +57,10 @@ push!(s₁_mesh, vec_elems)
 #--------------------------------
 dof_dim = 3
 add!(s₁_mesh, :u, dof_dim)
+Main.@infiltrate
+
+PointEvalHandler(s₁_mesh, [:u], [[0.0, 0.0, 0.0]])
+
 # -------------------------------
 # Materials
 # -------------------------------

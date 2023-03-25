@@ -10,8 +10,12 @@ The aim is to provide an Open Nonlinear Structural Analysis Solver. It consists 
 
 ```@contents
 Pages = [
-    "lib/interfaces.md"
+    "lib/references.md"
 ]
 Depth = 2
 ```
+
+## References
+
+See the [References](@ref refs_page) section.
 

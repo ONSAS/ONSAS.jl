@@ -111,10 +111,10 @@ end
 A `StaticAnalysis` is a collection of parameters for defining the static analysis of the structure. 
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 ### Fields:
-- `s`             -- Stores the structure to be analyzed.
-- `state`         -- Stores the structural state.
-- `λᵥ`            -- Stores the load factors vector of the analysis
-- `current_step`  -- Stores the current load factor step
+- `s`             -- stores the structure to be analyzed.
+- `state`         -- stores the structural state.
+- `λᵥ`            -- stores the load factors vector of the analysis
+- `current_step`  -- stores the current load factor step
 """
 mutable struct StaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <: AbstractStructuralAnalysis
     s::S

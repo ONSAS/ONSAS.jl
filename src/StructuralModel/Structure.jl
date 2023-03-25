@@ -7,11 +7,11 @@ using ..StructuralModel: AbstractStructure, StructuralMaterials, StructuralBound
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
 ### Fields:
-- `mesh`      -- Stores the structural mesh. 
-- `materials` -- Stores the structural materials of the structure. 
-- `elements`  -- Stores the structural elements of the structure.
-- `bcs`       -- Stores the structural boundary conditions of the structure.
-- `free_dofs` -- Stores the free degrees of freedom.
+- `mesh`      -- stores the structural mesh. 
+- `materials` -- stores the structural materials of the structure. 
+- `elements`  -- stores the structural elements of the structure.
+- `bcs`       -- stores the structural boundary conditions of the structure.
+- `free_dofs` -- stores the free degrees of freedom.
 """
 struct Structure{dim,MESH,MAT,E,NB,LB} <: AbstractStructure{dim,MAT,E}
     mesh::MESH
