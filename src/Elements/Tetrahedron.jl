@@ -176,9 +176,9 @@ function _interpolation_matrix(t::Tetrahedron{3,T}) where {T <: Real}
   I_indexes = [1,2,3,4]
   J_indexes = [1,2,3,4]
 
+  # Compute minors
   for I in 1:4 
     for J in 1:4
-      # Compute minors
       Â = det(𝐴[deleteat!(copy(I_indexes),I), deleteat!(copy(J_indexes),J)]) 
       𝑀[I,J] = Â / (6 * V) * (-1)^(I+J)
     end

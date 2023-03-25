@@ -13,9 +13,9 @@ using Reexport: @reexport
 using ..Utils: row_vector, label
 
 import ..Elements: dofs, nodes
-import ..Meshes: num_dofs, elements, num_elements, num_nodes
+import ..Meshes: mesh, num_dofs, elements, num_elements, num_nodes
 
-export Structure, mesh, materials, boundary_conditions, num_free_dofs, free_dofs
+export Structure, materials, boundary_conditions, num_free_dofs, free_dofs
 
 
 # Structural properties 
