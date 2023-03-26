@@ -5,6 +5,8 @@ using Test: @testset, @test
 using ONSAS.Meshes
 using Dictionaries: dictionary
 
+const RTOL = 1e-5
+
 @testset "ONSAS.Meshes.Mesh Node + Trusses" begin
 
     # Mesh considering only nodes
@@ -74,7 +76,7 @@ end
 end
 
 
-@testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron " begin
+@testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron" begin
 
     Lᵢ = rand(1)[] * 20
     Lⱼ = rand(1)[] * 20
@@ -143,6 +145,6 @@ end
     node_2_weights = node_to_weights(interpol)
     node_to_interpolate_p₉ = first(node_2_weights)
     node_value_weighted = [weight * vec_linear_scalar_field[node] for (node, weight) in pairs(node_to_interpolate_p₉)]
-    @test linear_scalar_field(p₉...) == reduce(+, node_value_weighted)
+    @test linear_scalar_field(p₉...) ≈ reduce(+, node_value_weighted) rtol = RTOL
 
 end

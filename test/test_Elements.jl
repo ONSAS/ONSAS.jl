@@ -294,11 +294,4 @@ end
     interpolated_solution = dot(sol_at_tetra_nodes, weights(tetra, p))
     @test interpolated_solution ≈ exact_solution rtol = RTOL
 
-
-
-
-
-
-
-
 end
