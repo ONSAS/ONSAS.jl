@@ -9,7 +9,7 @@ using ..Utils: eye, _vogit
 
 import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress, weights
 
-const Point{dim,T} = Union{<:AbstractVector{T},<:NTuple{dim,T}} where {dim,T<:Real}
+const Point{dim,T} = Union{AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
 
 export Tetrahedron, volume, reference_coordinates
 
@@ -188,10 +188,13 @@ function _interpolation_matrix(t::Tetrahedron{3,T}) where {T <: Real}
 end
 
 "Returns the interpolation weights of a point `p` in a `Tetrahedron` element `t`."
-function weights(t::Tetrahedron{3,T}, p::Point{dim,T}) where {dim,T}
+function weights(t::Tetrahedron{3,T}, p::Point{dim,P}) where {T<:Real,dim,P<:Real}
   @assert length(p) == 3 "The point $p must be a 3D vector."
   _interpolation_matrix(t) * [1,p...]
 end
 
 "Checks if a point `p` is inside a `Tetrahedron` element `t`."
-Base.:∈(p::Point, t::Tetrahedron) = p ∈ VPolytope(coordinates.(nodes(t)) |> collect)
+Base.:∈(p::AbstractVector, t::Tetrahedron) = p ∈ VPolytope(coordinates.(nodes(t)) |> collect)
+
+"Checks if a point `p` is inside a `Tetrahedron` element `t`."
+Base.:∈(p::NTuple{3}, t::Tetrahedron) = collect(p) ∈ VPolytope(coordinates.(nodes(t)) |> collect)

@@ -2,12 +2,12 @@ using Reexport: @reexport
 
 using Dictionaries: Dictionary
 using ..Meshes: AbstractMesh, elements
-using ..Elements: coordinates, index, weights
+using ..Elements: AbstractNode, AbstractElement, coordinates, index, weights
 
-const Point{T} = Union{<:AbstractVector{T},<:NTuple{dim,T}} where {dim,T<:Real}
+const Point{dim,T} = Union{AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
 
 export PointEvalHandler, points, interpolator, mesh
-
+export PointsInterpolator, node_to_weights, points_to_element
 
 """ PointEvalHandler struct.
 A `PointEvalHandler` facilitates the process of evaluating a solution at a given vector of points 
@@ -32,6 +32,24 @@ mesh(peh::PointEvalHandler) = peh.mesh
 "Returns the `Interpolator` used to evaluate the solution."
 interpolator(peh::PointEvalHandler) = peh.interpolator
 
+"""PointsInterpolator struct.
+A `PointsInterpolator` struct stores the weights nodes and elements needed to interpolate the solution at a given point.
+The index of each `Vector` is the index in the `Vector` of `Point`s.
+### Fields:
+- `node_to_weights` -- stores a `Dictionary` with `Node`s as keys and the corresponding weights as values.
+- `point_to_element` -- stores the `Element` where the point is located.
+"""
+struct PointsInterpolator{N<:AbstractNode,T,E<:AbstractElement}
+    node_to_weights::Vector{Dictionary{N,T}}
+    points_to_element::Vector{E}
+end
+
+"Returns a `Vector` that maps the weight corresponding to each `Node`."
+node_to_weights(points_interpolator::PointsInterpolator) = points_interpolator.node_to_weights
+
+"Returns a `Vector` that maps the `Element` where each `Point` is located."
+points_to_element(points_interpolator::PointsInterpolator) = points_interpolator.points_to_element
+
 "Constructor of a `PointEvalHandler` from a `Mesh` , the `Dof` symbols into a `Vector`and a `AbstractVector` of `Point`s . "
 function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) where {T,P<:Point{T}}
 
@@ -43,6 +61,9 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) whe
     # Init a list to store the indexes of the points that have been already interpolated
     interpolated_vec_points_indexes = Int[]
     sizehint!(interpolated_vec_points_indexes, length(vec_points))
+
+    # Init a list to store the elements where the points are located
+    point_to_element = Vector{AbstractElement}(undef, length(vec_points))
 
     # Check for every element which points are inside the element and compute the 
     # weights using the shape function of the element 
@@ -68,12 +89,15 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) whe
 
             # Add the point to the interpolated points
             push!(interpolated_vec_points_indexes, point_index)
+
+            # Add the element
+            point_to_element[point_index] = e
         end
 
     end
 
     @assert length(interpolated_vec_points_indexes) == length(vec_points) "There are points outside the mesh."
 
-    return PointEvalHandler(vec_points, mesh, point_interpolators)
+    return PointEvalHandler(vec_points, mesh, PointsInterpolator(point_interpolators, point_to_element))
 end
 

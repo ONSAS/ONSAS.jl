@@ -55,8 +55,6 @@ for f in [:stress, :strain]
 
 end
 
-# for f in [:displacements, :internal_forces, :external_forces]
-
 "Returns the displacements solution  at the `PointEvalHandler` `peh`."
 function displacements(st_sol::StatesSolution, peh::PointEvalHandler)
 
@@ -71,6 +69,46 @@ function displacements(st_sol::StatesSolution, peh::PointEvalHandler)
 
         # Compute the first node contribution and the sum up
         node_values = [weight * displacements(st_sol, node) for (node, weight) in pairs(interpolator_p)]
+        p_values = reduce(+, node_values)
+        sol_points[index_p] = p_values
+    end
+    return sol_points
+end
+
+"Returns the internal forces solution  at the `PointEvalHandler` `peh`."
+function internal_forces(st_sol::StatesSolution, peh::PointEvalHandler)
+
+    interpolators = interpolator(peh)
+    vec_points = points(peh)
+    num_points = length(vec_points)
+
+    sol_points = Vector{Vector{Vector{Float64}}}(undef, num_points)
+
+    for index_p in 1:num_points
+        interpolator_p = interpolators[index_p]
+
+        # Compute the first node contribution and the sum up
+        node_values = [weight * internal_forces(st_sol, node) for (node, weight) in pairs(interpolator_p)]
+        p_values = reduce(+, node_values)
+        sol_points[index_p] = p_values
+    end
+    return sol_points
+end
+
+"Returns the external forces solution  at the `PointEvalHandler` `peh`."
+function external_forces(st_sol::StatesSolution, peh::PointEvalHandler)
+
+    interpolators = interpolator(peh)
+    vec_points = points(peh)
+    num_points = length(vec_points)
+
+    sol_points = Vector{Vector{Vector{Float64}}}(undef, num_points)
+
+    for index_p in 1:num_points
+        interpolator_p = interpolators[index_p]
+
+        # Compute the first node contribution and the sum up
+        node_values = [weight * external_forces(st_sol, node) for (node, weight) in pairs(interpolator_p)]
         p_values = reduce(+, node_values)
         sol_points[index_p] = p_values
     end
