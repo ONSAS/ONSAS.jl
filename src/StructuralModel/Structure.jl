@@ -3,6 +3,9 @@ using ..Meshes: AbstractMesh, Mesh, MshFile
 using ..BoundaryConditions: FixedDofBoundaryCondition, _apply
 using ..StructuralModel: AbstractStructure, StructuralMaterials, StructuralBoundaryConditions, StructuralEntities
 
+const Point{dim,T} = Union{AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
+
+import ..Meshes: PointEvalHandler
 
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
@@ -89,3 +92,7 @@ function Structure(msh_file::MshFile,
 
     return Structure(mesh, materials, bcs)
 end
+
+"Constructor of a `PointEvalHandler` from a `Structure` and a `AbstractVector` of `Point`s ."
+PointEvalHandler(s::Structure, vec_points::AbstractVector{P}) where {T,P<:Point{T}} =
+    PointEvalHandler(mesh(s), vec_points)
