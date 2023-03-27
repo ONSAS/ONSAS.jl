@@ -198,7 +198,7 @@ msh_file = MshFile(file_name_mesh)
 # -------------------------------
 s₂ = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
 # Final load factor
-sa₂ = StaticAnalysis(s₂, NSTEPS=NSTEPS)
+sa₂ = StaticAnalysis(s₂, load_factors(sa₁))
 reset!(sa₂)
 # -------------------------------
 # Numerical solution
