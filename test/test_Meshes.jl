@@ -3,6 +3,9 @@
 #######################
 using Test: @testset, @test
 using ONSAS.Meshes
+using Dictionaries: dictionary
+
+const RTOL = 1e-5
 
 @testset "ONSAS.Meshes.Mesh Node + Trusses" begin
 
@@ -52,21 +55,6 @@ using ONSAS.Meshes
 end
 
 
-@testset "ONSAS.Meshes.Mesh Tetrahedron + TriangularFace" begin
-
-    # Mesh considering only nodes
-    # Nodes
-    L = 1
-    n₁ = Node(0, 0, 0)
-    n₂ = Node(L, L, L)
-    n₃ = Node(2L, 0, 5L)
-    n₄ = Node(2L, 0, 5L)
-    vec_nodes = [n₁, n₂, n₃, n₄]
-
-    ## Elements
-    d = 0.2
-end
-
 @testset "ONSAS.Meshes.GMSH " begin
 
     file_name = joinpath(@__DIR__, "..", "examples", "uniaxial_extension", "uniaxial_extension.msh")
@@ -84,5 +72,79 @@ end
     @test material_label(msh_file, entity_index) == "svkHyper"
     @test bc_label(msh_file, entity_index) == ""
     @test physical_index(msh_file, entity_index) == 5
+
+end
+
+
+@testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron" begin
+
+    Lᵢ = rand(1)[] * 20
+    Lⱼ = rand(1)[] * 20
+    Lₖ = rand(1)[] * 20
+
+    # -------------------------------
+    # Mesh
+    #--------------------------------
+    n₁ = Node(0.0, 0.0, 0.0)
+    n₂ = Node(0.0, 0.0, Lₖ)
+    n₃ = Node(0.0, Lⱼ, Lₖ)
+    n₄ = Node(0.0, Lⱼ, 0.0)
+    n₅ = Node(Lᵢ, 0.0, 0.0)
+    n₆ = Node(Lᵢ, 0.0, Lₖ)
+    n₇ = Node(Lᵢ, Lⱼ, Lₖ)
+    n₈ = Node(Lᵢ, Lⱼ, 0.0)
+    vec_nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
+    s_mesh = Mesh(vec_nodes)
+    ## Faces 
+    f₁ = TriangularFace(n₅, n₈, n₆)
+    f₂ = TriangularFace(n₆, n₈, n₇)
+    f₃ = TriangularFace(n₄, n₁, n₂)
+    f₄ = TriangularFace(n₄, n₂, n₃)
+    f₅ = TriangularFace(n₆, n₂, n₁)
+    f₆ = TriangularFace(n₆, n₁, n₅)
+    f₇ = TriangularFace(n₁, n₄, n₅)
+    f₈ = TriangularFace(n₄, n₈, n₅)
+    vec_faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
+    push!(s_mesh, vec_faces)
+    ## Elements 
+    t₁ = Tetrahedron(n₁, n₄, n₂, n₆)
+    t₂ = Tetrahedron(n₆, n₂, n₃, n₄)
+    t₃ = Tetrahedron(n₄, n₃, n₆, n₇)
+    t₄ = Tetrahedron(n₄, n₁, n₅, n₆)
+    t₅ = Tetrahedron(n₄, n₆, n₅, n₈)
+    t₆ = Tetrahedron(n₄, n₇, n₆, n₈)
+    vec_elems = [t₁, t₂, t₃, t₄, t₅, t₆]
+    push!(s_mesh, vec_elems)
+    # -----------------------b--------
+    # Dofs
+    #--------------------------------
+    dof_dim = 3
+    add!(s_mesh, :u, dof_dim)
+
+    # Interpolator
+    #--------------------------------
+    # At the nodes
+    nodes_to_interpolate = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
+    vec_points = coordinates.(nodes_to_interpolate)
+    ph_nodes = PointEvalHandler(s_mesh, vec_points)
+    @test mesh(ph_nodes) == s_mesh
+    @test points(ph_nodes) == vec_points
+    point_elements = points_to_element(interpolator(ph_nodes))
+
+    # If the point is at two elements then the first element will 
+    # be reported 
+    @test all([p ∈ point_elements[index_p] for (index_p, p) in enumerate(points(ph_nodes))])
+
+    # Test interpolation for a linear scalar field 
+    linear_scalar_field(x, y, z) = 10x - 2y + 3z + 12
+    vec_linear_scalar_field = dictionary([n => linear_scalar_field(coordinates(n)...) for n in nodes_to_interpolate])
+
+    p₉ = (rand(1)[] * Lᵢ, rand(1)[] * Lⱼ, rand(1)[] * Lₖ)
+    ph_rand = PointEvalHandler(s_mesh, [p₉])
+    interpol = interpolator(ph_rand)
+    node_2_weights = node_to_weights(interpol)
+    node_to_interpolate_p₉ = first(node_2_weights)
+    node_value_weighted = [weight * vec_linear_scalar_field[node] for (node, weight) in pairs(node_to_interpolate_p₉)]
+    @test linear_scalar_field(p₉...) ≈ reduce(+, node_value_weighted) rtol = RTOL
 
 end

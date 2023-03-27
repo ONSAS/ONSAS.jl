@@ -21,8 +21,7 @@ export Dof, add!
 export AbstractNode, dimension, dofs, coordinates
 export AbstractEntity, nodes, coordinates, create_entity
 export AbstractFace, normal_direction
-export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
-    local_dofs, nodes, strain, stress
+export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress, weights
 
 # ========================
 # Degree of freedom (Dof)
@@ -78,7 +77,7 @@ abstract type AbstractNode{dim,T} end
 coordinates(n::AbstractNode) = n.x
 
 "Returns each `AbstractNode` coordinates in a `Vector` of `Node`s vn."
-coordinates(vn::Vector{<:AbstractNode}) = coordinates.(vn)
+coordinates(vn::AbstractVector{<:AbstractNode}) = coordinates.(vn)
 
 "Returns the `AbstractNode` `n` dimension (1D, 2D or 3D)."
 dimension(::AbstractNode{dim}) where {dim} = dim
@@ -201,18 +200,23 @@ An `AbstractElement` object facilitates the process of evaluating:
     - The internal forces vector and its tangent matrices.
     - The inertial forces vector and its tangent matrices.
     - The mechanical stresses and strains.
+
 **Common methods:**
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
-* [`local_dofs`](@ref)
-This method is a hard contract and must be implemented to define a new element.
+* [`local_dofs`](@ref) 
+
+These methods is a hard contract and must be implemented to define a new element.
 * [`local_dof_symbol`](@ref)
 * [`label`](@ref)
-This method is a hard contract and must be implemented to define a new element.
 * [`nodes`](@ref)
+* [`weights`](@ref)
+* [`Base.:∈`](@ref)
+
 This method is a hard contract and for static analysis must be implemented to define a new element.
 * [`internal_forces`](@ref)
+
 This method is a hard contract and for dynamic analysis must be implemented to define a new element.
 * [`inertial_forces`](@ref)
 
@@ -221,6 +225,9 @@ This method is a hard contract and for dynamic analysis must be implemented to d
 * label
 """
 abstract type AbstractElement{dim,T} <: AbstractEntity{dim,T} end
+
+"Returns true if a point `p` is inside the `AbstractElement` `e`."
+function Base.:∈(p::AbstractVector, ::AbstractElement) end
 
 "Returns the `AbstractElement` `e` cross_section."
 cross_section(e::AbstractElement) = e.cross_section
@@ -257,6 +264,10 @@ function strain(e::AbstractElement, args...; kwargs...) end
 
 "Returns the `AbstractElement` `e` stress."
 function stress(e::AbstractElement, args...; kwargs...) end
+
+"Returns the weights to interpolate a scalar field at the `Node`s `Dof` corresponding 
+to the `AbstractElement` `e`."
+function weights(e::AbstractElement, p::AbstractVector) end
 
 #=================================#
 # AbstractElement implementations #

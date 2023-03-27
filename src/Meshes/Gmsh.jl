@@ -15,12 +15,12 @@ export MshFile, connectivity, material_label, entity_label, bc_label, physical_i
 """ MshFile.
 A `MshFile` is a collection of `Node`s. Also the filename   
 ### Fields:
-- `filename`              -- Stores the .geo file name.
-- `vec_nodes`              -- Stores the `Nodes`s of the mesh.
-- `connectivity`          -- Stores a `Vector` of `Vector` with the node indexes.
-- `material_labels`       -- Stores a `Vector` of `String`s with the material type labels defined in the .geo.
-- `element_face_labels`   -- Stores a `Vector` of `String`s with the face and element type labels defined in the .geo.
-- `bc_labels`             -- Stores a `Vector` of `String`s with the boundary condition type labels defined in the .geo.
+- `filename`            -- stores the .geo file name.
+- `vec_nodes`           -- stores the `Nodes`s of the mesh.
+- `connectivity`        -- stores a `Vector` of `Vector` with the node indexes.
+- `material_labels`     -- stores a `Vector` of `String`s with the material type labels defined in the .geo.
+- `element_face_labels` -- stores a `Vector` of `String`s with the face and element type labels defined in the .geo.
+- `bc_labels`           -- stores a `Vector` of `String`s with the boundary condition type labels defined in the .geo.
 """
 struct MshFile{dim,T,S,I1<:Integer,I2<:Integer}
     filename::String

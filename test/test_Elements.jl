@@ -2,7 +2,7 @@
 # Elements module tests #
 #########################
 using Test: @testset, @test
-using LinearAlgebra: norm
+using LinearAlgebra: norm, dot
 using StaticArrays: SVector
 using ONSAS.Elements
 
@@ -278,5 +278,20 @@ end
     # create entity for gmsh
     empty_tetrahedron = Tetrahedron(tetra_label)
     new_tetra = create_entity(empty_tetrahedron, [n₁, n₂, n₃, n₄])
+
+    # Test weights for interpolation
+    # at the nodes should be one
+    w₁ = weights(tetra, coordinates(n₁))
+    w₄ = weights(tetra, coordinates(n₄))
+    @test w₁ ≈ [1.0, 0.0, 0.0, 0.0] rtol = RTOL
+    @test w₄ ≈ [0.0, 0.0, 0.0, 1.0] rtol = RTOL
+
+    # The interpolation for a linear scalar field shloud be exact 
+    scalar_linear_field(x, y, z) = 10x + 20y + 30z + 40
+    sol_at_tetra_nodes = [scalar_linear_field(coordinates(n)...) for n in nodes(tetra)]
+    p = [0.5, 0.5, 0.5]
+    exact_solution = scalar_linear_field(p...)
+    interpolated_solution = dot(sol_at_tetra_nodes, weights(tetra, p))
+    @test interpolated_solution ≈ exact_solution rtol = RTOL
 
 end

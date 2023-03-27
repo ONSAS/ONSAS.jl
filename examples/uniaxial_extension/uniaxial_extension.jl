@@ -56,7 +56,8 @@ push!(s₁_mesh, vec_elems)
 # Dofs
 #--------------------------------
 dof_dim = 3
-add!(s₁_mesh, :u, dof_dim)
+dof_u_symbol = :u
+add!(s₁_mesh, dof_u_symbol, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------
@@ -108,15 +109,13 @@ function αβγ_numeric(states_sol::AbstractSolution)
     s = structure(analysis(states_sol))
     # Node at (Lᵢ, Lⱼ, Lₖ)
     n₇ = nodes(s)[7]
-    displacements_n₇ = displacements(states_sol_case₁, n₇)
-    # Displacements in the x (component 1) axis at node 7
-    numerical_uᵢ = displacements_n₇[1]
+    numerical_uᵢ = displacements(states_sol_case₁, n₇, 1)
     numerical_α = 1 .+ numerical_uᵢ / Lᵢ
     # Displacements in the y (component 2) axis at node 7
-    numerical_uⱼ = displacements_n₇[2]
+    numerical_uⱼ = displacements(states_sol_case₁, n₇, 2)
     numerical_β = 1 .+ numerical_uⱼ / Lⱼ
     # Displacements in the z (component 3) axis at node 7
-    numerical_uₖ = displacements_n₇[3]
+    numerical_uₖ = displacements(states_sol_case₁, n₇, 3)
     numerical_γ = 1 .+ numerical_uₖ / Lₖ
     return numerical_α, numerical_β, numerical_γ, numerical_uᵢ, numerical_uⱼ, numerical_uₖ
 end
@@ -193,6 +192,12 @@ numeric_λᵥ_case₂ = load_factors(sa₂)
 #-----------------------------
 # Analytic solution  
 #-----------------------------
+"Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
+function u_ijk_numeric(
+    numerical_α::Vector{<:Real}, numerical_β::Vector{<:Real}, numerical_γ::Vector{<:Real},
+    x::Real, y::Real, z::Real)
+    return x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
+end
 # Test with load factors
 "Analytic load factor solution for the displacement `uᵢ` towards `x` axis at node `n₆`."
 load_factors_analytic(uᵢ::Real, p::Real=p, E::Real=E, Lᵢ::Real=Lᵢ) = 1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
@@ -204,7 +209,7 @@ analytics_λᵥ_case₂ = load_factors_analytic.(numeric_uᵢ_case₂)
 α_analytic = find_zero(α -> E / 2 * α * (α^2 - 1) - p * last(load_factors(sa₁)), 1e-2)
 β_analytic = sqrt(-ν * (α_analytic^2 - 1) + 1)
 # Gradient tensor
-# 𝕦 = (αx, βy, γz)
+# 𝑢 = (αx, βy, γz)
 𝔽_analytic = [
     α_analytic 0 0
     0 β_analytic 0
@@ -223,6 +228,16 @@ p₁, p₂ = lame_parameters(svk)
 ℙ_analytic = 𝔽_analytic * 𝕊_analytic
 # Cauchy stress tensor
 # σ = ℙ_analytic * 𝔽_analytic'
+# -------------------------------
+# Interpolator tests for Case 2
+#--------------------------------
+rand_point = [[rand(1)[] * Lᵢ, rand(1)[] * Lⱼ, rand(1)[] * Lₖ]]
+eval_handler_rand = PointEvalHandler(mesh(s₂), rand_point)
+# Compute analytic solution at a random point 
+uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, rand_point[]...)
+rand_point_uᵢ = displacements(states_sol_case₂, eval_handler_rand, 1)[]
+rand_point_uⱼ = displacements(states_sol_case₂, eval_handler_rand, 2)[]
+rand_point_uₖ = displacements(states_sol_case₂, eval_handler_rand, 3)[]
 #-----------------------------
 # Test boolean for CI  
 #-----------------------------
@@ -238,4 +253,8 @@ end
     @test ℂ_analytic ≈ ℂ_numeric_case₂ rtol = RTOL
     @test ℙ_analytic ≈ ℙ_numeric_case₂ rtol = RTOL
     @test β_analytic ≈ last(numeric_β_case₂) rtol = RTOL
+    # Interpolations
+    @test uᵢ_case₂ ≈ rand_point_uᵢ rtol = RTOL
+    @test uⱼ_case₂ ≈ rand_point_uⱼ rtol = RTOL
+    @test uₖ_case₂ ≈ rand_point_uₖ rtol = RTOL
 end

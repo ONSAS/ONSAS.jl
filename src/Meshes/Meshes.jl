@@ -113,14 +113,13 @@ Base.push!(m::AbstractMesh, e::AbstractElement) = push!(elements(m), e)
 "Pushes a new vector of `Element`s into the `AbstractMesh` `m`."
 Base.push!(m::AbstractMesh, ve::Vector{<:AbstractElement}) = [push!(elements(m), e) for e in ve]
 
-
 """ Mesh.
 A `Mesh` is a collection of `Element`s, `Face`s and `Node`s that cover the discretized domain, 
 together with Sets of elements and nodes. 
 ### Fields:
-- `nodes`    -- Stores the `dim` dimensional `Node`s of the grid.
-- `faces`     -- Stores the `Face`s of the grid.
-- `elements`  -- Stores the `Element`s of the mesh.
+- `nodes`     -- stores the `dim` dimensional `Node`s of the grid.
+- `faces`     -- stores the `Face`s of the grid.
+- `elements`  -- stores the `Element`s of the mesh.
 """
 struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace} <: AbstractMesh{dim}
     # Entities
@@ -144,5 +143,7 @@ end
 
 include("./Gmsh.jl")
 @reexport using .Gmsh
+
+include("PointEvalHandler.jl")
 
 end # module

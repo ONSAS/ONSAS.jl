@@ -226,6 +226,12 @@ load_factors_case₂ = load_factors(sa₂)
 #-----------------------------
 # Analytic solution  
 #-----------------------------
+"Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
+function u_ijk_numeric(
+    numerical_α::Vector{<:Real}, numerical_β::Vector{<:Real}, numerical_γ::Vector{<:Real},
+    x::Real, y::Real, z::Real)
+    return x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
+end
 # Test with Second Piola-Kirchoff stress tensor `ℙ`.
 "Computes ℙ(1,1) given α, β and γ."
 analytic_ℙᵢᵢ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K) =
@@ -245,6 +251,17 @@ analytic_ℙₖₖ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=
 ℙᵢᵢ_analytic_case₂ = analytic_ℙᵢᵢ(numeric_α_case₂, numeric_β_case₂)
 ℙⱼⱼ_analytic_case₂ = analytic_ℙⱼⱼ(numeric_α_case₂, numeric_β_case₂)
 ℙₖₖ_analytic_case₂ = analytic_ℙₖₖ(numeric_α_case₂, numeric_β_case₂)
+# -------------------------------
+# Interpolator tests for Case 2
+#--------------------------------
+rand_point = [[rand(1)[] * Lᵢ, rand(1)[] * Lⱼ, rand(1)[] * Lₖ]]
+eval_handler_rand = PointEvalHandler(mesh(s₂), rand_point)
+# Compute analytic solution at a random point 
+uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, rand_point[]...)
+rand_point_uᵢ = displacements(states_sol_case₂, eval_handler_rand, 1)[]
+rand_point_uⱼ = displacements(states_sol_case₂, eval_handler_rand, 2)[]
+rand_point_uₖ = displacements(states_sol_case₂, eval_handler_rand, 3)[]
+stress_point = stress(states_sol_case₂, eval_handler_rand)[]
 #-----------------------------
 # Test boolean for CI  
 #-----------------------------
@@ -266,5 +283,10 @@ end
     @test norm(ℙⱼⱼ_analytic_case₂) ≈ 0 atol = ATOL
     @test norm(ℙₖₖ_analytic_case₂) ≈ 0 atol = ATOL
     @test p * load_factors_case₂ ≈ ℙᵢᵢ_analytic_case₂ rtol = RTOL
+    # Interpolation
+    @test uᵢ_case₂ ≈ rand_point_uᵢ rtol = RTOL
+    @test uⱼ_case₂ ≈ rand_point_uⱼ rtol = RTOL
+    @test uₖ_case₂ ≈ rand_point_uₖ rtol = RTOL
+    @test getindex.(stress_point, 1) ≈ ℙᵢᵢ_analytic_case₂ rtol = RTOL
 end
 

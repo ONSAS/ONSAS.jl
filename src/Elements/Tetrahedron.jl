@@ -1,20 +1,26 @@
 using StaticArrays: SVector
 using LinearAlgebra: Symmetric, det, diagm
+using LazySets: VPolytope
 
 using ..Materials: AbstractMaterial, SVK, cosserat
 using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye, _vogit
 
-import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress
+import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress, weights
 
-export Tetrahedron, volume
+const Point{dim,T} = Union{AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
+
+export Tetrahedron, volume, reference_coordinates
 
 """
 A `Tetrahedron` represents a 3D volume element with four nodes.
 ### Fields:
 - `nodes`    -- stores the tetrahedron nodes.
 - `label`    -- stores the tetrahedron label.
+
+### References
+See [[Belytschko]](@ref).
 """
 struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractElement{dim,T}
   nodes::SVector{4,N}
@@ -46,21 +52,8 @@ function volume(t::Tetrahedron)
   return vol
 end
 
-
 "Returns the local dof symbol of a `Tetrahedron` element."
 local_dof_symbol(::Tetrahedron) = [:u]
-
-"Returns the shape functions derivatives of a `Tetrahedron` element."
-function _shape_functions_derivatives(::Tetrahedron, order =1)
-  d = zeros(3, 4)
-  if order == 1
-    d[1, 1] = 1
-    d[1:3, 2] = [-1, -1, -1]
-    d[3, 3] = 1
-    d[2, 4] = 1
-  end
-  return d
-end
 
 "Returns the reshaped coordinates `elem_coords` of the tetrahedron element into a 4x3 matrix."
 _coordinates_matrix(t::Tetrahedron) = reduce(hcat,coordinates(t))
@@ -154,6 +147,54 @@ function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVecto
 
 end
 
+"Returns the shape functions derivatives of a `Tetrahedron` element."
+function _shape_functions_derivatives(::Tetrahedron, order =1)
+  d = zeros(3, 4)
+  if order == 1
+    d[1, 1] = 1
+    d[1:3, 2] = [-1, -1, -1]
+    d[3, 3] = 1
+    d[2, 4] = 1
+  end
+  return d
+end
 
+"Returns the interpolation matrix `𝑀` for a `Tetrahedron` element `t`."
+function _interpolation_matrix(t::Tetrahedron{3,T}) where {T <: Real}
+  # Node coordinates matrix 𝐴
+  𝐴 = Matrix{T}(undef, 4, 4)
 
+  for (node_index, node) in enumerate(nodes(t))
+    𝐴[node_index, 1] = ones(T,1)[]
+    𝐴[node_index, 2:4] = coordinates(node)
+  end
 
+  # 𝑀 matrix 
+  𝑀 = zeros(4,4)
+  V = det(𝐴) / 6.0
+
+  # I and J indexes
+  I_indexes = [1,2,3,4]
+  J_indexes = [1,2,3,4]
+
+  # Compute minors
+  for I in 1:4 
+    for J in 1:4
+      Â = det(𝐴[deleteat!(copy(I_indexes),I), deleteat!(copy(J_indexes),J)]) 
+      𝑀[I,J] = Â / (6 * V) * (-1)^(I+J)
+    end
+  end
+  return 𝑀
+end
+
+"Returns the interpolation weights of a point `p` in a `Tetrahedron` element `t`."
+function weights(t::Tetrahedron{3,T}, p::Point{dim,P}) where {T<:Real,dim,P<:Real}
+  @assert length(p) == 3 "The point $p must be a 3D vector."
+  _interpolation_matrix(t) * [1,p...]
+end
+
+"Checks if a point `p` is inside a `Tetrahedron` element `t`."
+Base.:∈(p::AbstractVector, t::Tetrahedron) = p ∈ VPolytope(coordinates.(nodes(t)) |> collect)
+
+"Checks if a point `p` is inside a `Tetrahedron` element `t`."
+Base.:∈(p::NTuple{3}, t::Tetrahedron) = collect(p) ∈ VPolytope(coordinates.(nodes(t)) |> collect)
