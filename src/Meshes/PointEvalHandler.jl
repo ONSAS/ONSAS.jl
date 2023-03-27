@@ -3,7 +3,6 @@ using Reexport: @reexport
 using Dictionaries: Dictionary
 using ..Meshes: AbstractMesh, elements
 using ..Elements: AbstractNode, AbstractElement, coordinates, index, weights
-
 const Point{dim,T} = Union{AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
 
 export PointEvalHandler, points, interpolator, mesh
@@ -50,7 +49,7 @@ node_to_weights(points_interpolator::PointsInterpolator) = points_interpolator.n
 "Returns a `Vector` that maps the `Element` where each `Point` is located."
 points_to_element(points_interpolator::PointsInterpolator) = points_interpolator.points_to_element
 
-"Constructor of a `PointEvalHandler` from a `Mesh` , the `Dof` symbols into a `Vector`and a `AbstractVector` of `Point`s . "
+"Constructor of a `PointEvalHandler` from a `Mesh` and a `AbstractVector` of `Point`s ."
 function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) where {T,P<:Point{T}}
 
     @assert length(first(vec_points)) ≤ 3 "Points must be 1D, 2D or 3D"
@@ -100,4 +99,5 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) whe
 
     return PointEvalHandler(vec_points, mesh, PointsInterpolator(point_interpolators, point_to_element))
 end
+
 

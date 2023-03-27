@@ -5,18 +5,18 @@ using ONSAS.StaticAnalyses
 using ONSAS.Utils: eye
 using Test: @test, @testset
 using LinearAlgebra: Symmetric, norm, det, tr
-using Roots: find_zero
 ## scalar parameters
 E = 1.0                    # Young modulus in Pa
 ν = 0.3                    # Poisson's ratio
 μ = G = E / (2 * (1 + ν))  # Second Lamé parameter 
 K = E / (3 * (1 - 2 * ν))  # Bulk modulus
-p = 5                      # Tension load in Pa
+p = -1                     # Tension load in Pa
 Lᵢ = 2.0                   # Dimension in x of the box in m 
 Lⱼ = 1.0                   # Dimension in y of the box in m
 Lₖ = 1.0                   # Dimension in z of the box in m
 const RTOL = 1e-4          # Relative tolerance for tests
 const ATOL = 1e-10         # Absolute tolerance for tests
+const NSTEPS = 9           # Number of steps for the test
 # Mesh Cube with Gmsh.jl
 include("./../uniaxial_extension/uniaxial_cube_mesh.jl")
 # -----------------------------------------------------
@@ -93,7 +93,6 @@ s₁ = Structure(s₁_mesh, s₁_materials, s₁_boundary_conditions)
 # Structural Analysis
 # -------------------------------
 # Final load factor
-NSTEPS = 8
 sa₁ = StaticAnalysis(s₁, NSTEPS=NSTEPS)
 # Resets the analysis in order to run it multiple times
 reset!(sa₁)
@@ -199,7 +198,7 @@ msh_file = MshFile(file_name_mesh)
 # -------------------------------
 s₂ = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
 # Final load factor
-sa₂ = StaticAnalysis(s₂, NSTEPS=NSTEPS)
+sa₂ = StaticAnalysis(s₂, load_factors(sa₁))
 reset!(sa₂)
 # -------------------------------
 # Numerical solution

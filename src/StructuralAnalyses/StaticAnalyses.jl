@@ -121,7 +121,7 @@ mutable struct StaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} 
     state::StaticState
     λᵥ::LFV
     current_step::Int
-    function StaticAnalysis(s::S, λᵥ::LFV; initial_step::Int=0) where {S<:AbstractStructure,LFV<:AbstractVector{<:Real}}
+    function StaticAnalysis(s::S, λᵥ::LFV; initial_step::Int=1) where {S<:AbstractStructure,LFV<:AbstractVector{<:Real}}
         new{S,LFV}(s, StaticState(s), λᵥ, initial_step)
     end
 end

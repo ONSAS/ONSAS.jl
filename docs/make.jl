@@ -25,7 +25,8 @@ makedocs(;
             "StructuralSolvers" => "lib/StructuralSolvers.md",
             "StructuralAnalysis" => "lib/StructuralAnalysis.md",
             "StaticAnalysis" => "lib/StaticAnalysis.md",
-        ]
+        ],
+        "References" => "references.md"
     ]
 )
 
