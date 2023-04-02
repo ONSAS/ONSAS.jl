@@ -1,6 +1,6 @@
 name = "ONSAS"
 uuid = "7d8da659-23aa-453a-9a19-a3d1f6c795f5"
-authors = ["M.C. Vanzulli <mvanzulli@fing.edu.uy>", "J. M. Pérez Zerpa <jorgepz@fing.edu.uy>", "M. Forets mforets  <mforets@gmail.com>"]
+authors = ["M.C. Vanzulli <mvanzulli@fing.edu.uy>", "J. M. Pérez Zerpa <jorgepz@fing.edu.uy>", "M. Forets <mforets@gmail.com>"]
 version = "0.0.1"
 
 [deps]
