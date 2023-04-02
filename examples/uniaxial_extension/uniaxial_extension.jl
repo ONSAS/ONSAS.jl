@@ -91,7 +91,7 @@ s₁ = Structure(s₁_mesh, s₁_materials, s₁_boundary_conditions)
 # -------------------------------
 # Final load factor
 NSTEPS = 8
-sa₁ = StaticAnalysis(s₁, NSTEPS=NSTEPS)
+sa₁ = NonLinearStaticAnalysis(s₁, NSTEPS=NSTEPS)
 # -------------------------------
 # Algorithm
 # -------------------------------
@@ -174,7 +174,7 @@ msh_file = MshFile(file_name_mesh)
 # -------------------------------
 s₂ = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
 # Final load factor
-sa₂ = StaticAnalysis(s₂, NSTEPS=NSTEPS)
+sa₂ = NonLinearStaticAnalysis(s₂, NSTEPS=NSTEPS)
 # -------------------------------
 # Numerical solution
 # -------------------------------

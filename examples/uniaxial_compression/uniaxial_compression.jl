@@ -93,7 +93,7 @@ s₁ = Structure(s₁_mesh, s₁_materials, s₁_boundary_conditions)
 # Structural Analysis
 # -------------------------------
 # Final load factor
-sa₁ = StaticAnalysis(s₁, NSTEPS=NSTEPS)
+sa₁ = NonLinearStaticAnalysis(s₁, NSTEPS=NSTEPS)
 # Resets the analysis in order to run it multiple times
 reset!(sa₁)
 # -------------------------------
@@ -198,7 +198,7 @@ msh_file = MshFile(file_name_mesh)
 # -------------------------------
 s₂ = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
 # Final load factor
-sa₂ = StaticAnalysis(s₂, load_factors(sa₁))
+sa₂ = NonLinearStaticAnalysis(s₂, load_factors(sa₁))
 reset!(sa₂)
 # -------------------------------
 # Numerical solution
