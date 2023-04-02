@@ -168,16 +168,15 @@ sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, �
 
 end
 
-# StaticAnalysis with a final load factor
+# NonLinearStaticAnalysis with a final load factor
 λ₁ = 10
 NSTEPS = 9
 init_step = 7
 
-sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
-sa_init = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS, initial_step=init_step)
+sa = NonLinearStaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
+sa_init = NonLinearStaticAnalysis(s, λ₁, NSTEPS=NSTEPS, initial_step=init_step)
 
-
-@testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticAnalysis" begin
+@testset "ONSAS.StructuralAnalyses.StaticAnalyses.NonLinearStaticAnalysis" begin
 
 
     @test structure(sa_init) == s

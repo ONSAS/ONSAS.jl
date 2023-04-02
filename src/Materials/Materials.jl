@@ -21,9 +21,8 @@ Different material models leads to different constitutive laws, internal forces 
 * [`density`](@ref)
 * [`label`](@ref)
 
-**Common methods for hyper-elastic materials:**
+**Common methods for solving solid problems:**
 * [`cosserat`](@ref)
-* [`strain_energy`](@ref)
 
 **Common fields:**
 * label
@@ -44,13 +43,21 @@ density(m::AbstractMaterial) = m.ρ
 "Returns the `AbstractMaterial` `m` label."
 label(m::AbstractMaterial) = m.label
 
+
+""" Abstract supertype for all material models.
+
+An `AbstractHyperElasticMaterial` object facilitates the process of using hyper elastic materials.
+These materials are characterized by a strain energy function ψ  that depends only on the deformation gradient tensor `∇u`.
+
+**Common methods:**
+* [`strain_energy`](@ref)
+
+"""
+abstract type AbstractHyperElasticMaterial <: AbstractMaterial end
+
 "Returns the strain energy value for an `AbstractMaterial` `m`, and the Green-Lagrange 
 strain tensor `𝔼`."
-function strain_energy(m::AbstractMaterial, 𝔼) end
-
-#===================================#
-# AbstractMaterial implementations #
-#==================================#
+function strain_energy(m::AbstractHyperElasticMaterial, 𝔼) end
 
 include("./SVK.jl")
 include("./NeoHookean.jl")

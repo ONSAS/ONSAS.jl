@@ -64,7 +64,7 @@ s = Structure(s_mesh, s_materials, s_boundary_conditions)
 # Final load factor
 λ₁ = 1
 NSTEPS = 10
-sa = StaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
+sa = NonLinearStaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
 # -------------------------------
 # Algorithm
 # -------------------------------

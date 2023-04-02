@@ -19,7 +19,7 @@ The strain energy `Ψ` is: `Ψ(𝔼)` = `λ`/2 tr(`𝔼`)^2 + `G` tr(`𝔼`^2)
 
 [See this ref.](https://en.wikipedia.org/wiki/Hyperelastic_material)
 """
-struct SVK{T<:Real,R<:Union{T,Nothing}} <: AbstractMaterial
+struct SVK{T<:Real,R<:Union{T,Nothing}} <: AbstractHyperElasticMaterial
     λ::T
     G::T
     ρ::R
@@ -97,6 +97,3 @@ function cosserat(m::SVK, 𝔼::AbstractMatrix)
     return 𝕊, ∂𝕊∂𝔼
 
 end
-
-
-

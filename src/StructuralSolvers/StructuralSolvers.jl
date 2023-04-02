@@ -175,11 +175,9 @@ function _step!(solver::AbstractSolver, analysis::A,) where {A} end
 
 include("./NewtonRaphson.jl")
 
-
 # ===============
 # Solve function
 # ===============
-
 """
 Solve an structural analysis problem.
 ### Input
@@ -192,6 +190,17 @@ to obtain it.
 function solve(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
     initialized_analysis = _init(analysis, alg, args...; kwargs...)
     return _solve(initialized_analysis, alg, args...; kwargs...)
+end
+"""
+Solve an linear structural analysis problem.
+### Input
+- `analysis` -- structural analysis problem
+### Output
+A solution structure (`AbstractSolution`) that holds the result and the algorithm used
+to obtain it.
+"""
+function solve(analysis::A, args...; kwargs...) where {A}
+    return _solve(analysis, args...; kwargs...)
 end
 
 "Internal solve function to be overloaded by each analysis."

@@ -57,7 +57,7 @@ s = Structure(s_mesh, s_materials, s_boundary_conditions)
 # Structural Analysis
 # -------------------------------
 NSTEPS = 10
-sa = StaticAnalysis(s, NSTEPS=NSTEPS)
+sa = NonLinearStaticAnalysis(s, NSTEPS=NSTEPS)
 # -------------------------------
 # Algorithm
 # -------------------------------
