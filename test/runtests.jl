@@ -5,7 +5,7 @@ MODULES = [
     # Input modules
     "test_Materials.jl", "test_CrossSections.jl", "test_Elements.jl", "test_BoundaryConditions.jl", "test_Meshes.jl",
     # Analysis modules
-    "test_StructuralModel.jl", "test_StructuralSolvers.jl", "test_StaticAnalysis.jl"]
+    "test_StructuralModel.jl", "test_StructuralSolvers.jl", "test_StaticAnalyses.jl"]
 
 EXAMPLES = [
     joinpath("..", "examples", "von_misses_truss", "von_misses_truss.jl"),
