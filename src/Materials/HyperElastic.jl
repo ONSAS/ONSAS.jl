@@ -1,4 +1,4 @@
-using .Materials: AbstractMaterial
+using .Materials: AbstractHyperElasticMaterial
 using ..Utils: label, eye, _vogit
 using Tensors: SymmetricTensor, hessian
 
@@ -16,7 +16,7 @@ export HyperElastic
 
 [See this ref.](https://en.wikipedia.org/wiki/Hyperelastic_material)
 """
-struct HyperElastic{T<:Real,F<:Function,R<:Union{T,Nothing}} <: AbstractMaterial
+struct HyperElastic{T<:Real,F<:Function,R<:Union{T,Nothing}} <: AbstractHyperElasticMaterial
     params::Vector{T}
     Ψ::F
     ρ::R

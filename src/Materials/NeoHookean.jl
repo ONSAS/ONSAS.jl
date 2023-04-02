@@ -21,7 +21,7 @@ The strain energy `Ψ` is: `Ψ(𝔼)` = `G`/2 (tr(`ℂ`) -2 *log(`J`))^2 + `K`/2
 
 [See this ref.](https://en.wikipedia.org/wiki/Neo-Hookean_solid)
 """
-struct NeoHookean{T<:Real,R<:Union{T,Nothing}} <: AbstractMaterial
+struct NeoHookean{T<:Real,R<:Union{T,Nothing}} <: AbstractHyperElasticMaterial
     K::T
     G::T
     ρ::R
