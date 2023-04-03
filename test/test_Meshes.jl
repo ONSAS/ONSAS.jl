@@ -4,6 +4,7 @@
 using Test: @testset, @test
 using ONSAS.Meshes
 using Dictionaries: dictionary
+using StaticArrays: SVector
 
 const RTOL = 1e-5
 
@@ -139,7 +140,8 @@ end
     linear_scalar_field(x, y, z) = 10x - 2y + 3z + 12
     vec_linear_scalar_field = dictionary([n => linear_scalar_field(coordinates(n)...) for n in nodes_to_interpolate])
 
-    p₉ = (rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ)
+    # TODO Define Point(...) constructor.
+    p₉ = SVector(rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ)
     ph_rand = PointEvalHandler(s_mesh, [p₉])
     interpol = interpolator(ph_rand)
     node_2_weights = node_to_weights(interpol)
