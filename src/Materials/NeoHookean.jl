@@ -1,11 +1,9 @@
-using Reexport: @reexport
 using ForwardDiff: gradient!
 
 using .Materials: AbstractMaterial
 using LinearAlgebra: Symmetric, tr, det, inv
 
-
-@reexport import .Materials: lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
+import .Materials: lame_parameters, cosserat_stress, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
 
 export NeoHookean
 
@@ -111,7 +109,7 @@ function _∂𝕊_∂𝔼(m::NeoHookean, 𝔼::AbstractMatrix, 𝕊_analytic::Fu
     row = 1
     for index in indexes
         i, j = index
-        ∂S∂𝔼_forward_diff[row, :] .= _vogit(
+        ∂S∂𝔼_forward_diff[row, :] .= _voigt(
             gradient!(aux_gradients, E -> 𝕊_analytic(m, E)[i, j], collect(𝔼)), #TODO: Fix with Symmetric
             0.5
         )
@@ -124,7 +122,7 @@ end
 "Returns the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
 considering a `SVK` material `m` and the Green-Lagrange  
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
-function cosserat(m::NeoHookean, 𝔼::AbstractMatrix)
+function cosserat_stress(m::NeoHookean, 𝔼::AbstractMatrix)
 
     return _𝕊_analytic(m, 𝔼), _∂𝕊_∂𝔼(m, 𝔼, _𝕊_analytic)
 

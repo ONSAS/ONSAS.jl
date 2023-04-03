@@ -8,7 +8,9 @@ using Reexport: @reexport
 
 @reexport import ..Utils: label
 
-export AbstractMaterial, density, parameters, cosserat, strain_energy
+export AbstractMaterial, density, parameters
+export AbstractHyperElasticMaterial, cosserat_stress, strain_energy
+export AbstractLinearElasticMaterial, lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
 
 """ Abstract supertype for all material models.
 
@@ -21,9 +23,6 @@ Different material models leads to different constitutive laws, internal forces 
 * [`density`](@ref)
 * [`label`](@ref)
 
-**Common methods for solving solid problems:**
-* [`cosserat`](@ref)
-
 **Common fields:**
 * label
 * ρ(density)
@@ -33,24 +32,58 @@ abstract type AbstractMaterial end
 "Returns the parameters of type `Number` in the `AbstractMaterial` `m`."
 parameters(m::T) where {T<:AbstractMaterial} = Tuple([getfield(f, n) for n in fieldlabels(T) if fieldtype(T, n) isa Number])
 
-"Returns the Cosserat or Second-Piola Kirchhoff stress tensor `𝕊` given an `AbstractMaterial` `m` and the 
-Green-Lagrange strain tensor `𝔼`."
-function cosserat(m::AbstractMaterial, 𝔼::AbstractMatrix) end
-
 "Returns the `AbstractMaterial` `m` density `ρ`."
 density(m::AbstractMaterial) = m.ρ
 
 "Returns the `AbstractMaterial` `m` label."
 label(m::AbstractMaterial) = m.label
 
+""" Abstract supertype for all elastic material models.
 
-""" Abstract supertype for all material models.
+An `AbstractLinearElasticMaterial` object facilitates the process of using elastic materials.
+
+**Common methods:**
+* [`elastic_modulus`](@ref)
+* [`poisson_ratio`](@ref)
+* [`shear_modulus`](@ref)
+* [`lamé_parameters`](@ref)
+
+**Common fields:**
+* label
+* ρ(density)
+
+"""
+abstract type AbstractLinearElasticMaterial <: AbstractMaterial end
+
+"Returns Lamé parameters `λ` and `G` from an `AbstractLinearElasticMaterial` material `m`."
+function lame_parameters(m::AbstractLinearElasticMaterial) end
+
+"Returns shear modulus G` from an `AbstractLinearElasticMaterial` material `m`."
+function shear_modulus(m::AbstractLinearElasticMaterial) end
+
+"Returns the Poisson's ratio `ν` form an `AbstractLinearElasticMaterial` material `m`."
+function poisson_ratio(m::AbstractLinearElasticMaterial) end
+
+"Returns the Elasticity modulus `E` form an `AbstractLinearElasticMaterial` material `m`."
+function elasticity_modulus(m::AbstractLinearElasticMaterial) end
+
+"Returns the bulk modulus `K` for an `AbstractLinearElasticMaterial` material `m`."
+function bulk_modulus(m::AbstractLinearElasticMaterial) end
+
+include("IsotropicLinearElastic.jl")
+
+""" Abstract supertype for all hyper-elastic material models.
 
 An `AbstractHyperElasticMaterial` object facilitates the process of using hyper elastic materials.
 These materials are characterized by a strain energy function ψ  that depends only on the deformation gradient tensor `∇u`.
 
 **Common methods:**
 * [`strain_energy`](@ref)
+* [`cosserat_stress`](@ref)
+
+**Common fields:**
+* label
+* ρ(density)
 
 """
 abstract type AbstractHyperElasticMaterial <: AbstractMaterial end
@@ -59,9 +92,13 @@ abstract type AbstractHyperElasticMaterial <: AbstractMaterial end
 strain tensor `𝔼`."
 function strain_energy(m::AbstractHyperElasticMaterial, 𝔼) end
 
-include("./SVK.jl")
-include("./NeoHookean.jl")
-include("./HyperElastic.jl")
+"Returns the Cosserat or Second-Piola Kirchhoff stress tensor `𝕊` given an `AbstractMaterial` `m` and the 
+Green-Lagrange strain tensor `𝔼`."
+function cosserat_stress(m::AbstractMaterial, 𝔼::AbstractMatrix) end
+
+include("SVK.jl")
+include("NeoHookean.jl")
+include("HyperElastic.jl")
 
 
 end # module

@@ -195,19 +195,40 @@ end
 
 end
 
+n₁ = Node(0, 0, 0, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
+n₂ = Node(0, 1, 0, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
+n₃ = Node(0, 0, 1, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
+n₄ = Node(2, 0, 1, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)]]))
+
+λ = 0.5769
+G = 0.3846
+my_svk_mat = SVK(λ, G)
+
+tetra_label = "my_tetrahedron"
+tetra = Tetrahedron(n₁, n₂, n₃, n₄, tetra_label)
+
+# Global displacements vector of the nodes 
+u_global₁_u = [0.1, 0.2, 0.3]
+u_global₁_θ = rand(3)
+u_global₂_u = [0.4, 0.5, 0.6]
+u_global₂_θ = rand(3)
+u_global₃_u = [0.7, 0.8, 0.9]
+u_global₃_θ = rand(3)
+u_global₄_u = [1.0, 1.1, 1.2]
+u_global₄_θ = rand(3)
+
+u_global_structure = vcat(
+    u_global₁_u, u_global₂_u, u_global₃_u, u_global₄_u,
+    u_global₁_θ, u_global₂_θ, u_global₃_θ, u_global₄_θ,
+)
+n₁ = Node(0., 0., 0., dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
+n₂ = Node(0., 1., 0., dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
+n₃ = Node(0., 0., 1., dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
+n₄ = Node(2., 0., 1., dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)]]))
+
+
+
 @testset "ONSAS.Elements.Tetrahedron 3D SVK" begin
-
-    n₁ = Node(0., 0., 0., dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
-    n₂ = Node(0., 1., 0., dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
-    n₃ = Node(0., 0., 1., dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
-    n₄ = Node(2., 0., 1., dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)]]))
-
-    λ = 0.5769
-    G = 0.3846
-    my_svk_mat = SVK(λ, G)
-
-    tetra_label = "my_tetrahedron"
-    tetra = Tetrahedron(n₁, n₂, n₃, n₄, tetra_label)
     tetra_no_label = Tetrahedron(n₁, n₂, n₃, n₄)
     tetra_empty_nodes = Tetrahedron(tetra_label)
     @test label(tetra_empty_nodes) == Symbol(tetra_label)
@@ -224,21 +245,6 @@ end
     @test local_dof_symbol(tetra) == [:u]
     local_dofs(tetra)
     @test all([d ∈ local_dofs(tetra) for d in Dof.(1:12)])
-
-    # Global displacements vector of the nodes 
-    u_global₁_u = [0.1, 0.2, 0.3]
-    u_global₁_θ = rand(3)
-    u_global₂_u = [0.4, 0.5, 0.6]
-    u_global₂_θ = rand(3)
-    u_global₃_u = [0.7, 0.8, 0.9]
-    u_global₃_θ = rand(3)
-    u_global₄_u = [1.0, 1.1, 1.2]
-    u_global₄_θ = rand(3)
-
-    u_global_structure = vcat(
-        u_global₁_u, u_global₂_u, u_global₃_u, u_global₄_u,
-        u_global₁_θ, u_global₂_θ, u_global₃_θ, u_global₄_θ,
-    )
 
     @test volume(tetra) == 2 * 1 / 6
 
@@ -293,5 +299,25 @@ end
     exact_solution = scalar_linear_field(p...)
     interpolated_solution = dot(sol_at_tetra_nodes, weights(tetra, p))
     @test interpolated_solution ≈ exact_solution rtol = RTOL
+
+end
+
+@testset "ONSAS.Elements.Tetrahedron 3D IsotropicLinearElastic" begin
+
+    my_lin_mat = IsotropicLinearElastic(
+        elasticity_modulus(my_svk_mat),
+        shear_modulus(my_svk_mat)
+    )
+
+    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_lin_mat, tetra, u_global_structure[local_dofs(tetra)])
+
+    # Test internal forces with an HyperElastic material model and zero 𝑢
+    equivalent_svk = SVK(lame_parameters(my_lin_mat)...)
+    _, Kᵢₙₜ_e_svk, A_, B = internal_forces(equivalent_svk, tetra, zeros(12))
+
+    fᵢₙₜ_e_svk = Kᵢₙₜ_e_svk * u_global_structure[local_dofs(tetra)]
+
+    @test fᵢₙₜ_e_svk ≈ fᵢₙₜ_e rtol = RTOL
+    @test Kᵢₙₜ_e_svk ≈ Kᵢₙₜ_e rtol = RTOL
 
 end

@@ -4,8 +4,9 @@ using SparseArrays: SparseMatrixCSC
 using .Materials: AbstractMaterial
 using ..Utils: eye
 
-import .Materials: density, cosserat, strain_energy
-export SVK, lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
+import .Materials: density, cosserat_stress, strain_energy,
+    lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
+export SVK
 
 """ Saint-Venant-Kirchhoff material struct.
 
@@ -85,7 +86,7 @@ end
 "Returns the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
 considering a `SVK` material `m` and the Lagrangian Green 
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
-function cosserat(m::SVK, 𝔼::AbstractMatrix)
+function cosserat_stress(m::SVK, 𝔼::AbstractMatrix)
 
     λ, G = lame_parameters(m)
     𝕊 = λ * tr(𝔼) * eye(3) + 2 * G * 𝔼
