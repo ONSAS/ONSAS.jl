@@ -9,7 +9,7 @@ using Reexport: @reexport
 @reexport import ..Utils: label
 
 export AbstractMaterial, density, parameters
-export AbstractHyperElasticMaterial, cosserat, strain_energy
+export AbstractHyperElasticMaterial, cosserat_stress, strain_energy
 export AbstractLinearElasticMaterial, lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
 
 """ Abstract supertype for all material models.
@@ -79,7 +79,7 @@ These materials are characterized by a strain energy function ψ  that depends o
 
 **Common methods:**
 * [`strain_energy`](@ref)
-* [`cosserat`](@ref)
+* [`cosserat_stress`](@ref)
 
 **Common fields:**
 * label
@@ -94,7 +94,7 @@ function strain_energy(m::AbstractHyperElasticMaterial, 𝔼) end
 
 "Returns the Cosserat or Second-Piola Kirchhoff stress tensor `𝕊` given an `AbstractMaterial` `m` and the 
 Green-Lagrange strain tensor `𝔼`."
-function cosserat(m::AbstractMaterial, 𝔼::AbstractMatrix) end
+function cosserat_stress(m::AbstractMaterial, 𝔼::AbstractMatrix) end
 
 include("SVK.jl")
 include("NeoHookean.jl")

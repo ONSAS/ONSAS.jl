@@ -2,10 +2,11 @@ using StaticArrays: SVector
 using LinearAlgebra: Symmetric, det, diagm
 using LazySets: VPolytope
 
-using ..Materials: AbstractMaterial, SVK, cosserat
+using ..Materials: AbstractHyperElasticMaterial, SVK, cosserat_stress
+using ..Materials: IsotropicLinearElastic, lame_parameters, cauchy_stress
 using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
-using ..Utils: eye, _vogit
+using ..Utils: eye, _voigt
 
 import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress, weights
 
@@ -20,7 +21,7 @@ A `Tetrahedron` represents a 3D volume element with four nodes.
 - `label`    -- stores the tetrahedron label.
 
 ### References
-See [[Belytschko]](@ref).
+See [[Belytschko]](@ref) and [[Gurtin]](@ref) for more details.
 """
 struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractElement{dim,T}
   nodes::SVector{4,N}
@@ -45,9 +46,9 @@ create_entity(t::Tetrahedron, vn::AbstractVector{<:AbstractNode}) = Tetrahedron(
 
 "Returns the `Tetrahedron` `t` volume in the reference configuration."
 function volume(t::Tetrahedron)
-  d = _shape_functions_derivatives(t)
+  ∂X∂ζ = _shape_functions_derivatives(t)
   coords = _coordinates_matrix(t)
-  J = _jacobian_mat(coords, d)
+  J = _jacobian_mat(coords, ∂X∂ζ)
   vol = _volume(J)
   return vol
 end
@@ -83,24 +84,26 @@ function _B_mat(deriv::AbstractMatrix , 𝔽::AbstractMatrix)
   return B
 end
 
-"Returns the internal force of a `Tetrahedron` element `t` doted with an `AbstractMaterial` `m` +
+"Returns the internal force of a `Tetrahedron` element `t` doted with an `AbstractHyperElasticMaterial` `m` +
 and a an element displacement vector `u_e`."
-function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVector)
+function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector)
 
-  d = _shape_functions_derivatives(t)
+  ∂X∂ζ = _shape_functions_derivatives(t)
 
-  coords = _coordinates_matrix(t)
+  X = _coordinates_matrix(t)
 
-  disps = reshape(u_e, 3, 4)
+  U = reshape(u_e, 3, 4)
 
-  J = _jacobian_mat(coords, d)
+  J = _jacobian_mat(X, ∂X∂ζ)
 
   vol = _volume(J)
 
-  funder = inv(J)' * d
+  # OkaThe deformation gradient F can be obtained by integrating
+  # funder over time ∂F/∂t. 
+  funder = inv(J)' * ∂X∂ζ
   
-  # ∂u∂X in global coordinats 
-  ℍ = disps * funder'
+  # ∇u in global coordinats 
+  ℍ = U * funder'
 
   # Deformation gradient 
   𝔽 = ℍ + eye(3)
@@ -108,13 +111,13 @@ function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVecto
   # Green-Lagrange strain  
   𝔼 = Symmetric(0.5 * (ℍ + ℍ' + ℍ' * ℍ))
 
-  𝕊, ∂𝕊∂𝔼 = cosserat(m, 𝔼)
+  𝕊, ∂𝕊∂𝔼 = cosserat_stress(m, 𝔼)
 
   B = _B_mat(funder, 𝔽)
 
-  𝕊_vogit = _vogit(𝕊)
+  𝕊_voigt = _voigt(𝕊)
 
-  fᵢₙₜ_e = B' * 𝕊_vogit * vol
+  fᵢₙₜ_e = B' * 𝕊_voigt * vol
   
   # Material stiffness
   Kₘ = Symmetric(B' * ∂𝕊∂𝔼 * B* vol)
@@ -146,6 +149,40 @@ function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVecto
   return fᵢₙₜ_e, Kᵢₙₜ_e, ℙ, ℂ
 
 end
+
+"Returns the internal force of a `Tetrahedron` element `t` doted with an `LinearIsotropicMaterial` `m`."
+function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::AbstractVector)
+
+  ∂X∂ζ = _shape_functions_derivatives(t)
+
+  X = _coordinates_matrix(t)
+
+  J = _jacobian_mat(X, ∂X∂ζ)
+
+  vol = _volume(J)
+
+  funder = inv(J)' * ∂X∂ζ
+    
+  # ∇u in global coordinats 
+  U = reshape(u_e, 3, 4)
+  ℍ = U * funder'
+  
+  ϵ = Symmetric(0.5 * (ℍ + ℍ' + ℍ' * ℍ))
+  𝔽 = eye(3)
+
+  B = _B_mat(funder, 𝔽)
+
+  σ, ∂σ∂𝔼 = cauchy_stress(m, ϵ)
+
+  Kᵢₙₜ_e = Symmetric(B' * ∂σ∂𝔼 * B* vol)
+  
+  fᵢₙₜ_e = Kᵢₙₜ_e * u_e
+
+  return fᵢₙₜ_e, Kᵢₙₜ_e, σ, ϵ
+
+end
+
+
 
 "Returns the shape functions derivatives of a `Tetrahedron` element."
 function _shape_functions_derivatives(::Tetrahedron, order =1)

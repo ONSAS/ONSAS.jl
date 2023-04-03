@@ -1,9 +1,9 @@
 # Implement a linear elastic material
-using .Materials: AbstractMaterial
+using .Materials: AbstractLinearElasticMaterial
 
 import .Materials: lame_parameters, shear_modulus, poisson_ratio, elasticity_modulus, bulk_modulus
 
-export IsotropicLinearElastic
+export IsotropicLinearElastic, cauchy_stress
 
 """ IsotropicLinearElastic material struct.
 ### Fields:
@@ -14,7 +14,7 @@ export IsotropicLinearElastic
 
 [See this ref.](https://en.wikipedia.org/wiki/Hyperelastic_material)
 """
-struct IsotropicLinearElastic{ET<:Real,NT<:Real,RT<:Union{ET,Nothing}} <: AbstractMaterial
+struct IsotropicLinearElastic{ET<:Real,NT<:Real,RT<:Union{ET,Nothing}} <: AbstractLinearElasticMaterial
     E::ET
     ν::NT
     ρ::RT
@@ -50,3 +50,27 @@ shear_modulus(m::IsotropicLinearElastic) = elasticity_modulus(m) / (2 * (1 + poi
 
 "Returns the bulk modulus `K` from a `IsotropicLinearElastic` material `m`."
 bulk_modulus(m::IsotropicLinearElastic) = elasticity_modulus(m) / (3 * (1 - 2 * poisson_ratio(m)))
+
+"Returns Lamé parameters `λ` and `G` from a `IsotropicLinearElastic` material `m`."
+function lame_parameters(m::IsotropicLinearElastic)
+    E = elasticity_modulus(m)
+    G = shear_modulus(m)
+    ν = poisson_ratio(m)
+    λ = E * ν / ((1 + ν) * (1 - 2 * ν))
+    return λ, G
+end
+
+"Returns the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ` 
+considering a `IsotropicLinearElastic` material `m`."
+function cauchy_stress(m::IsotropicLinearElastic, ϵ::AbstractMatrix)
+
+    λ, G = lame_parameters(m)
+    σ = Symmetric(λ * tr(ϵ) * eye(3) + 2 * G * ϵ)
+
+    ∂σ∂ϵ = SparseMatrixCSC(zeros(6, 6))
+    ∂σ∂ϵ[1:3, 1:3] = λ * ones(3, 3) + 2 * G * eye(3)
+    ∂σ∂ϵ[4:6, 4:6] = G * eye(3)
+
+    return σ, ∂σ∂ϵ
+
+end

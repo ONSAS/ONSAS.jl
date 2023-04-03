@@ -3,7 +3,7 @@
 ##########################
 using Test: @testset, @test
 using ONSAS.Materials
-using ONSAS.Utils: eye
+using ONSAS.Utils: eye, _voigt
 using LinearAlgebra: Symmetric, tr, det, inv
 const RTOL = 1e-3
 
@@ -35,12 +35,44 @@ mat_label = "steel"
     @test shear_modulus(linear_steel) ≈ G rtol = RTOL
     @test bulk_modulus(linear_steel) ≈ K rtol = RTOL
 
+    # Test constitutive driver 
+    ϵᵢ = 0.18375
+    ϵⱼ = 0.435
+    ϵᵏ = 1.14
+    γᵢⱼ = 0.2925
+    γⱼₖ = 0.72
+    γₖᵢ = 0.51
 
+    # Consitutive tensor 
+    𝐶 = [λ+2G λ λ 0 0 0
+        λ λ+2G λ 0 0 0
+        λ λ λ+2G 0 0 0
+        0 0 0 G 0 0
+        0 0 0 0 G 0
+        0 0 0 0 0 G]
+
+    ϵ = Symmetric(
+        [
+            ϵᵢ γᵢⱼ γₖᵢ
+            γᵢⱼ ϵⱼ γⱼₖ
+            γₖᵢ γⱼₖ ϵᵏ
+        ]
+    )
+
+    ϵ_vec = _voigt(ϵ, 2)
+    σ_vogit = 𝐶 * ϵ_vec
+    σ_expected = Symmetric(
+        [
+            σ_vogit[1] σ_vogit[6] σ_vogit[5]
+            σ_vogit[6] σ_vogit[2] σ_vogit[4]
+            σ_vogit[5] σ_vogit[4] σ_vogit[3]
+        ]
+    )
+
+    σ, ∂σ∂ϵ = cauchy_stress(linear_steel, ϵ)
+
+    @test σ ≈ σ_expected rtol = RTOL
 end
-
-
-
-
 
 
 # More soft hyperelastic material   
@@ -57,7 +89,7 @@ Khyper = λhyper + 2 * Ghyper / 3
 )
 
 
-@testset "ONSAS.Materials.AbstractHyperElastic.SVK" begin
+@testset "ONSAS.Materials.AbstractHyperElasticMaterial.SVK" begin
 
     # SVK for static analysis
     svk_static = SVK(λ, G)
@@ -77,7 +109,6 @@ Khyper = λhyper + 2 * Ghyper / 3
     # SVK strain energy
     strain_energy_svk(𝔼, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
     @test strain_energy(svk_dynamic, 𝔼) == strain_energy_svk(𝔼, lame_parameters(svk_static)...)
-
 
     l = "svk_HyperElastic"
     svk_hyper = HyperElastic([λhyper, Ghyper], strain_energy_svk, l)
@@ -107,19 +138,19 @@ Khyper = λhyper + 2 * Ghyper / 3
     @test label(svk_hyper) == Symbol(l)
 
     # Constitutive driver svk type SVK
-    𝕊_svk, ∂𝕊∂𝔼_svk = cosserat(svk, 𝔼)
+    𝕊_svk, ∂𝕊∂𝔼_svk = cosserat_stress(svk, 𝔼)
 
     @test 𝕊_svk ≈ 𝕊_test rtol = RTOL
     @test ∂𝕊∂𝔼_svk ≈ ∂𝕊∂𝔼_test rtol = RTOL
 
-    𝕊_hyper, ∂𝕊∂𝔼_hyper = cosserat(svk_hyper, 𝔼)
+    𝕊_hyper, ∂𝕊∂𝔼_hyper = cosserat_stress(svk_hyper, 𝔼)
 
     @test 𝕊_hyper ≈ 𝕊_test rtol = RTOL
     @test ∂𝕊∂𝔼_svk ≈ ∂𝕊∂𝔼_test rtol = RTOL
 
 end
 
-@testset "ONSAS.Materials..AbstractHyperElastic.NeoHookean" begin
+@testset "ONSAS.Materials..AbstractHyperElasticMaterial.NeoHookean" begin
 
     neo = NeoHookean(K, G)
     @test bulk_modulus(neo) == K
@@ -156,8 +187,8 @@ end
         [bulk_modulus(neo_flexible), shear_modulus(neo_flexible)], strain_energy_neo, l
     )
 
-    𝕊_hyper, ∂𝕊∂𝔼_hyper = cosserat(neo_hyper, 𝔼)
-    𝕊_neo, ∂𝕊∂𝔼_neo = cosserat(neo_flexible, 𝔼)
+    𝕊_hyper, ∂𝕊∂𝔼_hyper = cosserat_stress(neo_hyper, 𝔼)
+    𝕊_neo, ∂𝕊∂𝔼_neo = cosserat_stress(neo_flexible, 𝔼)
 
     @test 𝕊_hyper ≈ 𝕊_neo rtol = RTOL
     @test ∂𝕊∂𝔼_hyper ≈ ∂𝕊∂𝔼_neo rtol = RTOL

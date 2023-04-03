@@ -1,8 +1,8 @@
 using .Materials: AbstractHyperElasticMaterial
-using ..Utils: _vogit
+using ..Utils: _voigt
 using Tensors: SymmetricTensor, hessian
 
-import .Materials: parameters, cosserat, strain_energy
+import .Materials: parameters, cosserat_stress, strain_energy
 
 export HyperElastic
 
@@ -32,7 +32,6 @@ function HyperElastic(params::Vector{<:Real}, Ψ::Function, label::L=:no_labelle
     return HyperElastic(params, Ψ, nothing, label)
 end
 
-
 "Returns the strain energy function `Ψ` for a `HyperElastic` material `m`."
 strain_energy(m::HyperElastic) = m.Ψ
 
@@ -42,7 +41,7 @@ parameters(m::HyperElastic) = m.params
 "Returns the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
 considering a `SVK` material `m` and the Lagrangian Green 
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
-function cosserat(m::HyperElastic, 𝔼::AbstractMatrix)
+function cosserat_stress(m::HyperElastic, 𝔼::AbstractMatrix)
 
     𝔼 = SymmetricTensor{2,3}(𝔼)
 
@@ -58,7 +57,7 @@ function cosserat(m::HyperElastic, 𝔼::AbstractMatrix)
     row = 1
     for index in indexes
         i, j = index
-        ∂𝕊∂𝔼[row, :] .= _vogit(∂²Ψ∂E²[:, :, i, j])
+        ∂𝕊∂𝔼[row, :] .= _voigt(∂²Ψ∂E²[:, :, i, j])
         row += 1
     end
 
