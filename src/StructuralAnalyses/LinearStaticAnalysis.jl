@@ -44,25 +44,30 @@ function _solve(sa::LinearStaticAnalysis)
     # load factors iteration 
     while !is_done(sa)
 
+        # Set displacements to zero 
+        displacements(current_state(sa)) .= 0.0
+
+        # Compute external force
         _apply!(sa, load_bcs(s)) # Compute Fext
 
-        @debug external_forces(current_state(sa))
-
+        # Assemble K
         _assemble!(s, sa)
 
         # Show internal, and residual forces and tangent matrix
-        @debug view(internal_forces(current_state(sa)), index.(free_dofs(s)))
-        @debug residual_forces(current_state(sa))
+        @debug external_forces(current_state(sa))
         @debug tangent_matrix(current_state(sa))[index.(free_dofs(s)), index.(free_dofs(s))]
 
-        # Increment U 
+        # Increment structure displacements U = U + ΔU
         _step!(sa)
+
+        # Recompute σ and ε for the assembler
+        _assemble!(s, sa)
 
         # Save current state
         push!(sol, current_state(sa))
 
+        # Increments the time or load factor step 
         _next!(sa)
-
     end
 
     return sol
