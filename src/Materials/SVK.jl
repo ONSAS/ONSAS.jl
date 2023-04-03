@@ -4,8 +4,8 @@ using SparseArrays: SparseMatrixCSC
 using .Materials: AbstractMaterial
 using ..Utils: eye
 
-import .Materials: density, cosserat, strain_energy
-export SVK, lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
+import .Materials: density, cosserat, strain_energy, lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
+export SVK
 
 """ Saint-Venant-Kirchhoff material struct.
 

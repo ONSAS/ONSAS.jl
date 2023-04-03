@@ -16,6 +16,33 @@ K = E / (3 * (1 - 2 * ν))
 ρ = 7500.0
 mat_label = "steel"
 
+@testset "ONSAS.Materials.AbstractLinearElasticMaterial.IsotropicLinearElastic" begin
+
+    linear_steel_no_density = IsotropicLinearElastic(E, ν)
+
+    @test elasticity_modulus(linear_steel_no_density) == E
+    @test poisson_ratio(linear_steel_no_density) == ν
+    @test shear_modulus(linear_steel_no_density) == G
+    @test bulk_modulus(linear_steel_no_density) == K
+    @test density(linear_steel_no_density) == nothing
+    @test label(linear_steel_no_density) == :no_labelled_mat
+
+    linear_steel = IsotropicLinearElastic(λ=λ, G=G, ρ=ρ, label=mat_label)
+    @test label(linear_steel) == Symbol(mat_label)
+    @test density(linear_steel) == ρ
+    @test elasticity_modulus(linear_steel) ≈ E rtol = RTOL
+    @test poisson_ratio(linear_steel) ≈ ν rtol = RTOL
+    @test shear_modulus(linear_steel) ≈ G rtol = RTOL
+    @test bulk_modulus(linear_steel) ≈ K rtol = RTOL
+
+
+end
+
+
+
+
+
+
 # More soft hyperelastic material   
 Ghyper = μ = 0.3846
 λhyper = 0.5769
@@ -30,7 +57,7 @@ Khyper = λhyper + 2 * Ghyper / 3
 )
 
 
-@testset "ONSAS.Materials.SVK" begin
+@testset "ONSAS.Materials.AbstractHyperElastic.SVK" begin
 
     # SVK for static analysis
     svk_static = SVK(λ, G)
@@ -92,7 +119,7 @@ Khyper = λhyper + 2 * Ghyper / 3
 
 end
 
-@testset "ONSAS.Materials.NeoHookean" begin
+@testset "ONSAS.Materials..AbstractHyperElastic.NeoHookean" begin
 
     neo = NeoHookean(K, G)
     @test bulk_modulus(neo) == K

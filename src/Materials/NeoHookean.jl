@@ -1,11 +1,9 @@
-using Reexport: @reexport
 using ForwardDiff: gradient!
 
 using .Materials: AbstractMaterial
 using LinearAlgebra: Symmetric, tr, det, inv
 
-
-@reexport import .Materials: lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
+import .Materials: lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
 
 export NeoHookean
 

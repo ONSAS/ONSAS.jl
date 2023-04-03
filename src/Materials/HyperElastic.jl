@@ -1,8 +1,8 @@
 using .Materials: AbstractHyperElasticMaterial
-using ..Utils: label, eye, _vogit
+using ..Utils: _vogit
 using Tensors: SymmetricTensor, hessian
 
-import .Materials: density, parameters, cosserat, strain_energy
+import .Materials: parameters, cosserat, strain_energy
 
 export HyperElastic
 
