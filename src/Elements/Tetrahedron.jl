@@ -10,7 +10,7 @@ using ..Utils: eye, _voigt
 
 import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress, weights
 
-const Point{dim,T} = Union{AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
+const Point{dim,T} = Union{<:AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
 
 export Tetrahedron, volume, reference_coordinates
 
@@ -230,8 +230,10 @@ function weights(t::Tetrahedron{3,T}, p::Point{dim,P}) where {T<:Real,dim,P<:Rea
   _interpolation_matrix(t) * [1,p...]
 end
 
-"Checks if a point `p` is inside a `Tetrahedron` element `t`."
-Base.:∈(p::AbstractVector, t::Tetrahedron) = p ∈ VPolytope(coordinates.(nodes(t)) |> collect)
+function Base.convert(::Type{VPolytope}, t::Tetrahedron)
+  coords = collect(coordinates.(nodes(t)))
+  VPolytope(coords)
+end
 
 "Checks if a point `p` is inside a `Tetrahedron` element `t`."
-Base.:∈(p::NTuple{3}, t::Tetrahedron) = collect(p) ∈ VPolytope(coordinates.(nodes(t)) |> collect)
+Base.:∈(p::Point, t::Tetrahedron) = p ∈ convert(VPolytope, t)

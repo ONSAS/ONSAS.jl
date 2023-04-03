@@ -4,6 +4,7 @@
 using Test: @testset, @test
 using ONSAS.Meshes
 using Dictionaries: dictionary
+using StaticArrays: SVector
 
 const RTOL = 1e-5
 
@@ -78,9 +79,9 @@ end
 
 @testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron" begin
 
-    Lᵢ = rand(1)[] * 20
-    Lⱼ = rand(1)[] * 20
-    Lₖ = rand(1)[] * 20
+    Lᵢ = rand() * 20
+    Lⱼ = rand() * 20
+    Lₖ = rand() * 20
 
     # -------------------------------
     # Mesh
@@ -139,7 +140,8 @@ end
     linear_scalar_field(x, y, z) = 10x - 2y + 3z + 12
     vec_linear_scalar_field = dictionary([n => linear_scalar_field(coordinates(n)...) for n in nodes_to_interpolate])
 
-    p₉ = (rand(1)[] * Lᵢ, rand(1)[] * Lⱼ, rand(1)[] * Lₖ)
+    # TODO Define Point(...) constructor.
+    p₉ = SVector(rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ)
     ph_rand = PointEvalHandler(s_mesh, [p₉])
     interpol = interpolator(ph_rand)
     node_2_weights = node_to_weights(interpol)
