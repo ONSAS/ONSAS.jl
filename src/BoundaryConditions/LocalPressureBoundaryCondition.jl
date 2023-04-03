@@ -16,7 +16,7 @@ struct LocalPressureBoundaryCondition <: AbstractLoadBoundaryCondition
     values::Function
     name::Symbol
     function LocalPressureBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::Symbol)
-        @assert length(values(rand(1)...)) == 1 "Only a normal pressure is supported."
+        @assert length(values(rand())) == 1 "Only a normal pressure is supported."
         new(dofs, values, name)
     end
 end

@@ -4,8 +4,8 @@
 using Test: @testset, @test
 using ONSAS.CrossSections
 
-rand_dim_1 = rand(1)[]
-rand_dim_2 = rand_dim_1 + rand(1)[]
+rand_dim_1 = rand()
+rand_dim_2 = rand_dim_1 + rand()
 
 const TOLERANCE = 1e-4
 

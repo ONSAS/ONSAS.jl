@@ -253,7 +253,7 @@ analytic_ℙₖₖ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=
 # -------------------------------
 # Interpolator tests for Case 2
 #--------------------------------
-rand_point = [[rand(1)[] * Lᵢ, rand(1)[] * Lⱼ, rand(1)[] * Lₖ]]
+rand_point = [[rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ]]
 eval_handler_rand = PointEvalHandler(mesh(s₂), rand_point)
 # Compute analytic solution at a random point 
 uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, rand_point[]...)
