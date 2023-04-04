@@ -17,7 +17,11 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "Modules" => [
-            "Materials" => "lib/Materials.md",
+            "Materials" => [
+                "AbstractMaterial" => "lib/Materials.md",
+                "AbstractLinearElasticMaterial" => "lib/LinearElasticMaterials.md",
+                "AbstractHyperElasticMaterials" => "lib/HyperElasticMaterials.md",
+            ],
             "Elements" => "lib/Elements.md",
             "CrossSections" => "lib/CrossSections.md",
             "Meshes" => "lib/Meshes.md",

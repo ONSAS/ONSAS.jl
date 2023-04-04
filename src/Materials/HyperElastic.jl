@@ -1,8 +1,10 @@
-using .Materials: AbstractHyperElasticMaterial
-using ..Utils: _voigt
 using Tensors: SymmetricTensor, hessian
 
-import .Materials: parameters, cosserat_stress, strain_energy
+using ..HyperElasticMaterials: AbstractHyperElasticMaterial
+using ...Utils: _voigt
+
+import ...Materials: parameters
+import ..HyperElasticMaterials: cosserat_stress, strain_energy
 
 export HyperElastic
 

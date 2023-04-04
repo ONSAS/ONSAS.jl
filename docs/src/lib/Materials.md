@@ -1,4 +1,4 @@
-# Materials Interface
+# AbstractMaterial Interface
 
 This section describes the interfaces for different material types.
 
