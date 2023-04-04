@@ -94,6 +94,10 @@ e_rand = rand(elements(s))
 ϵᵢ_numeric_e_rand = getindex.(ϵ_e_rand, 1)
 ϵⱼ_numeric_e_rand = getindex.(ϵ_e_rand, 2)
 ϵₖ_numeric_e_rand = getindex.(ϵ_e_rand, 2)
+σ_e_rand = stress(states_sol, e_rand)
+σᵢ_numeric_e_rand = getindex.(σ_e_rand, 1)
+σⱼ_numeric_e_rand = getindex.(σ_e_rand, 2)
+σₖ_numeric_e_rand = getindex.(σ_e_rand, 2)
 # -------------------------------
 # Analytic solution
 # -------------------------------
@@ -131,12 +135,36 @@ function ϵ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Re
 
     return [[ϵᵢ(t) for t in λᵥ], [ϵⱼ(t) for t in λᵥ], [ϵₖ(t) for t in λᵥ]]
 end
+## Stresses
+"Computes strains numeric solution ϵᵢ, ϵⱼ and ϵₖ for analytic validation."
+function σ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, mat::AbstractMaterial)
+
+    λ, G = lame_parameters(mat)
+    𝐶(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
+
+    ϵᵢ(t) = 𝐶(t) / E
+    ϵⱼ(t) = 0.0
+    ϵₖ(t) = 0.0
+
+    σᵢ(t) = (λ + 2G) * ϵᵢ(t) + λ * ϵⱼ(t) + λ * ϵₖ(t)
+    σⱼ(t) = λ * ϵᵢ(t) + (λ + 2G) * ϵⱼ(t) + λ * ϵₖ(t)
+    σₖ(t) = λ * ϵᵢ(t) + λ * ϵⱼ(t) + (λ + 2G) * ϵₖ(t)
+
+    return [[σᵢ(t) for t in λᵥ], [σⱼ(t) for t in λᵥ], [σₖ(t) for t in λᵥ]]
+end
 # point in the rand element selected
 p_rand_e = rand(coordinates(e_rand))
-ϵ_analytic_p_rand_e = ϵ_ijk_analytic(load_factors(sa), p_rand_e[1], p_rand_e[2], p_rand_e[3])
+# strain
+λᵥ = load_factors(sa)
+ϵ_analytic_p_rand_e = ϵ_ijk_analytic(λᵥ, p_rand_e[1], p_rand_e[2], p_rand_e[3])
 ϵᵢ_analytic_p_rand_e = ϵ_analytic_p_rand_e[1]
 ϵⱼ_analytic_p_rand_e = ϵ_analytic_p_rand_e[2]
 ϵₖ_analytic_p_rand_e = ϵ_analytic_p_rand_e[3]
+# stress
+σ_analytic_p_rand_e = σ_ijk_analytic(λᵥ, p_rand_e[1], p_rand_e[2], p_rand_e[3], mat)
+σᵢ_analytic_p_rand_e = σ_analytic_p_rand_e[1]
+σⱼ_analytic_p_rand_e = σ_analytic_p_rand_e[2]
+σₖ_analytic_p_rand_e = σ_analytic_p_rand_e[3]
 #-----------------------------
 # Test boolean for CI  
 #-----------------------------
@@ -149,7 +177,11 @@ p_rand_e = rand(coordinates(e_rand))
     @test norm(uⱼ_numeric_p₂) ≈ 0 atol = RTOL
     @test norm(uₖ_numeric_p₂) ≈ 0 atol = RTOL
     # Strains
-    @test ϵᵢ_numeric_e_rand ≈ ϵᵢ_e_rand rtol = RTOL skip = true
+    @test ϵᵢ_numeric_e_rand ≈ ϵᵢ_analytic_p_rand_e rtol = RTOL
     @test norm(ϵⱼ_numeric_e_rand) ≈ 0 atol = RTOL
     @test norm(ϵₖ_numeric_e_rand) ≈ 0 atol = RTOL
+    # Stresses 
+    @test σᵢ_analytic_p_rand_e ≈ σᵢ_analytic_p_rand_e rtol = RTOL
+    @test norm(σⱼ_analytic_p_rand_e) ≈ σⱼ_analytic_p_rand_e atol = RTOL
+    @test norm(σₖ_analytic_p_rand_e) ≈ σₖ_analytic_p_rand_e atol = RTOL
 end
