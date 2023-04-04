@@ -182,6 +182,6 @@ p_rand_e = rand(coordinates(e_rand))
     @test norm(ϵₖ_numeric_e_rand) ≈ 0 atol = RTOL
     # Stresses 
     @test σᵢ_analytic_p_rand_e ≈ σᵢ_analytic_p_rand_e rtol = RTOL
-    @test norm(σⱼ_analytic_p_rand_e) ≈ σⱼ_analytic_p_rand_e atol = RTOL
-    @test norm(σₖ_analytic_p_rand_e) ≈ σₖ_analytic_p_rand_e atol = RTOL
+    @test σⱼ_analytic_p_rand_e ≈ σⱼ_analytic_p_rand_e atol = RTOL
+    @test σₖ_analytic_p_rand_e ≈ σₖ_analytic_p_rand_e atol = RTOL
 end
