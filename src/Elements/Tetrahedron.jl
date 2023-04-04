@@ -150,7 +150,19 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
 
 end
 
-"Returns the internal force of a `Tetrahedron` element `t` doted with an `LinearIsotropicMaterial` `m`."
+"Returns the internal force of a `Tetrahedron` element `t` doted with an `LinearIsotropicMaterial` `m`.
+## Arguments
+- `material`: `IsotropicLinearElastic` type, the linear elastic material of the tetrahedron element.
+- `element`: `Tetrahedron` type, the tetrahedron element for which internal forces are to be computed.
+- `displacements`: `AbstractVector` type, the nodal displacements of the element.
+
+## Returns
+A 4-tuple containing:
+- `forces`: `Symmetric` type, the internal forces of the tetrahedron element.
+- `stiffness`: `Symmetric` type, the stiffness matrix of the tetrahedron element.
+- `stress`: `Symmetric` type, the Cauchy stress tensor of the tetrahedron element.
+- `strain`: `Symmetric` type, the strain tensor of the tetrahedron element.
+"
 function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::AbstractVector)
 
   ∂X∂ζ = _shape_functions_derivatives(t)
