@@ -1,3 +1,5 @@
+using StaticArrays: @MVector
+using SparseArrays: SparseMatrixCSC
 using Dictionaries: Dictionary
 
 using ...Meshes: num_dofs

@@ -7,7 +7,6 @@ module Meshes
 using Reexport: @reexport
 
 @reexport using ..Elements
-using ..Utils: row_vector
 
 @reexport import ..Elements: add!, dimension, dofs, nodes
 

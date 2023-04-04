@@ -10,7 +10,7 @@ using Reexport: @reexport
 @reexport using ..Elements
 @reexport using ..BoundaryConditions
 @reexport using ..Meshes
-using ..Utils: row_vector, label
+using ..Utils: label
 
 import ..Elements: dofs, nodes
 import ..Meshes: mesh, num_dofs, elements, num_elements, num_nodes
