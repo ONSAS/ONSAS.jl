@@ -1,4 +1,4 @@
-# Static Analysis Interface
+# AbstractStaticAnalyses Interface
 
 This section describes the interfaces to handle with static analysis.
 
