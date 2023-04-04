@@ -1,3 +1,8 @@
+module LinearStaticAnalyses
+
+using IterativeSolvers: cg
+
+using ....Utils: ScalarWrapper
 using ..StaticAnalyses
 using ...StructuralSolvers: AbstractSolver, NewtonRaphson, StatesSolution, tolerances
 using ...StructuralModel: AbstractStructure
@@ -16,13 +21,13 @@ As this analysis is linear the stiffness of the structure remains constant at ea
 - `λᵥ`            -- stores the load factors vector of the analysis
 - `current_step`  -- stores the current load factor step
 """
-mutable struct LinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <: AbstractStaticAnalysis
+struct LinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <: AbstractStaticAnalysis
     s::S
     state::StaticState
     λᵥ::LFV
-    current_step::Int
+    current_step::ScalarWrapper{Int}
     function LinearStaticAnalysis(s::S, λᵥ::LFV; initial_step::Int=1) where {S<:AbstractStructure,LFV<:AbstractVector{<:Real}}
-        new{S,LFV}(s, StaticState(s), λᵥ, initial_step)
+        new{S,LFV}(s, StaticState(s), λᵥ, ScalarWrapper(initial_step))
     end
 end
 
@@ -70,7 +75,7 @@ function _solve(sa::LinearStaticAnalysis)
         _next!(sa)
     end
 
-    return sol
+    sol
 end
 
 "Computes ΔU for solving the `LinearStaticAnalysis`."
@@ -89,3 +94,5 @@ function _step!(sa::LinearStaticAnalysis)
     _update!(c_state, ΔU)
 
 end
+
+end # endModule

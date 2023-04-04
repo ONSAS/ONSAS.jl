@@ -28,3 +28,20 @@
 }
 ```
 ----
+----
+
+#### [Gurtin]
+
+- Gurtin, M. E. (1973). The linear theory of elasticity. *Linear Theories of Elasticity and Thermoelasticity: Linear and Nonlinear Theories of Rods, Plates, and Shells*.
+
+```
+@book{gurtin1973linear,
+  title={The linear theory of elasticity},
+  author={Gurtin, Morton E},
+  journal={Linear Theories of Elasticity and Thermoelasticity: Linear and Nonlinear Theories of Rods, Plates, and Shells},
+  pages={1--295},
+  year={1973},
+  publisher={Springer}
+}
+```
+----

@@ -14,7 +14,6 @@ using Reexport: @reexport
 @reexport using ..Meshes
 @reexport using ..StructuralModel
 @reexport using ..StructuralSolvers
-using ..Utils: row_vector
 
 import ..Elements: internal_forces, inertial_forces, strain, stress
 import ..StructuralModel: free_dofs

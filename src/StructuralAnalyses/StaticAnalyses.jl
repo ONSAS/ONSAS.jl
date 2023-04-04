@@ -2,10 +2,6 @@ module StaticAnalyses
 
 using Dictionaries: dictionary
 using Reexport: @reexport
-using StaticArrays: @MVector
-using SparseArrays: SparseMatrixCSC
-using IterativeSolvers: cg
-using LinearAlgebra: norm
 
 @reexport using ..Materials
 @reexport using ...Elements
@@ -17,7 +13,7 @@ using LinearAlgebra: norm
 import ..StructuralAnalyses: _assemble!, initial_time, current_time, final_time, _next!,
     iteration_residuals, is_done, reset!
 
-export StaticAnalysis, load_factors, current_load_factor
+export AbstractStaticAnalysis, load_factors, current_load_factor
 
 include("StaticState.jl")
 
@@ -54,15 +50,15 @@ abstract type AbstractStaticAnalysis <: AbstractStructuralAnalysis end
 initial_time(sa::AbstractStaticAnalysis) = first(load_factors(sa))
 
 "Returns the current load factor of an `AbstractStaticAnalysis` `sa`."
-current_time(sa::AbstractStaticAnalysis) = load_factors(sa)[sa.current_step]
+current_time(sa::AbstractStaticAnalysis) = load_factors(sa)[sa.current_step[]]
 
 "Returns the final load factor of an `AbstractStaticAnalysis` `sa`."
 final_time(sa::AbstractStaticAnalysis) = last(load_factors(sa))
 
 "Returns `true` if the `AbstractStaticAnalysis` `sa` is completed."
 function is_done(sa::AbstractStaticAnalysis)
-    is_done_bool = if sa.current_step > length(load_factors(sa))
-        sa.current_step -= 1
+    is_done_bool = if sa.current_step[] > length(load_factors(sa))
+        sa.current_step[] -= 1
         true
     else
         false
@@ -76,10 +72,10 @@ load_factors(sa::AbstractStaticAnalysis) = sa.λᵥ
 current_load_factor(sa::AbstractStaticAnalysis) = current_time(sa)
 
 "Jumps to the next current load factor defined in the `AbstractStaticAnalysis` `sa`."
-_next!(sa::AbstractStaticAnalysis) = sa.current_step += 1
+_next!(sa::AbstractStaticAnalysis) = sa.current_step[] += 1
 
 "Sets the current load factor of the `AbstractStaticAnalysis` `sa` to the initial load factor."
-reset!(sa::AbstractStaticAnalysis) = sa.current_step = 1
+reset!(sa::AbstractStaticAnalysis) = sa.current_step[] = 1
 
 "Assembles the Structure `s` (internal forces) during the `StaticAnalysis` `sa`."
 function _assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
@@ -132,10 +128,10 @@ function Base.push!(st_sol::StatesSolution, c_state::StaticState)
     push!(states(st_sol), StaticState(s, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, iter_state))
 end
 
+include("LinearStaticAnalyses.jl")
+@reexport using .LinearStaticAnalyses
 
-include("LinearStaticAnalysis.jl")
-include("NonLinearStaticAnalysis.jl")
-
-
+include("NonLinearStaticAnalyses.jl")
+@reexport using .NonLinearStaticAnalyses
 
 end # module

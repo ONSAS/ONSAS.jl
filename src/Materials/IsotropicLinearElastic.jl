@@ -1,9 +1,12 @@
-# Implement a linear elastic material
-using .Materials: AbstractLinearElasticMaterial
+using LinearAlgebra: Symmetric, tr
+using SparseArrays: SparseMatrixCSC
 
-import .Materials: lame_parameters, shear_modulus, poisson_ratio, elasticity_modulus, bulk_modulus
+using ..LinearElasticMaterials: AbstractLinearElasticMaterial
+using ...Utils: eye
 
-export IsotropicLinearElastic, cauchy_stress
+import ..LinearElasticMaterials: lame_parameters, shear_modulus, poisson_ratio, elasticity_modulus, bulk_modulus, cauchy_stress
+
+export IsotropicLinearElastic
 
 """ IsotropicLinearElastic material struct.
 ### Fields:
@@ -12,7 +15,7 @@ export IsotropicLinearElastic, cauchy_stress
 - `ρ`         -- density (`nothing` for static cases).
 - `label`     -- material label.
 
-[See this ref.](https://en.wikipedia.org/wiki/Hyperelastic_material)
+[See this ref.](https://en.wikipedia.org/wiki/Linear_elasticity)
 """
 struct IsotropicLinearElastic{ET<:Real,NT<:Real,RT<:Union{ET,Nothing}} <: AbstractLinearElasticMaterial
     E::ET

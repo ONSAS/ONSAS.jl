@@ -1,13 +1,9 @@
-#################
-# Util features #
-#################
 module Utils
 
 using LinearAlgebra: Diagonal
 
-export label, _unwrap
+export ScalarWrapper, label, _unwrap, eye, row_vector
 
-export eye, row_vector
 #================================#
 # Generic functions to overload  #
 #================================#
@@ -22,6 +18,14 @@ function label end
 
 "Unwraps the object fields."
 function _unwrap end
+
+"Scalar mutable struct to avoid making mutable larger structs"
+mutable struct ScalarWrapper{T}
+    x::T
+end
+
+@inline Base.getindex(s::ScalarWrapper) = s.x
+@inline Base.setindex!(s::ScalarWrapper, v) = s.x = v
 
 #==================#
 # Utils functions  #

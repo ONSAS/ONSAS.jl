@@ -1,11 +1,12 @@
 using LinearAlgebra: tr
 using SparseArrays: SparseMatrixCSC
 
-using .Materials: AbstractMaterial
-using ..Utils: eye
+using ..HyperElasticMaterials: AbstractHyperElasticMaterial
+using ...Utils: eye
 
-import .Materials: density, cosserat_stress, strain_energy,
-    lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
+import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
+import ..HyperElasticMaterials: cosserat_stress, strain_energy
+
 export SVK
 
 """ Saint-Venant-Kirchhoff material struct.

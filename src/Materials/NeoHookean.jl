@@ -1,9 +1,11 @@
 using ForwardDiff: gradient!
-
-using .Materials: AbstractMaterial
 using LinearAlgebra: Symmetric, tr, det, inv
 
-import .Materials: lame_parameters, cosserat_stress, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
+using ..HyperElasticMaterials: AbstractHyperElasticMaterial
+using ...Utils: eye
+
+import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus, poisson_ratio
+import ..HyperElasticMaterials: cosserat_stress, strain_energy
 
 export NeoHookean
 
@@ -127,14 +129,3 @@ function cosserat_stress(m::NeoHookean, 𝔼::AbstractMatrix)
     return _𝕊_analytic(m, 𝔼), _∂𝕊_∂𝔼(m, 𝔼, _𝕊_analytic)
 
 end
-
-
-
-
-# function strain_energy_neo(𝔼::AbstractMatrix, μ::Real, K::Real)
-#     J = sqrt(det(ℂ))
-#     # First invariant
-#     I₁ = tr(ℂ)
-#     # Strain energy function 
-#     Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
-# end
