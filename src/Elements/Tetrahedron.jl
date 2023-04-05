@@ -179,14 +179,14 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
   U = reshape(u_e, 3, 4)
   ℍ = U * funder'
   
-  ϵ = Symmetric(0.5 * (ℍ + ℍ' + ℍ' * ℍ))
+  ϵ = Symmetric(0.5 * (ℍ + ℍ'))
   𝔽 = eye(3)
 
   B = _B_mat(funder, 𝔽)
 
-  σ, ∂σ∂𝔼 = cauchy_stress(m, ϵ)
+  σ, ∂σ∂ϵ = cauchy_stress(m, ϵ)
 
-  Kᵢₙₜ_e = Symmetric(B' * ∂σ∂𝔼 * B* vol)
+  Kᵢₙₜ_e = Symmetric(B' * ∂σ∂ϵ * B* vol)
   
   fᵢₙₜ_e = Kᵢₙₜ_e * u_e
 
