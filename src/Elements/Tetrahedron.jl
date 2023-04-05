@@ -243,8 +243,7 @@ function weights(t::Tetrahedron{3,T}, p::Point{dim,P}) where {T<:Real,dim,P<:Rea
 end
 
 function Base.convert(::Type{VPolytope}, t::Tetrahedron)
-  coords = collect(coordinates.(nodes(t)))
-  VPolytope(coords)
+  VPolytope(nodes(t))
 end
 
 "Checks if a point `p` is inside a `Tetrahedron` element `t`."
