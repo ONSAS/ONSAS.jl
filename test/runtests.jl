@@ -28,4 +28,4 @@ function test(file::String)
     end
 end
 
-test([MODULES; EXAMPLES]);
+test([EXAMPLES; MODULES]);

@@ -18,7 +18,8 @@ const RTOL = 1e-4          # Relative tolerance for tests
 const ATOL = 1e-10         # Absolute tolerance for tests
 const NSTEPS = 9           # Number of steps for the test
 # Mesh Cube with Gmsh.jl
-include("./../uniaxial_extension/uniaxial_cube_mesh.jl")
+include(joinpath("..", "uniaxial_extension", "uniaxial_cube_mesh.jl"))
+
 # -----------------------------------------------------
 # Case 1 - Manufactured mesh and `NeoHookean` material
 #------------------------------------------------------
