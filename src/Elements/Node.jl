@@ -42,7 +42,4 @@ Node(t::NTuple{dim,T}, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where 
 Node(v::AbstractVector{T}, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =
     Node(SVector(v...), dofs)
 
-# FIXME Make parametric?
-StaticArrays.similar_type(::Type{Node{1,T}}, ::Type{T}, s::Size{(1,)}) where {T} = Node{1,T}
-StaticArrays.similar_type(::Type{Node{2,T}}, ::Type{T}, s::Size{(2,)}) where {T} = Node{2,T}
-StaticArrays.similar_type(::Type{Node{3,T}}, ::Type{T}, s::Size{(3,)}) where {T} = Node{3,T}
+StaticArrays.similar_type(::Type{Node{dim,T}}, ::Type{T}, s::Size{dim}) where {dim,T} = Node{dim,T}
