@@ -16,6 +16,7 @@ Lⱼ = 1.0                         # Dimension in y of the box in m
 Lₖ = 1.0                         # Dimension in z of the box in m
 const RTOL = 1e-4                # Relative tolerance for tests
 include("uniaxial_cube_mesh.jl") # Mesh Cube with Gmsh.jl
+
 # -----------------------------------------------
 # Case 1 - Manufactured mesh and `SVK` material
 #------------------------------------------------

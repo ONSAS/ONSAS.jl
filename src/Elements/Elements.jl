@@ -7,7 +7,7 @@ module Elements
 using AutoHashEquals: @auto_hash_equals
 using Reexport: @reexport
 @reexport using Dictionaries: Dictionary, dictionary
-using StaticArrays: SVector
+using StaticArrays: Size, SVector, StaticArray
 using ..Utils: row_vector
 
 @reexport using ..Materials
@@ -15,6 +15,7 @@ using ..Utils: row_vector
 @reexport import ..Utils: label
 @reexport import Dictionaries: index
 
+import StaticArrays
 import ..CrossSections: area
 
 export Dof, add!
@@ -71,7 +72,7 @@ An `AbstractNode` object is a point in space.
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 """
-abstract type AbstractNode{dim,T} end
+abstract type AbstractNode{dim,T} <: StaticArray{Tuple{dim},T,1} end
 
 "Returns the `AbstractNode` `n` coordinates."
 coordinates(n::AbstractNode) = n.x
@@ -81,6 +82,9 @@ coordinates(vn::AbstractVector{<:AbstractNode}) = coordinates.(vn)
 
 "Returns the `AbstractNode` `n` dimension (1D, 2D or 3D)."
 dimension(::AbstractNode{dim}) where {dim} = dim
+
+"Returns a tuple containing the dimensions of the `AbstractNode` `n`."
+Base.size(n::AbstractNode) = size(n.x)
 
 "Returns the coordinate at component `i` from the `AbstractNode` `n`."
 Base.getindex(n::AbstractNode, i::Int) = n.x[i]

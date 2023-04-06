@@ -15,7 +15,8 @@ Lⱼ = 1.0                         # Dimension in y of the box in m
 Lₖ = 1.0                         # Dimension in z of the box in m
 const RTOL = 1e-4                # Relative tolerance for tests
 const NSTEPS = 9                 # Number of steps for the test
-include("./linear_extension_mesh.jl")   # Mesh Cube with Gmsh.jl
+include("linear_extension_mesh.jl")   # Mesh Cube with Gmsh.jl
+
 # -------------------------------
 # Materials
 # -------------------------------
