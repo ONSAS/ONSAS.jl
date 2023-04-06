@@ -1,10 +1,12 @@
 using Gmsh
 
-"Creates a mesh for a cube with a loaded face and a fixed origin."
+"Creates a mesh for a cube with a loaded face and a fixed origin at (0,0,0)
+and (Lᵢ,Lⱼ,Lₖ) given some `labels` a `filename` and refinement factor `ms`."
 function create_mesh(
     Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
     labels::Vector,
     filename::String,
+    ms::Real=0.5
 )
 
     # Get Labels
@@ -21,8 +23,6 @@ function create_mesh(
     gmsh.initialize()
     gmsh.option.setNumber("General.Terminal", 1)
     gmsh.model.add("$filename")
-
-    ms = 0.5
 
     # Points
     # Face (x = 0)

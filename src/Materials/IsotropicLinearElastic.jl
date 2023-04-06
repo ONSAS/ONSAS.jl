@@ -70,7 +70,7 @@ function cauchy_stress(m::IsotropicLinearElastic, ϵ::AbstractMatrix)
     λ, G = lame_parameters(m)
     σ = Symmetric(λ * tr(ϵ) * eye(3) + 2 * G * ϵ)
 
-    ∂σ∂ϵ = SparseMatrixCSC(zeros(6, 6))
+    ∂σ∂ϵ = zeros(6, 6)
     ∂σ∂ϵ[1:3, 1:3] = λ * ones(3, 3) + 2 * G * eye(3)
     ∂σ∂ϵ[4:6, 4:6] = G * eye(3)
 

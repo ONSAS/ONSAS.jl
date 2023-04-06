@@ -92,7 +92,7 @@ function cosserat_stress(m::SVK, 𝔼::AbstractMatrix)
     λ, G = lame_parameters(m)
     𝕊 = λ * tr(𝔼) * eye(3) + 2 * G * 𝔼
 
-    ∂𝕊∂𝔼 = SparseMatrixCSC(zeros(6, 6))
+    ∂𝕊∂𝔼 = zeros(6, 6)
     ∂𝕊∂𝔼[1:3, 1:3] = λ * ones(3, 3) + 2 * G * eye(3)
     ∂𝕊∂𝔼[4:6, 4:6] = G * eye(3)
 

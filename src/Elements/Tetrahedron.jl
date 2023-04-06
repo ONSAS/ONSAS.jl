@@ -1,6 +1,6 @@
 using StaticArrays: SVector
 using LinearAlgebra: Symmetric, det, diagm
-using LazySets: VPolytope
+import LazySets
 
 using ..Materials: AbstractHyperElasticMaterial, SVK, cosserat_stress
 using ..Materials: IsotropicLinearElastic, lame_parameters, cauchy_stress
@@ -145,7 +145,6 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
   # Cauchy strain tensor
   ℂ = Symmetric( 𝔽' * 𝔽 )
 
-  
   return fᵢₙₜ_e, Kᵢₙₜ_e, ℙ, ℂ
 
 end
@@ -175,7 +174,7 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
 
   funder = inv(J)' * ∂X∂ζ
     
-  # ∇u in global coordinats 
+  # ∇u = ℍ in global coordinats 
   U = reshape(u_e, 3, 4)
   ℍ = U * funder'
   
@@ -193,7 +192,6 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
   return fᵢₙₜ_e, Kᵢₙₜ_e, σ, ϵ
 
 end
-
 
 
 "Returns the shape functions derivatives of a `Tetrahedron` element."
@@ -242,9 +240,9 @@ function weights(t::Tetrahedron{3,T}, p::Point{dim,P}) where {T<:Real,dim,P<:Rea
   _interpolation_matrix(t) * [1,p...]
 end
 
-function Base.convert(::Type{VPolytope}, t::Tetrahedron)
-  VPolytope(nodes(t))
+function Base.convert(::Type{LazySets.VPolytope}, t::Tetrahedron)
+  LazySets.VPolytope(nodes(t))
 end
 
 "Checks if a point `p` is inside a `Tetrahedron` element `t`."
-Base.:∈(p::Point, t::Tetrahedron) = p ∈ convert(VPolytope, t)
+Base.:∈(p::Point, t::Tetrahedron) = p ∈ convert(LazySets.VPolytope, t)

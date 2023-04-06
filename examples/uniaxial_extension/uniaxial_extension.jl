@@ -8,15 +8,15 @@ using Test: @test, @testset
 using LinearAlgebra: det, tr
 using Roots: find_zero
 ## scalar parameters
-E = 1.0                          # Young modulus in Pa
-ν = 0.3                          # Poisson's ratio
-p = 3                            # Tension load in Pa
-Lᵢ = 2.0                         # Dimension in x of the box in m 
-Lⱼ = 1.0                         # Dimension in y of the box in m
-Lₖ = 1.0                         # Dimension in z of the box in m
+const E = 1.0                    # Young modulus in Pa
+const ν = 0.3                    # Poisson's ratio
+const p = 3                      # Tension load in Pa
+const Lᵢ = 2.0                   # Dimension in x of the box in m 
+const Lⱼ = 1.0                   # Dimension in y of the box in m
+const Lₖ = 1.0                   # Dimension in z of the box in m
+const ms = 0.5                   # Refinement factor for the mesh
 const RTOL = 1e-4                # Relative tolerance for tests
 include("uniaxial_cube_mesh.jl") # Mesh Cube with Gmsh.jl
-
 # -----------------------------------------------
 # Case 1 - Manufactured mesh and `SVK` material
 #------------------------------------------------
@@ -168,7 +168,7 @@ entities_labels = [faces_label, elems_label]
 # -------------------------------
 filename = "uniaxial_extension"
 labels = [mat_label, entities_labels, bc_labels]
-file_name_mesh = create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename)
+file_name_mesh = create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms)
 msh_file = MshFile(file_name_mesh)
 # -------------------------------
 # Structure

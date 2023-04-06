@@ -5,6 +5,7 @@ function create_mesh(
     Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
     labels::Vector,
     filename::String,
+    ms::Real=0.5
 )
 
     # Get Labels
@@ -21,8 +22,6 @@ function create_mesh(
     gmsh.initialize()
     gmsh.option.setNumber("General.Terminal", 1)
     gmsh.model.add("$filename")
-
-    ms = 0.5
 
     # Points
     # Face (x = 0)
