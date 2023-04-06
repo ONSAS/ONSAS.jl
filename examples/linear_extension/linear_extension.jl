@@ -15,8 +15,8 @@ Lⱼ = 1.0                         # Dimension in y of the box in m
 Lₖ = 1.0                         # Dimension in z of the box in m
 const RTOL = 1e-4                # Relative tolerance for tests
 const NSTEPS = 9                 # Number of steps for the test
+const ms = 0.5                   # Refinement factor
 include("linear_extension_mesh.jl")   # Mesh Cube with Gmsh.jl
-
 # -------------------------------
 # Materials
 # -------------------------------
@@ -56,7 +56,7 @@ s_entities = StructuralEntities(velems, vfaces)
 # -------------------------------
 filename = "linear_extension"
 labels = [mat_label, entities_labels, bc_labels]
-file_name_mesh = create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename)
+file_name_mesh = create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms)
 msh_file = MshFile(file_name_mesh)
 # -------------------------------
 # Structure

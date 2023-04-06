@@ -56,9 +56,31 @@ const RTOL = 1e-5
 end
 
 
+include("./../examples/uniaxial_extension/uniaxial_cube_mesh.jl")
 @testset "ONSAS.Meshes.GMSH " begin
 
-    file_name = joinpath(@__DIR__, "..", "examples", "uniaxial_extension", "uniaxial_extension.msh")
+
+    Lᵢ = 2.0  # Dimension in x of the box in m 
+    Lⱼ = 1.0  # Dimension in y of the box in m
+    Lₖ = 1.0  # Dimension in z of the box in m
+
+    # Labels
+    mat_label = "svkHyper"
+    faces_label = "triangle"
+    elems_label = "tetrahedron"
+    entities_labels = [faces_label, elems_label]
+    bc₁_label = "fixed-ux"
+    bc₂_label = "fixed-uj"
+    bc₃_label = "fixed-uk"
+    # Load
+    bc₄_label = "tension"
+    bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
+    # labels
+    labels = [mat_label, entities_labels, bc_labels]
+    filename = "test_mesh"
+    # Create and load the mesh
+    msh_file = create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename)
+    file_name = joinpath(@__DIR__, msh_file)
     msh_file = MshFile(file_name)
 
     @test nodes(msh_file) == msh_file.vec_nodes
@@ -75,7 +97,6 @@ end
     @test physical_index(msh_file, entity_index) == 5
 
 end
-
 
 @testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron" begin
 
