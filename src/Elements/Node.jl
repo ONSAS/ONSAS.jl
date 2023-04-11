@@ -43,3 +43,5 @@ Node(v::AbstractVector{T}, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) wh
     Node(SVector(v...), dofs)
 
 StaticArrays.similar_type(::Type{Node{dim,T}}, ::Type{T}, s::Size{dim}) where {dim,T} = Node{dim,T}
+
+Base.length(::Type{Node{dim,T}}) where {dim,T} = dim

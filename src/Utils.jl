@@ -2,7 +2,7 @@ module Utils
 
 using LinearAlgebra: Diagonal
 
-export ScalarWrapper, label, _unwrap, eye, row_vector
+export ScalarWrapper, label, _unwrap, eye, row_vector, Point
 
 #================================#
 # Generic functions to overload  #
