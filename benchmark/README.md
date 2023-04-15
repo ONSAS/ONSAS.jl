@@ -12,6 +12,9 @@ julia> using PkgBenchmark
 julia> results = benchmarkpkg("ONSAS", retune=true)
 ```
 
+A shell script, `runbenchmarks.sh`, is also provided. In that case, ensure to run
+the script from the directory containing your ONSAS development environment, or otherwise define the environment variable `ENV["ONSAS"]` containing such environment.
+
 ## How to compare benchmarks
 
 To compare current version to another tagged version, commit or branch:
