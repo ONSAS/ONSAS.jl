@@ -60,7 +60,7 @@ function Structure(msh_file::MshFile,
     nodes = msh_file.vec_nodes
     mesh = Mesh(nodes)
 
-    for (entity_index, entity_nodes_indexes) in enumerate(msh_file.connectivity)#
+    for (entity_index, entity_nodes_indexes) in enumerate(msh_file.connectivity)
 
         # Create entity and push it into the mesh
         nodes_entity = view(nodes, entity_nodes_indexes)

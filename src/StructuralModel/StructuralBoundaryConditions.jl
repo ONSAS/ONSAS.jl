@@ -24,13 +24,12 @@ end
 
 "Constructor for empty `StructuralBoundaryConditions` with a `Vector` of `AbstractBoundaryCondition`s `vbc`."
 function StructuralBoundaryConditions(vbc::Vector{BC}) where {BC<:AbstractBoundaryCondition}
-
     bcs_nodes = dictionary(map(bc -> bc => Vector{AbstractNode}(), vbc))
     bcs_faces = dictionary(map(bc -> bc => Vector{AbstractFace}(), vbc))
     bcs_elements = dictionary(map(bc -> bc => Vector{AbstractElement}(), vbc))
-
     StructuralBoundaryConditions(bcs_nodes, bcs_faces, bcs_elements)
 end
+StructuralBoundaryConditions(bcs::AbstractBoundaryCondition...) = StructuralBoundaryConditions(collect(bcs))
 
 "Returns the `BoundaryCondition` with the label `l` in the `StructuralBoundaryConditions` `sb`."
 function Base.getindex(sb::StructuralBoundaryConditions, l::L) where {L<:Union{Symbol,String}}

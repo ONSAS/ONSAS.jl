@@ -41,13 +41,11 @@ end
 
 "Solves an `NonLinearStaticAnalysis` `sa` with an AbstractSolver `alg`."
 function _solve(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
-
     s = structure(sa)
-
-    # Initialize solution
+    # Initialize solution.
     sol = StatesSolution(sa, alg)
 
-    # load factors iteration 
+    # Load factors iteration.
     while !is_done(sa)
 
         # Sets Δu, ΔR and relatives norms to zero 
@@ -56,37 +54,21 @@ function _solve(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
         # Computes external forces
         _apply!(sa, load_bcs(s))
 
-        # Show external forces for debugging purposes
-        @debug external_forces(current_state(sa))
-
-        # Displacements iteration
+        # Displacements iteration.
         while isconverged!(current_iteration(sa), tolerances(alg)) isa NotConvergedYet
-
-            # Computes residual forces and tangent matrix    
+            # Compute residual forces and tangent matrix. 
             _assemble!(s, sa)
 
-            # Show residual, tangent matrix and internal forces for debugging purposes
-            @debug view(internal_forces(current_state(sa)), index.(free_dofs(s)))
-            @debug residual_forces(current_state(sa))
-            @debug tangent_matrix(current_state(sa))[index.(free_dofs(s)), index.(free_dofs(s))]
-
-            # Increment structure displacements U = U + ΔU
+            # Increment structure displacements `U = U + ΔU`.
             _step!(sa, alg)
-
-            # Show iteration status and the boolean if the iteration has converged or not
-            @debug current_iteration(sa)
-            @debug isconverged!(current_iteration(sa), tolerances(alg))
-
         end
 
-        # Save current state
+        # Save current state.
         push!(sol, current_state(sa))
 
-        # Increments the time or load factor step 
+        # Increment the time or load factor step.
         _next!(sa)
-
     end
-
     return sol
 end
 
