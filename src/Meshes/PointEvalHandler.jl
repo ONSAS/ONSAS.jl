@@ -3,7 +3,6 @@ using Reexport: @reexport
 using Dictionaries: Dictionary
 using ..Meshes: AbstractMesh, elements
 using ..Elements: AbstractNode, AbstractElement, coordinates, index, weights
-const Point{dim,T} = Union{AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
 
 export PointEvalHandler, points, interpolator, mesh
 export PointsInterpolator, node_to_weights, points_to_element

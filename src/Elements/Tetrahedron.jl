@@ -10,8 +10,6 @@ using ..Utils: eye, _voigt
 
 import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress, weights
 
-const Point{dim,T} = Union{<:AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
-
 export Tetrahedron, volume, reference_coordinates
 
 """
