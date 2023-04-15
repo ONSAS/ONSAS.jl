@@ -18,11 +18,13 @@ using ..Utils: row_vector
 import StaticArrays
 import ..CrossSections: area
 
-export Dof, add!
+export Dof, add!, Point
 export AbstractNode, dimension, dofs, coordinates
 export AbstractEntity, nodes, coordinates, create_entity
 export AbstractFace, normal_direction
 export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress, weights
+
+const Point{dim,T} = Union{<:AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
 
 # ========================
 # Degree of freedom (Dof)

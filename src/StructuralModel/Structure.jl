@@ -3,8 +3,6 @@ using ..Meshes: AbstractMesh, Mesh, MshFile
 using ..BoundaryConditions: FixedDofBoundaryCondition, _apply
 using ..StructuralModel: AbstractStructure, StructuralMaterials, StructuralBoundaryConditions, StructuralEntities
 
-const Point{dim,T} = Union{AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
-
 import ..Meshes: PointEvalHandler
 
 """
