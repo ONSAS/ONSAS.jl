@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 # Strain energy function of an hyperelastic material used in the benchmark.
 strain_energy_svk(𝔼::AbstractMatrix, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
 
