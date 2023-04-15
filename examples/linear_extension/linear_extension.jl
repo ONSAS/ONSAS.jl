@@ -22,7 +22,6 @@ include("linear_extension_mesh.jl")   # Mesh Cube with Gmsh.jl
 # -------------------------------
 mat_label = "mat"
 mat = IsotropicLinearElastic(E, ν, mat_label)
-# mat = SVK(E=E, ν=ν, label=mat_label)
 s_materials = StructuralMaterials([mat])
 # -------------------------------
 # Boundary conditions

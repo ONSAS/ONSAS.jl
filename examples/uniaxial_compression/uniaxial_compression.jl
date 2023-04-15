@@ -20,10 +20,9 @@ const ATOL = 1e-10         # Absolute tolerance for tests
 const NSTEPS = 9           # Number of steps for the test
 # Mesh Cube with Gmsh.jl
 include(joinpath("..", "uniaxial_extension", "uniaxial_cube_mesh.jl"))
-
 # -----------------------------------------------------
 # Case 1 - Manufactured mesh and `NeoHookean` material
-#------------------------------------------------------
+# ------------------------------------------------------
 # -------------------------------
 # Mesh
 #--------------------------------

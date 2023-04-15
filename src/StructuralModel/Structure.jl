@@ -69,6 +69,8 @@ function Structure(msh_file::MshFile,
         entity = create_entity(entity_type, nodes_entity)
         push!(mesh, entity)
 
+        Main.@infiltrate
+
         # Find material and push 
         material_type_label = material_label(msh_file, entity_index)
         # If has material defined is an element not a surface
