@@ -28,7 +28,7 @@ example_folder, bench_path = joinpath_example_folder(example_name)
 include(bench_path)
 
 # Refinement factors 
-ms_range = [0.5, 0.4, 0.3, 0.2]
+ms_range = [0.5 0.4 0.3]
 
 for ms in ms_range
     local structure
