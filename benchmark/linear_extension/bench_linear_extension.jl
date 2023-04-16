@@ -50,10 +50,10 @@ function linear_extension_structure(; ms=0.5)
 
     # Create mesh and retrieve the Structure
 
-    dir = joinpath(pkgdir(ONSAS), "benchmark", "uniaxial_extension")
+    dir = joinpath(pkgdir(ONSAS), "benchmark", "linear_extension")
     filename = basename(tempname())
     labels = [mat_label, entities_labels, bc_labels]
-    dir = joinpath(pkgdir(ONSAS), "benchmark", "uniaxial_extension")
+    dir = joinpath(pkgdir(ONSAS), "benchmark", "linear_extension")
     msh_file = MshFile(create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms))
 
     Structure(msh_file, materials, boundary_conditions, entities)
