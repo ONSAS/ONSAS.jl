@@ -4,8 +4,9 @@
 "Return the as variables prints from the REPL."
 function capture_print(output)
     # Extract the number of nodes and elements as integers.
-    nnodes = parse(Int, match(r"(\d+) nodes (\d+) elements", output).captures[1])
-    nelems = parse(Int, match(r"(\d+) nodes (\d+) elements", output).captures[2])
+    m = match(r"(\d+) nodes (\d+) elements", output)
+    nnodes = parse(Int, m.captures[1])
+    nelems = parse(Int, m.captures[2])
     nnodes, nelems
 end
 
