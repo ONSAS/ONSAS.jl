@@ -1,36 +1,44 @@
 using LinearAlgebra
 
 # Strain energy function of an hyperelastic material used in the benchmark.
-strain_energy_svk(𝔼::AbstractMatrix, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
+function strain_energy_neo(𝔼::AbstractMatrix, K::Real, μ::Real)
+    # Right hand Cauchy strain tensor
+    ℂ = Symmetric(2 * 𝔼 + eye(3))
+    J = sqrt(det(ℂ))
+    # First invariant
+    I₁ = tr(ℂ)
+    # Strain energy function 
+    Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
+end
 
 # Include `create_mesh` function.
 include(joinpath(pkgdir(ONSAS), "examples", "uniaxial_extension", "uniaxial_cube_mesh.jl"))
 
 """
-Uniaxial extension Case 2 - GMSH mesh and `HyperElastic` material.
+Uniaxial compression Case 2 - GMSH mesh and `HyperElastic` material.
 
 `ms` is the refinement factor of the mesh.
 """
-function uniaxial_extension_structure(; ms=0.5)
+function uniaxial_compression_structure(; ms=0.5)
+
     # x, y and z dimensions of the box in the mesh respectively.
     Lᵢ = 2.0
     Lⱼ = 1.0
     Lₖ = 1.0
-    # Young's modulus in Pa.
-    E = 1.0
-    # Poisson's ratio.
-    ν = 0.3
-    mat_label = "svkHyper"
-    svk = SVK(E, ν, mat_label)
-    λ, G = lame_parameters(svk)
-    svk_hyper_elastic = HyperElastic([λ, G], strain_energy_svk, "svkHyper")
+    E = 1.0                    # Young modulus in Pa
+    ν = 0.3                    # Poisson's ratio
+    K = E / (3 * (1 - 2 * ν))  # Bulk modulus in Pa
+    μ = G = E / (2 * (1 + ν))  # Second Lamé parameter in Pa
+    mat_label = "neoHyper"
+    neo_hookean_hyper = HyperElastic([K, μ], strain_energy_neo, "neoHyper")
+
     # Tension load in Pa.
-    p = 3
+    p = -1
 
     # Material types without assigned elements.
-    materials = StructuralMaterials(svk_hyper_elastic)
+    materials = StructuralMaterials(neo_hookean_hyper)
 
-    # Redefine the load boundary condition.
+    # Dirichlet boundary conditions 
     bc₁_label = "fixed-ux"
     bc₂_label = "fixed-uj"
     bc₃_label = "fixed-uk"
@@ -38,6 +46,8 @@ function uniaxial_extension_structure(; ms=0.5)
     bc₁ = FixedDofBoundaryCondition([:u], [1], bc₁_label)
     bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
     bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
+
+    # Neumann boundary conditions 
     bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], bc₄_label)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
 
@@ -50,10 +60,13 @@ function uniaxial_extension_structure(; ms=0.5)
     vfaces = [TriangularFace(faces_label)]
     velems = [Tetrahedron(elems_label)]
     entities = StructuralEntities(velems, vfaces)
+    entities_labels = [faces_label, elems_label]
 
+    # Create mesh and retrieve the Structure
     entities_labels = [faces_label, elems_label]
     filename = basename(tempname())
     labels = [mat_label, entities_labels, bc_labels]
-    mesh = MshFile(create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms))
+    dir = joinpath(pkgdir(ONSAS), "benchmark", "uniaxial_compression")
+    mesh = MshFile(create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms; dir))
     Structure(mesh, materials, boundary_conditions, entities)
 end

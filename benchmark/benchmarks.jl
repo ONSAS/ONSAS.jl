@@ -1,26 +1,66 @@
-using BenchmarkTools, ONSAS
+using BenchmarkTools, ONSAS, Suppressor
+
+include("aux_bench.jl")
 
 # Parent BenchmarkGroup to contain our suite.
 SUITE = BenchmarkGroup()
 
-# ===============================================================
-# Uniaxial extension.
-# ===============================================================
-include("uniaxial_extension/uniaxial_extension.jl")
+# Number of evaluations for each example in the suite.
+evals = 3
+# Number of samples for each example in the suite.
+samples = 2
 
-SUITE["Uniaxial extension"] = BenchmarkGroup()
-
+# =======================================
+# Static analysis benchmarks
+# =======================================
+# Alg to solve static problems
 tols = ConvergenceSettings(rel_U_tol=1e-8, rel_res_force_tol=1e-6, max_iter=20)
 alg = NewtonRaphson(tols)
+# Static analysis number of steps to reach the final load factor value
+NSTEPS = 8
 
-structure = uniaxial_extension_structure(ms=0.5)
-problem = NonLinearStaticAnalysis(structure, NSTEPS=8)
-SUITE["Uniaxial extension"]["300 elements"] = @benchmarkable solve($problem, $alg)
+# ========================================
+# Uniaxial extension.
+# ========================================
+example_name = "uniaxial_extension"
+SUITE[example_name] = BenchmarkGroup()
+example_folder, bench_path = joinpath_example_folder(example_name)
+include(bench_path)
 
-structure = uniaxial_extension_structure(ms=0.4)
-problem = NonLinearStaticAnalysis(structure, NSTEPS=8)
-SUITE["Uniaxial extension"]["512 elements"] = @benchmarkable solve($problem, $alg)
+# Refinement factors 
+ms_range = [0.5 0.4 0.3 0.2]
 
-# structure = uniaxial_extension_structure(ms=0.3)
-# problem = NonLinearStaticAnalysis(structure, NSTEPS=8)
-# SUITE["Uniaxial extension"]["1005 elements"] = @benchmarkable solve($problem, $alg)
+for ms in ms_range
+    local structure
+    output = @capture_out begin
+        structure = uniaxial_extension_structure(; ms)
+    end
+    nnodes, nelems = capture_print(output)
+    problem = NonLinearStaticAnalysis(structure, NSTEPS=NSTEPS)
+    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve($problem, $alg) evals = evals samples = samples
+end
+
+# Remove all .msh files from the example_folder 
+delete_files(example_folder, ".msh")
+
+# ===============================================================
+# Uniaxial compression.
+# ===============================================================
+example_name = "uniaxial_compression"
+SUITE[example_name] = BenchmarkGroup()
+example_folder, bench_path = joinpath_example_folder(example_name)
+include(bench_path)
+
+for ms in ms_range
+    local structure
+    output = @capture_out begin
+        structure = uniaxial_compression_structure(; ms)
+    end
+    # Extract the number of elements as an integer.
+    nnodes, nelems = capture_print(output)
+    problem = NonLinearStaticAnalysis(structure, NSTEPS=NSTEPS)
+    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve($problem, $alg) evals = evals samples = samples
+end
+
+# Remove all .msh files from the example_folder 
+delete_files(example_folder, ".msh")
