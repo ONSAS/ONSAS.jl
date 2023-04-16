@@ -79,7 +79,7 @@ include(bench_path)
 for ms in ms_range
     local structure
     output = @capture_out begin
-        structure = uniaxial_compression_structure(; ms)
+        structure = linear_extension_structure(; ms)
     end
     # Extract the number of elements as an integer.
     nnodes, nelems = capture_print(output)
