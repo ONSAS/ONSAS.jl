@@ -7,7 +7,7 @@ strain_energy_svk(𝔼::AbstractMatrix, λ::Real, G::Real) = (λ / 2) * tr(𝔼)
 include(joinpath(pkgdir(ONSAS), "examples", "uniaxial_extension", "uniaxial_cube_mesh.jl"))
 
 """
-Uniaxial extension Case 2 - GMSH mesh and `HyperElastic` material.
+Uniaxial extension Case 2 - GMSH mesh and `SVK` material.
 
 `ms` is the refinement factor of the mesh.
 """
@@ -22,13 +22,11 @@ function uniaxial_extension_structure(; ms=0.5)
     ν = 0.3
     mat_label = "svkHyper"
     svk = SVK(E, ν, mat_label)
-    λ, G = lame_parameters(svk)
-    svk_hyper_elastic = HyperElastic([λ, G], strain_energy_svk, "svkHyper")
     # Tension load in Pa.
     p = 3
 
     # Material types without assigned elements.
-    materials = StructuralMaterials(svk_hyper_elastic)
+    materials = StructuralMaterials(svk)
 
     # Dirichlet boundary conditions 
     bc₁_label = "fixed-ux"
