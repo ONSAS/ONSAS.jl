@@ -25,6 +25,7 @@ function uniaxial_compression_structure(; ms=0.5)
     Lᵢ = 2.0
     Lⱼ = 1.0
     Lₖ = 1.0
+
     E = 1.0                    # Young modulus in Pa
     ν = 0.3                    # Poisson's ratio
     K = E / (3 * (1 - 2 * ν))  # Bulk modulus in Pa

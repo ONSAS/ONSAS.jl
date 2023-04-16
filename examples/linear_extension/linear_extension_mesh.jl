@@ -5,7 +5,8 @@ function create_mesh(
     Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
     labels::Vector,
     filename::String,
-    ms::Real=0.5
+    ms::Real=0.5;
+    dir=@__DIR__
 )
 
     # Get Labels
@@ -105,9 +106,9 @@ function create_mesh(
 
     gmsh.model.geo.synchronize()
     gmsh.model.mesh.generate(dim_vol)
-    file_name_msh = joinpath(@__DIR__, "./$filename.msh")
-    gmsh.write(file_name_msh)
+    filename_msh = joinpath(dir, filename * ".msh")
+    gmsh.write(filename_msh)
     gmsh.finalize()
 
-    return file_name_msh
+    filename_msh
 end
