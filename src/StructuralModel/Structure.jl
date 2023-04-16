@@ -3,8 +3,6 @@ using ..Meshes: AbstractMesh, Mesh, MshFile
 using ..BoundaryConditions: FixedDofBoundaryCondition, _apply
 using ..StructuralModel: AbstractStructure, StructuralMaterials, StructuralBoundaryConditions, StructuralEntities
 
-const Point{dim,T} = Union{AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
-
 import ..Meshes: PointEvalHandler
 
 """
@@ -60,7 +58,7 @@ function Structure(msh_file::MshFile,
     nodes = msh_file.vec_nodes
     mesh = Mesh(nodes)
 
-    for (entity_index, entity_nodes_indexes) in enumerate(msh_file.connectivity)#
+    for (entity_index, entity_nodes_indexes) in enumerate(msh_file.connectivity)
 
         # Create entity and push it into the mesh
         nodes_entity = view(nodes, entity_nodes_indexes)

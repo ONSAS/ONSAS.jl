@@ -28,3 +28,8 @@ Manifest.toml
 
 # Msh files
 *.msh
+
+
+# Benchmark files.
+tune.json
+results.md
