@@ -1,3 +1,4 @@
+using SparseArrays: spzeros
 using Dictionaries: Dictionary
 
 using ...Meshes: num_dofs
