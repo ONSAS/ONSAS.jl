@@ -110,5 +110,5 @@ function create_mesh(
     gmsh.write(filename_msh)
     gmsh.finalize()
 
-    file_name_msh
+    filename_msh
 end
