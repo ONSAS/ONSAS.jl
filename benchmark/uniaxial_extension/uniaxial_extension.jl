@@ -54,6 +54,7 @@ function uniaxial_extension_structure(; ms=0.5)
     entities_labels = [faces_label, elems_label]
     filename = basename(tempname())
     labels = [mat_label, entities_labels, bc_labels]
-    mesh = MshFile(create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms))
+    dir = joinpath(pkgdir(ONSAS), "benchmark", "uniaxial_extension")
+    mesh = MshFile(create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms; dir))
     Structure(mesh, materials, boundary_conditions, entities)
 end
