@@ -1,5 +1,4 @@
-using StaticArrays: @MVector
-using SparseArrays: SparseMatrixCSC
+using SparseArrays: spzeros
 using Dictionaries: Dictionary
 
 using ...Meshes: num_dofs
@@ -58,11 +57,11 @@ end
 function StaticState(s::AbstractStructure)
     n_dofs = num_dofs(s)
     n_fdofs = num_free_dofs(s)
-    Uᵏ = @MVector zeros(n_dofs)
-    ΔUᵏ = @MVector zeros(n_fdofs)
-    Fₑₓₜᵏ = @MVector zeros(n_dofs)
+    Uᵏ = zeros(n_dofs)
+    ΔUᵏ = zeros(n_fdofs)
+    Fₑₓₜᵏ = zeros(n_dofs)
     Fᵢₙₜᵏ = similar(Fₑₓₜᵏ)
-    Kₛᵏ = SparseMatrixCSC(zeros(n_dofs, n_dofs))
+    Kₛᵏ = spzeros(n_dofs, n_dofs)
     # Initialize pairs strains 
     ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
