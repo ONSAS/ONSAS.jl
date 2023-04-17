@@ -19,13 +19,13 @@ using ONSAS.StaticAnalyses
 function run_clamped_truss_example()
 
     # Parameters
-    local N = 100    # Number of elements.
-    local E = 30e6    # Young's modulus.
-    local ν = 0.3     # Poisson's ratio. 
-    local ρ = 7.3e-4  # Density.
-    local L = 200     # Element length.
-    local A = 1       # Cross section area.
-    local F = 10e6    # Force at the tip
+    N = 100    # Number of elements.
+    E = 30e6    # Young's modulus.
+    ν = 0.3     # Poisson's ratio. 
+    ρ = 7.3e-4  # Density.
+    L = 200     # Element length.
+    A = 1       # Cross section area.
+    F = 10e6    # Force at the tip
     # -------------
     # Mesh
     # -------------

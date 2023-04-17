@@ -12,14 +12,14 @@ include("uniaxial_mesh.jl") # Mesh Cube with Gmsh.jl
 
 function run_uniaxial_extension()
     ## scalar parameters
-    local E = 1.0                    # Young modulus in Pa
-    local ν = 0.3                    # Poisson's ratio
-    local p = 3                      # Tension load in Pa
-    local Lᵢ = 2.0                   # Dimension in x of the box in m 
-    local Lⱼ = 1.0                   # Dimension in y of the box in m
-    local Lₖ = 1.0                   # Dimension in z of the box in m
-    local ms = 0.5                   # Refinement factor for the mesh
-    local RTOL = 1e-4                # Relative tolerance for tests
+    E = 1.0                    # Young modulus in Pa
+    ν = 0.3                    # Poisson's ratio
+    p = 3                      # Tension load in Pa
+    Lᵢ = 2.0                   # Dimension in x of the box in m 
+    Lⱼ = 1.0                   # Dimension in y of the box in m
+    Lₖ = 1.0                   # Dimension in z of the box in m
+    ms = 0.5                   # Refinement factor for the mesh
+    RTOL = 1e-4                # Relative tolerance for tests
     # -----------------------------------------------
     # Case 1 - Manufactured mesh and `SVK` material
     #------------------------------------------------

@@ -15,16 +15,16 @@ function run_linear_extension_example()
     # Mesh
     # -------------------------------
     ## scalar parameters
-    local E = 2.0             # Young modulus in Pa
-    local ν = 0.4             # Poisson's ratio
-    local p = 3               # Tension load in Pa
-    local tension(t) = p * t  # Tension load function
-    local Lᵢ = 2.0            # Dimension in x of the box in m 
-    local Lⱼ = 1.0            # Dimension in y of the box in m
-    local Lₖ = 1.0            # Dimension in z of the box in m
-    local RTOL = 1e-4         # Relative tolerance for tests
-    local NSTEPS = 9          # Number of steps for the test
-    local ms = 0.5            # Refinement factor
+    E = 2.0             # Young modulus in Pa
+    ν = 0.4             # Poisson's ratio
+    p = 3               # Tension load in Pa
+    tension(t) = p * t  # Tension load function
+    Lᵢ = 2.0            # Dimension in x of the box in m 
+    Lⱼ = 1.0            # Dimension in y of the box in m
+    Lₖ = 1.0            # Dimension in z of the box in m
+    RTOL = 1e-4         # Relative tolerance for tests
+    NSTEPS = 9          # Number of steps for the test
+    ms = 0.5            # Refinement factor
     # -------------------------------
     # Materials
     # -------------------------------

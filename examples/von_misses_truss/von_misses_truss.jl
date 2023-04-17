@@ -8,15 +8,15 @@ using ONSAS.StaticAnalyses
 "Runs the Von Misses Truss example."
 function run_von_misses_truss_example()
     ## scalar parameters
-    local E = 210e9                 # Young modulus in Pa
-    local ν = 0.0                   # Poisson's modulus
-    local A₀ = 2.5e-3                # Cross-section area in m²
-    local ANG = 65                  # truss angle in degrees
-    local L = 2                     # Length in m 
-    local V = L * cos(deg2rad(ANG)) # vertical distance in m 
-    local H = L * sin(deg2rad(ANG)) # horizontal distance in m
-    local Fₖ = -3e8                 # Vertical load in N
-    local RTOL = 1e-4               # Relative tolerance for tests
+    E = 210e9                 # Young modulus in Pa
+    ν = 0.0                   # Poisson's modulus
+    A₀ = 2.5e-3                # Cross-section area in m²
+    ANG = 65                  # truss angle in degrees
+    L = 2                     # Length in m 
+    V = L * cos(deg2rad(ANG)) # vertical distance in m 
+    H = L * sin(deg2rad(ANG)) # horizontal distance in m
+    Fₖ = -3e8                 # Vertical load in N
+    RTOL = 1e-4               # Relative tolerance for tests
     # -------------
     # Mesh
     # -------------

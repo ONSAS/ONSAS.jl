@@ -11,18 +11,18 @@ include(joinpath("..", "uniaxial_extension", "uniaxial_mesh.jl"))
 
 function run_uniaxial_compression()
     ## scalar parameters
-    local E = 1.0                    # Young modulus in Pa
-    local ν = 0.3                    # Poisson's ratio
-    local μ = G = E / (2 * (1 + ν))  # Second Lamé parameter 
-    local K = E / (3 * (1 - 2 * ν))  # Bulk modulus
-    local p = -1                     # Tension load in Pa
-    local Lᵢ = 2.0                   # Dimension in x of the box in m 
-    local Lⱼ = 1.0                   # Dimension in y of the box in m
-    local Lₖ = 1.0                   # Dimension in z of the box in m
-    local ms = 0.5            # Refinement factor for the mesh
-    local RTOL = 1e-4          # Relative tolerance for tests
-    local ATOL = 1e-10         # Absolute tolerance for tests
-    local NSTEPS = 9           # Number of steps for the test
+    E = 1.0                    # Young modulus in Pa
+    ν = 0.3                    # Poisson's ratio
+    μ = G = E / (2 * (1 + ν))  # Second Lamé parameter 
+    K = E / (3 * (1 - 2 * ν))  # Bulk modulus
+    p = -1                     # Tension load in Pa
+    Lᵢ = 2.0                   # Dimension in x of the box in m 
+    Lⱼ = 1.0                   # Dimension in y of the box in m
+    Lₖ = 1.0                   # Dimension in z of the box in m
+    ms = 0.5            # Refinement factor for the mesh
+    RTOL = 1e-4          # Relative tolerance for tests
+    ATOL = 1e-10         # Absolute tolerance for tests
+    NSTEPS = 9           # Number of steps for the test
 
     # -----------------------------------------------------
     # Case 1 - Manufactured mesh and `NeoHookean` material
