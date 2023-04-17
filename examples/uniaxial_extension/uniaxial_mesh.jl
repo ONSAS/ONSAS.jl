@@ -2,11 +2,11 @@ using Gmsh
 
 "Creates a mesh for a cube with a loaded face and a fixed origin at (0,0,0)
 and (Lᵢ,Lⱼ,Lₖ) given some `labels` a `filename` and refinement factor `ms`."
-function create_mesh(
+function create_uniaxial_mesh(
     Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
     labels::Vector,
     filename::String,
-    ms::Real=0.5;
+    ms::Real=0.5,
     dir=@__DIR__
 )
 
@@ -92,5 +92,5 @@ function create_mesh(
     gmsh.write(filename_msh)
     gmsh.finalize()
 
-    return filename_msh
+    filename_msh
 end
