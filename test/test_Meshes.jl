@@ -55,8 +55,8 @@ const RTOL = 1e-5
 
 end
 
-
-include("./../examples/uniaxial_extension/uniaxial_cube_mesh.jl")
+uniaxial_mesh_path = joinpath(@__DIR__, "..", "examples", "uniaxial_extension", "uniaxial_mesh.jl")
+include(uniaxial_mesh_path)
 @testset "ONSAS.Meshes.GMSH " begin
 
 
@@ -77,11 +77,15 @@ include("./../examples/uniaxial_extension/uniaxial_cube_mesh.jl")
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     # labels
     labels = [mat_label, entities_labels, bc_labels]
-    filename = "test_mesh"
-    # Create and load the mesh
-    msh_file = create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename)
-    file_name = joinpath(@__DIR__, msh_file)
+    filename = "uniaxial_test_mesh"
+    # Create, load  and delete the mesh
+    dir = @__DIR__
+    # Refinement mesh factor
+    ms = 0.5
+    msh_file = create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms, dir)
+    file_name = joinpath(dir, msh_file)
     msh_file = MshFile(file_name)
+    rm(file_name, force=true)
 
     @test nodes(msh_file) == msh_file.vec_nodes
     @test length(physical_index(msh_file)) == length(connectivity(msh_file))

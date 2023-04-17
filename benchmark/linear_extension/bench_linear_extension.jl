@@ -53,7 +53,7 @@ function linear_extension_structure(; ms=0.5)
     filename = basename(tempname())
     labels = [mat_label, entities_labels, bc_labels]
     dir = joinpath(pkgdir(ONSAS), "benchmark", "linear_extension")
-    msh_file = MshFile(create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms; dir))
+    msh_file = MshFile(create_linear_extension_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms, dir))
 
     Structure(msh_file, materials, boundary_conditions, entities)
 end
