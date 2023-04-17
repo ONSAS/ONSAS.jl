@@ -1,12 +1,12 @@
 using Gmsh
 
 "Creates a mesh for a cube with a loaded face and a fixed origin."
-function create_mesh(
+function create_linear_extension_mesh(
     Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
     labels::Vector,
     filename::String,
-    ms::Real=0.5;
-    dir=@__DIR__
+    ms::Real=0.5,
+    dir::String=@__DIR__
 )
 
     # Get Labels
