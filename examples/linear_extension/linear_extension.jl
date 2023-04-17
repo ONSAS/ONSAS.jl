@@ -30,8 +30,7 @@ function run_linear_extension_example()
     # -------------------------------
     mat_label = "mat"
     mat = IsotropicLinearElastic(E, ν, mat_label)
-    # mat = SVK(E=E, ν=ν, label=mat_label)
-    s_materials = StructuralMaterials([mat])
+    s_materials = StructuralMaterials(mat)
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -45,7 +44,7 @@ function run_linear_extension_example()
     # Load
     bc₄_label = "tension"
     bc₄ = GlobalLoadBoundaryCondition([:u], t -> [tension(t), 0, 0], bc₄_label)
-    # Create the  bcs vector
+    # Get bc labels for the mesh
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     s_boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # -------------------------------

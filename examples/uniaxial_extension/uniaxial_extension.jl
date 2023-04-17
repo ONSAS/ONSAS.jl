@@ -146,16 +146,14 @@ function run_uniaxial_extension()
     mat_label = "svkHyper"
     svk_hyper_elastic = HyperElastic(params, strain_energy_svk, mat_label)
     # Material types without assigned elements
-    mat_types = [svk_hyper_elastic]
-    s_materials = StructuralMaterials(mat_types)
+    s_materials = StructuralMaterials(svk_hyper_elastic)
     # -------------------------------
     # Boundary Conditions
     # -------------------------------
     # Redefine the load boundary condition 
     bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], bc₄_label)
     # BoundaryConditions types without assigned node, feces and elements
-    vbc = [bc₁, bc₂, bc₃, bc₄]
-    s_boundary_conditions = StructuralBoundaryConditions(vbc)
+    s_boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # -------------------------------
     # Entities
     # -------------------------------
