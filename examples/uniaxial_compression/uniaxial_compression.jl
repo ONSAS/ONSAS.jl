@@ -7,7 +7,7 @@ using Test: @test, @testset
 using LinearAlgebra: Symmetric, norm, det, tr
 
 # Mesh Cube with Gmsh.jl
-include(joinpath("..", "uniaxial_extension", "uniaxial_cube_mesh.jl"))
+include(joinpath("..", "uniaxial_extension", "uniaxial_mesh.jl"))
 
 function run_uniaxial_compression()
     ## scalar parameters
