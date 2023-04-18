@@ -81,7 +81,7 @@ tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 "Updates displacements in the `StaticState` `sc` with a displacements increment vector `ΔU`."
 function _update!(sc::StaticState, ΔU::AbstractVector)
     sc.ΔUᵏ .= ΔU
-    sc.Uᵏ[index.(free_dofs(sc))] .+= ΔU
+    sc.Uᵏ[free_dofs(sc)] .+= ΔU
 end
 
 "Resets the `StaticState` assembled magnitudes and the iteration state."
