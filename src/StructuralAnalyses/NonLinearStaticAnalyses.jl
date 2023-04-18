@@ -8,7 +8,7 @@ using ..StaticAnalyses
 using ...StructuralSolvers: AbstractSolver, NewtonRaphson, StatesSolution, tolerances
 using ...StructuralModel: AbstractStructure
 
-import ...StructuralSolvers: _solve, _step!
+import ...StructuralSolvers: _solve!, _step!
 
 export NonLinearStaticAnalysis
 
@@ -40,7 +40,7 @@ function NonLinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10
 end
 
 "Solves an `NonLinearStaticAnalysis` `sa` with an AbstractSolver `alg`."
-function _solve(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
+function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
     s = structure(sa)
     # Initialize solution.
     sol = StatesSolution(sa, alg)
