@@ -112,7 +112,7 @@ function run_uniaxial_compression()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol_case₁ = solve(sa₁, nr)
+    states_sol_case₁ = solve!(sa₁, nr)
     "Computes numeric solution α(L_def/L_ref), β(L_def/L_ref) and γ(L_def/L_ref)
     for analytic validation."
     function αβγ_numeric(states_sol::AbstractSolution)
@@ -209,7 +209,7 @@ function run_uniaxial_compression()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol_case₂ = solve(sa₂, nr)
+    states_sol_case₂ = solve!(sa₂, nr)
     # Extract ℙ and ℂ from the last state using a random element
     e = rand(elements(s₂))
     # Numeric solution for testing

@@ -79,7 +79,7 @@ function run_von_misses_truss_example()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol = solve(sa, alg)
+    states_sol = solve!(sa, alg)
     n₂_displacements = displacements(states_sol, n₂)
     numerical_uᵢ = n₂_displacements[1]
     numerical_uⱼ = n₂_displacements[2]
