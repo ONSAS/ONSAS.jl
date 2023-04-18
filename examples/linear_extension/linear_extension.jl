@@ -76,7 +76,7 @@ function run_linear_extension_example()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol = solve(sa)
+    states_sol = solve!(sa)
     # Select random points to test the solution
     ## Displacements
     x₀_rand = Lᵢ * rand(2)

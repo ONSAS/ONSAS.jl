@@ -159,7 +159,7 @@ sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, �
     K_system[1:6, 1:6] += k_e_1
     K_system[4:9, 4:9] += k_e_2
 
-    @test internal_forces(default_s) ≈ Fᵢₙₜ rtol = RTOL skip = true
+    @test internal_forces(default_s) ≈ Fᵢₙₜ rtol = RTOL
     @test tangent_matrix(default_s) ≈ K_system rtol = RTOL
     @test strain(default_s)[truss₁] == ϵ_e_1
     @test strain(default_s)[truss₂] == ϵ_e_2

@@ -60,7 +60,7 @@ function StaticState(s::AbstractStructure)
     Uᵏ = zeros(n_dofs)
     ΔUᵏ = zeros(n_fdofs)
     Fₑₓₜᵏ = zeros(n_dofs)
-    Fᵢₙₜᵏ = similar(Fₑₓₜᵏ)
+    Fᵢₙₜᵏ = zeros(n_dofs)
     Kₛᵏ = spzeros(n_dofs, n_dofs)
     # Initialize pairs strains 
     ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])

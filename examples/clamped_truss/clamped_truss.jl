@@ -70,10 +70,10 @@ function run_clamped_truss_example()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol = solve(sa, alg)
+    states_sol = solve!(sa, alg)
     # Re compute the analysis solution just for fun 
     reset!(sa)
-    states_sol = solve(sa, alg)
+    states_sol = solve!(sa, alg)
     # Extract displacement at the tip
     numeric_uᵢ = displacements(states_sol, last(v_nodes))[1]
     numeric_σ_tip_tensor = stress(states_sol, last(v_elements))
