@@ -3,10 +3,12 @@ using Dictionaries: Dictionary
 
 using ...Meshes: num_dofs
 using ...StructuralModel: AbstractStructure, num_free_dofs
-using ...StructuralAnalyses: internal_forces, external_forces
+using ...StructuralAnalyses: displacements, Δ_displacements,
+    internal_forces, external_forces, iteration_residuals, stress, strain
+using ...StructuralSolvers: _reset!
 
-import ..StructuralAnalyses: tangent_matrix, residual_forces
-import ...StructuralSolvers: _solve, _update!, _reset!, external_forces
+import ..StructuralAnalyses: tangent_matrix, residual_forces, reset!
+import ...StructuralSolvers: _update!
 
 export StaticState
 
@@ -82,9 +84,24 @@ function _update!(sc::StaticState, ΔU::AbstractVector)
     sc.Uᵏ[index.(free_dofs(sc))] .+= ΔU
 end
 
-"Resets the `StaticState` assembled magnitudes."
-function _reset!(state::StaticState)
-    _reset!(assembler(state))
+"Resets the `StaticState` assembled magnitudes and the iteration state."
+function reset!(state::StaticState)
+    # Reset assembled magnitudes
     internal_forces(state) .= 0.0
     tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
+    _reset!(assembler(state))
+    # Reset the stress and strains dictionaries
+    for (e, _) in pairs(stress(state))
+        stress(state)[e] .= zeros(3, 3)
+        strain(state)[e] .= zeros(3, 3)
+    end
+    # Reset ext force
+    external_forces(state) .= 0.0
+    # Reset iteration state
+    displacements(state) .= 0.0
+    Δ_displacements(state) .= 0.0
+    _reset!(iteration_residuals(state))
+    # Return state
+    @info "The structural state has been reset."
+    state
 end
