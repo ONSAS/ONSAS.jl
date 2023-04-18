@@ -7,7 +7,7 @@ using ..StaticAnalyses
 using ...StructuralSolvers: AbstractSolver, NewtonRaphson, StatesSolution, tolerances
 using ...StructuralModel: AbstractStructure
 
-import ...StructuralSolvers: _solve, _step!
+import ...StructuralSolvers: _solve!, _step!
 
 export LinearStaticAnalysis
 
@@ -39,7 +39,7 @@ function LinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, i
 end
 
 "Solves an `LinearStaticAnalysis` `sa`."
-function _solve(sa::LinearStaticAnalysis)
+function _solve!(sa::LinearStaticAnalysis)
 
     s = structure(sa)
 

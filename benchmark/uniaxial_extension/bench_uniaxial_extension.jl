@@ -4,7 +4,7 @@ using LinearAlgebra
 strain_energy_svk(𝔼::AbstractMatrix, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
 
 # Include `create_mesh` function.
-include(joinpath(pkgdir(ONSAS), "examples", "uniaxial_extension", "uniaxial_cube_mesh.jl"))
+include(joinpath(pkgdir(ONSAS), "examples", "uniaxial_extension", "uniaxial_mesh.jl"))
 
 """
 Uniaxial extension Case 2 - GMSH mesh and `SVK` material.
@@ -56,6 +56,6 @@ function uniaxial_extension_structure(; ms=0.5)
     filename = basename(tempname())
     labels = [mat_label, entities_labels, bc_labels]
     dir = joinpath(pkgdir(ONSAS), "benchmark", "uniaxial_extension")
-    mesh = MshFile(create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms; dir))
+    mesh = MshFile(create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms, dir))
     Structure(mesh, materials, boundary_conditions, entities)
 end

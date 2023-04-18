@@ -1,5 +1,4 @@
 using LinearAlgebra: Symmetric, tr
-using SparseArrays: SparseMatrixCSC
 
 using ..LinearElasticMaterials: AbstractLinearElasticMaterial
 using ...Utils: eye

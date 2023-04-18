@@ -3,12 +3,12 @@ module NonLinearStaticAnalyses
 using LinearAlgebra: norm
 using IterativeSolvers: cg
 
-using ....Utils: ScalarWrapper
+using ....Utils: ScalarWrapper, @debugtime
 using ..StaticAnalyses
 using ...StructuralSolvers: AbstractSolver, NewtonRaphson, StatesSolution, tolerances
 using ...StructuralModel: AbstractStructure
 
-import ...StructuralSolvers: _solve, _step!
+import ...StructuralSolvers: _solve!, _step!
 
 export NonLinearStaticAnalysis
 
@@ -40,7 +40,7 @@ function NonLinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10
 end
 
 "Solves an `NonLinearStaticAnalysis` `sa` with an AbstractSolver `alg`."
-function _solve(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
+function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
     s = structure(sa)
     # Initialize solution.
     sol = StatesSolution(sa, alg)
@@ -56,18 +56,17 @@ function _solve(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
 
         # Displacements iteration.
         while isconverged!(current_iteration(sa), tolerances(alg)) isa NotConvergedYet
-            # Compute residual forces and tangent matrix. 
-            _assemble!(s, sa)
+            # Compute residual forces and tangent matrix.
+            @debugtime "Assemble" _assemble!(s, sa)
 
             # Increment structure displacements `U = U + ΔU`.
-            _step!(sa, alg)
+            @debugtime "Step" _step!(sa, alg)
         end
-
         # Save current state.
-        push!(sol, current_state(sa))
+        @debugtime "Save current state" push!(sol, current_state(sa))
 
         # Increment the time or load factor step.
-        _next!(sa)
+        @debugtime "Next step" _next!(sa)
     end
     return sol
 end

@@ -238,9 +238,9 @@ function weights(t::Tetrahedron{3,T}, p::Point{dim,P}) where {T<:Real,dim,P<:Rea
   _interpolation_matrix(t) * [1,p...]
 end
 
-function Base.convert(::Type{LazySets.VPolytope}, t::Tetrahedron)
-  LazySets.VPolytope(nodes(t))
+function Base.convert(::Type{LazySets.Tetrahedron}, t::Tetrahedron)
+  LazySets.Tetrahedron(nodes(t))
 end
 
 "Checks if a point `p` is inside a `Tetrahedron` element `t`."
-Base.:∈(p::Point, t::Tetrahedron) = p ∈ convert(LazySets.VPolytope, t)
+Base.:∈(p::Point, t::Tetrahedron) = p ∈ convert(LazySets.Tetrahedron, t)

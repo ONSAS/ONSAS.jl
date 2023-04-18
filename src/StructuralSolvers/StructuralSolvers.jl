@@ -13,7 +13,7 @@ export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
 
 export ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol
 export ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!
-export AbstractSolver, step_size, tolerances, _step!, solve, _solve
+export AbstractSolver, step_size, tolerances, _step!, solve!, _solve!
 export AbstractSolution
 
 """ ConvergenceSettings struct.
@@ -98,7 +98,7 @@ function _reset!(ri_step::ResidualsIterationStep{T}) where {T<:Real}
     ri_step.ΔU_norm = ri_step.Δr_norm = ri_step.ΔU_rel = ri_step.Δr_rel = 1e14 * ones(T)[1]
     ri_step.iter = 0
     ri_step.criterion = NotConvergedYet()
-    return ri_step
+    ri_step
 end
 
 "Updates the `ResidualsIterationStep` `i_step` current convergence criterion."
@@ -115,7 +115,7 @@ function _update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real
 
     _step!(ri_step)
 
-    return ri_step
+    ri_step
 end
 
 
@@ -152,7 +152,7 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
         return ΔU_and_ResidualForce_Criteria()
     end
 
-    return NotConvergedYet()
+    NotConvergedYet()
 end
 
 #==========#
@@ -179,7 +179,8 @@ include("./NewtonRaphson.jl")
 # Solve function
 # ===============
 """
-Solve an structural analysis problem.
+Solve an structural analysis problem with the algorithm `alg`. 
+This function mutates the `AbstractStructuralState` through the time defined in the `analysis` problem.
 ### Input
 - `analysis` -- structural analysis problem
 - `alg`     -- structural algorithm to solve the problem
@@ -187,28 +188,28 @@ Solve an structural analysis problem.
 A solution structure (`AbstractSolution`) that holds the result and the algorithm used
 to obtain it.
 """
-function solve(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
+function solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
     initialized_analysis = _init(analysis, alg, args...; kwargs...)
-    return _solve(initialized_analysis, alg, args...; kwargs...)
+    _solve!(initialized_analysis, alg, args...; kwargs...)
 end
+
+"Internal solve function to be overloaded by each analysis."
+function _solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} end
+
+"Returns the initialized `analysis`. By default, it returns the same analysis."
+_init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
+
 """
-Solve an linear structural analysis problem.
+Solve an structural analysis problem without an `alg`. For instance linear analysis problems.
+This function mutates the `AbstractStructuralState` through the time defined in the `analysis` problem.
 ### Input
 - `analysis` -- structural analysis problem
 ### Output
 A solution structure (`AbstractSolution`) that holds the result and the algorithm used
 to obtain it.
 """
-function solve(analysis::A, args...; kwargs...) where {A}
-    return _solve(analysis, args...; kwargs...)
-end
-
-"Internal solve function to be overloaded by each analysis."
-function _solve(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} end
-
-"Returns the initialized analysis."
-function _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
-    return analysis
+function solve!(analysis::A, args...; kwargs...) where {A}
+    _solve!(analysis, args...; kwargs...)
 end
 
 include("./Assembler.jl")
@@ -236,6 +237,5 @@ Abstract supertype for all structural analysis solutions.
 abstract type AbstractSolution end
 
 include("StatesSolution.jl")
-
 
 end # module

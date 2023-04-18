@@ -12,7 +12,7 @@ function strain_energy_neo(𝔼::AbstractMatrix, K::Real, μ::Real)
 end
 
 # Include `create_mesh` function.
-include(joinpath(pkgdir(ONSAS), "examples", "uniaxial_extension", "uniaxial_cube_mesh.jl"))
+include(joinpath(pkgdir(ONSAS), "examples", "uniaxial_extension", "uniaxial_mesh.jl"))
 
 """
 Uniaxial compression Case 2 - GMSH mesh and `HyperElastic` material.
@@ -25,6 +25,7 @@ function uniaxial_compression_structure(; ms=0.5)
     Lᵢ = 2.0
     Lⱼ = 1.0
     Lₖ = 1.0
+
     E = 1.0                    # Young modulus in Pa
     ν = 0.3                    # Poisson's ratio
     K = E / (3 * (1 - 2 * ν))  # Bulk modulus in Pa
@@ -67,6 +68,6 @@ function uniaxial_compression_structure(; ms=0.5)
     filename = basename(tempname())
     labels = [mat_label, entities_labels, bc_labels]
     dir = joinpath(pkgdir(ONSAS), "benchmark", "uniaxial_compression")
-    mesh = MshFile(create_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms; dir))
+    mesh = MshFile(create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms, dir))
     Structure(mesh, materials, boundary_conditions, entities)
 end

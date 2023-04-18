@@ -1,6 +1,6 @@
 using BenchmarkTools, ONSAS, Suppressor
 
-include("aux_bench.jl")
+include("bench_utils.jl")
 
 # Parent BenchmarkGroup to contain our suite.
 SUITE = BenchmarkGroup()
@@ -37,7 +37,8 @@ for ms in ms_range
     end
     nnodes, nelems = capture_print(output)
     problem = NonLinearStaticAnalysis(structure, NSTEPS=NSTEPS)
-    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve($problem, $alg) evals = evals samples = samples
+    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] =
+        @benchmarkable solve!($problem, $alg) evals = evals samples = samples
 end
 
 # Remove all .msh files from the example_folder 
@@ -59,7 +60,32 @@ for ms in ms_range
     # Extract the number of elements as an integer.
     nnodes, nelems = capture_print(output)
     problem = NonLinearStaticAnalysis(structure, NSTEPS=NSTEPS)
-    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve($problem, $alg) evals = evals samples = samples
+    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] =
+        @benchmarkable solve!($problem, $alg) evals = evals samples = samples
+
+end
+
+# Remove all .msh files from the example_folder 
+delete_files(example_folder, ".msh")
+
+# ===============================================================
+# Linear extension.
+# ===============================================================
+example_name = "linear_extension"
+SUITE[example_name] = BenchmarkGroup()
+example_folder, bench_path = joinpath_example_folder(example_name)
+include(bench_path)
+
+for ms in ms_range
+    local structure
+    output = @capture_out begin
+        structure = linear_extension_structure(; ms)
+    end
+    # Extract the number of elements as an integer.
+    nnodes, nelems = capture_print(output)
+    problem = LinearStaticAnalysis(structure, NSTEPS=NSTEPS)
+    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] =
+        @benchmarkable solve!($problem, $alg) evals = evals samples = samples
 end
 
 # Remove all .msh files from the example_folder 
