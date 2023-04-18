@@ -1,7 +1,7 @@
 using BenchmarkTools, ONSAS, Suppressor, StaticArrays
 
 # Utils
-include("bench_utils.jl")
+include("./../bench_utils.jl")
 
 "Print the time to build the structure, define the analysis and solve the analysis."
 function print_times(t_structure, t_problem, t_solve, t_point_eval_handler, t_eval_sol)
@@ -54,8 +54,7 @@ times_compilation = run_experiment(
     uniaxial_compression_structure, NonLinearStaticAnalysis, alg;
     ms=ms, NSTEPS=NSTEPS, N_POINTS_EVAL=N_POINTS_EVAL
 );
-
-println("Compiling 🚧...")
+println("Compiling 🚧:")
 print_times(times_compilation...)
 
 # First experiment
@@ -63,7 +62,7 @@ times₁ = run_experiment(
     uniaxial_compression_structure, NonLinearStaticAnalysis, alg;
     ms=ms, NSTEPS=NSTEPS, N_POINTS_EVAL=N_POINTS_EVAL
 );
-println("Experiment 1 🔨...")
+println("Experiment 1 🔨:")
 print_times(times₁...)
 
 # Second experiment
@@ -71,6 +70,7 @@ times₂ = run_experiment(
     uniaxial_compression_structure, NonLinearStaticAnalysis, alg;
     ms=ms, NSTEPS=NSTEPS, N_POINTS_EVAL=N_POINTS_EVAL
 );
-println("Experiment 2 🔨")
+println("Experiment 2 🔨:")
 print_times(times₂...)
 
+delete_files(example_folder, ".msh");
