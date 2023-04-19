@@ -1,36 +1,46 @@
 # --------------------------------------------------
 # Cylinder submitted to an Internal Pressure Example  
 #----------------------------------------------------
-using ONSAS.StaticAnalyses
+using ONSAS
 using Test: @test, @testset
 ## scalar parameters (dimensions in mm an MPa)
-const p = 1e-2 # internal pressure in MPa
-const L = 0.75 # cylinder length in 𝐞ₖ mm
-const Rᵢ = 100 # inner radius in mm
-const Rₑ = 200 # outer radius in mm
-const E = 210  # Young modulus in MPa
-const ν = 0.3  # Poisson ratio
+p = 1e-2 # internal pressure in MPa
+L = 75 # cylinder length in 𝐞ₖ mm
+Rᵢ = 100 # inner radius in mm
+Rₑ = 200 # outer radius in mm
+
+# Run gmsh to generate the mesh
+command = `gmsh -3 examples/cylinder_internal_pressure/cylinder.geo`
+run(command)
+
+
+
+
+E = 210  # Young modulus in MPa
+ν = 0.3  # Poisson ratio
 # ------------------------------------------
 # Case 1 - `IsoptrpicLinearElastic` material
 # -------------------------------------------
-# -------------------------------
-# Entities
-# -------------------------------
-# Entities types without assigned nodes, faces and elements
-faces_label = "triangle"
-elements_label = "tetrahedron"
-vfaces = [TriangularFace(faces_label)]
-velems = [Tetrahedron(elements_label)]
-s_entities = StructuralEntities(velems, vfaces)
-entities_labels = [faces_label, elements_label]
-# -------------------------------
-# Mesh
-# -------------------------------
-filename = "cylinder"
-msh_file = MshFile(file_name_mesh)
-s_mesh = Mesh(mesh_file, s_entities)
+"Creates the `Structure `"
+function structure(E::Real, ν::Real)
+    # -------------------------------
+    # Entities
+    # -------------------------------
+    # Entities types without assigned nodes, faces and elements
+    faces_label = "triangle"
+    elements_label = "tetrahedron"
+    vfaces = [TriangularFace(faces_label)]
+    velems = [Tetrahedron(elements_label)]
+    s_entities = StructuralEntities(velems, vfaces)
+    entities_labels = [faces_label, elements_label]
+    # -------------------------------
+    # Mesh
+    # -------------------------------
+    filename = "cylinder"
+    msh_file = MshFile(filename)
+    s_mesh = Mesh(mesh_file, s_entities)
 
-
+end
 #=
 # -------------------------------
 # Boundary conditions
