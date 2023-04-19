@@ -73,14 +73,13 @@ end
 
 "Computes ΔU for solving the `NonLinearStaticAnalysis` `sa` with a `NewtonRaphson` method."
 function _step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson)
-
     # Extract state info
     c_state = current_state(sa)
-    f_dofs_indexes = index.(free_dofs(c_state))
+    f_dofs_indexes = free_dofs(c_state)
 
     # Compute Δu
     r = residual_forces(c_state)
-    K = view(tangent_matrix(c_state), f_dofs_indexes, f_dofs_indexes)
+    K = tangent_matrix(c_state)[f_dofs_indexes, f_dofs_indexes]
     ΔU = cg(K, r)
 
     # Compute norms

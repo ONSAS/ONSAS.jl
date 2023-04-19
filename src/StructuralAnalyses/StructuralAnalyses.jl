@@ -86,7 +86,7 @@ free_dofs(st::AbstractStructuralState) = free_dofs(structure(st))
 # Assemble
 "Assembles the element `e` internal forces `fᵢₙₜ_e` into the `AbstractState` `st`"
 _assemble!(st::AbstractStructuralState, fᵢₙₜ_e::AbstractVector, e::AbstractElement) =
-    view(internal_forces(st), index.(local_dofs(e))) .+= fᵢₙₜ_e
+    view(internal_forces(st), local_dofs(e)) .+= fᵢₙₜ_e
 
 "Assembles the element `e` stiffness matrix matrix `K_e` into the `AbstractState` `st`"
 _assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::AbstractElement) =

@@ -60,7 +60,7 @@ function _solve!(sa::LinearStaticAnalysis)
 
         # Show internal, and residual forces and tangent matrix
         @debug external_forces(current_state(sa))
-        @debug tangent_matrix(current_state(sa))[index.(free_dofs(s)), index.(free_dofs(s))]
+        @debug tangent_matrix(current_state(sa))[free_dofs(s), free_dofs(s)]
 
         # Increment structure displacements U = U + ΔU
         _step!(sa)
@@ -83,7 +83,7 @@ function _step!(sa::LinearStaticAnalysis)
 
     # Extract state info
     c_state = current_state(sa)
-    f_dofs_indexes = index.(free_dofs(c_state))
+    f_dofs_indexes = free_dofs(c_state)
 
     # Compute Δu
     fₑₓₜ_red = view(external_forces(c_state), f_dofs_indexes)
