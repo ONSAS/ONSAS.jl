@@ -1,11 +1,11 @@
 
 r2 = 200;
 r1 = 100;
-lz = 750;
+lz = 75;
 
 espesor = r2-r1 ;
 
-ms = 1.75*espesor ; 
+ms = .05*espesor ; 
 
 Point(1)  = {0,0,0,ms};
 

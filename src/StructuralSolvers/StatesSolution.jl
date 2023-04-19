@@ -24,7 +24,6 @@ analysis(sol::StatesSolution) = sol.analysis
 "Returns the `AbstractSolver` solved. "
 solver(sol::StatesSolution) = sol.solver
 
-
 for f in [:displacements, :internal_forces, :external_forces]
     "Returns the $f vector Uᵏ at every time step."
     @eval $f(st_sol::StatesSolution) = $f.(states(st_sol))
@@ -58,7 +57,14 @@ for f in [:stress, :strain]
 end
 
 "Returns the displacements component `i` solution at the `PointEvalHandler` `peh`."
-displacements(st_sol::StatesSolution, peh::PointEvalHandler, i::Int) = getindex.(displacements(st_sol, peh), i)
+function displacements(st_sol::StatesSolution, peh::PointEvalHandler, i::Int)
+    sol_points = getindex.(displacements(st_sol, peh), i)
+    if length(sol_points) == 1
+        sol_points[1]
+    else
+        sol_points
+    end
+end
 
 # TODO use @eval
 "Returns the displacements solution at the `PointEvalHandler` `peh`."

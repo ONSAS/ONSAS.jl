@@ -93,7 +93,6 @@ function create_linear_extension_mesh(
     load_surfaces_index = 4
     gmsh.model.addPhysicalGroup(dim_surface, [right_surface_index], load_surfaces_index)
 
-
     #Volume
     gmsh.model.geo.addVolume([1], 1)
     gmsh.model.addPhysicalGroup(dim_vol, [1], 5)
