@@ -97,10 +97,10 @@ Surface Loop(1) = {1,2,3,4,5,6,7,8,9,10};
 Volume(1) = {1};
 
 
-Physical Point("_node_fixed-uy") = {6,16};
-Physical Point("_node_fixed-uy")s = {8,18};
+Physical Point("_node_fixed-ui") = {9,19};
+Physical Point("_node_fixed-uj") = {6,16};
 
-Physical Surface("_triangle_fixed-uz") = {9,10};
+Physical Surface("_triangle_fixed-uk") = {9,10};
 Physical Surface("_triangle_pressure") = {5,6,7,8};
 
 Physical Volume("mat_tetrahedron_") = {1};
