@@ -94,9 +94,12 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) whe
 
     end
 
-    @assert length(interpolated_vec_points_indexes) == length(vec_points) "There are points outside the mesh."
+    @assert length(interpolated_vec_points_indexes) == length(vec_points) "
+    There are $(length(vec_points) - length(interpolated_vec_points_indexes)) points outside the mesh .
+    "
 
     return PointEvalHandler(vec_points, mesh, PointsInterpolator(point_interpolators, point_to_element))
 end
 
-
+"Constructor of a `PointEvalHandler` from a `Mesh` and a `Point` ."
+PointEvalHandler(mesh::AbstractMesh, point::P) where {T,P<:Point{T}} = PointEvalHandler(mesh, [point])
