@@ -1,7 +1,7 @@
 module NonLinearStaticAnalyses
 
 using LinearAlgebra: norm
-using IterativeSolvers: cg
+using IterativeSolvers: cg!
 
 using ....Utils: ScalarWrapper, @debugtime
 using ..StaticAnalyses
@@ -74,22 +74,23 @@ end
 "Computes ΔU for solving the `NonLinearStaticAnalysis` `sa` with a `NewtonRaphson` method."
 function _step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson)
     # Extract state info
-    c_state = current_state(sa)
-    f_dofs_indexes = free_dofs(c_state)
+    state = current_state(sa)
+    f_dofs_indexes = free_dofs(state)
 
     # Compute Δu
-    r = residual_forces(c_state)
-    K = tangent_matrix(c_state)[f_dofs_indexes, f_dofs_indexes]
-    ΔU = cg(K, r)
+    r = residual_forces!(state)
+    K = tangent_matrix(state)[f_dofs_indexes, f_dofs_indexes]
+    ΔU = Δ_displacements(state)
+    cg!(ΔU, K, r)
 
     # Compute norms
     norm_ΔU = norm(ΔU)
-    rel_norm_ΔU = norm_ΔU / norm(displacements(c_state))
+    rel_norm_ΔU = norm_ΔU / norm(displacements(state))
     norm_r = norm(r)
-    rel_norm_r = norm_r / norm(external_forces(c_state))
+    rel_norm_r = norm_r / norm(external_forces(state))
 
-    # Update displacements into the state
-    _update!(c_state, ΔU)
+    # Update displacements into the state.
+    _update!(state, ΔU)
 
     # Update iteration 
     _update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)

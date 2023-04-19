@@ -85,7 +85,7 @@ for ms in ms_range
     nnodes, nelems = capture_print(output)
     problem = LinearStaticAnalysis(structure, NSTEPS=NSTEPS)
     SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] =
-        @benchmarkable solve!($problem, $alg) evals = evals samples = samples
+        @benchmarkable solve!($problem) evals = evals samples = samples
 end
 
 # Remove all .msh files from the example_folder 
