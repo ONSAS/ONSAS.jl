@@ -27,7 +27,9 @@ struct LinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <:
     λᵥ::LFV
     current_step::ScalarWrapper{Int}
     function LinearStaticAnalysis(s::S, λᵥ::LFV; initial_step::Int=1) where {S<:AbstractStructure,LFV<:AbstractVector{<:Real}}
-        new{S,LFV}(s, StaticState(s), λᵥ, ScalarWrapper(initial_step))
+        # Since linear analysis is not iterating 
+        iter_state = ResidualsIterationStep(nothing, nothing, nothing, nothing, 0, ΔU_and_ResidualForce_Criteria())
+        new{S,LFV}(s, StaticState(s, iter_state), λᵥ, ScalarWrapper(initial_step))
     end
 end
 

@@ -120,7 +120,7 @@ together with Sets of elements and nodes.
 - `faces`     -- stores the `Face`s of the grid.
 - `elements`  -- stores the `Element`s of the mesh.
 """
-struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace} <: AbstractMesh{dim}
+struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace,EX} <: AbstractMesh{dim}
     # Entities
     nodes::Vector{N}
     elements::Vector{E}
@@ -129,13 +129,16 @@ struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace} <: Abst
     # node_sets::Dictionary{String,Set{Int}}
     # face_sets::Dictionary{String,Set{Int}}
     # element_sets::Dictionary{String,Set{Int}}
+    # Extra data
+    extra::EX
     function Mesh(
         nodes::Vector{N},
         elements::Vector{E}=Vector{AbstractElement}(),
         faces::Vector{F}=Vector{AbstractFace}(),
-    ) where {dim,N<:AbstractNode{dim},F<:AbstractFace,E<:AbstractElement}
+        extra::EX=nothing,
+    ) where {dim,N<:AbstractNode{dim},F<:AbstractFace,E<:AbstractElement,EX}
 
-        return new{dim,N,E,F}(nodes, elements, faces)
+        return new{dim,N,E,F,EX}(nodes, elements, faces, extra)
 
     end
 end

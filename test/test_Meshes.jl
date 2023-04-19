@@ -167,7 +167,7 @@ end
 
     # TODO Define Point(...) constructor.
     p₉ = SVector(rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ)
-    ph_rand = PointEvalHandler(s_mesh, [p₉])
+    ph_rand = PointEvalHandler(s_mesh, p₉)
     interpol = interpolator(ph_rand)
     node_2_weights = node_to_weights(interpol)
     node_to_interpolate_p₉ = first(node_2_weights)

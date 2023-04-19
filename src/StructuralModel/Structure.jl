@@ -58,14 +58,20 @@ function Structure(msh_file::MshFile,
     nodes = msh_file.vec_nodes
     mesh = Mesh(nodes)
 
+    # Loop over all physical entities
     for (entity_index, entity_nodes_indexes) in enumerate(msh_file.connectivity)
 
         # Create entity and push it into the mesh
         nodes_entity = view(nodes, entity_nodes_indexes)
         entity_type_label = entity_label(msh_file, entity_index)
-        entity_type = s_entities[entity_type_label]
-        entity = create_entity(entity_type, nodes_entity)
-        push!(mesh, entity)
+        # Check if the entity is a node, if not add it to the mesh
+        if entity_type_label == "node"
+            entity = nodes_entity[]
+        else
+            entity_type = s_entities[entity_type_label]
+            entity = create_entity(entity_type, nodes_entity)
+            push!(mesh, entity)
+        end
 
         # Find material and push 
         material_type_label = material_label(msh_file, entity_index)

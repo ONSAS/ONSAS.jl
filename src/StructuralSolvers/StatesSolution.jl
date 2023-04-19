@@ -57,6 +57,9 @@ for f in [:stress, :strain]
 
 end
 
+"Returns the displacements component `i` solution at the `PointEvalHandler` `peh`."
+displacements(st_sol::StatesSolution, peh::PointEvalHandler, i::Int) = getindex.(displacements(st_sol, peh), i)
+
 # TODO use @eval
 "Returns the displacements solution at the `PointEvalHandler` `peh`."
 function displacements(st_sol::StatesSolution, peh::PointEvalHandler)
@@ -78,9 +81,6 @@ function displacements(st_sol::StatesSolution, peh::PointEvalHandler)
     end
     return sol_points
 end
-
-"Returns the displacements component `i` solution at the `PointEvalHandler` `peh`."
-displacements(st_sol::StatesSolution, peh::PointEvalHandler, i::Int) = getindex.(displacements(st_sol, peh), i)
 
 "Returns the internal forces solution  at the `PointEvalHandler` `peh`."
 function internal_forces(st_sol::StatesSolution, peh::PointEvalHandler)

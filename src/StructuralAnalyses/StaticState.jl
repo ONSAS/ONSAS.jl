@@ -71,6 +71,22 @@ function StaticState(s::AbstractStructure)
     StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, ResidualsIterationStep())
 end
 
+"Constructor for `StaticState` given an `AbstractStructure` `s` and ."
+function StaticState(s::AbstractStructure, iter_state::ResidualsIterationStep)
+    n_dofs = num_dofs(s)
+    n_fdofs = num_free_dofs(s)
+    Uᵏ = zeros(n_dofs)
+    ΔUᵏ = zeros(n_fdofs)
+    Fₑₓₜᵏ = zeros(n_dofs)
+    Fᵢₙₜᵏ = zeros(n_dofs)
+    Kₛᵏ = spzeros(n_dofs, n_dofs)
+    # Initialize pairs strains 
+    ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
+    σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
+    assemblerᵏ = Assembler(s)
+    StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
+end
+
 "Returns the current residual forces of the `StaticState` `sc`."
 residual_forces(sc::StaticState) =
     external_forces(sc)[free_dofs(sc)] - internal_forces(sc)[free_dofs(sc)]
