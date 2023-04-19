@@ -30,35 +30,13 @@ const Point{dim,T} = Union{<:AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real
 # Degree of freedom (Dof)
 # ========================
 
-""" Degree of freedom struct.
-This is a scalar degree of freedom of the structure.
-### Fields:
-- `index`   -- degree of freedom identification number. 
 """
-@auto_hash_equals struct Dof
-    index::Int
-end
+Scalar degree of freedom of the structure.
+"""
+const Dof = Int
 
 "Returns the dof index of the `Dof` `d` "
-@inline index(d::Dof) = d.index
-
-"Returns the dof index from a `Vector` of `Dof`s `vd` "
-@inline index(vd::Vector{Dof}) = index.(vd)
-
-"Returns the maximum dof index from a `Vector` of `Dof`s `vd` "
-Base.maximum(vd::Vector{Dof}) = maximum(index.(vd))
-
-"Returns the entry of a `Vector` `v` at index corresponding to the `Dof` `d` index."
-@inline Base.getindex(v::AbstractVector, d::Dof) = v[index(d)]
-
-"Sets the index of a `Vector` `v` with the index corresponding to the `Dof` `d`."
-@inline Base.setindex!(v::AbstractVector{T}, t::T, d::Dof) where {T} = v[index(d)] = t
-
-"Returns a `Vector` of entries of a `Vector` `v` at indexes corresponding to the `Dof`s vector `vd`."
-@inline Base.getindex(v::AbstractVector, vd::Vector{<:Dof}) = [v[index(d)] for d in vd]
-
-"Sets a `Vector` of values `tv` to a `Vector` `v` at indexes corresponding to the `Dof`s vector `vd`."
-@inline Base.setindex!(v::AbstractVector, tv::Vector{T}, vd::Vector{<:Dof}) where {T} = [setindex!(v, ti, vi) for (ti, vi) in zip(tv, vd)]
+index(d::Dof) = d
 
 # =================
 # Abstract Node

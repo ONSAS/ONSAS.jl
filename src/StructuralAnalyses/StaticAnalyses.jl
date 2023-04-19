@@ -74,22 +74,28 @@ current_load_factor(sa::AbstractStaticAnalysis) = current_time(sa)
 "Jumps to the next current load factor defined in the `AbstractStaticAnalysis` `sa`."
 _next!(sa::AbstractStaticAnalysis) = sa.current_step[] += 1
 
-"Sets the current load factor of the `AbstractStaticAnalysis` `sa` to the initial load factor."
-reset!(sa::AbstractStaticAnalysis) = sa.current_step[] = 1
+"Sets the current load factor of the `AbstractStaticAnalysis` `sa` to the initial load factor.
+Also resets! the iteration and `AbstractStructuralState`."
+function reset!(sa::AbstractStaticAnalysis)
+    sa.current_step[] = 1
+    reset!(current_state(sa))
+    @info "The current time of analysis have been reset."
+    sa
+end
 
 "Assembles the Structure `s` (internal forces) during the `StaticAnalysis` `sa`."
 function _assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
 
     state = current_state(sa)
 
-    # Reset assembler
-    _reset!(state)
+    # Reset assembled magnitudes
+    _reset_assemble!(state)
 
     for (mat, mat_elements) in pairs(materials(s))
         for e in mat_elements
 
             # Global dofs of the element (dofs where K must be added)
-            u_e = view(displacements(state), index.(local_dofs(e)))
+            u_e = view(displacements(state), local_dofs(e))
             fᵢₙₜ_e, kₛ_e, σ_e, ϵ_e = internal_forces(mat, e, u_e)
 
             # Assembles the element internal magnitudes 
@@ -106,6 +112,14 @@ function _assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
 
 end
 
+"Resets the assembled magnitudes of the `AbstractStructuralState` `state`."
+function _reset_assemble!(state::AbstractStructuralState)
+    _reset!(assembler(state))
+    internal_forces(state) .= 0.0
+    tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
+    # FIXME: Zero out stress and strain
+    nothing
+end
 
 "Pushes the current state `c_state` into the `StatesSolution` `st_sol`."
 function Base.push!(st_sol::StatesSolution, c_state::StaticState)

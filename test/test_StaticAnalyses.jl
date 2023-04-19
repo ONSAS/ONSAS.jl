@@ -118,12 +118,16 @@ sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, �
     @test displacements(sst_rand) == Uᵏ⁺¹
 
     # Reset the assembled magnitudes
-    _reset!(sst_rand)
+    reset!(sst_rand)
     @test isempty(assembler(sst_rand).V)
     @test isempty(assembler(sst_rand).I)
     @test isempty(assembler(sst_rand).J)
     @test iszero(internal_forces(sst_rand))
     @test iszero(tangent_matrix(sst_rand))
+    @test iszero(displacements(sst_rand))
+    @test iszero(Δ_displacements(sst_rand))
+    @test all([iszero(strain(sst_rand)[e]) for e in elements(s)])
+    @test all([iszero(stress(sst_rand)[e]) for e in elements(s)])
 
     # Default static analysis of the structure 
     default_s = StaticState(s)
@@ -149,7 +153,6 @@ sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, �
     _assemble!(default_s, σ_e_2, ϵ_e_2, truss₂)
     # End assemble 
     _end_assemble!(default_s)
-
 
     # Manufactured assemble 
     Fᵢₙₜ = zeros(9)

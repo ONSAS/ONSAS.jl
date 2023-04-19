@@ -17,7 +17,7 @@ using Reexport: @reexport
 
 import ..Elements: internal_forces, inertial_forces, strain, stress
 import ..StructuralModel: free_dofs
-import ..StructuralSolvers: _assemble!, _update!, _reset!, _end_assemble!
+import ..StructuralSolvers: _assemble!, _update!, _end_assemble!
 @reexport import ..StructuralSolvers: displacements, external_forces, iteration_residuals
 
 export AbstractStructuralState, _apply!, _assemble!, Δ_displacements, tangent_matrix, residual_forces,
@@ -49,8 +49,6 @@ export AbstractStructuralAnalysis, initial_time, current_time, final_time, _next
 * [`residual_displacements_norms`](@ref)
 """
 abstract type AbstractStructuralState end
-
-#Accessors
 
 "Returns the `Assembler` used in the `AbstractStructuralState` `st`."
 assembler(st::AbstractStructuralState) = st.assembler
@@ -88,7 +86,7 @@ free_dofs(st::AbstractStructuralState) = free_dofs(structure(st))
 # Assemble
 "Assembles the element `e` internal forces `fᵢₙₜ_e` into the `AbstractState` `st`"
 _assemble!(st::AbstractStructuralState, fᵢₙₜ_e::AbstractVector, e::AbstractElement) =
-    view(internal_forces(st), index.(local_dofs(e))) .+= fᵢₙₜ_e
+    view(internal_forces(st), local_dofs(e)) .+= fᵢₙₜ_e
 
 "Assembles the element `e` stiffness matrix matrix `K_e` into the `AbstractState` `st`"
 _assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::AbstractElement) =
@@ -96,8 +94,8 @@ _assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::AbstractEleme
 
 "Assembles the element `e` stress σₑ and strain ϵₑ into the `AbstractState` `st`"
 function _assemble!(st::AbstractStructuralState, σₑ::E, ϵₑ::E, e::AbstractElement) where {E<:Union{Real,AbstractMatrix}}
-    stress(st)[e] = σₑ
-    strain(st)[e] = ϵₑ
+    stress(st)[e] .= σₑ
+    strain(st)[e] .= ϵₑ
 end
 
 "Fill the system tangent matrix in the `AbstractStructuralState` `st` once the `Assembler` object is built."
@@ -110,21 +108,21 @@ function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
 function residual_forces_norms(st::AbstractStructuralState)
     rᵏ_norm = residual_forces(st) |> norm
     fₑₓₜ_norm = external_forces(st) |> norm
-    return rᵏ_norm, rᵏ_norm / fₑₓₜ_norm
+    rᵏ_norm, rᵏ_norm / fₑₓₜ_norm
 end
 
 "Returns relative residual displacements for the current `AbstractStructuralState` `st`."
 function residual_displacements_norms(st::AbstractStructuralState)
     ΔU_norm = Δ_displacements(st) |> norm
     U_norm = displacements(st) |> norm
-    return ΔU_norm, ΔU_norm / U_norm
+    ΔU_norm, ΔU_norm / U_norm
 end
 
 "Updates the `AbstractStructuralState` `st` during the displacements iteration."
 function _update!(st::AbstractStructuralState, args...; kwargs...) end
 
 "Resets  the `AbstractStructuralState` assembled magnitudes before starting a new assembly."
-function _reset!(st::AbstractStructuralState, args...; kwargs...) end
+function reset!(st::AbstractStructuralState, args...; kwargs...) end
 
 """ Abstract supertype for all structural analysis.
 
@@ -183,13 +181,10 @@ function reset!(a::AbstractStructuralState) end
 
 "Applies an `AbstractLoadBoundaryCondition` lbc into the structural analysis `sa` at the current analysis time `t`"
 function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondition)
-
     t = current_time(sa)
     bcs = boundary_conditions(structure(sa))
     dofs_lbc, dofs_values = _apply(bcs, lbc, t)
-
     external_forces(current_state(sa))[dofs_lbc] = dofs_values
-
 end
 
 "Applies a vector of load boundary conditions to the structure `s` "
