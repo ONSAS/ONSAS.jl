@@ -20,7 +20,7 @@ import ..StructuralModel: free_dofs
 import ..StructuralSolvers: _assemble!, _update!, _end_assemble!
 @reexport import ..StructuralSolvers: displacements, external_forces, iteration_residuals
 
-export AbstractStructuralState, _apply!, _assemble!, Δ_displacements, tangent_matrix, residual_forces,
+export AbstractStructuralState, _apply!, _assemble!, Δ_displacements, tangent_matrix, residual_forces!,
     tangent_matrix, structure, assembler, residual_forces_norms, residual_displacements_norms
 
 export AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done,
@@ -33,7 +33,7 @@ export AbstractStructuralAnalysis, initial_time, current_time, final_time, _next
 * [`Δ_displacements`](@ref)
 * [`external_forces`](@ref)
 * [`internal_forces`](@ref)
-* [`residual_forces`](@ref)
+* [`residual_forces!`](@ref)
 * [`tangent_matrix`](@ref)
 * [`strain`](@ref)
 * [`stress`](@ref)
@@ -69,7 +69,7 @@ internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
 external_forces(st::AbstractStructuralState) = st.Fₑₓₜᵏ
 
 "Returns residual forces vector in the `AbstractStructuralState` `st`."
-function residual_forces(st::AbstractStructuralState) end
+function residual_forces!(st::AbstractStructuralState) end
 
 "Returns stresses for each `Element` in the `AbstractStructuralState` `st`."
 stress(st::AbstractStructuralState) = st.σᵏ
@@ -106,7 +106,7 @@ function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
 
 "Returns relative residual forces for the current `AbstractStructuralState` `st`."
 function residual_forces_norms(st::AbstractStructuralState)
-    rᵏ_norm = residual_forces(st) |> norm
+    rᵏ_norm = residual_forces!(st) |> norm
     fₑₓₜ_norm = external_forces(st) |> norm
     rᵏ_norm, rᵏ_norm / fₑₓₜ_norm
 end

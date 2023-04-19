@@ -135,11 +135,12 @@ function Base.push!(st_sol::StatesSolution, c_state::StaticState)
     fₑₓₜᵏ = deepcopy(external_forces(c_state))
     fᵢₙₜᵏ = deepcopy(internal_forces(c_state))
     Kₛᵏ = deepcopy(tangent_matrix(c_state))
+    res_forces = deepcopy(c_state.res_forces)
     σᵏ = dictionary([e => deepcopy(σ) for (e, σ) in pairs(stress(c_state))])
     ϵᵏ = dictionary([e => deepcopy(ϵ) for (e, ϵ) in pairs(strain(c_state))])
     iter_state = deepcopy(iteration_residuals(c_state))
 
-    push!(states(st_sol), StaticState(s, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, iter_state))
+    push!(states(st_sol), StaticState(s, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state))
 end
 
 include("LinearStaticAnalyses.jl")

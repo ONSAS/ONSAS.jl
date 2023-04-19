@@ -82,8 +82,9 @@ Kₛᵏ = rand(9, 9)
 σᵏ = dictionary([truss₁ => rand(3, 3), truss₂ => rand(3, 3)])
 s_assembler = Assembler(2)
 iter_residuals = ResidualsIterationStep()
+res_forces = zeros(2)
 
-sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, s_assembler, iter_residuals)
+sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, s_assembler, iter_residuals)
 
 
 @testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticState" begin
@@ -93,7 +94,7 @@ sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, �
     @test Δ_displacements(sst_rand) == ΔUᵏ
     @test external_forces(sst_rand) == Fₑₓₜᵏ
     @test iteration_residuals(sst_rand) == iter_residuals
-    @test residual_forces(sst_rand) == Fₑₓₜᵏ[free_dofs(s)] - Fᵢₙₜᵏ[free_dofs(s)]
+    @test residual_forces!(sst_rand) == Fₑₓₜᵏ[free_dofs(s)] - Fᵢₙₜᵏ[free_dofs(s)]
     @test tangent_matrix(sst_rand) == Kₛᵏ
     @test strain(sst_rand) == ϵᵏ
     @test stress(sst_rand) == σᵏ
@@ -103,7 +104,7 @@ sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, �
     # Iteration 
     @test assembler(sst_rand) == s_assembler
     @test iteration_residuals(sst_rand) == iter_residuals
-    norm_r = norm(residual_forces(sst_rand))
+    norm_r = norm(residual_forces!(sst_rand))
     relative_norm_res = norm_r / norm(external_forces(sst_rand))
     @test residual_forces_norms(sst_rand) == (norm_r, relative_norm_res)
     norm_ΔU = norm(Δ_displacements(sst_rand))
