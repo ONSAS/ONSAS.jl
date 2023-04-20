@@ -237,9 +237,9 @@ function run_uniaxial_extension()
     eval_handler_rand = PointEvalHandler(mesh(s₂), rand_point)
     # Compute analytic solution at a random point 
     uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, rand_point[]...)
-    rand_point_uᵢ = displacements(states_sol_case₂, eval_handler_rand, 1)[]
-    rand_point_uⱼ = displacements(states_sol_case₂, eval_handler_rand, 2)[]
-    rand_point_uₖ = displacements(states_sol_case₂, eval_handler_rand, 3)[]
+    rand_point_uᵢ = displacements(states_sol_case₂, eval_handler_rand, 1)
+    rand_point_uⱼ = displacements(states_sol_case₂, eval_handler_rand, 2)
+    rand_point_uₖ = displacements(states_sol_case₂, eval_handler_rand, 3)
     #-----------------------------
     # Test boolean for CI  
     #-----------------------------
