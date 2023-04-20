@@ -15,40 +15,40 @@ export Rectangle, Square, Circle, GenericCrossSection
 
 **Common methods:**
 The following functions must be implemented for a new cross-section:
-- * [`area`](@ref)         -- returns the cross-section area.
-- * [`Ixx`](@ref)          -- returns the moment of inertia with respect to `x` axis.
-- * [`Iyy`](@ref)          -- returns the moment of inertia with respect to `y` axis.
-- * [`Izz`](@ref)          -- returns the moment of inertia with respect to `z` axis.
-- * [`Ixy`](@ref)          -- returns the product moment of area respect to the `x-y` axes.
-- * [`Ixz`](@ref)          -- returns the product moment of area respect to the `x-z` axes.
-- * [`Iyz`](@ref)          -- returns the product moment of area respect to the `y-z` axes.
-- * [`I_tensor_xyz`](@ref) -- returns the inertia tensor in the system of coordinates `x-y-z`.
+- * [`area`](@ref)         -- Return the cross-section area.
+- * [`Ixx`](@ref)          -- Return the moment of inertia with respect to `x` axis.
+- * [`Iyy`](@ref)          -- Return the moment of inertia with respect to `y` axis.
+- * [`Izz`](@ref)          -- Return the moment of inertia with respect to `z` axis.
+- * [`Ixy`](@ref)          -- Return the product moment of area respect to the `x-y` axes.
+- * [`Ixz`](@ref)          -- Return the product moment of area respect to the `x-z` axes.
+- * [`Iyz`](@ref)          -- Return the product moment of area respect to the `y-z` axes.
+- * [`I_tensor_xyz`](@ref) -- Return the inertia tensor in the system of coordinates `x-y-z`.
 """
 
 abstract type AbstractCrossSection end
 
-"Returns the cross-section area of the `AbstractCrossSection` `cs`"
+"Return the cross-section area of the `AbstractCrossSection` `cs`"
 area(cs::AbstractCrossSection) = cs.area
 
-"Returns the moment of inertia of the `AbstractCrossSection` `cs` with respect to the local x axis."
+"Return the moment of inertia of the `AbstractCrossSection` `cs` with respect to the local x axis."
 Ixx(::AbstractCrossSection) = cs.Ixx
 
-"Returns the moment of inertia of the `AbstractCrossSection` `cs` with respect to the local `y` axis."
+"Return the moment of inertia of the `AbstractCrossSection` `cs` with respect to the local `y` axis."
 Iyy(::AbstractCrossSection) = cs.Iyy
 
-"Returns the moment of inertia of the `AbstractCrossSection` `cs` respect  to the local `z` axis."
+"Return the moment of inertia of the `AbstractCrossSection` `cs` respect  to the local `z` axis."
 Izz(::AbstractCrossSection) = cs.Izz
 
-"Returns the product moment of area  of the `AbstractCrossSection` `cs` respect to the local `x-y` axes."
+"Return the product moment of area  of the `AbstractCrossSection` `cs` respect to the local `x-y` axes."
 Ixy(::AbstractCrossSection) = cs.Ixy
 
-"Returns the product moment of area of the `AbstractCrossSection` `cs` respect to the `x-z` local axes."
+"Return the product moment of area of the `AbstractCrossSection` `cs` respect to the `x-z` local axes."
 Ixz(::AbstractCrossSection) = cs.Ixz
 
-"Returns the product moment of area of the `AbstractCrossSection` `cs` respect to the `y-z` axes."
+"Return the product moment of area of the `AbstractCrossSection` `cs` respect to the `y-z` axes."
 Iyz(::AbstractCrossSection) = cs.Iyz
 
-"Returns the inertia tensor in the system of coordinates `x-y-z`"
+"Return the inertia tensor in the system of coordinates `x-y-z`"
 I_tensor_xyz(cs::AbstractCrossSection) = [
     Ixx(cs) -Ixy(cs) -Ixz(cs)
     -Ixy(cs) Iyy(cs) -Iyz(cs)

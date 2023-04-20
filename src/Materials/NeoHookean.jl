@@ -54,7 +54,7 @@ function NeoHookean(; E::Real, ν::Real, ρ::R=nothing, label::L=:no_labelled_ma
 
     return NeoHookean(K, G, ρ, Symbol(label))
 end
-"Returns the strain energy for a `NeoHookean` material `m` and the Green-Lagrange strain tensor `𝔼`."
+"Return the strain energy for a `NeoHookean` material `m` and the Green-Lagrange strain tensor `𝔼`."
 function strain_energy(m::NeoHookean, 𝔼::AbstractMatrix)
     ℂ = Symmetric(2 * 𝔼 + eye(3))
     J = sqrt(det(ℂ))
@@ -64,32 +64,32 @@ function strain_energy(m::NeoHookean, 𝔼::AbstractMatrix)
     Ψ = shear_modulus(m) / 2 * (I₁ - 2 * log(J)) + bulk_modulus(m) / 2 * (J - 1)^2
 end
 
-"Returns Lamé parameters `λ` and `G` from a `NeoHookean` material `m`."
+"Return Lamé parameters `λ` and `G` from a `NeoHookean` material `m`."
 function lame_parameters(m::NeoHookean)
     G = shear_modulus(m)
     λ = bulk_modulus(m) - 2 * G / 3
     return λ, G
 end
 
-"Returns the shear modulus `G` from a `NeoHookean` material `m`."
+"Return the shear modulus `G` from a `NeoHookean` material `m`."
 shear_modulus(m::NeoHookean) = m.G
 
-"Returns the Poisson's ration `ν` form a `NeoHookean` material `m`."
+"Return the Poisson's ration `ν` form a `NeoHookean` material `m`."
 function poisson_ratio(m::NeoHookean)
     λ, G = lame_parameters(m)
     λ / (2 * (λ + G))
 end
 
-"Returns the elasticity modulus `E` form a `NeoHookean` material `m`."
+"Return the elasticity modulus `E` form a `NeoHookean` material `m`."
 function elasticity_modulus(m::NeoHookean)
     λ, G = lame_parameters(m)
     G * (3 * λ + 2 * G) / (λ + G)
 end
 
-"Returns the bulk_modulus `K` for a `NeoHookean` material `m`."
+"Return the bulk_modulus `K` for a `NeoHookean` material `m`."
 bulk_modulus(m::NeoHookean) = m.K
 
-"Returns the Cosserat stress tensor `𝕊` given the Green-Lagrange `𝔼` strain tensor."
+"Return the Cosserat stress tensor `𝕊` given the Green-Lagrange `𝔼` strain tensor."
 function _𝕊_analytic(m::NeoHookean, 𝔼::AbstractMatrix)
     # Right hand Cauchy strain tensor
     ℂ = Symmetric(2 * 𝔼 + eye(3))
@@ -99,7 +99,7 @@ function _𝕊_analytic(m::NeoHookean, 𝔼::AbstractMatrix)
     shear_modulus(m) * (eye(3) - ℂ⁻¹) + bulk_modulus(m) * (J * (J - 1) * ℂ⁻¹)
 end
 
-"Returns the `∂𝕊∂𝔼` for a material `m`, the Gree-Lagrange strain tensor `𝔼` and a
+"Return the `∂𝕊∂𝔼` for a material `m`, the Gree-Lagrange strain tensor `𝔼` and a
 function to compute 𝕊 analytically."
 function _∂𝕊_∂𝔼(m::NeoHookean, 𝔼::AbstractMatrix, 𝕊_analytic::Function=_𝕊_analytic)
 
@@ -121,7 +121,7 @@ function _∂𝕊_∂𝔼(m::NeoHookean, 𝔼::AbstractMatrix, 𝕊_analytic::Fu
 
 end
 
-"Returns the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
+"Return the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
 considering a `SVK` material `m` and the Green-Lagrange  
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
 function cosserat_stress(m::NeoHookean, 𝔼::AbstractMatrix)

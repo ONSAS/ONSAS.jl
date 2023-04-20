@@ -15,48 +15,48 @@ struct StatesSolution{ST<:Vector,A,SS<:AbstractSolver} <: AbstractSolution
     end
 end
 
-"Returns the solved `AbstractStrcturalState`s. "
+"Return the solved `AbstractStrcturalState`s. "
 states(sol::StatesSolution) = sol.states
 
-"Returns the `AbstractAnalysis` solved. "
+"Return the `AbstractAnalysis` solved. "
 analysis(sol::StatesSolution) = sol.analysis
 
-"Returns the `AbstractSolver` solved. "
+"Return the `AbstractSolver` solved. "
 solver(sol::StatesSolution) = sol.solver
 
 for f in [:displacements, :internal_forces, :external_forces]
-    "Returns the $f vector Uᵏ at every time step."
+    "Return the $f vector Uᵏ at every time step."
     @eval $f(st_sol::StatesSolution) = $f.(states(st_sol))
 
-    "Returns the $f of the `Dof` at every time step."
+    "Return the $f of the `Dof` at every time step."
     @eval $f(st_sol::StatesSolution, dof::Dof) = getindex.($f(st_sol), index(dof))
 
-    "Returns the a $f `Vector` at a `Vector` of `Dof`s at every time step."
+    "Return the a $f `Vector` at a `Vector` of `Dof`s at every time step."
     @eval $f(st_sol::StatesSolution, vdof::Vector{Dof}) = [$f(st_sol, dof) for dof in vdof]
 
-    "Returns the $f of a `Node` `n` every time step."
+    "Return the $f of a `Node` `n` every time step."
     @eval $f(st_sol::StatesSolution, n::AbstractNode) = $f(st_sol, reduce(vcat, collect(dofs(n))))
 
-    "Returns the $f a `Node` `n`  of at component `i` every time step."
+    "Return the $f a `Node` `n`  of at component `i` every time step."
     @eval $f(st_sol::StatesSolution, n::AbstractNode, component::Int) = $f(st_sol, n)[component]
 
-    "Returns the $f of a `Element` `e` at every time step."
+    "Return the $f of a `Element` `e` at every time step."
     @eval $f(st_sol::StatesSolution, e::AbstractElement) = [$f(st_sol, n) for n in nodes(e)]
 end
 
-"Returns the `IterationResidual`s object at every time step."
+"Return the `IterationResidual`s object at every time step."
 iteration_residuals(st_sol::StatesSolution) = iteration_residuals.(states(st_sol))
 
 for f in [:stress, :strain]
-    "Returns the $f at every time step."
+    "Return the $f at every time step."
     @eval $f(st_sol::StatesSolution) = $f.(states(st_sol))
 
-    "Returns the $f of an `Element` `e` every time step."
+    "Return the $f of an `Element` `e` every time step."
     @eval $f(st_sol::StatesSolution, e::AbstractElement) = [getindex($f.(states(st_sol))[step], e) for step in 1:length(states(st_sol))]
 
 end
 
-"Returns the displacements component `i` solution at the `PointEvalHandler` `peh`."
+"Return the displacements component `i` solution at the `PointEvalHandler` `peh`."
 function displacements(st_sol::StatesSolution, peh::PointEvalHandler, i::Int)
     sol_points = getindex.(displacements(st_sol, peh), i)
     if length(sol_points) == 1
@@ -67,7 +67,7 @@ function displacements(st_sol::StatesSolution, peh::PointEvalHandler, i::Int)
 end
 
 # TODO use @eval
-"Returns the displacements solution at the `PointEvalHandler` `peh`."
+"Return the displacements solution at the `PointEvalHandler` `peh`."
 function displacements(st_sol::StatesSolution, peh::PointEvalHandler)
 
     points_interpolators = interpolator(peh)
@@ -88,7 +88,7 @@ function displacements(st_sol::StatesSolution, peh::PointEvalHandler)
     return sol_points
 end
 
-"Returns the internal forces solution  at the `PointEvalHandler` `peh`."
+"Return the internal forces solution  at the `PointEvalHandler` `peh`."
 function internal_forces(st_sol::StatesSolution, peh::PointEvalHandler)
 
     interpolators = interpolator(peh)
@@ -108,10 +108,10 @@ function internal_forces(st_sol::StatesSolution, peh::PointEvalHandler)
     return sol_points
 end
 
-"Returns the internal ftorce component `i` solution at the `PointEvalHandler` `peh`."
+"Return the internal ftorce component `i` solution at the `PointEvalHandler` `peh`."
 internal_forces(st_sol::StatesSolution, peh::PointEvalHandler, i::Int) = getindex.(internal_forces(st_sol, peh), i)
 
-"Returns the external forces solution  at the `PointEvalHandler` `peh`."
+"Return the external forces solution  at the `PointEvalHandler` `peh`."
 function external_forces(st_sol::StatesSolution, peh::PointEvalHandler)
 
     interpolators = interpolator(peh)
@@ -131,10 +131,10 @@ function external_forces(st_sol::StatesSolution, peh::PointEvalHandler)
     return sol_points
 end
 
-"Returns the internal force component `i` solution at the `PointEvalHandler` `peh`."
+"Return the internal force component `i` solution at the `PointEvalHandler` `peh`."
 external_forces(st_sol::StatesSolution, peh::PointEvalHandler, i::Int) = getindex.(external_forces(st_sol, peh), i)
 
-"Returns the stresses solution  at the `PointEvalHandler` `peh`."
+"Return the stresses solution  at the `PointEvalHandler` `peh`."
 function stress(st_sol::StatesSolution, peh::PointEvalHandler)
 
     point_to_element_vec = points_to_element(interpolator(peh))

@@ -35,7 +35,7 @@ Scalar degree of freedom of the structure.
 """
 const Dof = Int
 
-"Returns the dof index of the `Dof` `d` "
+"Return the dof index of the `Dof` `d` "
 index(d::Dof) = d
 
 # =================
@@ -54,28 +54,28 @@ An `AbstractNode` object is a point in space.
 """
 abstract type AbstractNode{dim,T} <: StaticArray{Tuple{dim},T,1} end
 
-"Returns the `AbstractNode` `n` coordinates."
+"Return the `AbstractNode` `n` coordinates."
 coordinates(n::AbstractNode) = n.x
 
-"Returns each `AbstractNode` coordinates in a `Vector` of `Node`s vn."
+"Return each `AbstractNode` coordinates in a `Vector` of `Node`s vn."
 coordinates(vn::AbstractVector{<:AbstractNode}) = coordinates.(vn)
 
-"Returns the `AbstractNode` `n` dimension (1D, 2D or 3D)."
+"Return the `AbstractNode` `n` dimension (1D, 2D or 3D)."
 dimension(::AbstractNode{dim}) where {dim} = dim
 
-"Returns a tuple containing the dimensions of the `AbstractNode` `n`."
+"Return a tuple containing the dimensions of the `AbstractNode` `n`."
 Base.size(n::AbstractNode) = size(n.x)
 
-"Returns the coordinate at component `i` from the `AbstractNode` `n`."
+"Return the coordinate at component `i` from the `AbstractNode` `n`."
 Base.getindex(n::AbstractNode, i::Int) = n.x[i]
 
-"Returns `AbstractNode` `n` degrees of freedom."
+"Return `AbstractNode` `n` degrees of freedom."
 dofs(n::AbstractNode) = n.dofs
 
-"Returns degrees of freedom for each `AbstractNode` in a vector of nodes `vn`."
+"Return degrees of freedom for each `AbstractNode` in a vector of nodes `vn`."
 dofs(vn::Vector{<:AbstractNode}) = vcat(dofs.(vn)...)
 
-"Returns `AbstractNode` `n` degrees of freedom with symbol `s`."
+"Return `AbstractNode` `n` degrees of freedom with symbol `s`."
 dofs(n::AbstractNode, s::Symbol) = n.dofs[s]
 
 "Sets a `Vector`s of dofs `vd` to the `AbstractNode` `n` assigned to the symbol `s`."
@@ -110,19 +110,19 @@ An `AbstractEntity` object is an entity defined by dofs and node/s with certain 
 """
 abstract type AbstractEntity{dim,T} end
 
-"Returns the `AbstractEntity` `e` coordinates."
+"Return the `AbstractEntity` `e` coordinates."
 coordinates(e::AbstractEntity) = coordinates.(nodes(e))
 
-"Returns each `AbstractFace` coordinates in a `Vector` of `Face`s `vf`."
+"Return each `AbstractFace` coordinates in a `Vector` of `Face`s `vf`."
 coordinates(ve::Vector{<:AbstractEntity}) = coordinates.(ve)
 
-"Returns an `AbstractEntity` given an empty `AbstractEntity` `e` and a `Vector` of `Node`s `vn`."
+"Return an `AbstractEntity` given an empty `AbstractEntity` `e` and a `Vector` of `Node`s `vn`."
 function create_entity(e::AbstractEntity, vn::AbstractVector{<:AbstractNode}) end
 
-"Returns the `AbstractEntity` dimension."
+"Return the `AbstractEntity` dimension."
 dimension(::AbstractEntity{dim}) where {dim} = dim
 
-"Returns the dofs of an `AbstractEntity` `e`."
+"Return the dofs of an `AbstractEntity` `e`."
 function dofs(e::AbstractEntity)
     vecdfs = dofs.(nodes(e))
     dfs = mergewith(vcat, vecdfs[1], vecdfs[2])
@@ -130,13 +130,13 @@ function dofs(e::AbstractEntity)
     dfs
 end
 
-"Returns the dofs of a `Vector` `ve` with `AbstractEntity`es."
+"Return the dofs of a `Vector` `ve` with `AbstractEntity`es."
 dofs(ve::Vector{<:AbstractEntity}) = unique(row_vector(dofs.(ve)))
 
-"Returns the `Node`s an `AbstractEntity` `e`."
+"Return the `Node`s an `AbstractEntity` `e`."
 nodes(e::AbstractEntity) = e.nodes
 
-"Returns the label of an `AbstractEntity` `e`."
+"Return the label of an `AbstractEntity` `e`."
 label(e::AbstractEntity) = e.label
 
 # =================
@@ -163,10 +163,10 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 """
 abstract type AbstractFace{dim,T} <: AbstractEntity{dim,T} end
 
-"Returns the `AbstractFace` `f` area."
+"Return the `AbstractFace` `f` area."
 function area(f::AbstractFace) end
 
-"Returns the `AbstractFace` `f` normal."
+"Return the `AbstractFace` `f` normal."
 function normal_direction(f::AbstractFace) end
 
 #==============================#
@@ -210,18 +210,18 @@ This method is a hard contract and for dynamic analysis must be implemented to d
 """
 abstract type AbstractElement{dim,T} <: AbstractEntity{dim,T} end
 
-"Returns true if a point `p` is inside the `AbstractElement` `e`."
+"Return true if a point `p` is inside the `AbstractElement` `e`."
 function Base.:∈(p::AbstractVector, ::AbstractElement) end
 
-"Returns the `AbstractElement` `e` cross_section."
+"Return the `AbstractElement` `e` cross_section."
 cross_section(e::AbstractElement) = e.cross_section
 
-"Returns local dofs symbols of the `AbstractElement` `e` (for linear displacements `:u` is used) in a vector.
+"Return local dofs symbols of the `AbstractElement` `e` (for linear displacements `:u` is used) in a vector.
 Since global degrees of freedom are for the assemble process this function is used to compute the global dofs of the element by 
 extracting the node dofs with the symbol defined by the `AbstractElement` `e`."
 function local_dof_symbol(e::AbstractElement) end
 
-"Returns local dofs given a vector of local dof symobls. This method extracts all node dofs with the same symbol
+"Return local dofs given a vector of local dof symobls. This method extracts all node dofs with the same symbol
 as local_dof_symbol"
 function local_dofs(e::AbstractElement)
     local_dof_symbols = local_dof_symbol(e)
@@ -237,19 +237,19 @@ function local_dofs(e::AbstractElement)
     return local_dofs
 end
 
-"Returns the internal forces vector of an `AbstractElement` `e` with an `AbstractMaterial` `m`."
+"Return the internal forces vector of an `AbstractElement` `e` with an `AbstractMaterial` `m`."
 function internal_forces(m::AbstractMaterial, e::AbstractElement, args...; kwargs...) end
 
-"Returns the inertial forces vector of an `AbstractElement` `e`. with an `AbstractMaterial` `m`"
+"Return the inertial forces vector of an `AbstractElement` `e`. with an `AbstractMaterial` `m`"
 function inertial_forces(m::AbstractMaterial, e::AbstractElement, args...; kwargs...) end
 
-"Returns the `AbstractElement` `e` strain."
+"Return the `AbstractElement` `e` strain."
 function strain(e::AbstractElement, args...; kwargs...) end
 
-"Returns the `AbstractElement` `e` stress."
+"Return the `AbstractElement` `e` stress."
 function stress(e::AbstractElement, args...; kwargs...) end
 
-"Returns the weights to interpolate a scalar field at the `Node`s `Dof` corresponding 
+"Return the weights to interpolate a scalar field at the `Node`s `Dof` corresponding 
 to the `AbstractElement` `e`."
 function weights(e::AbstractElement, p::AbstractVector) end
 

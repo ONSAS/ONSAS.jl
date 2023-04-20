@@ -36,21 +36,21 @@ function StructuralEntities(velems::Vector{E}, vfaces::Vector{F}=Vector{Abstract
     StructuralEntities(elem_types_to_elements, face_types_to_faces)
 end
 
-"Returns a `Dictionary` with `Element` types as keys and the corresponding `Element`s as values."
+"Return a `Dictionary` with `Element` types as keys and the corresponding `Element`s as values."
 elem_types_to_elements(s_entities::StructuralEntities) = s_entities.elem_types_to_elements
 
-"Returns a `Dictionary` with `Face` types as keys and the corresponding `Face`s as values."
+"Return a `Dictionary` with `Face` types as keys and the corresponding `Face`s as values."
 face_types_to_faces(s_entities::StructuralEntities) = s_entities.face_types_to_faces
 
-"Returns the `Vector` of `Element` types defined in the `StructuralEntities` `s_entities`."
+"Return the `Vector` of `Element` types defined in the `StructuralEntities` `s_entities`."
 elem_types(s_entities::StructuralEntities) = collect(keys(s_entities.elem_types_to_elements))
 
-"Returns the `Vector` of `Face` types defined in the `StructuralEntities` `s_entities`."
+"Return the `Vector` of `Face` types defined in the `StructuralEntities` `s_entities`."
 face_types(s_entities::StructuralEntities) = collect(keys(s_entities.face_types_to_faces))
 
-"Returns all `Entity`s defined into `StructuralEntities`."
+"Return all `Entity`s defined into `StructuralEntities`."
 all_entities(s_entities::StructuralEntities) = unique(vcat(face_types(s_entities), elem_types(s_entities)))
 
-"Returns the `Entity` with the label `l` in the `StructuralEntities` `s_entities`."
+"Return the `Entity` with the label `l` in the `StructuralEntities` `s_entities`."
 Base.getindex(s_entities::StructuralEntities, l::L) where {L<:Union{Symbol,AbstractString}} =
     first(filter(ent -> label(ent) == Symbol(l), all_entities(s_entities)))

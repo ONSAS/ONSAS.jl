@@ -38,11 +38,11 @@ Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label=:no_labelled_element) wher
 Tetrahedron(label::L=:no_labelled_face) where {L<:Union{String,Symbol}} = 
 Tetrahedron(SVector(Node(0,0,0),Node(0,0,0),Node(0,0,0),Node(0,0,0)), Symbol(label))
 
-"Returns a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
+"Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
 create_entity(t::Tetrahedron, vn::AbstractVector{<:AbstractNode}) = Tetrahedron(vn[1], vn[2], vn[3], vn[4], label(t))
 
 
-"Returns the `Tetrahedron` `t` volume in the reference configuration."
+"Return the `Tetrahedron` `t` volume in the reference configuration."
 function volume(t::Tetrahedron)
   ∂X∂ζ = _shape_functions_derivatives(t)
   coords = _coordinates_matrix(t)
@@ -51,10 +51,10 @@ function volume(t::Tetrahedron)
   return vol
 end
 
-"Returns the local dof symbol of a `Tetrahedron` element."
+"Return the local dof symbol of a `Tetrahedron` element."
 local_dof_symbol(::Tetrahedron) = [:u]
 
-"Returns the reshaped coordinates `elem_coords` of the tetrahedron element into a 4x3 matrix."
+"Return the reshaped coordinates `elem_coords` of the tetrahedron element into a 4x3 matrix."
 _coordinates_matrix(t::Tetrahedron) = reduce(hcat,coordinates(t))
 
 "Computes Jacobian matrix"
@@ -82,7 +82,7 @@ function _B_mat(deriv::AbstractMatrix , 𝔽::AbstractMatrix)
   return B
 end
 
-"Returns the internal force of a `Tetrahedron` element `t` doted with an `AbstractHyperElasticMaterial` `m` +
+"Return the internal force of a `Tetrahedron` element `t` doted with an `AbstractHyperElasticMaterial` `m` +
 and a an element displacement vector `u_e`."
 function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector)
 
@@ -147,13 +147,13 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
 
 end
 
-"Returns the internal force of a `Tetrahedron` element `t` doted with an `LinearIsotropicMaterial` `m`.
+"Return the internal force of a `Tetrahedron` element `t` doted with an `LinearIsotropicMaterial` `m`.
 ## Arguments
 - `material`: `IsotropicLinearElastic` type, the linear elastic material of the tetrahedron element.
 - `element`: `Tetrahedron` type, the tetrahedron element for which internal forces are to be computed.
 - `displacements`: `AbstractVector` type, the nodal displacements of the element.
 
-## Returns
+## Return
 A 4-tuple containing:
 - `forces`: `Symmetric` type, the internal forces of the tetrahedron element.
 - `stiffness`: `Symmetric` type, the stiffness matrix of the tetrahedron element.
@@ -192,7 +192,7 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
 end
 
 
-"Returns the shape functions derivatives of a `Tetrahedron` element."
+"Return the shape functions derivatives of a `Tetrahedron` element."
 function _shape_functions_derivatives(::Tetrahedron, order =1)
   d = zeros(3, 4)
   if order == 1
@@ -204,7 +204,7 @@ function _shape_functions_derivatives(::Tetrahedron, order =1)
   return d
 end
 
-"Returns the interpolation matrix `𝑀` for a `Tetrahedron` element `t`."
+"Return the interpolation matrix `𝑀` for a `Tetrahedron` element `t`."
 function _interpolation_matrix(t::Tetrahedron{3,T}) where {T <: Real}
   # Node coordinates matrix 𝐴
   𝐴 = Matrix{T}(undef, 4, 4)
@@ -232,7 +232,7 @@ function _interpolation_matrix(t::Tetrahedron{3,T}) where {T <: Real}
   return 𝑀
 end
 
-"Returns the interpolation weights of a point `p` in a `Tetrahedron` element `t`."
+"Return the interpolation weights of a point `p` in a `Tetrahedron` element `t`."
 function weights(t::Tetrahedron{3,T}, p::Point{dim,P}) where {T<:Real,dim,P<:Real}
   @assert length(p) == 3 "The point $p must be a 3D vector."
   _interpolation_matrix(t) * [1,p...]

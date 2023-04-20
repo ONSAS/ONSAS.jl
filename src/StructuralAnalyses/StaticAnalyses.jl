@@ -46,16 +46,16 @@ and extends the following methods:
 """
 abstract type AbstractStaticAnalysis <: AbstractStructuralAnalysis end
 
-"Returns the initial load factor of an `AbstractStaticAnalysis` `sa`."
+"Return the initial load factor of an `AbstractStaticAnalysis` `sa`."
 initial_time(sa::AbstractStaticAnalysis) = first(load_factors(sa))
 
-"Returns the current load factor of an `AbstractStaticAnalysis` `sa`."
+"Return the current load factor of an `AbstractStaticAnalysis` `sa`."
 current_time(sa::AbstractStaticAnalysis) = load_factors(sa)[sa.current_step[]]
 
-"Returns the final load factor of an `AbstractStaticAnalysis` `sa`."
+"Return the final load factor of an `AbstractStaticAnalysis` `sa`."
 final_time(sa::AbstractStaticAnalysis) = last(load_factors(sa))
 
-"Returns `true` if the `AbstractStaticAnalysis` `sa` is completed."
+"Return `true` if the `AbstractStaticAnalysis` `sa` is completed."
 function is_done(sa::AbstractStaticAnalysis)
     is_done_bool = if sa.current_step[] > length(load_factors(sa))
         sa.current_step[] -= 1
@@ -65,10 +65,10 @@ function is_done(sa::AbstractStaticAnalysis)
     end
 end
 
-"Returns the final load factor vector of an `AbstractStaticAnalysis` `sa`."
+"Return the final load factor vector of an `AbstractStaticAnalysis` `sa`."
 load_factors(sa::AbstractStaticAnalysis) = sa.λᵥ
 
-"Returns the current load factor of an `AbstractStaticAnalysis` `sa`."
+"Return the current load factor of an `AbstractStaticAnalysis` `sa`."
 current_load_factor(sa::AbstractStaticAnalysis) = current_time(sa)
 
 "Jumps to the next current load factor defined in the `AbstractStaticAnalysis` `sa`."

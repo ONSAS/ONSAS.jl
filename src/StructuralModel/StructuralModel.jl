@@ -57,51 +57,51 @@ elements, and boundary conditions to the mesh. Moreover this struct is used to s
 abstract type AbstractStructure{dim,M,E} end
 
 # Mesh methods
-"Returns the `Mesh` of the `AbstractStructure` `s`"
+"Return the `Mesh` of the `AbstractStructure` `s`"
 mesh(s::AbstractStructure) = s.mesh
 
-"Returns the `Dof`s of the `AbstractStructure` `s`"
+"Return the `Dof`s of the `AbstractStructure` `s`"
 dofs(s::AbstractStructure) = dofs(mesh(s))
 
-"Returns the number of `Dof`s of the `AbstractStructure` `s`"
+"Return the number of `Dof`s of the `AbstractStructure` `s`"
 num_dofs(s::AbstractStructure) = num_dofs(mesh(s))
 
-"Returns free `Dof`s of the structure `s`"
+"Return free `Dof`s of the structure `s`"
 free_dofs(s::AbstractStructure) = s.free_dofs
 
-"Returns the number of free `Dof`s of the `AbstractStructure` `s`"
+"Return the number of free `Dof`s of the `AbstractStructure` `s`"
 num_free_dofs(s::AbstractStructure) = length(free_dofs(s))
 
-"Returns a `Vector` of `Node`s defined in the `AbstractStructure` `s`."
+"Return a `Vector` of `Node`s defined in the `AbstractStructure` `s`."
 nodes(s::AbstractStructure) = nodes(mesh(s))
 
-"Returns the number of `Node`s of the `AbstractStructure` `s`"
+"Return the number of `Node`s of the `AbstractStructure` `s`"
 num_nodes(s::AbstractStructure) = num_nodes(mesh(s))
 
-"Returns the `Element`s of the `AbstractStructure` `s`"
+"Return the `Element`s of the `AbstractStructure` `s`"
 elements(s::AbstractStructure) = elements(mesh(s))
 
-"Returns the number of `Element`s of the `AbstractStructure` `s`"
+"Return the number of `Element`s of the `AbstractStructure` `s`"
 num_elements(s::AbstractStructure) = num_elements(mesh(s))
 
 # Boundary Conditions 
-"Returns the `StructuralBoundaryConditions` of the `AbstractStructure` `s`"
+"Return the `StructuralBoundaryConditions` of the `AbstractStructure` `s`"
 boundary_conditions(s::AbstractStructure) = s.bcs
 
-"Returns the `DisplacementBoundaryCondition`s of the `AbstractStructure` `s`"
+"Return the `DisplacementBoundaryCondition`s of the `AbstractStructure` `s`"
 displacement_bcs(s::AbstractStructure) = displacement_bcs(s.bcs)
 
-"Returns the `LocalPressureBoundaryCondition`s of the `AbstractStructure` `s`"
+"Return the `LocalPressureBoundaryCondition`s of the `AbstractStructure` `s`"
 load_bcs(s::AbstractStructure) = load_bcs(s.bcs)
 
-"Returns the `AbstractBoundaryCondition`s imposed to `Node`s in the `AbstractStructure` `s`"
+"Return the `AbstractBoundaryCondition`s imposed to `Node`s in the `AbstractStructure` `s`"
 node_bcs(s::AbstractStructure) = node_bcs(s.bcs)
 
-"Returns the `AbstractBoundaryCondition`s imposed to `Element`s in the `AbstractStructure` `s`"
+"Return the `AbstractBoundaryCondition`s imposed to `Element`s in the `AbstractStructure` `s`"
 element_bcs(s::AbstractStructure) = element_bcs(s.bcs)
 
 # Materials
-"Returns the `StructuralMaterials`s of the `AbstractStructure` `s`"
+"Return the `StructuralMaterials`s of the `AbstractStructure` `s`"
 materials(s::AbstractStructure) = s.materials
 
 #====================================#

@@ -17,6 +17,7 @@ Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
 Tensors = "48a634ad-e948-5137-8d70-aa71f2a747f4"
 
 [compat]

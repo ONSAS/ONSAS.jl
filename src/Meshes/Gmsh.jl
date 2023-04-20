@@ -3,13 +3,15 @@ Module defining meshes created in GMSH software.
 """
 module Gmsh
 
+using Dictionaries: dictionary
 using Reexport: @reexport
 using MshReader: MshFileReader
+
 using ..Elements: Node
 
 @reexport import ..Elements: dimension, nodes
 
-export MshFile, connectivity, material_label, entity_label, bc_label, physical_index
+export MshFile, connectivity, material_label, entity_label, bc_label, physical_index, gmsh_println
 
 
 """ MshFile.
@@ -44,7 +46,7 @@ struct MshFile{dim,T,S,I1<:Integer,I2<:Integer}
     end
 end
 
-"Returns material, entities and boundary conditions labels defined in `physical_names`."
+"Return material, entities and boundary conditions labels defined in `physical_names`."
 function _getlabels(physical_names::Vector{String})
 
     split_char = "_"
@@ -72,37 +74,46 @@ function MshFile(filename::String)
     MshFile(filename, vec_nodes, connectivity, physical_index, material_labels, entities_labels, bcs_labels)
 end
 
-"Returns the connectivity defined in the `MshFile` `mfile`."
+"Return the connectivity defined in the `MshFile` `mfile`."
 connectivity(mfile::MshFile) = mfile.connectivity
 
-"Returns physical indexes defined in the `MshFile` `mfile`."
+"Return physical indexes defined in the `MshFile` `mfile`."
 physical_index(mfile::MshFile) = mfile.physical_index
 
-"Returns physical_index defined in the `MshFile` `mfile`."
+"Return physical_index defined in the `MshFile` `mfile`."
 physical_index(mfile::MshFile, entity_index::Integer) = physical_index(mfile)[entity_index]
 
-"Returns the mesh dimension defined in the `MshFile` `mfile`."
+"Return the mesh dimension defined in the `MshFile` `mfile`."
 dimension(::MshFile{dim}) where {dim} = dim
 
-"Returns the `Nodes`s of the `MshFile` `mfile`."
+"Return the `Nodes`s of the `MshFile` `mfile`."
 nodes(mfile::MshFile) = mfile.vec_nodes
 
-"Returns material labels defined in the `MshFile``mfile`."
+"Return material labels defined in the `MshFile``mfile`."
 material_label(mfile::MshFile) = mfile.material_labels
 
-"Returns material label for the `AbstractEntity` with index `entity_index`."
+"Return material label for the `AbstractEntity` with index `entity_index`."
 material_label(mfile::MshFile, entity_index::Integer) = material_label(mfile)[physical_index(mfile)[entity_index]]
 
-"Returns entities labels defined in the `MshFile``mfile`."
+"Return entities labels defined in the `MshFile``mfile`."
 entity_label(mfile::MshFile) = mfile.entities_labels
 
-"Returns entities label for the `AbstractEntity` with index `entity_index`."
+"Return entities label for the `AbstractEntity` with index `entity_index`."
 entity_label(mfile::MshFile, entity_index::Integer) = entity_label(mfile)[physical_index(mfile)[entity_index]]
 
-"Returns boundary conditions labels defined in the `MshFile``mfile`."
+"Return boundary conditions labels defined in the `MshFile``mfile`."
 bc_label(mfile::MshFile) = mfile.bc_labels
 
-"Returns boundary conditions label for the `AbstractEntity` with index `entity_index`."
+"Return boundary conditions label for the `AbstractEntity` with index `entity_index`."
 bc_label(mfile::MshFile, entity_index::Integer) = bc_label(mfile)[physical_index(mfile)[entity_index]]
+
+"Return the as variables prints from the REPL."
+function gmsh_println(output)
+    # Extract the number of nodes and elements as integers.
+    num_nodes = parse(Int, match(r"(\d+) nodes (\d+) elements", output).captures[1])
+    num_elements = parse(Int, match(r"(\d+) nodes (\d+) elements", output).captures[2])
+    println("The mesh contains $num_elements elements and $num_nodes nodes. ")
+    dictionary([:nnodes => num_nodes, :nelems => num_elements])
+end
 
 end # module

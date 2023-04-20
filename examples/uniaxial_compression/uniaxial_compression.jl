@@ -3,6 +3,7 @@
 # -----------------------------
 using ONSAS.StaticAnalyses
 using ONSAS.Utils: eye
+using Suppressor: @capture_out
 using Test: @test, @testset
 using LinearAlgebra: Symmetric, norm, det, tr
 
@@ -194,9 +195,12 @@ function run_uniaxial_compression()
     # -------------------------------
     filename = "uniaxial_compression"
     labels = [mat_label, entities_labels, bc_labels]
-    mesh_dir = @__DIR__
-    file_name_mesh = create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms, mesh_dir)
-    msh_file = MshFile(file_name_mesh)
+    local mesh_path
+    output = @capture_out begin
+        mesh_path = create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms)
+    end
+    gmsh_println(output)
+    msh_file = MshFile(mesh_path)
     # -------------------------------
     # Structure
     # -------------------------------

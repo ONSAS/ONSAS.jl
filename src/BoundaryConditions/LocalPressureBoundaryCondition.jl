@@ -26,7 +26,7 @@ LocalPressureBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::Str
     LocalPressureBoundaryCondition(dofs, values, Symbol(name))
 
 
-"Returns the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
+"Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
 function _apply(lbc::LocalPressureBoundaryCondition, f::AbstractFace, t::Real)
 
     # Compute tension vector for each node 

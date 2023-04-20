@@ -32,20 +32,20 @@ end
 TriangularFace(label::L=:no_labelled_face) where {L<:Union{String,Symbol}} =
     TriangularFace(SVector(Node(0, 0), Node(0, 0), Node(0, 0)), Symbol(label))
 
-"Returns the area vector with direction and modulus of a `TriangularFace` element `tf`."
+"Return the area vector with direction and modulus of a `TriangularFace` element `tf`."
 _area_vec(tf::TriangularFace) = cross(coordinates(tf)[2] - coordinates(tf)[1], coordinates(tf)[3] - coordinates(tf)[1]) / 2
 
-"Returns the area of a `TriangularFace` element `tf`."
+"Return the area of a `TriangularFace` element `tf`."
 function area(tf::TriangularFace)
     A = norm(_area_vec(tf))
     iszero(A) && error("Area of TriangularFace is zero. Check that nodes are not aligned.")
     return A
 end
 
-"Returns a `TriangularFace` given an empty `TriangularFace` `tf` and a `Vector` of `Node`s `vn`."
+"Return a `TriangularFace` given an empty `TriangularFace` `tf` and a `Vector` of `Node`s `vn`."
 create_entity(tf::TriangularFace, vn::AbstractVector{<:AbstractNode}) = TriangularFace(vn[1], vn[2], vn[3], label(tf))
 
-"Returns the normal direction `n` of a `TriangularFace` element `tf`."
+"Return the normal direction `n` of a `TriangularFace` element `tf`."
 function normal_direction(tf::TriangularFace)
     Atf = _area_vec(tf)
     return Atf / norm(Atf)

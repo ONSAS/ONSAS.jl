@@ -78,7 +78,7 @@ function residual_forces!(sc::StaticState)
     sc.res_forces .= view(external_forces(sc), free_dofs(sc)) - view(internal_forces(sc), free_dofs(sc))
 end
 
-"Returns the current system tangent matrix of the `StaticState` `sc`."
+"Return the current system tangent matrix of the `StaticState` `sc`."
 tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
 "Updates displacements in the `StaticState` `sc` with a displacements increment vector `ΔU`."

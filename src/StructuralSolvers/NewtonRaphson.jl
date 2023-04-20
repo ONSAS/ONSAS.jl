@@ -15,5 +15,5 @@ end
 "Constructor for `NewtonRaphson` solver with default tolerances."
 NewtonRaphson() = NewtonRaphson(ConvergenceSettings())
 
-"Returns `NewtonRaphson` solver tolerances."
+"Return `NewtonRaphson` solver tolerances."
 tolerances(sol::NewtonRaphson) = sol.tol

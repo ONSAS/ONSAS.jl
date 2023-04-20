@@ -21,7 +21,7 @@ end
 GlobalLoadBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::String="no_labelled_bc") =
     GlobalLoadBoundaryCondition(dofs, values, Symbol(name))
 
-"Returns the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to 
+"Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to 
 the `AbstractNode` `n` at time `t`. "
 function _apply(lbc::GlobalLoadBoundaryCondition, n::AbstractNode, t::Real)
 
@@ -39,7 +39,7 @@ function _apply(lbc::GlobalLoadBoundaryCondition, n::AbstractNode, t::Real)
     return dofs_lbc, f_dofs
 end
 
-"Returns the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
+"Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
 function _apply(lbc::GlobalLoadBoundaryCondition, f::AbstractFace, t::Real)
 
     # Compute tension vector for each node 
@@ -62,7 +62,7 @@ function _apply(lbc::GlobalLoadBoundaryCondition, f::AbstractFace, t::Real)
 end
 
 
-"Returns the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractElement` `e` at time `t`."
+"Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractElement` `e` at time `t`."
 function _apply(lbc::GlobalLoadBoundaryCondition, e::AbstractElement, t::Real)
 
     # Compute tension vector for each node 

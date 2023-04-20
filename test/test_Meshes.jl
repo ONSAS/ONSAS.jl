@@ -2,6 +2,7 @@
 # Meshes module tests #
 #######################
 using Test: @testset, @test
+using Suppressor: @capture_out
 using ONSAS.Meshes
 using Dictionaries: dictionary
 using StaticArrays: SVector
@@ -77,14 +78,16 @@ include(uniaxial_mesh_path)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     # labels
     labels = [mat_label, entities_labels, bc_labels]
-    filename = "uniaxial_test_mesh"
+    file_name = "uniaxial_test_mesh"
     # Create, load  and delete the mesh
-    dir = @__DIR__
     # Refinement mesh factor
     ms = 0.5
-    msh_file = create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms, dir)
-    file_name = joinpath(dir, msh_file)
-    msh_file = MshFile(file_name)
+    dir = @__DIR__
+    @capture_out begin
+        file_name = create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, file_name, ms, dir)
+    end
+    msh_path = joinpath(dir, file_name)
+    msh_file = MshFile(msh_path)
     rm(file_name, force=true)
 
     @test nodes(msh_file) == msh_file.vec_nodes

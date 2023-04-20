@@ -4,6 +4,7 @@
 # --------------------------------------------------------------------------
 using ONSAS.StaticAnalyses
 using ONSAS.Utils: eye
+using Suppressor: @capture_out
 using Test: @test, @testset
 using LinearAlgebra: det, tr
 using Roots: find_zero
@@ -169,7 +170,11 @@ function run_uniaxial_extension()
     # -------------------------------
     filename = "uniaxial_extension"
     labels = [mat_label, entities_labels, bc_labels]
-    mesh_path = create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms)
+    local mesh_path
+    output = @capture_out begin
+        mesh_path = create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms)
+    end
+    gmsh_println(output)
     msh_file = MshFile(mesh_path)
     # -------------------------------
     # Structure

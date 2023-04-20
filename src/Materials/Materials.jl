@@ -29,13 +29,13 @@ Different material models leads to different constitutive laws, internal forces 
 """
 abstract type AbstractMaterial end
 
-"Returns the parameters of type `Number` in the `AbstractMaterial` `m`."
+"Return the parameters of type `Number` in the `AbstractMaterial` `m`."
 parameters(m::T) where {T<:AbstractMaterial} = Tuple([getfield(f, n) for n in fieldlabels(T) if fieldtype(T, n) isa Number])
 
-"Returns the `AbstractMaterial` `m` density `ρ`."
+"Return the `AbstractMaterial` `m` density `ρ`."
 density(m::AbstractMaterial) = m.ρ
 
-"Returns the `AbstractMaterial` `m` label."
+"Return the `AbstractMaterial` `m` label."
 label(m::AbstractMaterial) = m.label
 
 include("./LinearElasticMaterials.jl")

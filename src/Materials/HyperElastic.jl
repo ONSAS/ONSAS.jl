@@ -34,13 +34,13 @@ function HyperElastic(params::Vector{<:Real}, Ψ::Function, label::L=:no_labelle
     return HyperElastic(params, Ψ, nothing, label)
 end
 
-"Returns the strain energy function `Ψ` for a `HyperElastic` material `m`."
+"Return the strain energy function `Ψ` for a `HyperElastic` material `m`."
 strain_energy(m::HyperElastic) = m.Ψ
 
-"Returns the strain energy parameters `params` for a `HyperElastic` material `m`."
+"Return the strain energy parameters `params` for a `HyperElastic` material `m`."
 parameters(m::HyperElastic) = m.params
 
-"Returns the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
+"Return the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
 considering a `SVK` material `m` and the Lagrangian Green 
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
 function cosserat_stress(m::HyperElastic, 𝔼::AbstractMatrix)

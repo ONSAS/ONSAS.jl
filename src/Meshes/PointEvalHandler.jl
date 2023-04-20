@@ -21,13 +21,13 @@ struct PointEvalHandler{I,M,P,VP<:Vector{P}}
     interpolator::I
 end
 
-"Returns the `Vector` of `Point`s where the solution will be evaluated."
+"Return the `Vector` of `Point`s where the solution will be evaluated."
 points(peh::PointEvalHandler) = peh.vec_points
 
-"Returns the `Mesh` where the solution is obtained."
+"Return the `Mesh` where the solution is obtained."
 mesh(peh::PointEvalHandler) = peh.mesh
 
-"Returns the `Interpolator` used to evaluate the solution."
+"Return the `Interpolator` used to evaluate the solution."
 interpolator(peh::PointEvalHandler) = peh.interpolator
 
 """PointsInterpolator struct.
@@ -42,10 +42,10 @@ struct PointsInterpolator{N<:AbstractNode,T,E<:AbstractElement}
     points_to_element::Vector{E}
 end
 
-"Returns a `Vector` that maps the weight corresponding to each `Node`."
+"Return a `Vector` that maps the weight corresponding to each `Node`."
 node_to_weights(points_interpolator::PointsInterpolator) = points_interpolator.node_to_weights
 
-"Returns a `Vector` that maps the `Element` where each `Point` is located."
+"Return a `Vector` that maps the `Element` where each `Point` is located."
 points_to_element(points_interpolator::PointsInterpolator) = points_interpolator.points_to_element
 
 "Constructor of a `PointEvalHandler` from a `Mesh` and a `AbstractVector` of `Point`s ."

@@ -22,22 +22,22 @@ An `AbstractLinearElasticMaterial` object facilitates the process of using elast
 """
 abstract type AbstractLinearElasticMaterial <: AbstractMaterial end
 
-"Returns Lamé parameters `λ` and `G` from an `AbstractLinearElasticMaterial` material `m`."
+"Return Lamé parameters `λ` and `G` from an `AbstractLinearElasticMaterial` material `m`."
 function lame_parameters(m::AbstractLinearElasticMaterial) end
 
-"Returns shear modulus G` from an `AbstractLinearElasticMaterial` material `m`."
+"Return shear modulus G` from an `AbstractLinearElasticMaterial` material `m`."
 function shear_modulus(m::AbstractLinearElasticMaterial) end
 
-"Returns the Poisson's ratio `ν` form an `AbstractLinearElasticMaterial` material `m`."
+"Return the Poisson's ratio `ν` form an `AbstractLinearElasticMaterial` material `m`."
 function poisson_ratio(m::AbstractLinearElasticMaterial) end
 
-"Returns the Elasticity modulus `E` form an `AbstractLinearElasticMaterial` material `m`."
+"Return the Elasticity modulus `E` form an `AbstractLinearElasticMaterial` material `m`."
 function elasticity_modulus(m::AbstractLinearElasticMaterial) end
 
-"Returns the bulk modulus `K` for an `AbstractLinearElasticMaterial` material `m`."
+"Return the bulk modulus `K` for an `AbstractLinearElasticMaterial` material `m`."
 function bulk_modulus(m::AbstractLinearElasticMaterial) end
 
-"Returns the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ` 
+"Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ` 
 considering a `IsotropicLinearElastic` material `m`."
 function cauchy_stress(m::AbstractLinearElasticMaterial, ϵ::AbstractMatrix) end
 

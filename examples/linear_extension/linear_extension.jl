@@ -3,6 +3,7 @@
 # ----------------------------------------------------------------
 using ONSAS
 using Test: @test, @testset
+using Suppressor: @capture_out
 using StaticArrays: SVector
 using LinearAlgebra: norm
 
@@ -63,8 +64,11 @@ function run_linear_extension_example()
     filename = "linear_extension"
     labels = [mat_label, entities_labels, bc_labels]
     dir = joinpath(pkgdir(ONSAS), "examples", "linear_extension")
-    file_name_mesh = create_linear_extension_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms, dir)
-    msh_file = MshFile(file_name_mesh)
+    output = @capture_out begin
+        global mesh_path = create_linear_extension_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms)
+    end
+    gmsh_println(output)
+    msh_file = MshFile(mesh_path)
     # -------------------------------
     # Structure
     # -------------------------------
