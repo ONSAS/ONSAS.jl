@@ -50,37 +50,37 @@ export AbstractStructuralAnalysis, initial_time, current_time, final_time, _next
 """
 abstract type AbstractStructuralState end
 
-"Returns the `Assembler` used in the `AbstractStructuralState` `st`."
+"Return the `Assembler` used in the `AbstractStructuralState` `st`."
 assembler(st::AbstractStructuralState) = st.assembler
 
-"Returns current `ResidualsIterationStep` object form an `AbstractStructuralState` `st`."
+"Return current `ResidualsIterationStep` object form an `AbstractStructuralState` `st`."
 iteration_residuals(st::AbstractStructuralState) = st.iter_state
 
-"Returns current displacements vector at the current `AbstractStructuralState` `st`."
+"Return current displacements vector at the current `AbstractStructuralState` `st`."
 displacements(st::AbstractStructuralState) = st.Uᵏ
 
-"Returns current displacements increment vector at the current `AbstractStructuralState` `st`."
+"Return current displacements increment vector at the current `AbstractStructuralState` `st`."
 Δ_displacements(st::AbstractStructuralState) = st.ΔUᵏ
 
-"Returns the current internal forces vector in the `AbstractStructuralState` `st`."
+"Return the current internal forces vector in the `AbstractStructuralState` `st`."
 internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
 
-"Returns external forces vector in the `AbstractStructuralState` `st`."
+"Return external forces vector in the `AbstractStructuralState` `st`."
 external_forces(st::AbstractStructuralState) = st.Fₑₓₜᵏ
 
-"Returns residual forces vector in the `AbstractStructuralState` `st`."
+"Return residual forces vector in the `AbstractStructuralState` `st`."
 function residual_forces!(st::AbstractStructuralState) end
 
-"Returns stresses for each `Element` in the `AbstractStructuralState` `st`."
+"Return stresses for each `Element` in the `AbstractStructuralState` `st`."
 stress(st::AbstractStructuralState) = st.σᵏ
 
-"Returns strains for each `Element` in the `AbstractStructuralState` `st`."
+"Return strains for each `Element` in the `AbstractStructuralState` `st`."
 strain(st::AbstractStructuralState) = st.ϵᵏ
 
-"Returns the structure of the `AbstractStructuralState` `st`."
+"Return the structure of the `AbstractStructuralState` `st`."
 structure(st::AbstractStructuralState) = st.s
 
-"Returns free `Dof`s of the structure in the `AbstractStructuralState` `st`."
+"Return free `Dof`s of the structure in the `AbstractStructuralState` `st`."
 free_dofs(st::AbstractStructuralState) = free_dofs(structure(st))
 
 # Assemble
@@ -101,17 +101,17 @@ end
 "Fill the system tangent matrix in the `AbstractStructuralState` `st` once the `Assembler` object is built."
 _end_assemble!(st::AbstractStructuralState) = _end_assemble!(tangent_matrix(st), assembler(st))
 
-"Returns system tangent matrix in the `AbstractStructuralState` `st`."
+"Return system tangent matrix in the `AbstractStructuralState` `st`."
 function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
 
-"Returns relative residual forces for the current `AbstractStructuralState` `st`."
+"Return relative residual forces for the current `AbstractStructuralState` `st`."
 function residual_forces_norms(st::AbstractStructuralState)
     rᵏ_norm = residual_forces!(st) |> norm
     fₑₓₜ_norm = external_forces(st) |> norm
     rᵏ_norm, rᵏ_norm / fₑₓₜ_norm
 end
 
-"Returns relative residual displacements for the current `AbstractStructuralState` `st`."
+"Return relative residual displacements for the current `AbstractStructuralState` `st`."
 function residual_displacements_norms(st::AbstractStructuralState)
     ΔU_norm = Δ_displacements(st) |> norm
     U_norm = displacements(st) |> norm
@@ -148,28 +148,28 @@ to be solved.
 """
 abstract type AbstractStructuralAnalysis end
 
-"Returns analyzed structure in the `AbstractStructuralAnalysis` `a`."
+"Return analyzed structure in the `AbstractStructuralAnalysis` `a`."
 structure(a::AbstractStructuralAnalysis) = a.s
 
-"Returns the initial time of `AbstractStructuralAnalysis` `a`."
+"Return the initial time of `AbstractStructuralAnalysis` `a`."
 initial_time(a::AbstractStructuralAnalysis) = a.t₁
 
-"Returns the current time of `AbstractStructuralAnalysis` `a`."
+"Return the current time of `AbstractStructuralAnalysis` `a`."
 current_time(a::AbstractStructuralAnalysis) = a.t
 
-"Returns the final time of `AbstractStructuralAnalysis` `a`."
+"Return the final time of `AbstractStructuralAnalysis` `a`."
 final_time(a::AbstractStructuralAnalysis) = a.t₁
 
 "Increments the time step given the `AbstractStructuralAnalysis` `a` and the `AbstractStructuralSolver` `alg`."
 _next!(a::AbstractStructuralAnalysis, alg::AbstractSolver) = a.t += time_step(a)
 
-"Returns `true` if the `AbstractStructuralAnalysis` `a` is completed."
+"Return `true` if the `AbstractStructuralAnalysis` `a` is completed."
 is_done(a::AbstractStructuralAnalysis) = current_time(a) > final_time(a)
 
-"Returns the current state of the `AbstractStructuralAnalysis` `a`."
+"Return the current state of the `AbstractStructuralAnalysis` `a`."
 current_state(a::AbstractStructuralAnalysis) = a.state
 
-"Returns the current displacements iteration state of the `AbstractStructuralAnalysis` `a`."
+"Return the current displacements iteration state of the `AbstractStructuralAnalysis` `a`."
 current_iteration(a::AbstractStructuralAnalysis) = iteration_residuals(a.state)
 
 "Rests the `AbstractStructuralAnalysis` `sa` (sets the current time to the initial time)."
@@ -179,7 +179,7 @@ function reset!(a::AbstractStructuralState) end
 # Common methods
 # ================
 
-"Applies an `AbstractLoadBoundaryCondition` lbc into the structural analysis `sa` at the current analysis time `t`"
+"Apply an `AbstractLoadBoundaryCondition` lbc into the structural analysis `sa` at the current analysis time `t`"
 function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondition)
     t = current_time(sa)
     bcs = boundary_conditions(structure(sa))
@@ -187,7 +187,7 @@ function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondit
     external_forces(current_state(sa))[dofs_lbc] = dofs_values
 end
 
-"Applies a vector of load boundary conditions to the structure `s` "
+"Apply a vector of load boundary conditions to the structure `s` "
 _apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractLoadBoundaryCondition}) = [_apply!(sa, lbc) for lbc in l_bcs]
 
 # ================

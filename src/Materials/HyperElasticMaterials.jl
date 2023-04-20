@@ -20,11 +20,11 @@ These materials are characterized by a strain energy function ψ  that depends o
 """
 abstract type AbstractHyperElasticMaterial <: AbstractMaterial end
 
-"Returns the strain energy value for an `AbstractMaterial` `m`, and the Green-Lagrange 
+"Return the strain energy value for an `AbstractMaterial` `m`, and the Green-Lagrange 
 strain tensor `𝔼`."
 function strain_energy(m::AbstractHyperElasticMaterial, 𝔼) end
 
-"Returns the Cosserat or Second-Piola Kirchhoff stress tensor `𝕊` given an `AbstractMaterial` `m` and the 
+"Return the Cosserat or Second-Piola Kirchhoff stress tensor `𝕊` given an `AbstractMaterial` `m` and the 
 Green-Lagrange strain tensor `𝔼`."
 function cosserat_stress(m::AbstractMaterial, 𝔼::AbstractMatrix) end
 

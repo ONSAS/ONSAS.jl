@@ -3,6 +3,7 @@
 # -----------------------------
 using ONSAS.StaticAnalyses
 using ONSAS.Utils: eye
+using Suppressor: @capture_out
 using Test: @test, @testset
 using LinearAlgebra: Symmetric, norm, det, tr
 
@@ -194,9 +195,12 @@ function run_uniaxial_compression()
     # -------------------------------
     filename = "uniaxial_compression"
     labels = [mat_label, entities_labels, bc_labels]
-    mesh_dir = @__DIR__
-    file_name_mesh = create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms, mesh_dir)
-    msh_file = MshFile(file_name_mesh)
+    local mesh_path
+    output = @capture_out begin
+        mesh_path = create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms)
+    end
+    gmsh_println(output)
+    msh_file = MshFile(mesh_path)
     # -------------------------------
     # Structure
     # -------------------------------
@@ -263,9 +267,9 @@ function run_uniaxial_compression()
     eval_handler_rand = PointEvalHandler(mesh(s₂), rand_point)
     # Compute analytic solution at a random point 
     uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, rand_point[]...)
-    rand_point_uᵢ = displacements(states_sol_case₂, eval_handler_rand, 1)[]
-    rand_point_uⱼ = displacements(states_sol_case₂, eval_handler_rand, 2)[]
-    rand_point_uₖ = displacements(states_sol_case₂, eval_handler_rand, 3)[]
+    rand_point_uᵢ = displacements(states_sol_case₂, eval_handler_rand, 1)
+    rand_point_uⱼ = displacements(states_sol_case₂, eval_handler_rand, 2)
+    rand_point_uₖ = displacements(states_sol_case₂, eval_handler_rand, 3)
     stress_point = stress(states_sol_case₂, eval_handler_rand)[]
     #-----------------------------
     # Test boolean for CI  

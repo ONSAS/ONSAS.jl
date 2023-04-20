@@ -29,13 +29,13 @@ Base.@kwdef struct ConvergenceSettings
     max_iter::Int = 20
 end
 
-"Returns residual forces tolerance set in the `ConvergenceSettings` `tol`."
+"Return residual forces tolerance set in the `ConvergenceSettings` `tol`."
 residual_forces_tol(tols::ConvergenceSettings) = tols.rel_res_force_tol
 
-"Returns displacements tolerance set in the `ConvergenceSettings` `tol`."
+"Return displacements tolerance set in the `ConvergenceSettings` `tol`."
 displacement_tol(tols::ConvergenceSettings) = tols.rel_U_tol
 
-"Returns the maximum number of iterations set in the `ConvergenceSettings` `tol`."
+"Return the maximum number of iterations set in the `ConvergenceSettings` `tol`."
 max_iter_tol(tols::ConvergenceSettings) = tols.max_iter
 
 """ Abstract supertype for all structural solvers."""
@@ -81,16 +81,16 @@ end
 "Increments a `ResidualsIterationStep` `i_step` by 1."
 _step!(i_step::ResidualsIterationStep) = i_step.iter += 1
 
-"Returns the current iteration number of the `ResidualsIterationStep` `i_step`."
+"Return the current iteration number of the `ResidualsIterationStep` `i_step`."
 iter(i_step::ResidualsIterationStep) = i_step.iter
 
-"Returns the current criterion of the `ResidualsIterationStep` `i_step`."
+"Return the current criterion of the `ResidualsIterationStep` `i_step`."
 criterion(ri_step::ResidualsIterationStep) = ri_step.criterion
 
-"Returns the current absolute and relative residual forces norm of the `ResidualsIterationStep` `i_step`."
+"Return the current absolute and relative residual forces norm of the `ResidualsIterationStep` `i_step`."
 residual_forces_tol(ri_step::ResidualsIterationStep) = (ri_step.Δr_rel, ri_step.Δr_norm)
 
-"Returns the current absolute and relative residual forces norm of the `ResidualsIterationStep` `i_step`."
+"Return the current absolute and relative residual forces norm of the `ResidualsIterationStep` `i_step`."
 displacement_tol(ri_step::ResidualsIterationStep) = (ri_step.ΔU_rel, ri_step.ΔU_norm)
 
 "Sets the `ResidualsIterationStep` `i_step` iteration step to 0."
@@ -164,10 +164,10 @@ Abstract supertype for all direct integration methods.
 """
 abstract type AbstractSolver end
 
-"Returns the step size set to the `AbstractSolver` `solver` ."
+"Return the step size set to the `AbstractSolver` `solver` ."
 step_size(solver::AbstractSolver) = solver.Δt
 
-"Returns the numerical tolerances set to the `AbstractSolver` `solver`."
+"Return the numerical tolerances set to the `AbstractSolver` `solver`."
 tolerances(solver::AbstractSolver) = solver.tol
 
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
@@ -196,7 +196,7 @@ end
 "Internal solve function to be overloaded by each analysis."
 function _solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} end
 
-"Returns the initialized `analysis`. By default, it returns the same analysis."
+"Return the initialized `analysis`. By default, it Return the same analysis."
 _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
 
 """

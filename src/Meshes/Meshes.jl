@@ -30,17 +30,17 @@ The following methods are provided by the interface:
 """
 abstract type AbstractMesh{dim} end
 
-"Returns the dimension of an `AbstractMesh`."
+"Return the dimension of an `AbstractMesh`."
 dimension(::AbstractMesh{dim}) where {dim} = dim
 
-"Returns the `AbstractMesh` vector of `Dof`s. 
+"Return the `AbstractMesh` vector of `Dof`s. 
 Entry `i` contains the `Dof`s of node with index `i` in the `AbstractMesh` vector of nodes."
 dofs(m::AbstractMesh) = dofs.(nodes(m))
 
-"Returns true if the `AbstractMesh` m has `Dof`s defined."
+"Return true if the `AbstractMesh` m has `Dof`s defined."
 _isempty_dofs(m::AbstractMesh) = !all(isempty.(dofs(m)))
 
-"Returns the number of `Dof`s defined in the `AbstractMesh` `m`.
+"Return the number of `Dof`s defined in the `AbstractMesh` `m`.
 This function assumes that `Dof`s indexes start from `Dof(1)`"
 function num_dofs(m::AbstractMesh)::Int
     mesh_dofs = dofs(m)
@@ -79,19 +79,19 @@ function add!(m::AbstractMesh, dof_symbol::Symbol, dofs_per_node::Int)
     end
 end
 
-"Returns a `Vector` of `Node`s defined in the `AbstractMesh` `m`."
+"Return a `Vector` of `Node`s defined in the `AbstractMesh` `m`."
 nodes(m::AbstractMesh) = m.nodes
 
-"Returns the number of `Node`s of the `AbstractMesh` `m`."
+"Return the number of `Node`s of the `AbstractMesh` `m`."
 num_nodes(m::AbstractMesh) = length(nodes(m))
 
-"Returns a `Vector` of `Face`s defined in the `AbstractMesh` `m`."
+"Return a `Vector` of `Face`s defined in the `AbstractMesh` `m`."
 faces(m::AbstractMesh) = m.faces
 
-"Returns the `Element`s of the `AbstractMesh` `m`."
+"Return the `Element`s of the `AbstractMesh` `m`."
 elements(m::AbstractMesh) = m.elements
 
-"Returns the number of elements of the `AbstractMesh` `m`."
+"Return the number of elements of the `AbstractMesh` `m`."
 num_elements(m::AbstractMesh) = length(elements(m))
 
 "Pushes a new `Node` into the `AbstractMesh` `m`."

@@ -68,7 +68,7 @@ function _reset!(a::Assembler{T}) where {T}
     sizehint!(a.V, N)
 end
 
-"Returns an assembled `AbstractSparseMatrix` from the `Assembler` object `a`."
+"Return an assembled `AbstractSparseMatrix` from the `Assembler` object `a`."
 end_assemble(a::Assembler{T}) where {T} = sparse(a.I, a.J, a.V)
 
 "Inserts an the `Assembler` object `a` into the tangent system matrix `K_sys`."

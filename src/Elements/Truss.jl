@@ -44,16 +44,16 @@ Truss(g::AbstractCrossSection, label::L=:no_labelled_face) where {L<:Union{Strin
 # Truss element hard contracts #
 #==============================#
 
-"Returns the cross-section of a `Truss` element `t`."
+"Return the cross-section of a `Truss` element `t`."
 cross_section(t::Truss) = t.cross_section
 
-"Returns a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
+"Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
 create_entity(t::Truss, vn::AbstractVector{<:AbstractNode}) = Truss(vn[1], vn[2], cross_section(t), label(t))
 
-"Returns the local dof symbol of a `Truss` element."
+"Return the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
 
-"Returns the internal force of a `Truss` element `t` formed by an `AbstractMaterial` `m` 
+"Return the internal force of a `Truss` element `t` formed by an `AbstractMaterial` `m` 
 and a an element displacement vector `u_e`."
 function internal_forces(m::AbstractMaterial, e::Truss{dim}, u_e::AbstractVector) where {dim}
 
@@ -83,27 +83,27 @@ function internal_forces(m::AbstractMaterial, e::Truss{dim}, u_e::AbstractVector
     return fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e
 end
 
-"Returns the rotated engineering strain for a given reference and deformed length `l_ini` and the deformed length `l_def`. "
+"Return the rotated engineering strain for a given reference and deformed length `l_ini` and the deformed length `l_def`. "
 _strain(l_ini::Number, l_def::Number) = (l_def^2 - l_ini^2) / (l_ini * (l_ini + l_def))# rotated engi lagrange strain
 
-"Returns the strain of given `Truss` element `t` with a element displacement vector `u_e`. "
+"Return the strain of given `Truss` element `t` with a element displacement vector `u_e`. "
 function strain(t::Truss{dim}, u_e::AbstractVector) where {dim}
     X_ref, X_def = _X_rows(t, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
     ϵ = _strain(l_ref, l_def)
 end
 
-"Returns the stress of given `Truss` element `t` with a element displacement vector `u_e`. "
+"Return the stress of given `Truss` element `t` with a element displacement vector `u_e`. "
 stress(m::SVK, t::Truss, u_e::AbstractVector) = m.E * strain(t, u_e)
 
-"Returns "
+"Return "
 function _aux_matrices(dim::Integer)
     Bdif = hcat(-eye(dim), eye(dim))
     Ge = Bdif' * Bdif
     return Bdif, Ge
 end
 
-"Returns auxiliar matrices with the element coordinates at the deformed and reference configurations."
+"Return auxiliar matrices with the element coordinates at the deformed and reference configurations."
 function _X_rows(e::Truss{dim}, u_e::AbstractVector) where {dim}
     X_ref_row = reduce(vcat, coordinates(e))
     X_def_row = X_ref_row + u_e
@@ -111,7 +111,7 @@ function _X_rows(e::Truss{dim}, u_e::AbstractVector) where {dim}
     return X_ref_row, X_def_row
 end
 
-"Returns auxiliar vectors b_ref and b_def of a truss element."
+"Return auxiliar vectors b_ref and b_def of a truss element."
 function _aux_b(X_ref_row::AbstractVector, X_def_row::AbstractVector, u_loc_dofs::AbstractVector, G::AbstractMatrix, dim::Integer)
 
     l_ref, l_def = _lengths(X_ref_row, X_def_row, dim)
@@ -122,7 +122,7 @@ function _aux_b(X_ref_row::AbstractVector, X_def_row::AbstractVector, u_loc_dofs
     return b_ref, b_def
 end
 
-"Returns deformed and reference lengths of a truss element."
+"Return deformed and reference lengths of a truss element."
 function _lengths(X_ref_row::AbstractVector, X_def_row::AbstractVector, dim::Integer)
     Bdif, _ = _aux_matrices(dim)
     l_ref = sqrt(sum((Bdif * X_ref_row) .^ 2))

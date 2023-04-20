@@ -41,19 +41,19 @@ function IsotropicLinearElastic(; λ::Real, G::Real, ρ::R=nothing, label::L=:no
     IsotropicLinearElastic(E, ν, ρ, Symbol(label))
 end
 
-"Returns the Elasticity modulus `E` from a `IsotropicLinearElastic` material `m`."
+"Return the Elasticity modulus `E` from a `IsotropicLinearElastic` material `m`."
 elasticity_modulus(m::IsotropicLinearElastic) = m.E
 
-"Returns the Poisson's ratio `ν` from a `IsotropicLinearElastic` material `m`."
+"Return the Poisson's ratio `ν` from a `IsotropicLinearElastic` material `m`."
 poisson_ratio(m::IsotropicLinearElastic) = m.ν
 
-"Returns the shear modulus `G` from a `IsotropicLinearElastic` material `m`."
+"Return the shear modulus `G` from a `IsotropicLinearElastic` material `m`."
 shear_modulus(m::IsotropicLinearElastic) = elasticity_modulus(m) / (2 * (1 + poisson_ratio(m)))
 
-"Returns the bulk modulus `K` from a `IsotropicLinearElastic` material `m`."
+"Return the bulk modulus `K` from a `IsotropicLinearElastic` material `m`."
 bulk_modulus(m::IsotropicLinearElastic) = elasticity_modulus(m) / (3 * (1 - 2 * poisson_ratio(m)))
 
-"Returns Lamé parameters `λ` and `G` from a `IsotropicLinearElastic` material `m`."
+"Return Lamé parameters `λ` and `G` from a `IsotropicLinearElastic` material `m`."
 function lame_parameters(m::IsotropicLinearElastic)
     E = elasticity_modulus(m)
     G = shear_modulus(m)
@@ -62,7 +62,7 @@ function lame_parameters(m::IsotropicLinearElastic)
     return λ, G
 end
 
-"Returns the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ` 
+"Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ` 
 considering a `IsotropicLinearElastic` material `m`."
 function cauchy_stress(m::IsotropicLinearElastic, ϵ::AbstractMatrix)
 

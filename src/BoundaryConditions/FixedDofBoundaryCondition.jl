@@ -22,10 +22,10 @@ end
 FixedDofBoundaryCondition(dofs::Vector{Symbol}, components::Vector{Int}, name::String="no_labelled_bc") =
     FixedDofBoundaryCondition(dofs, components, Symbol(name))
 
-"Returns the fixed components of the `Dof`s defined in the boundary condition `bc`."
+"Return the fixed components of the `Dof`s defined in the boundary condition `bc`."
 components(bc::FixedDofBoundaryCondition) = bc.components
 
-"Returns fixed `Dof`s of an `AbstractNode` imposed in the `FixedDofBoundaryCondition` `fbc`."
+"Return fixed `Dof`s of an `AbstractNode` imposed in the `FixedDofBoundaryCondition` `fbc`."
 function _apply(fbc::FixedDofBoundaryCondition, n::AbstractNode)
     fbc_dofs_symbols = dofs(fbc)
     dofs_to_delete = Dof[]
@@ -35,7 +35,7 @@ function _apply(fbc::FixedDofBoundaryCondition, n::AbstractNode)
     dofs_to_delete
 end
 
-"Returns fixed `Dof`s of an `AbstractFace` or `AbstractElement` imposed in the `FixedDofBoundaryCondition` `fbc`."
+"Return fixed `Dof`s of an `AbstractFace` or `AbstractElement` imposed in the `FixedDofBoundaryCondition` `fbc`."
 function _apply(fbc::FixedDofBoundaryCondition, e::E) where {E<:Union{AbstractFace,AbstractElement}}
     dofs_to_delete = Dof[]
     [push!(dofs_to_delete, _apply(fbc, n)...) for n in nodes(e)]
