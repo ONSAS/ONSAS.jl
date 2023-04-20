@@ -7,7 +7,7 @@ using ...StructuralAnalyses: displacements, Δ_displacements,
     internal_forces, external_forces, iteration_residuals, stress, strain
 using ...StructuralSolvers: _reset!
 
-import ..StructuralAnalyses: tangent_matrix, residual_forces, reset!
+import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
 import ...StructuralSolvers: _update!
 
 export StaticState
@@ -41,22 +41,23 @@ struct StaticState{ST<:AbstractStructure,
     Fₑₓₜᵏ::FE
     Fᵢₙₜᵏ::FI
     Kₛᵏ::K
+    res_forces::DU
     ϵᵏ::E
     σᵏ::S
     # Iter
     assembler::Assembler
     iter_state::ResidualsIterationStep
-    function StaticState(s::ST, ΔUᵏ::DU, Uᵏ::U, Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Kₛᵏ::K, ϵᵏ::E, σᵏ::S,
+    function StaticState(s::ST, ΔUᵏ::DU, Uᵏ::U, Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Kₛᵏ::K, res_forces::DU, ϵᵏ::E, σᵏ::S,
         assembler::Assembler, iter_state::ResidualsIterationStep) where {ST,DU,U,FE,FI,K,E,S}
         # # Check dimensions
         @assert length(ΔUᵏ) == num_free_dofs(s)
         @assert size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ) == num_dofs(s)
-        new{ST,DU,U,FE,FI,K,E,S}(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assembler, iter_state)
+        new{ST,DU,U,FE,FI,K,E,S}(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assembler, iter_state)
     end
 end
 
 "Constructor for `StaticState` given an `AbstractStructure` `s`."
-function StaticState(s::AbstractStructure)
+function StaticState(s::AbstractStructure, iter_state::ResidualsIterationStep=ResidualsIterationStep())
     n_dofs = num_dofs(s)
     n_fdofs = num_free_dofs(s)
     Uᵏ = zeros(n_dofs)
@@ -64,39 +65,24 @@ function StaticState(s::AbstractStructure)
     Fₑₓₜᵏ = zeros(n_dofs)
     Fᵢₙₜᵏ = zeros(n_dofs)
     Kₛᵏ = spzeros(n_dofs, n_dofs)
+    res_forces = zeros(n_fdofs)
     # Initialize pairs strains 
     ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     assemblerᵏ = Assembler(s)
-    StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, ResidualsIterationStep())
+    StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
 end
 
-"Constructor for `StaticState` given an `AbstractStructure` `s` and ."
-function StaticState(s::AbstractStructure, iter_state::ResidualsIterationStep)
-    n_dofs = num_dofs(s)
-    n_fdofs = num_free_dofs(s)
-    Uᵏ = zeros(n_dofs)
-    ΔUᵏ = zeros(n_fdofs)
-    Fₑₓₜᵏ = zeros(n_dofs)
-    Fᵢₙₜᵏ = zeros(n_dofs)
-    Kₛᵏ = spzeros(n_dofs, n_dofs)
-    # Initialize pairs strains 
-    ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
-    σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
-    assemblerᵏ = Assembler(s)
-    StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
+"Update and return the current residual forces of the `StaticState` `sc`."
+function residual_forces!(sc::StaticState)
+    sc.res_forces .= view(external_forces(sc), free_dofs(sc)) - view(internal_forces(sc), free_dofs(sc))
 end
-
-"Returns the current residual forces of the `StaticState` `sc`."
-residual_forces(sc::StaticState) =
-    external_forces(sc)[free_dofs(sc)] - internal_forces(sc)[free_dofs(sc)]
 
 "Returns the current system tangent matrix of the `StaticState` `sc`."
 tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
 "Updates displacements in the `StaticState` `sc` with a displacements increment vector `ΔU`."
 function _update!(sc::StaticState, ΔU::AbstractVector)
-    sc.ΔUᵏ .= ΔU
     sc.Uᵏ[free_dofs(sc)] .+= ΔU
 end
 

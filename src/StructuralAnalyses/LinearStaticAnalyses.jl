@@ -1,6 +1,6 @@
 module LinearStaticAnalyses
 
-using IterativeSolvers: cg
+using IterativeSolvers: cg!
 
 using ....Utils: ScalarWrapper
 using ..StaticAnalyses
@@ -84,17 +84,17 @@ end
 function _step!(sa::LinearStaticAnalysis)
 
     # Extract state info
-    c_state = current_state(sa)
-    f_dofs_indexes = free_dofs(c_state)
+    state = current_state(sa)
+    f_dofs_indexes = free_dofs(state)
 
     # Compute Δu
-    fₑₓₜ_red = view(external_forces(c_state), f_dofs_indexes)
-    K = view(tangent_matrix(c_state), f_dofs_indexes, f_dofs_indexes)
-    ΔU = cg(K, fₑₓₜ_red)
+    fₑₓₜ_red = view(external_forces(state), f_dofs_indexes)
+    K = tangent_matrix(state)[f_dofs_indexes, f_dofs_indexes]
+    ΔU = Δ_displacements(state)
+    cg!(ΔU, K, fₑₓₜ_red)
 
     # Update displacements into the state
-    _update!(c_state, ΔU)
-
+    _update!(state, ΔU)
 end
 
 end # endModule
