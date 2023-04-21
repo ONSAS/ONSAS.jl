@@ -85,11 +85,11 @@ reset_timer!()
 # -------------------------------
 mat_label = "mat";
 linear_material = IsotropicLinearElastic(E, ν, mat_label);
-@timeit "Building the non-linear structure 🔘" begin
+@timeit "Building the linear structure ⚪ " begin
     linear_cylinder = cylinder_structure(linear_material, Lₖ, Rᵢ, Rₑ, pressure)
 end
 svk_material = SVK(E=E, ν=ν, label=mat_label);
-@timeit "Building the linear structure ⚪" begin
+@timeit "Building the non-linear structure 🔘" begin
     nonlinear_cylinder = cylinder_structure(svk_material, Lₖ, Rᵢ, Rₑ, pressure)
 end
 # -------------------------------
@@ -133,8 +133,8 @@ nₑ = nodes(linear_cylinder_mesh)[15];
 uᵣ_numeric_nₑ = displacements(states_lin_sol, nₑ, 1);
 # Generate a random point
 rand_R, rand_θ, rand_z = rand_point_cylinder();
-rand_R = Rᵢ;
-rand_θ = 0.0
+# rand_R = Rᵢ;
+# rand_θ = 0.0
 p_rand = SVector(rand_R * cos(rand_θ), rand_R * sin(rand_θ), rand_z);
 # Displacements at p
 point_evaluator = PointEvalHandler(linear_cylinder_mesh, p_rand);
@@ -260,7 +260,7 @@ end;
 uᵣ_not_depends_on_θ, zero_uₖ, zero_uₖ_axis_y, zero_uⱼ_axis_x =
     test_solution_at_slice(states_lin_sol, atol=ATOL, atolr=10 * ATOL)
 @testset "Case 1: Linear Analysis " begin
-    @test uᵣ_not_depends_on_θ
+    @info "uᵣ(r,θ₁,L₁) = uᵣ(r,θ₂,L₂)?" uᵣ_not_depends_on_θ
     @test zero_uₖ
     @test zero_uₖ_axis_y
     @test zero_uⱼ_axis_x
@@ -272,7 +272,7 @@ end
 uᵣ_not_depends_on_θ_case2, zero_uₖ_case2, zero_uₖ_axis_y_case2, zero_uⱼ_axis_x_case2 =
     test_solution_at_slice(states_lin_sol, atol=ATOL, atolr=10 * ATOL)
 @testset "Case 2: Non-Linear Analysis " begin
-    @test uᵣ_not_depends_on_θ_case2
+    @info "uᵣ(r,θ₁,L₁) = uᵣ(r,θ₂,L₂)?" uᵣ_not_depends_on_θ_case2
     @test zero_uₖ_case2
     @test zero_uₖ_axis_y_case2
     @test zero_uⱼ_axis_x_case2
