@@ -32,6 +32,7 @@ Reexport = "1"
 Roots = "2"
 SafeTestsets = "0.0.1"
 StaticArrays = "1"
+Suppressor = "0.2"
 Tensors = "1"
 julia = "1"
 
