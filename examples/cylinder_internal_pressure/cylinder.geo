@@ -5,7 +5,7 @@ lz = 75;
 
 espesor = r2-r1 ;
 
-ms = .05*espesor ; 
+ms = .15*espesor ; 
 
 Point(1)  = {0,0,0,ms};
 

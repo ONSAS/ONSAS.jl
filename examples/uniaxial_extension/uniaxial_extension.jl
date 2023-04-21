@@ -246,7 +246,7 @@ function run_uniaxial_extension()
     rand_point_uⱼ = displacements(states_sol_case₂, eval_handler_rand, 2)
     rand_point_uₖ = displacements(states_sol_case₂, eval_handler_rand, 3)
     #-----------------------------
-    # Test boolean for CI  
+    # Test booleans
     #-----------------------------
     @testset "Case 1 Uniaxial Extension Example" begin
         @test analytics_λᵥ_case₁ ≈ numeric_λᵥ_case₁ rtol = RTOL
