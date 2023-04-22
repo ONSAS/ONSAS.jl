@@ -111,9 +111,9 @@ bc_label(mfile::MshFile, entity_index::Integer) = bc_label(mfile)[physical_index
 function gmsh_println(output)
     # Extract the number of nodes and elements as integers.
     num_nodes = parse(Int, match(r"(\d+) nodes (\d+) elements", output).captures[1])
-    num_elements = parse(Int, match(r"(\d+) nodes (\d+) elements", output).captures[2])
-    println("The mesh contains $num_elements elements and $num_nodes nodes. ")
-    dictionary([:nnodes => num_nodes, :nelems => num_elements])
+    num_entities = parse(Int, match(r"(\d+) nodes (\d+) elements", output).captures[2])
+    println("The mesh contains $num_entities entities and $num_nodes nodes. ")
+    dictionary([:nnodes => num_nodes, :num_entities => num_entities])
 end
 
 end # module
