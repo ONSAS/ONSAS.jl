@@ -65,6 +65,8 @@ function Structure(msh_file::MshFile,
         nodes_entity = view(nodes, entity_nodes_indexes)
         entity_type_label = entity_label(msh_file, entity_index)
         # Check if the entity is a node, if not add it to the mesh
+        # Main.@infiltrate
+
         if entity_type_label == "node"
             entity = nodes_entity[]
         else

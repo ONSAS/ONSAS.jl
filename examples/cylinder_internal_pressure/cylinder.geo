@@ -19,17 +19,17 @@ Point(7) = { 0,-r2,0,ms};
 Point(8) = {-r2,0,0,ms};
 Point(9) = {0,r2,0,ms};
 
-Point(11)  = {0,0,lz,ms};
+Point(10)  = {0,0,lz,ms};
 
-Point(12) = {r1,0,lz,ms};
-Point(13) = { 0,-r1,lz,ms};
-Point(14) = {-r1,0,lz,ms};
-Point(15) = {0, r1,lz,ms};
+Point(11) = {r1,0,lz,ms};
+Point(12) = { 0,-r1,lz,ms};
+Point(13) = {-r1,0,lz,ms};
+Point(14) = {0, r1,lz,ms};
 
-Point(16) = {r2,0,lz,ms};
-Point(17) = { 0,-r2,lz,ms};
-Point(18) = {-r2,0,lz,ms};
-Point(19) = {0,r2,lz,ms};
+Point(15) = {r2,0,lz,ms};
+Point(16) = { 0,-r2,lz,ms};
+Point(17) = {-r2,0,lz,ms};
+Point(18) = {0,r2,lz,ms};
 
 Circle(1) = {2,1,3};
 Circle(2) = {3,1,4};
@@ -41,25 +41,25 @@ Circle(6) = {7,1,8};
 Circle(7) = {8,1,9};
 Circle(8) = {9,1,6};
 
-Circle(11) = {12,11,13};
-Circle(12) = {13,11,14};
-Circle(13) = {14,11,15};
-Circle(14) = {15,11,12};
+Circle(11) = {11,10,12};
+Circle(12) = {12,10,13};
+Circle(13) = {13,10,14};
+Circle(14) = {14,10,11};
 
-Circle(15) = {16,11,17};
-Circle(16) = {17,11,18};
-Circle(17) = {18,11,19};
-Circle(18) = {19,11,16};
+Circle(15) = {15,10,16};
+Circle(16) = {16,10,17};
+Circle(17) = {17,10,18};
+Circle(18) = {18,10,15};
 
-Line(21) = {2,12};
-Line(22) = {3,13};
-Line(23) = {4,14};
-Line(24) = {5,15};
+Line(21) = {2,11};
+Line(22) = {3,12};
+Line(23) = {4,13};
+Line(24) = {5,14};
 
-Line(25) = {6,16};
-Line(26) = {7,17};
-Line(27) = {8,18};
-Line(28) = {9,19};
+Line(25) = {6,15};
+Line(26) = {7,16};
+Line(27) = {8,17};
+Line(28) = {9,18};
 
 
 Curve Loop(1) = {-5,25,15,-26};
@@ -97,8 +97,8 @@ Surface Loop(1) = {1,2,3,4,5,6,7,8,9,10};
 Volume(1) = {1};
 
 
-Physical Point("_node_fixed-ui") = {9,19};
-Physical Point("_node_fixed-uj") = {6,16};
+Physical Point("_node_fixed-ui") = {9,18};
+Physical Point("_node_fixed-uj") = {6,15};
 
 Physical Surface("_triangle_fixed-uk") = {9,10};
 Physical Surface("_triangle_pressure") = {5,6,7,8};

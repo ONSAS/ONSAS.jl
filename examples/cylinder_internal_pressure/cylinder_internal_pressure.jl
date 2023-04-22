@@ -7,40 +7,39 @@ using StaticArrays: SVector
 using Test: @test, @testset
 using Suppressor: @capture_out
 using TimerOutputs: @timeit, reset_timer!, print_timer
+# Benchmark clock
+reset_timer!()
 ## scalar parameters (dimensions in mm an MPa)
 Lₖ = 30; # cylinder length in 𝐞ₖ mm
 Rᵢ = 100; # inner radius in mm
 Rₑ = 200; # outer radius in mm
-p = 30; # internal pressure in MPa
+p = 10; # internal pressure in MPa
 E = 210.0;  # Young modulus in MPa
 ν = 0.3;  # Poisson ratio
-pressure(t::Real) = -p * t
+pressure(t::Real) = -p * t;
 ## number of steps 
 NSTEPS = 9
 ## tolerances for testing
 ATOL = 1e-2 * (Rₑ - Rᵢ)
 ## Plot results
 plot_results = true
-"Creates the mesh."
-function create_msh()
-    # Run gmsh to generate the mesh
-    command = `gmsh -3 examples/cylinder_internal_pressure/cylinder.geo`
-    # Generate the mesh and capture the outputs
-    o = @capture_out begin
-        run(command)
-    end
-    gmsh_println(o)
-end
-out_gmsh = create_msh()
+## Refinement mesh factor
+ms = 0.8
+include("cylinder_mesh.jl")
+# -------------------------------
+# Structure
+# -------------------------------
 "Builds the `Structure`."
 function cylinder_structure(
     material::AbstractMaterial,
-    L::Real, Rᵢ::Real, Rₑ::Real,
-    p::Function
+    Lₖ::Real, Rᵢ::Real, Rₑ::Real,
+    p::Function; ms::Real
 )
     # Materials
     # -------------------------------
     materials = StructuralMaterials(material)
+    mat_label = [String(label(material))]
+    mat_label = "mat"
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -60,37 +59,37 @@ function cylinder_structure(
     # Entities
     # -------------------------------
     # Entities types without assigned nodes, faces and elements
+    node_label = "node"
     faces_label = "triangle"
     elements_label = "tetrahedron"
     vfaces = [TriangularFace(faces_label)]
     velems = [Tetrahedron(elements_label)]
     entities = StructuralEntities(velems, vfaces)
-    entities_labels = [faces_label, elements_label]
+    entities_labels = [node_label, faces_label, elements_label]
     # -------------------------------
     # Mesh
     # -------------------------------
-    msh_path = joinpath(@__DIR__, "cylinder.msh")
+    labels = [mat_label, entities_labels, bc_labels]
+    filename = "cylinder"
+    msh_path = create_cylinder_mesh(Rᵢ, Rₑ, Lₖ, labels, filename, ms)
     msh_mesh = MshFile(msh_path)
     # -------------------------------
     # Structure
     # -------------------------------
+    # return msh_mesh
     structure = Structure(msh_mesh, materials, boundary_conditions, entities)
 end;
-# -------------------------------
-# Structure
-# -------------------------------
-reset_timer!()
 # -------------------------------
 # Materials
 # -------------------------------
 mat_label = "mat";
 linear_material = IsotropicLinearElastic(E, ν, mat_label);
 @timeit "Building the linear structure ⚪ " begin
-    linear_cylinder = cylinder_structure(linear_material, Lₖ, Rᵢ, Rₑ, pressure)
+    linear_cylinder = cylinder_structure(linear_material, Lₖ, Rᵢ, Rₑ, pressure, ms=ms)
 end
 svk_material = SVK(E=E, ν=ν, label=mat_label);
 @timeit "Building the non-linear structure 🔘" begin
-    nonlinear_cylinder = cylinder_structure(svk_material, Lₖ, Rᵢ, Rₑ, pressure)
+    nonlinear_cylinder = cylinder_structure(svk_material, Lₖ, Rᵢ, Rₑ, pressure, ms=ms)
 end
 # -------------------------------
 # Structural Analysis
