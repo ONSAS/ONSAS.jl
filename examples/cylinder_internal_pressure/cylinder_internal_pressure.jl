@@ -22,9 +22,9 @@ NSTEPS = 9
 ## tolerances for testing
 ATOL = 1e-2 * (Rₑ - Rᵢ)
 ## Plot results
-plot_results = true
+plot_results = false
 ## Refinement mesh factor
-ms = 0.8
+ms = 0.75
 include("cylinder_mesh.jl")
 # -------------------------------
 # Structure
@@ -71,7 +71,11 @@ function cylinder_structure(
     # -------------------------------
     labels = [mat_label, entities_labels, bc_labels]
     filename = "cylinder"
-    msh_path = create_cylinder_mesh(Rᵢ, Rₑ, Lₖ, labels, filename, ms)
+    local msh_path
+    out = @capture_out begin
+        msh_path = create_cylinder_mesh(Rᵢ, Rₑ, Lₖ, labels, filename, ms)
+    end
+    gmsh_println(out)
     msh_mesh = MshFile(msh_path)
     # -------------------------------
     # Structure
@@ -177,7 +181,10 @@ uᵣ_analytic_p_rand = [uᵣ(rand_R, t) for t in λᵥ];
 #-----------------------------
 # Print & plots 
 #-----------------------------
-print_timer(title="Analysis with $(out_gmsh[:nelems]) elements and $(out_gmsh[:nnodes]) nodes")
+nnodes = length(nodes(mesh(linear_cylinder)));
+nelems = length(elements(mesh(linear_cylinder)));
+nfaces = length(faces(mesh(linear_cylinder)));
+print_timer(title="Analysis with $(nelems) elements and $nnodes nodes");
 if plot_results
     using Plots
     vec_p = [-pressure(λ) for λ in λᵥ]
