@@ -1,11 +1,8 @@
 # ----------------------------- 
 # Uniaxial Compression Example
 # -----------------------------
-using ONSAS.StaticAnalyses
-using ONSAS.Utils: eye
-using Suppressor: @capture_out
-using Test: @test, @testset
-using LinearAlgebra: Symmetric, norm, det, tr
+using Test, LinearAlgebra, Suppressor
+using ONSAS
 
 # Mesh Cube with Gmsh.jl
 include(joinpath("..", "uniaxial_extension", "uniaxial_mesh.jl"))
