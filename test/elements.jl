@@ -46,9 +46,9 @@ x_test_3D = rand(x_test_vec_3D)
     first_dof = 1
     last_dof = 4
     new_dofs = Dof.(first_dof:last_dof-1)
-    add!(node, :u, new_dofs)
+    apply!(node, :u, new_dofs)
     more_new_dofs = Dof.(first_dof+1:last_dof)
-    add!(node, :u, more_new_dofs)
+    apply!(node, :u, more_new_dofs)
     new_dofs_node = Dof.(first_dof:last_dof)
     @test length(dofs(node)[:u]) == length(new_dofs_node)
 

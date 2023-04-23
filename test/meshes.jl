@@ -46,10 +46,10 @@ const RTOL = 1e-5
     @test last(elements(mesh)) == new_t₅
     # Add dofs 
     u_dim = 3
-    add!(mesh, :u, u_dim)
+    apply!(mesh, :u, u_dim)
     @test num_nodes(mesh) * u_dim == num_dofs(mesh)
     θ_dim = 3
-    add!(mesh, :θ, θ_dim)
+    apply!(mesh, :θ, θ_dim)
     @test num_nodes(mesh) * (u_dim + θ_dim) == num_dofs(mesh)
 
 end
@@ -121,7 +121,8 @@ end
     n₇ = Node(Lᵢ, Lⱼ, Lₖ)
     n₈ = Node(Lᵢ, Lⱼ, 0.0)
     vec_nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
-    s_mesh = Mesh(vec_nodes)
+    # nothing is a placeholder for extra data
+    s_mesh = Mesh(vec_nodes, nothing)
     ## Faces 
     f₁ = TriangularFace(n₅, n₈, n₆)
     f₂ = TriangularFace(n₆, n₈, n₇)
@@ -146,7 +147,7 @@ end
     # Dofs
     #--------------------------------
     dof_dim = 3
-    add!(s_mesh, :u, dof_dim)
+    apply!(s_mesh, :u, dof_dim)
 
     # Interpolator
     #--------------------------------

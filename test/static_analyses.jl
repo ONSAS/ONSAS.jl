@@ -43,7 +43,7 @@ s_mesh = Mesh(vec_nodes, vec_elems)
 # Dofs
 #--------------------------------
 dof_dim = 3
-add!(s_mesh, :u, dof_dim)
+apply!(s_mesh, :u, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------

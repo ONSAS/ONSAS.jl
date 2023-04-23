@@ -35,7 +35,7 @@ function run_clamped_truss_example()
     # Dofs
     #--------------------------------
     dof_dim = 1
-    add!(s_mesh, :u, dof_dim)
+    apply!(s_mesh, :u, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------
