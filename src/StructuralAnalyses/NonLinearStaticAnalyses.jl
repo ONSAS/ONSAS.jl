@@ -2,31 +2,31 @@ module NonLinearStaticAnalyses
 
 using LinearAlgebra: norm
 using IterativeSolvers: cg!
+using Reexport
 
-using ....Utils: ScalarWrapper, @debugtime
+using ....Utils
 using ..StaticAnalyses
-using ...StructuralSolvers: AbstractSolver, NewtonRaphson, StatesSolution, tolerances
-using ...StructuralModel: AbstractStructure
+using ...StructuralSolvers
+using ...StructuralModel
 
-import ...StructuralSolvers: _solve!, _step!
+@reexport import ...StructuralSolvers: _solve!, _step!
 
 export NonLinearStaticAnalysis
 
-""" NonLinearStaticAnalysis struct.
+"""
 A `NonLinearStaticAnalysis` is a collection of parameters for defining the static analysis of the structure. 
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 As this analysis is nonlinear the stiffness of the structure is updated at each iteration. 
-### Fields:
-- `s`             -- stores the structure to be analyzed.
-- `state`         -- stores the structural state.
-- `λᵥ`            -- stores the load factors vector of the analysis
-- `current_step`  -- stores the current load factor step
 """
 struct NonLinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <:
        AbstractStaticAnalysis
+    "Structure to be analyzed."
     s::S
+    "Structural state."
     state::StaticState
+    "Load factors vector of the analysis."
     λᵥ::LFV
+    "Current load factor step."
     current_step::ScalarWrapper{Int}
     function NonLinearStaticAnalysis(s::S, λᵥ::LFV;
                                      initial_step::Int=1) where {S<:AbstractStructure,
@@ -99,4 +99,4 @@ function _step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson)
     return _update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)
 end
 
-end #end module
+end # module

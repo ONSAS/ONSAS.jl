@@ -1,31 +1,31 @@
 module LinearStaticAnalyses
 
 using IterativeSolvers: cg!
+using Reexport
 
-using ....Utils: ScalarWrapper
+using ....Utils
 using ..StaticAnalyses
-using ...StructuralSolvers: AbstractSolver, NewtonRaphson, StatesSolution, tolerances
-using ...StructuralModel: AbstractStructure
+using ...StructuralSolvers
+using ...StructuralModel
 
-import ...StructuralSolvers: _solve!, _step!
+@reexport import ...StructuralSolvers: _solve!, _step!
 
 export LinearStaticAnalysis
 
-""" LinearStaticAnalysis struct.
+"""
 A `LinearStaticAnalysis` is a collection of parameters for defining the static analysis of the structure. 
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 As this analysis is linear the stiffness of the structure remains constant at each displacements iteration step. 
-### Fields:
-- `s`             -- stores the structure to be analyzed.
-- `state`         -- stores the structural state.
-- `λᵥ`            -- stores the load factors vector of the analysis
-- `current_step`  -- stores the current load factor step
 """
 struct LinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <:
        AbstractStaticAnalysis
+    "Structure to be analyzed."
     s::S
+    "Structural state."
     state::StaticState
+    "Load factors vector of the analysis."
     λᵥ::LFV
+    "Current load factor step."
     current_step::ScalarWrapper{Int}
     function LinearStaticAnalysis(s::S, λᵥ::LFV;
                                   initial_step::Int=1) where {S<:AbstractStructure,
@@ -51,9 +51,8 @@ function _solve!(sa::LinearStaticAnalysis)
     # Initialize solution
     sol = StatesSolution(sa, NewtonRaphson())
 
-    # load factors iteration 
+    # Load factors iteration.
     while !is_done(sa)
-
         # Set displacements to zero 
         displacements(current_state(sa)) .= 0.0
 
@@ -62,10 +61,6 @@ function _solve!(sa::LinearStaticAnalysis)
 
         # Assemble K
         _assemble!(s, sa)
-
-        # Show internal, and residual forces and tangent matrix
-        @debug external_forces(current_state(sa))
-        @debug tangent_matrix(current_state(sa))[free_dofs(s), free_dofs(s)]
 
         # Increment structure displacements U = U + ΔU
         _step!(sa)
@@ -85,19 +80,18 @@ end
 
 "Computes ΔU for solving the `LinearStaticAnalysis`."
 function _step!(sa::LinearStaticAnalysis)
-
     # Extract state info
     state = current_state(sa)
     f_dofs_indexes = free_dofs(state)
 
-    # Compute Δu
+    # Compute Δu.
     fₑₓₜ_red = view(external_forces(state), f_dofs_indexes)
     K = tangent_matrix(state)[f_dofs_indexes, f_dofs_indexes]
     ΔU = Δ_displacements(state)
     cg!(ΔU, K, fₑₓₜ_red)
 
-    # Update displacements into the state
+    # Update displacements into the state.
     return _update!(state, ΔU)
 end
 
-end # endModule
+end # module
