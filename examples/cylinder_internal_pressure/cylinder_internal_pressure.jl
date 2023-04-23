@@ -1,10 +1,8 @@
 # --------------------------------------------------
 # Cylinder submitted to an Internal Pressure Example  
 #----------------------------------------------------
-using Test, LinearAlgebra, Suppressor, StaticArrays
-using TimerOutputs: @timeit, reset_timer!, print_timer
+using LinearAlgebra, StaticArrays, Test, Suppressor, TimerOutputs
 using ONSAS
-
 # Benchmark clock
 reset_timer!()
 ## scalar parameters (dimensions in mm an MPa)
@@ -16,14 +14,14 @@ E = 210.0;  # Young modulus in MPa
 ν = 0.3;  # Poisson ratio
 pressure(t::Real) = -p * t;
 ## number of steps 
-NSTEPS = 9
+NSTEPS = 9;
 ## tolerances for testing
-ATOL = 1e-2 * (Rₑ - Rᵢ)
+ATOL = 1e-2 * (Rₑ - Rᵢ);
 ## Plot results
-plot_results = false
+plot_results = false;
 ## Refinement mesh factor
-ms = 0.75
-include("cylinder_mesh.jl")
+ms = 0.75;
+include("cylinder_mesh.jl");
 # -------------------------------
 # Structure
 # -------------------------------
@@ -31,43 +29,36 @@ include("cylinder_mesh.jl")
 function cylinder_structure(
     material::AbstractMaterial,
     Lₖ::Real, Rᵢ::Real, Rₑ::Real,
-    p::Function; ms::Real
+    pressure::Function; ms::Real
 )
-    # Materials
     # -------------------------------
-    materials = StructuralMaterials(material)
-    mat_label = [String(label(material))]
-    mat_label = "mat"
+    # Physical entities labels
     # -------------------------------
-    # Boundary conditions
-    # -------------------------------
-    # Dirichlet boundary conditions 
+    # material
+    mat_label = label(material)
+    # entities
+    node_label = "node"
+    faces_label = "triangle"
+    elements_label = "tetrahedron"
+    entities_labels = [node_label, faces_label, elements_label]
+    # boundary conditions
     bc₁_label = "fixed-ui"
     bc₂_label = "fixed-uj"
     bc₃_label = "fixed-uk"
     bc₄_label = "pressure"
-    bc₁ = FixedDofBoundaryCondition([:u], [1], bc₁_label)
-    bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
-    bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
-    # Neumann boundary conditions 
-    bc₄ = LocalPressureBoundaryCondition([:u], t -> p(t), bc₄_label)
-    boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
+    # mesh labels
+    labels = [mat_label, entities_labels, bc_labels]
     # -------------------------------
     # Entities
     # -------------------------------
     # Entities types without assigned nodes, faces and elements
-    node_label = "node"
-    faces_label = "triangle"
-    elements_label = "tetrahedron"
     vfaces = [TriangularFace(faces_label)]
     velems = [Tetrahedron(elements_label)]
     entities = StructuralEntities(velems, vfaces)
-    entities_labels = [node_label, faces_label, elements_label]
     # -------------------------------
     # Mesh
     # -------------------------------
-    labels = [mat_label, entities_labels, bc_labels]
     filename = "cylinder"
     local msh_path
     out = @capture_out begin
@@ -75,11 +66,34 @@ function cylinder_structure(
     end
     gmsh_println(out)
     msh_mesh = MshFile(msh_path)
+    mesh = Mesh(msh_mesh, entities)
+    # Dofs
+    #--------------------------------
+    dof_dim = 3
+    dof_u_symbol = :u
+    apply!(mesh, dof_u_symbol, dof_dim)
+    # -------------------------------
+    # Boundary conditions
+    # -------------------------------
+    # Dirichlet boundary conditions 
+    bc₁ = FixedDofBoundaryCondition([:u], [1], bc₁_label)
+    bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
+    bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
+    # Neumann boundary conditions 
+    bc₄ = LocalPressureBoundaryCondition([:u], t -> pressure(t), bc₄_label)
+    boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
+    # Assign boundary conditions to the ones defined in the mesh
+    apply!(boundary_conditions, mesh)
+    # -------------------------------
+    # Materials
+    # -------------------------------
+    materials = StructuralMaterials(material)
+    apply!(materials, mesh)
+
     # -------------------------------
     # Structure
     # -------------------------------
-    # return msh_mesh
-    structure = Structure(msh_mesh, materials, boundary_conditions, entities)
+    Structure(mesh, materials, boundary_conditions)
 end;
 # -------------------------------
 # Materials

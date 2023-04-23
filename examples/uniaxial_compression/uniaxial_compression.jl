@@ -62,7 +62,7 @@ function run_uniaxial_compression()
     # Dofs
     #--------------------------------
     dof_dim = 3
-    add!(s₁_mesh, :u, dof_dim)
+    apply!(s₁_mesh, :u, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------

@@ -11,6 +11,9 @@ using ..Elements: Node
 
 @reexport import ..Elements: dimension, nodes
 
+# Physical nodes index, all gmsh files should be defined with this label
+const PHYSICAL_NODE_LABEL = "node"
+
 export MshFile, connectivity, material_label, entity_label, bc_label, physical_index, gmsh_println
 
 
@@ -25,9 +28,12 @@ A `MshFile` is a collection of `Node`s. Also the filename
 - `bc_labels`           -- stores a `Vector` of `String`s with the boundary condition type labels defined in the .geo.
 """
 struct MshFile{dim,T,S,I1<:Integer,I2<:Integer}
+    # Path
     filename::String
+    # Nodes and connectivity
     vec_nodes::Vector{Node{dim,T}}
     connectivity::Vector{Vector{I1}}
+    # Physical names
     physical_index::Vector{I2}
     material_labels::Vector{S}
     entities_labels::Vector{S}

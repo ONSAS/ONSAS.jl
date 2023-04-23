@@ -1,9 +1,11 @@
-using ..Elements: AbstractNode, AbstractFace, AbstractElement
-using ..Meshes: AbstractMesh, Mesh, MshFile
-using ..BoundaryConditions: FixedDofBoundaryCondition, _apply
-using ..StructuralModel: AbstractStructure, StructuralMaterials, StructuralBoundaryConditions, StructuralEntities
+using Reexport
 
-import ..Meshes: PointEvalHandler
+using ..Elements
+using ..Meshes
+using ..BoundaryConditions
+using ..StructuralModel
+
+@reexport import ..Meshes: PointEvalHandler
 
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
@@ -93,10 +95,10 @@ function Structure(msh_file::MshFile,
     end
 
     for (dof_symbol, dof_dim) in pairs(dofs_to_dim)
-        add!(mesh, dof_symbol, dof_dim)
+        apply!(mesh, dof_symbol, dof_dim)
     end
 
-    return Structure(mesh, materials, bcs)
+    Structure(mesh, materials, bcs)
 end
 
 "Constructor of a `PointEvalHandler` from a `Structure` and a `AbstractVector` of `Point`s ."

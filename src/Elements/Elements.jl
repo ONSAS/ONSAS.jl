@@ -18,7 +18,7 @@ using ..Utils: row_vector
 import StaticArrays
 import ..CrossSections: area
 
-export Dof, add!, Point
+export Dof, apply!, Point
 export AbstractNode, dimension, dofs, coordinates
 export AbstractEntity, nodes, coordinates, create_entity
 export AbstractFace, normal_direction
@@ -79,7 +79,7 @@ dofs(vn::Vector{<:AbstractNode}) = vcat(dofs.(vn)...)
 dofs(n::AbstractNode, s::Symbol) = n.dofs[s]
 
 "Sets a `Vector`s of dofs `vd` to the `AbstractNode` `n` assigned to the symbol `s`."
-function add!(n::AbstractNode, s::Symbol, vd::Vector{Dof})
+function apply!(n::AbstractNode, s::Symbol, vd::Vector{Dof})
     if s ∉ keys(dofs(n))
         insert!(dofs(n), s, vd)
     else

@@ -39,7 +39,7 @@ function run_von_misses_truss_example()
     # Dofs
     #--------------------------------
     dof_dim = 3
-    add!(s_mesh, :u, dof_dim)
+    apply!(s_mesh, :u, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------
