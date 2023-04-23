@@ -43,6 +43,32 @@ A new `docs/build/` folder will be automatically created, to preview the docs op
 In case you encounter a bug or issue with ONSAS.jl, you can create an [issue][open-issues] by providing as much information as possible about the problem. Ideally, include some code that can be easily copied and pasted to replicate the issue (refer to [How to create a Minimal, Reproducible Example][create-rep-example]). If you're able to identify a solution for the bug, please create an [issue][open-issues] and then a [pull request][open-pull-request] solving it.  
 
 
+## Style guide 
+
+The code style is based on the [Julia style guide](https://docs.julialang.org/en/v1/manual/style-guide/) and is done automatically using [JuliaFormatter.jl](https://github.com/domluna/JuliaFormatter.jl). Moreover, this items should be considered:
+
+* Testing files:
+    * They should be named `<module_name>.jl` and placed in the `test/` folder.
+    * Unitary tests should use `using ONSAS.Module` as the module name.
+    * End-to-end tests should use `using ONSAS`.
+
+* How to import packages and overload methods: 
+    * First, external packages are included via `using` (e.g. `using LinearAlgebra`) without specifying the method `:`. Also a `,` should be used to separate packages instead of an enter.
+    * Then , internal packages are included (e.g. `using ...Module`) without `:`.
+    * Finally, if a method is overloaded the module should export that method too. For that, use `@reexport import ONSAS.Module: method` with `:`.
+
+Here is an example:
+
+```julia
+using ExternalPkgs, Reexport
+
+using ..Materials
+using ..Elements
+
+@reexport import ..Elements: strain_energy
+```
+Note that the use of `..` and `...` depends on the number of levels you need to go up in the module hierarchy.
+
 ## Authors 
 
 The authorship of the code is based on the criteria defined by the [JOSS journal][joss]. The co-authors have collaborated in tasks such as: design, important new features development or extensive documentation contributions.
