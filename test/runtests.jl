@@ -1,11 +1,8 @@
 using Test
 using SafeTestsets: @safetestset
 
-MODULES = [
-    # Input modules
-    "test_Materials.jl", "test_CrossSections.jl", "test_Elements.jl", "test_BoundaryConditions.jl", "test_Meshes.jl",
-    # Analysis modules
-    "test_StructuralModel.jl", "test_StructuralSolvers.jl", "test_StaticAnalyses.jl"]
+MODULES = ["materials.jl", "cross_sections.jl", "elements.jl", "boundary_conditions.jl",
+    "meshes.jl", "structural_model.jl", "structural_solvers.jl", "static_analyses.jl"]
 
 EXAMPLES = [
     joinpath("..", "examples", "von_misses_truss", "von_misses_truss.jl"),
@@ -28,4 +25,4 @@ function test(file::String)
     end
 end
 
-test([EXAMPLES; MODULES]);
+test([MODULES, EXAMPLES]);

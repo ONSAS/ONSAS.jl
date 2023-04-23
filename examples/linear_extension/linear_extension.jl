@@ -1,11 +1,8 @@
 # ---------------------------------------------------------------- 
 # Uniaxial Extension Example 1  from (Zerpa et. Al., 2019, CMAME).
 # ----------------------------------------------------------------
+using Test, LinearAlgebra, StaticArrays, Suppressor
 using ONSAS
-using Test: @test, @testset
-using Suppressor: @capture_out
-using StaticArrays: SVector
-using LinearAlgebra: norm
 
 # Mesh with Gmsh.jl (see linear_extension_sketch)
 include("linear_extension_mesh.jl")

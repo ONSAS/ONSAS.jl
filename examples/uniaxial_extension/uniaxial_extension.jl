@@ -2,12 +2,9 @@
 # Uniaxial Extension ExampleExercise 4 from section 6.5 in (Holzapfel,2000).
 # For notation see: https://onsas.github.io/ONSAS.m/dev/examples/uniaxialExtension/
 # --------------------------------------------------------------------------
-using ONSAS.StaticAnalyses
-using ONSAS.Utils: eye
-using Suppressor: @capture_out
-using Test: @test, @testset
-using LinearAlgebra: det, tr
+using Test, LinearAlgebra, Suppressor
 using Roots: find_zero
+using ONSAS
 
 include("uniaxial_mesh.jl") # Mesh Cube with Gmsh.jl
 

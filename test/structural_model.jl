@@ -1,7 +1,7 @@
 ##########################
 # Structural model tests #
 ##########################
-using Test: @testset, @test
+using Test
 using ONSAS.StructuralModel
 
 # Scalar parameters

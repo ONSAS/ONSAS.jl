@@ -1,11 +1,9 @@
 #######################
 # Meshes module tests #
 #######################
-using Test: @testset, @test
-using Suppressor: @capture_out
-using ONSAS.Meshes
+using Test, StaticArrays, Suppressor
 using Dictionaries: dictionary
-using StaticArrays: SVector
+using ONSAS.Meshes
 
 const RTOL = 1e-5
 

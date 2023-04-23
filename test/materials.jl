@@ -1,10 +1,10 @@
 ##########################
 # Materials module tests #
 ##########################
-using Test: @testset, @test
+using Test, LinearAlgebra
 using ONSAS.Materials
-using ONSAS.Utils: eye, _voigt
-using LinearAlgebra: Symmetric, tr, det, inv
+using ONSAS.Utils
+
 const RTOL = 1e-3
 
 # Steel 
@@ -59,7 +59,7 @@ mat_label = "steel"
         ]
     )
 
-    ϵ_vec = _voigt(ϵ, 2)
+    ϵ_vec = voigt(ϵ, 2)
     σ_vogit = 𝐶 * ϵ_vec
     σ_expected = Symmetric(
         [

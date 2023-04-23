@@ -1,7 +1,7 @@
 using Tensors: SymmetricTensor, hessian
 
 using ..HyperElasticMaterials: AbstractHyperElasticMaterial
-using ...Utils: _voigt
+using ...Utils: voigt
 
 import ...Materials: parameters
 import ..HyperElasticMaterials: cosserat_stress, strain_energy
@@ -59,7 +59,7 @@ function cosserat_stress(m::HyperElastic, 𝔼::AbstractMatrix)
     row = 1
     for index in indexes
         i, j = index
-        ∂𝕊∂𝔼[row, :] .= _voigt(∂²Ψ∂E²[:, :, i, j])
+        ∂𝕊∂𝔼[row, :] .= voigt(∂²Ψ∂E²[:, :, i, j])
         row += 1
     end
 

@@ -1,7 +1,7 @@
 ###################################
 # BoundaryConditions module tests #
 ###################################
-using Test: @testset, @test
+using Test
 using ONSAS.BoundaryConditions
 using ONSAS.Elements
 

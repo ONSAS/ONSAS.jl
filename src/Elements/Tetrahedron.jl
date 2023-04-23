@@ -6,7 +6,7 @@ using ..Materials: AbstractHyperElasticMaterial, SVK, cosserat_stress
 using ..Materials: IsotropicLinearElastic, lame_parameters, cauchy_stress
 using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
-using ..Utils: eye, _voigt
+using ..Utils: eye, voigt
 
 import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress, weights
 
@@ -113,7 +113,7 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
 
   B = _B_mat(funder, 𝔽)
 
-  𝕊_voigt = _voigt(𝕊)
+  𝕊_voigt = voigt(𝕊)
 
   fᵢₙₜ_e = B' * 𝕊_voigt * vol
   

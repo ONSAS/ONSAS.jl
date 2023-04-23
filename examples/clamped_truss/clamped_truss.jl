@@ -11,9 +11,8 @@ The implementation of stiffness and mass matrices in Julia can be found in [3].
 
 [3] https://github.com/JuliaReach/SetPropagation-FEM-Examples/blob/main/examples/Clamped/Clamped_Model.jl
 =#
-using Test: @test
-using LinearAlgebra: norm
-using ONSAS.StaticAnalyses
+using Test, LinearAlgebra
+using ONSAS
 
 "Runs the clamped truss example."
 function run_clamped_truss_example()
