@@ -15,7 +15,6 @@ using ..Utils: row_vector
 @reexport import ..Utils: label
 @reexport import Dictionaries: index
 
-import StaticArrays
 import ..CrossSections: area
 
 export Dof, apply!, Point
@@ -25,6 +24,11 @@ export AbstractFace, normal_direction
 export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress, weights
 
 const Point{dim,T} = Union{<:AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
+
+"""
+Construct a point given its coordinates.
+"""
+Point(x::T...) where {T<:Real} = SVector(x...)
 
 # ========================
 # Degree of freedom (Dof)

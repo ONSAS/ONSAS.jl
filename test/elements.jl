@@ -1,7 +1,7 @@
 #########################
 # Elements module tests #
 #########################
-using Test, LinearAlgebra, StaticArrays
+using Test, LinearAlgebra
 using ONSAS.Elements
 
 const RTOL = 1e-3
@@ -25,12 +25,12 @@ end
 node_eltypes = [Float32, Float64, Int]
 node_eltype = rand(node_eltypes)
 xᵢ = node_eltype(rand(-100:100))
-x_sa2D = SVector(xᵢ, 2xᵢ)
+x_sa2D = Point(xᵢ, 2xᵢ)
 x_vec2D = [xᵢ, 2xᵢ]
 x_tup2D = (xᵢ, 2xᵢ)
 x_test_vec_2D = [x_sa2D, x_vec2D, x_tup2D]
 x_test_2D = rand(x_test_vec_2D)
-x_sa3D = SVector(xᵢ, 2xᵢ, 3xᵢ)
+x_sa3D = Point(xᵢ, 2xᵢ, 3xᵢ)
 x_vec3D = [xᵢ, 2xᵢ, 3xᵢ]
 x_tup3D = (xᵢ, 2xᵢ, 3xᵢ)
 x_test_vec_3D = [x_sa3D, x_vec3D, x_tup3D]
