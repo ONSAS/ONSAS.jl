@@ -50,7 +50,6 @@ points_to_element(points_interpolator::PointsInterpolator) = points_interpolator
 
 "Constructor of a `PointEvalHandler` from a `Mesh` and a `AbstractVector` of `Point`s ."
 function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) where {T,P<:Point{T}}
-
     @assert length(first(vec_points)) ≤ 3 "Points must be 1D, 2D or 3D"
 
     # Init a list of Dictionaries to store the weights and nodes needed to interpolate the file at each point
@@ -66,7 +65,6 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) whe
     # Check for every element which points are inside the element and compute the 
     # weights using the shape function of the element 
     for e in elements(mesh)
-
         e_nodes = nodes(e)
 
         # If the points have been already evaluated break out
@@ -82,7 +80,8 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) whe
             weights_p = weights(e, p)
 
             # Store the weights for each node
-            node_to_weights_p = dictionary([node => weights_p[node_index] for (node_index, node) in enumerate(e_nodes)])
+            node_to_weights_p = dictionary([node => weights_p[node_index]
+                                            for (node_index, node) in enumerate(e_nodes)])
             point_interpolators[point_index] = node_to_weights_p
 
             # Add the point to the interpolated points
@@ -91,15 +90,17 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) whe
             # Add the element
             point_to_element[point_index] = e
         end
-
     end
 
     @assert length(interpolated_vec_points_indexes) == length(vec_points) "
     There are $(length(vec_points) - length(interpolated_vec_points_indexes)) points outside the mesh .
     "
 
-    return PointEvalHandler(vec_points, mesh, PointsInterpolator(point_interpolators, point_to_element))
+    return PointEvalHandler(vec_points, mesh,
+                            PointsInterpolator(point_interpolators, point_to_element))
 end
 
 "Constructor of a `PointEvalHandler` from a `Mesh` and a `Point` ."
-PointEvalHandler(mesh::AbstractMesh, point::P) where {T,P<:Point{T}} = PointEvalHandler(mesh, [point])
+function PointEvalHandler(mesh::AbstractMesh, point::P) where {T,P<:Point{T}}
+    return PointEvalHandler(mesh, [point])
+end

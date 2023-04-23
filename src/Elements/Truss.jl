@@ -4,7 +4,8 @@ using ..Elements: AbstractElement, AbstractNode
 using ..CrossSections: AbstractCrossSection, area
 using ..Utils: eye
 
-import ..Elements: nodes, create_entity, cross_section, internal_forces, local_dof_symbol, strain, stress
+import ..Elements: nodes, create_entity, cross_section, internal_forces, local_dof_symbol, strain,
+                   stress
 
 export Truss
 
@@ -23,22 +24,25 @@ struct Truss{dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection} <: Abst
     nodes::SVector{2,N}
     cross_section::G
     label::Symbol
-    function Truss(nodes::SVector{2,N}, g::G, label=:no_labelled_element) where
-    {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
+    function Truss(nodes::SVector{2,N}, g::G,
+                   label=:no_labelled_element) where
+             {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
         @assert 1 ≤ dim ≤ 3 "Nodes of a truss element must comply  1 < dim < 3 ."
-        new{dim,T,N,G}(nodes, g, Symbol(label))
+        return new{dim,T,N,G}(nodes, g, Symbol(label))
     end
 end
 
 "Constructor for a `Truss` element considering the nodes `n₁` and `n₂` and the cross-section `g`."
-function Truss(n₁::N, n₂::N, g::G, label::L=:no_labelled_face) where
-{dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection,L<:Union{String,Symbol}}
-    Truss(SVector(n₁, n₂), g, Symbol(label))
+function Truss(n₁::N, n₂::N, g::G,
+               label::L=:no_labelled_face) where
+         {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection,L<:Union{String,Symbol}}
+    return Truss(SVector(n₁, n₂), g, Symbol(label))
 end
 
 "Constructor for a `Truss` element without nodes and a `label`. This function is used to create meshes via GMSH."
-Truss(g::AbstractCrossSection, label::L=:no_labelled_face) where {L<:Union{String,Symbol}} =
-    Truss(Node(0, 0, 0), Node(0, 0, 0), g, Symbol(label))
+function Truss(g::AbstractCrossSection, label::L=:no_labelled_face) where {L<:Union{String,Symbol}}
+    return Truss(Node(0, 0, 0), Node(0, 0, 0), g, Symbol(label))
+end
 
 #==============================#
 # Truss element hard contracts #
@@ -48,7 +52,9 @@ Truss(g::AbstractCrossSection, label::L=:no_labelled_face) where {L<:Union{Strin
 cross_section(t::Truss) = t.cross_section
 
 "Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
-create_entity(t::Truss, vn::AbstractVector{<:AbstractNode}) = Truss(vn[1], vn[2], cross_section(t), label(t))
+function create_entity(t::Truss, vn::AbstractVector{<:AbstractNode})
+    return Truss(vn[1], vn[2], cross_section(t), label(t))
+end
 
 "Return the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
@@ -56,7 +62,6 @@ local_dof_symbol(::Truss) = [:u]
 "Return the internal force of a `Truss` element `t` formed by an `AbstractMaterial` `m` 
 and a an element displacement vector `u_e`."
 function internal_forces(m::AbstractMaterial, e::Truss{dim}, u_e::AbstractVector) where {dim}
-
     E = elasticity_modulus(m)
     A = area(cross_section(e))
     X_ref, X_def = _X_rows(e, u_e)
@@ -90,7 +95,7 @@ _strain(l_ini::Number, l_def::Number) = (l_def^2 - l_ini^2) / (l_ini * (l_ini + 
 function strain(t::Truss{dim}, u_e::AbstractVector) where {dim}
     X_ref, X_def = _X_rows(t, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
-    ϵ = _strain(l_ref, l_def)
+    return ϵ = _strain(l_ref, l_def)
 end
 
 "Return the stress of given `Truss` element `t` with a element displacement vector `u_e`. "
@@ -112,8 +117,8 @@ function _X_rows(e::Truss{dim}, u_e::AbstractVector) where {dim}
 end
 
 "Return auxiliar vectors b_ref and b_def of a truss element."
-function _aux_b(X_ref_row::AbstractVector, X_def_row::AbstractVector, u_loc_dofs::AbstractVector, G::AbstractMatrix, dim::Integer)
-
+function _aux_b(X_ref_row::AbstractVector, X_def_row::AbstractVector, u_loc_dofs::AbstractVector,
+                G::AbstractMatrix, dim::Integer)
     l_ref, l_def = _lengths(X_ref_row, X_def_row, dim)
 
     b_ref = 1 / (l_ref^2) * X_ref_row' * G

@@ -17,14 +17,15 @@ struct LocalPressureBoundaryCondition <: AbstractLoadBoundaryCondition
     name::Symbol
     function LocalPressureBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::Symbol)
         @assert length(values(rand())) == 1 "Only a normal pressure is supported."
-        new(dofs, values, name)
+        return new(dofs, values, name)
     end
 end
 
 "Constructor for `LocalPressureBoundaryCondition` with a string label."
-LocalPressureBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::String="no_labelled_bc") =
-    LocalPressureBoundaryCondition(dofs, values, Symbol(name))
-
+function LocalPressureBoundaryCondition(dofs::Vector{Symbol}, values::Function,
+                                        name::String="no_labelled_bc")
+    return LocalPressureBoundaryCondition(dofs, values, Symbol(name))
+end
 
 "Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
 function _apply(lbc::LocalPressureBoundaryCondition, f::AbstractFace, t::Real)
@@ -41,11 +42,10 @@ function _apply(lbc::LocalPressureBoundaryCondition, f::AbstractFace, t::Real)
     [push!(dofs_lbc, dofs(n)[dof_symbol]...) for dof_symbol in dofs(lbc) for n in nodes(f)]
 
     # Repeat the values and build the tension vector for all dofs
-    p_vec = repeat(p_nodal, outer=Int(length(dofs_lbc) / length(p_nodal)))
+    p_vec = repeat(p_nodal; outer=Int(length(dofs_lbc) / length(p_nodal)))
 
     @assert length(p_vec) == length(dofs_lbc)
     "The length of the tension vector must be equal to the length of the dofs vector."
 
     return dofs_lbc, p_vec
 end
-

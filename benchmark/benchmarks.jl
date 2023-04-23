@@ -14,7 +14,7 @@ samples = 2
 # Static analysis benchmarks
 # =======================================
 # Alg to solve static problems
-tols = ConvergenceSettings(rel_U_tol=1e-8, rel_res_force_tol=1e-6, max_iter=20)
+tols = ConvergenceSettings(; rel_U_tol=1e-8, rel_res_force_tol=1e-6, max_iter=20)
 alg = NewtonRaphson(tols)
 # Static analysis number of steps to reach the final load factor value
 NSTEPS = 8
@@ -36,9 +36,9 @@ for ms in ms_range
         structure = uniaxial_extension_structure(; ms)
     end
     nnodes, nelems = capture_print(output)
-    problem = NonLinearStaticAnalysis(structure, NSTEPS=NSTEPS)
-    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] =
-        @benchmarkable solve!($problem, $alg) evals = evals samples = samples
+    problem = NonLinearStaticAnalysis(structure; NSTEPS=NSTEPS)
+    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem,
+                                                                                                       $alg) evals = evals samples = samples
 end
 
 # Remove all .msh files from the example_folder 
@@ -59,10 +59,9 @@ for ms in ms_range
     end
     # Extract the number of elements as an integer.
     nnodes, nelems = capture_print(output)
-    problem = NonLinearStaticAnalysis(structure, NSTEPS=NSTEPS)
-    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] =
-        @benchmarkable solve!($problem, $alg) evals = evals samples = samples
-
+    problem = NonLinearStaticAnalysis(structure; NSTEPS=NSTEPS)
+    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem,
+                                                                                                       $alg) evals = evals samples = samples
 end
 
 # Remove all .msh files from the example_folder 
@@ -83,9 +82,8 @@ for ms in ms_range
     end
     # Extract the number of elements as an integer.
     nnodes, nelems = capture_print(output)
-    problem = LinearStaticAnalysis(structure, NSTEPS=NSTEPS)
-    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] =
-        @benchmarkable solve!($problem) evals = evals samples = samples
+    problem = LinearStaticAnalysis(structure; NSTEPS=NSTEPS)
+    SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem) evals = evals samples = samples
 end
 
 # Remove all .msh files from the example_folder 

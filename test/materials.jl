@@ -17,7 +17,6 @@ K = E / (3 * (1 - 2 * ν))
 mat_label = "steel"
 
 @testset "ONSAS.Materials.AbstractLinearElasticMaterial.IsotropicLinearElastic" begin
-
     linear_steel_no_density = IsotropicLinearElastic(E, ν)
 
     @test elasticity_modulus(linear_steel_no_density) == E
@@ -27,7 +26,7 @@ mat_label = "steel"
     @test density(linear_steel_no_density) == nothing
     @test label(linear_steel_no_density) == :no_labelled_mat
 
-    linear_steel = IsotropicLinearElastic(λ=λ, G=G, ρ=ρ, label=mat_label)
+    linear_steel = IsotropicLinearElastic(; λ=λ, G=G, ρ=ρ, label=mat_label)
     @test label(linear_steel) == Symbol(mat_label)
     @test density(linear_steel) == ρ
     @test elasticity_modulus(linear_steel) ≈ E rtol = RTOL
@@ -44,50 +43,36 @@ mat_label = "steel"
     γₖᵢ = 0.51
 
     # Consitutive tensor 
-    𝐶 = [λ+2G λ λ 0 0 0
-        λ λ+2G λ 0 0 0
-        λ λ λ+2G 0 0 0
-        0 0 0 G 0 0
-        0 0 0 0 G 0
-        0 0 0 0 0 G]
+    𝐶 = [ λ+2G λ λ 0 0 0
+         λ λ+2G λ 0 0 0
+         λ λ λ+2G 0 0 0
+         0 0 0 G 0 0
+         0 0 0 0 G 0
+         0 0 0 0 0 G]
 
-    ϵ = Symmetric(
-        [
-            ϵᵢ γᵢⱼ γₖᵢ
-            γᵢⱼ ϵⱼ γⱼₖ
-            γₖᵢ γⱼₖ ϵᵏ
-        ]
-    )
+    ϵ = Symmetric([ϵᵢ γᵢⱼ γₖᵢ
+                   γᵢⱼ ϵⱼ γⱼₖ
+                   γₖᵢ γⱼₖ ϵᵏ])
 
     ϵ_vec = voigt(ϵ, 2)
     σ_vogit = 𝐶 * ϵ_vec
-    σ_expected = Symmetric(
-        [
-            σ_vogit[1] σ_vogit[6] σ_vogit[5]
-            σ_vogit[6] σ_vogit[2] σ_vogit[4]
-            σ_vogit[5] σ_vogit[4] σ_vogit[3]
-        ]
-    )
+    σ_expected = Symmetric([σ_vogit[1] σ_vogit[6] σ_vogit[5]
+                            σ_vogit[6] σ_vogit[2] σ_vogit[4]
+                            σ_vogit[5] σ_vogit[4] σ_vogit[3]])
 
     σ, ∂σ∂ϵ = cauchy_stress(linear_steel, ϵ)
 
     @test σ ≈ σ_expected rtol = RTOL
 end
 
-
 # More soft hyperelastic material   
 Ghyper = μ = 0.3846
 λhyper = 0.5769
 Khyper = λhyper + 2 * Ghyper / 3
 # Green-Lagrange strain tensor for testing
-𝔼 = Symmetric(
-    [
-        0.18375 0.2925 0.51
-        0.2925 0.435 0.72
-        0.51 0.72 1.14
-    ]
-)
-
+𝔼 = Symmetric([0.18375 0.2925 0.51
+               0.2925 0.435 0.72
+               0.51 0.72 1.14])
 
 @testset "ONSAS.Materials.AbstractHyperElasticMaterial.SVK" begin
 
@@ -102,9 +87,9 @@ Khyper = λhyper + 2 * Ghyper / 3
     @test poisson_ratio(svk_static) == ν
 
     # SVK for dynamic analysis
-    svk_dynamic = SVK(E=E, ν=ν, ρ=ρ, label=mat_label)
+    svk_dynamic = SVK(; E=E, ν=ν, ρ=ρ, label=mat_label)
     @test density(svk_dynamic) == ρ
-    @test lame_parameters(svk_dynamic) |> collect ≈ [λ, G] rtol = RTOL
+    @test collect(lame_parameters(svk_dynamic)) ≈ [λ, G] rtol = RTOL
     @test label(svk_dynamic) == Symbol(mat_label)
     # SVK strain energy
     strain_energy_svk(𝔼, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
@@ -114,24 +99,16 @@ Khyper = λhyper + 2 * Ghyper / 3
     svk_hyper = HyperElastic([λhyper, Ghyper], strain_energy_svk, l)
     svk = SVK(λhyper, Ghyper)
 
+    𝕊_test = Symmetric([1.15596 0.224991 0.392292
+                        0.224991 1.34922 0.553824
+                        0.392292 0.553824 1.89151])
 
-    𝕊_test = Symmetric(
-        [
-            1.15596 0.224991 0.392292
-            0.224991 1.34922 0.553824
-            0.392292 0.553824 1.89151
-        ]
-    )
-
-    ∂𝕊∂𝔼_test = [
-        1.3461 0.5769 0.5769 0.0 0.0 0.0
-        0.5769 1.3461 0.5769 0.0 0.0 0.0
-        0.5769 0.5769 1.3461 0.0 0.0 0.0
-        0.0 0.0 0.0 0.3846 0.0 0.0
-        0.0 0.0 0.0 0.0 0.3846 0.0
-        0.0 0.0 0.0 0.0 0.0 0.3846
-    ]
-
+    ∂𝕊∂𝔼_test = [1.3461 0.5769 0.5769 0.0 0.0 0.0
+                 0.5769 1.3461 0.5769 0.0 0.0 0.0
+                 0.5769 0.5769 1.3461 0.0 0.0 0.0
+                 0.0 0.0 0.0 0.3846 0.0 0.0
+                 0.0 0.0 0.0 0.0 0.3846 0.0
+                 0.0 0.0 0.0 0.0 0.0 0.3846]
 
     @test parameters(svk_hyper) == [λhyper, Ghyper]
     @test density(svk_hyper) == nothing
@@ -147,23 +124,21 @@ Khyper = λhyper + 2 * Ghyper / 3
 
     @test 𝕊_hyper ≈ 𝕊_test rtol = RTOL
     @test ∂𝕊∂𝔼_svk ≈ ∂𝕊∂𝔼_test rtol = RTOL
-
 end
 
 @testset "ONSAS.Materials..AbstractHyperElasticMaterial.NeoHookean" begin
-
     neo = NeoHookean(K, G)
     @test bulk_modulus(neo) == K
     @test shear_modulus(neo) == G
-    @test lame_parameters(neo) |> collect ≈ [λ, G] rtol = RTOL
+    @test collect(lame_parameters(neo)) ≈ [λ, G] rtol = RTOL
     @test poisson_ratio(neo) ≈ ν rtol = RTOL
     @test elasticity_modulus(neo) ≈ E rtol = RTOL
 
     # NeoHookean defined with ρ E and  ν
-    neo_withρ = NeoHookean(E=E, ν=ν, ρ=ρ, label=mat_label)
+    neo_withρ = NeoHookean(; E=E, ν=ν, ρ=ρ, label=mat_label)
     @test bulk_modulus(neo_withρ) ≈ K rtol = RTOL
     @test shear_modulus(neo_withρ) ≈ G rtol = RTOL
-    @test lame_parameters(neo_withρ) |> collect ≈ [λ, G] rtol = RTOL
+    @test collect(lame_parameters(neo_withρ)) ≈ [λ, G] rtol = RTOL
     @test poisson_ratio(neo_withρ) ≈ ν rtol = RTOL
     @test elasticity_modulus(neo_withρ) ≈ E rtol = RTOL
     @test label(neo_withρ) == Symbol(mat_label)
@@ -180,17 +155,15 @@ end
         # First invariant
         I₁ = tr(ℂ)
         # Strain energy function 
-        Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
+        return Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
     end
 
-    neo_hyper = HyperElastic(
-        [bulk_modulus(neo_flexible), shear_modulus(neo_flexible)], strain_energy_neo, l
-    )
+    neo_hyper = HyperElastic([bulk_modulus(neo_flexible), shear_modulus(neo_flexible)],
+                             strain_energy_neo, l)
 
     𝕊_hyper, ∂𝕊∂𝔼_hyper = cosserat_stress(neo_hyper, 𝔼)
     𝕊_neo, ∂𝕊∂𝔼_neo = cosserat_stress(neo_flexible, 𝔼)
 
     @test 𝕊_hyper ≈ 𝕊_neo rtol = RTOL
     @test ∂𝕊∂𝔼_hyper ≈ ∂𝕊∂𝔼_neo rtol = RTOL
-
 end

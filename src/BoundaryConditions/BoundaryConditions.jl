@@ -10,10 +10,10 @@ using Reexport: @reexport
 @reexport import ..Elements: dofs
 @reexport import ..Utils: label
 
-export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition, AbstractLoadBoundaryCondition, _apply
+export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition,
+       AbstractLoadBoundaryCondition, _apply
 export DisplacementBoundaryCondition, FixedDofBoundaryCondition, components
 export GlobalLoadBoundaryCondition, LocalPressureBoundaryCondition
-
 
 """ Abstract supertype for all elements.
 
@@ -66,6 +66,3 @@ include("GlobalLoadBoundaryCondition.jl")
 include("LocalPressureBoundaryCondition.jl")
 
 end # module
-
-
-

@@ -10,8 +10,9 @@ using Reexport
 @reexport using ..Elements
 @reexport import ..Elements: apply!, dimension, dofs, nodes
 
-export AbstractMesh, Mesh, faces, face_set, elements, element_set, num_dofs, num_elements, num_nodes, node_set,
-    add_node_to_set!, add_element_to_set!, add_face_to_set!
+export AbstractMesh, Mesh, faces, face_set, elements, element_set, num_dofs, num_elements,
+       num_nodes, node_set,
+       add_node_to_set!, add_element_to_set!, add_face_to_set!
 
 """ Abstract supertype for all meshes.
 
@@ -58,15 +59,13 @@ end
 
 "Adds n `dofs_per_node` `Dof`s with `dof_symbol` to the `AbstractMesh` `m`."
 function apply!(m::AbstractMesh, dof_symbol::Symbol, dofs_per_node::Int)
-
     mesh_dofs = dofs(m)
     dof_not_added_yet = dof_symbol ∉ keys.(mesh_dofs)
     @assert dof_not_added_yet throw(ArgumentError("Dof symbol $dof_symbol already exists."))
 
     if !_isempty_dofs(m) && dof_not_added_yet  # any dof has been added
-
         for (i, n) in enumerate(nodes(m))
-            node_dofs_int = (1+(i-1)*dofs_per_node):(i*dofs_per_node)
+            node_dofs_int = (1 + (i - 1) * dofs_per_node):(i * dofs_per_node)
             apply!(n, dof_symbol, Dof.(node_dofs_int))
         end
     else # other dof has been added
@@ -74,7 +73,7 @@ function apply!(m::AbstractMesh, dof_symbol::Symbol, dofs_per_node::Int)
         max_dof_index = num_dofs(m)
         # Push new dofs
         for (i, n) in enumerate(nodes(m))
-            node_dofs_int = (1+max_dof_index+(i-1)*dofs_per_node):(max_dof_index+i*dofs_per_node)
+            node_dofs_int = (1 + max_dof_index + (i - 1) * dofs_per_node):(max_dof_index + i * dofs_per_node)
             apply!(n, dof_symbol, Dof.(node_dofs_int))
         end
     end
@@ -98,7 +97,7 @@ num_elements(m::AbstractMesh) = length(elements(m))
 "Push a new `Node` into the `AbstractMesh` `m` and return the new `Node` position."
 function Base.push!(m::AbstractMesh, n::AbstractNode)
     push!(nodes(m), n)
-    length(nodes(m))
+    return length(nodes(m))
 end
 "Push a new  `Vector of `Node`s into the `AbstractMesh` `m`."
 Base.push!(m::AbstractMesh, vn::Vector{<:AbstractNode}) = [push!(nodes(m), n) for n in vn]
@@ -106,7 +105,7 @@ Base.push!(m::AbstractMesh, vn::Vector{<:AbstractNode}) = [push!(nodes(m), n) fo
 "Push a new `Face` `f` into the `AbstractMesh` `m` and return the new `Face` position."
 function Base.push!(m::AbstractMesh, f::AbstractFace)
     push!(faces(m), f)
-    length(faces(m))
+    return length(faces(m))
 end
 
 "Push a new `Vector` of `Face`s `vf` into the `AbstractMesh` `m`."
@@ -115,7 +114,7 @@ Base.push!(m::AbstractMesh, vf::Vector{<:AbstractFace}) = [push!(faces(m), f) fo
 "Push a new `Element` into the `AbstractMesh` `m` and return the new `Element` position."
 function Base.push!(m::AbstractMesh, e::AbstractElement)
     push!(elements(m), e)
-    length(elements(m))
+    return length(elements(m))
 end
 
 "Push a new vector of `Element`s into the `AbstractMesh` `m`."
@@ -151,26 +150,24 @@ struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace,EX} <: A
     face_sets::Dictionary{String,Set{Int}}
     # Extra data
     extra::EX
-    function Mesh(
-        nodes::Vector{N},
-        elements::Vector{E}=Vector{AbstractElement}(),
-        faces::Vector{F}=Vector{AbstractFace}(),
-        node_sets=Dictionary{String,Set{Int}}(),
-        face_sets=Dictionary{String,Set{Int}}(),
-        element_sets=Dictionary{String,Set{Int}}(),
-        extra::EX=nothing,
-    ) where {dim,N<:AbstractNode{dim},F<:AbstractFace,E<:AbstractElement,EX}
-        new{dim,N,E,F,EX}(nodes, elements, faces, node_sets, element_sets, face_sets, extra)
+    function Mesh(nodes::Vector{N},
+                  elements::Vector{E}=Vector{AbstractElement}(),
+                  faces::Vector{F}=Vector{AbstractFace}(),
+                  node_sets=Dictionary{String,Set{Int}}(),
+                  face_sets=Dictionary{String,Set{Int}}(),
+                  element_sets=Dictionary{String,Set{Int}}(),
+                  extra::EX=nothing) where {dim,N<:AbstractNode{dim},F<:AbstractFace,
+                                            E<:AbstractElement,EX}
+        return new{dim,N,E,F,EX}(nodes, elements, faces, node_sets, element_sets, face_sets, extra)
     end
 end
 
 "Constructor for `Mesh` with a `Node`'s`Vector` and extra."
 function Mesh(nodes::Vector{N}, extra::EX) where {dim,N<:AbstractNode{dim},EX}
-    Mesh(
-        nodes, Vector{AbstractElement}(), Vector{AbstractFace}(),
-        Dictionary{String,Set{Int}}(), Dictionary{String,Set{Int}}(), Dictionary{String,Set{Int}}(),
-        extra
-    )
+    return Mesh(nodes, Vector{AbstractElement}(), Vector{AbstractFace}(),
+                Dictionary{String,Set{Int}}(), Dictionary{String,Set{Int}}(),
+                Dictionary{String,Set{Int}}(),
+                extra)
 end
 
 "Return the `Mesh` `m` `Node` `Set`s. "
@@ -199,7 +196,7 @@ function add_node_to_set!(m::Mesh, node_set_name::S, node_id::Int) where {S}
     else
         insert!(node_sets, String(node_set_name), Set(node_id))
     end
-    node_sets
+    return node_sets
 end
 
 "Add `element_id`` to the `Mesh` `m` `Set` `element_set_name`."
@@ -210,7 +207,7 @@ function add_element_to_set!(m::Mesh, element_set_name::S, element_id::Int) wher
     else
         insert!(element_sets, String(element_set_name), Set(element_id))
     end
-    element_sets
+    return element_sets
 end
 
 "Add `face_id` to the `Mesh` `m` `Set` `face_set_name`."
@@ -221,7 +218,7 @@ function add_face_to_set!(m::Mesh, face_set_name::S, face_id::Int) where {S}
     else
         insert!(face_sets, String(face_set_name), Set(face_id))
     end
-    face_sets
+    return face_sets
 end
 
 include("./Gmsh.jl")

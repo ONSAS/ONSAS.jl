@@ -22,21 +22,24 @@ As this analysis is nonlinear the stiffness of the structure is updated at each 
 - `λᵥ`            -- stores the load factors vector of the analysis
 - `current_step`  -- stores the current load factor step
 """
-struct NonLinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <: AbstractStaticAnalysis
+struct NonLinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <:
+       AbstractStaticAnalysis
     s::S
     state::StaticState
     λᵥ::LFV
     current_step::ScalarWrapper{Int}
-    function NonLinearStaticAnalysis(s::S, λᵥ::LFV; initial_step::Int=1) where {S<:AbstractStructure,LFV<:AbstractVector{<:Real}}
-        new{S,LFV}(s, StaticState(s), λᵥ, ScalarWrapper(initial_step))
+    function NonLinearStaticAnalysis(s::S, λᵥ::LFV;
+                                     initial_step::Int=1) where {S<:AbstractStructure,
+                                                                 LFV<:AbstractVector{<:Real}}
+        return new{S,LFV}(s, StaticState(s), λᵥ, ScalarWrapper(initial_step))
     end
 end
 
 "Constructor for `NonLinearStaticAnalysis` given a final time (or load factor) `t₁` and the number of steps `NSTEPS`."
 function NonLinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1)
     t₀ = t₁ / NSTEPS
-    λᵥ = LinRange(t₀, t₁, NSTEPS) |> collect
-    NonLinearStaticAnalysis(s, λᵥ, initial_step=initial_step)
+    λᵥ = collect(LinRange(t₀, t₁, NSTEPS))
+    return NonLinearStaticAnalysis(s, λᵥ; initial_step=initial_step)
 end
 
 "Solves an `NonLinearStaticAnalysis` `sa` with an AbstractSolver `alg`."
@@ -93,8 +96,7 @@ function _step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson)
     _update!(state, ΔU)
 
     # Update iteration 
-    _update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)
-
+    return _update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)
 end
 
 end #end module

@@ -51,14 +51,11 @@ const RTOL = 1e-5
     θ_dim = 3
     apply!(mesh, :θ, θ_dim)
     @test num_nodes(mesh) * (u_dim + θ_dim) == num_dofs(mesh)
-
 end
 
 uniaxial_mesh_path = joinpath(@__DIR__, "..", "examples", "uniaxial_extension", "uniaxial_mesh.jl")
 include(uniaxial_mesh_path)
 @testset "ONSAS.Meshes.GMSH " begin
-
-
     Lᵢ = 2.0  # Dimension in x of the box in m 
     Lⱼ = 1.0  # Dimension in y of the box in m
     Lₖ = 1.0  # Dimension in z of the box in m
@@ -86,7 +83,7 @@ include(uniaxial_mesh_path)
     end
     msh_path = joinpath(dir, file_name)
     msh_file = MshFile(msh_path)
-    rm(file_name, force=true)
+    rm(file_name; force=true)
 
     @test nodes(msh_file) == msh_file.vec_nodes
     @test length(physical_index(msh_file)) == length(connectivity(msh_file))
@@ -100,11 +97,9 @@ include(uniaxial_mesh_path)
     @test material_label(msh_file, entity_index) == "svkHyper"
     @test bc_label(msh_file, entity_index) == ""
     @test physical_index(msh_file, entity_index) == 5
-
 end
 
 @testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron" begin
-
     Lᵢ = rand() * 20
     Lⱼ = rand() * 20
     Lₖ = rand() * 20
@@ -165,7 +160,8 @@ end
 
     # Test interpolation for a linear scalar field 
     linear_scalar_field(x, y, z) = 10x - 2y + 3z + 12
-    vec_linear_scalar_field = dictionary([n => linear_scalar_field(coordinates(n)...) for n in nodes_to_interpolate])
+    vec_linear_scalar_field = dictionary([n => linear_scalar_field(coordinates(n)...)
+                                          for n in nodes_to_interpolate])
 
     # TODO Define Point(...) constructor.
     p₉ = SVector(rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ)
@@ -173,7 +169,7 @@ end
     interpol = interpolator(ph_rand)
     node_2_weights = node_to_weights(interpol)
     node_to_interpolate_p₉ = first(node_2_weights)
-    node_value_weighted = [weight * vec_linear_scalar_field[node] for (node, weight) in pairs(node_to_interpolate_p₉)]
+    node_value_weighted = [weight * vec_linear_scalar_field[node]
+                           for (node, weight) in pairs(node_to_interpolate_p₉)]
     @test linear_scalar_field(p₉...) ≈ reduce(+, node_value_weighted) rtol = RTOL
-
 end

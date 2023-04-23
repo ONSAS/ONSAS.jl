@@ -3,7 +3,8 @@ using LinearAlgebra: Symmetric, tr
 using ..LinearElasticMaterials: AbstractLinearElasticMaterial
 using ...Utils: eye
 
-import ..LinearElasticMaterials: lame_parameters, shear_modulus, poisson_ratio, elasticity_modulus, bulk_modulus, cauchy_stress
+import ..LinearElasticMaterials: lame_parameters, shear_modulus, poisson_ratio, elasticity_modulus,
+                                 bulk_modulus, cauchy_stress
 
 export IsotropicLinearElastic
 
@@ -16,29 +17,33 @@ export IsotropicLinearElastic
 
 [See this ref.](https://en.wikipedia.org/wiki/Linear_elasticity)
 """
-struct IsotropicLinearElastic{ET<:Real,NT<:Real,RT<:Union{ET,Nothing}} <: AbstractLinearElasticMaterial
+struct IsotropicLinearElastic{ET<:Real,NT<:Real,RT<:Union{ET,Nothing}} <:
+       AbstractLinearElasticMaterial
     E::ET
     ν::NT
     ρ::RT
     label::Symbol
-    function IsotropicLinearElastic(E::ET, ν::NT, ρ::RT, label::L=:no_labelled_mat) where
-    {ET<:Real,NT<:Real,RT<:Union{Nothing,Real},L<:Union{Symbol,String}}
+    function IsotropicLinearElastic(E::ET, ν::NT, ρ::RT,
+                                    label::L=:no_labelled_mat) where
+             {ET<:Real,NT<:Real,RT<:Union{Nothing,Real},L<:Union{Symbol,String}}
         return new{ET,NT,RT}(E, ν, ρ, Symbol(label))
     end
 end
 "Material `IsotropicLinearElastic` constructor with no density parameter `ρ`."
-IsotropicLinearElastic(E::Real, ν::Real, label::L=:no_labelled_mat) where {L<:Union{Symbol,String}} =
-    IsotropicLinearElastic(E, ν, nothing, label)
+function IsotropicLinearElastic(E::Real, ν::Real,
+                                label::L=:no_labelled_mat) where {L<:Union{Symbol,String}}
+    return IsotropicLinearElastic(E, ν, nothing, label)
+end
 
 "Material `IsotropicLinearElastic` constructor with Lamé parameters `λ`, `G` and density `ρ`. 
 See [this ref](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters)."
-function IsotropicLinearElastic(; λ::Real, G::Real, ρ::R=nothing, label::L=:no_labelled_mat) where
-{R<:Union{Nothing,Real},L<:Union{Symbol,String}}
-
+function IsotropicLinearElastic(; λ::Real, G::Real, ρ::R=nothing,
+                                label::L=:no_labelled_mat) where
+         {R<:Union{Nothing,Real},L<:Union{Symbol,String}}
     E = G * (3λ + 2G) / (λ + G)
     ν = λ / (2 * (λ + G))
 
-    IsotropicLinearElastic(E, ν, ρ, Symbol(label))
+    return IsotropicLinearElastic(E, ν, ρ, Symbol(label))
 end
 
 "Return the Elasticity modulus `E` from a `IsotropicLinearElastic` material `m`."
@@ -65,7 +70,6 @@ end
 "Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ` 
 considering a `IsotropicLinearElastic` material `m`."
 function cauchy_stress(m::IsotropicLinearElastic, ϵ::AbstractMatrix)
-
     λ, G = lame_parameters(m)
     σ = Symmetric(λ * tr(ϵ) * eye(3) + 2 * G * ϵ)
 
@@ -74,5 +78,4 @@ function cauchy_stress(m::IsotropicLinearElastic, ϵ::AbstractMatrix)
     ∂σ∂ϵ[4:6, 4:6] = G * eye(3)
 
     return σ, ∂σ∂ϵ
-
 end

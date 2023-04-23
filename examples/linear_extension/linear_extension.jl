@@ -73,7 +73,7 @@ function run_linear_extension_example()
     # -------------------------------
     # Structural Analysis
     # -------------------------------
-    sa = LinearStaticAnalysis(s, NSTEPS=NSTEPS)
+    sa = LinearStaticAnalysis(s; NSTEPS=NSTEPS)
     # -------------------------------
     # Numerical solution
     # -------------------------------
@@ -113,7 +113,6 @@ function run_linear_extension_example()
     ## Displacements
     "Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
     function u_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, ν::Real=ν, E::Real=E)
-
         𝐶(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
 
         uᵢ(t) = 𝐶(t) / E * x₀
@@ -135,7 +134,6 @@ function run_linear_extension_example()
     ## Strains
     "Computes strains numeric solution ϵᵢ, ϵⱼ and ϵₖ for analytic validation."
     function ϵ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, ν::Real=ν, E::Real=E)
-
         𝐶(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
 
         ϵᵢ(t) = 𝐶(t) / E
@@ -147,7 +145,6 @@ function run_linear_extension_example()
     ## Stresses
     "Computes strains numeric solution ϵᵢ, ϵⱼ and ϵₖ for analytic validation."
     function σ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, mat::AbstractMaterial)
-
         λ, G = lame_parameters(mat)
         𝐶(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
 

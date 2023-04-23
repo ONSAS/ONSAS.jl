@@ -21,24 +21,19 @@ struct Structure{dim,MESH,MAT,E,NB,LB} <: AbstractStructure{dim,MAT,E}
     materials::StructuralMaterials{MAT,E}
     bcs::StructuralBoundaryConditions{NB,LB}
     free_dofs::Vector{Dof}
-    function Structure(
-        mesh::MESH,
-        materials::StructuralMaterials{MAT,E},
-        bcs::StructuralBoundaryConditions{NB,LB},
-        free_dofs::Vector{Dof}
-    ) where {dim,MESH<:AbstractMesh{dim},MAT,E,NB,LB}
+    function Structure(mesh::MESH,
+                       materials::StructuralMaterials{MAT,E},
+                       bcs::StructuralBoundaryConditions{NB,LB},
+                       free_dofs::Vector{Dof}) where {dim,MESH<:AbstractMesh{dim},MAT,E,NB,LB}
         return new{dim,MESH,MAT,E,NB,LB}(mesh, materials, bcs, free_dofs)
     end
 end
 
 "Constructor with  `StructuralMaterials` `materials`,  `StructuralBoundaryConditions` `bcs` 
 and `AbstractMesh` `mesh` seting fixed dofs with `FixedDofBoundaryCondition` defined in `bcs`"
-function Structure(
-    mesh::AbstractMesh{dim},
-    materials::StructuralMaterials{M,E},
-    bcs::StructuralBoundaryConditions{NB,LB}
-) where {dim,M,E,NB,LB}
-
+function Structure(mesh::AbstractMesh{dim},
+                   materials::StructuralMaterials{M,E},
+                   bcs::StructuralBoundaryConditions{NB,LB}) where {dim,M,E,NB,LB}
     default_free_dofs = Vector{Dof}()
     for node_dofs in dofs(mesh)
         [push!(default_free_dofs, vec_dof...) for vec_dof in collect(values(node_dofs))]
@@ -51,12 +46,11 @@ function Structure(
     return Structure(mesh, materials, bcs, default_free_dofs)
 end
 
-
 "Constructor of a `Structure` given a `MshFile` `msh_file`, `StructuralMaterials` `materials`,  `StructuralBoundaryConditions` `bcs`."
 function Structure(msh_file::MshFile,
-    materials::StructuralMaterials, bcs::StructuralBoundaryConditions, s_entities::StructuralEntities,
-    dofs_to_dim::Dictionary{Symbol,<:Integer}=dictionary([:u => 3]))
-
+                   materials::StructuralMaterials, bcs::StructuralBoundaryConditions,
+                   s_entities::StructuralEntities,
+                   dofs_to_dim::Dictionary{Symbol,<:Integer}=dictionary([:u => 3]))
     nodes = msh_file.vec_nodes
     mesh = Mesh(nodes)
 
@@ -91,16 +85,16 @@ function Structure(msh_file::MshFile,
             bc_type = bcs[bc_type_label]
             push!(bcs, bc_type, entity)
         end
-
     end
 
     for (dof_symbol, dof_dim) in pairs(dofs_to_dim)
         apply!(mesh, dof_symbol, dof_dim)
     end
 
-    Structure(mesh, materials, bcs)
+    return Structure(mesh, materials, bcs)
 end
 
 "Constructor of a `PointEvalHandler` from a `Structure` and a `AbstractVector` of `Point`s ."
-PointEvalHandler(s::Structure, vec_points::AbstractVector{P}) where {T,P<:Point{T}} =
-    PointEvalHandler(mesh(s), vec_points)
+function PointEvalHandler(s::Structure, vec_points::AbstractVector{P}) where {T,P<:Point{T}}
+    return PointEvalHandler(mesh(s), vec_points)
+end

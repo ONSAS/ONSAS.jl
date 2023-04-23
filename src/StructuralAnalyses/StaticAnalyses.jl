@@ -11,7 +11,7 @@ using Reexport: @reexport
 @reexport using ...StructuralSolvers
 
 import ..StructuralAnalyses: _assemble!, initial_time, current_time, final_time, _next!,
-    iteration_residuals, is_done, reset!
+                             iteration_residuals, is_done, reset!
 
 export AbstractStaticAnalysis, load_factors, current_load_factor
 
@@ -57,7 +57,7 @@ final_time(sa::AbstractStaticAnalysis) = last(load_factors(sa))
 
 "Return `true` if the `AbstractStaticAnalysis` `sa` is completed."
 function is_done(sa::AbstractStaticAnalysis)
-    is_done_bool = if sa.current_step[] > length(load_factors(sa))
+    return is_done_bool = if sa.current_step[] > length(load_factors(sa))
         sa.current_step[] -= 1
         true
     else
@@ -80,12 +80,11 @@ function reset!(sa::AbstractStaticAnalysis)
     sa.current_step[] = 1
     reset!(current_state(sa))
     @info "The current time of analysis have been reset."
-    sa
+    return sa
 end
 
 "Assembles the Structure `s` (internal forces) during the `StaticAnalysis` `sa`."
 function _assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
-
     state = current_state(sa)
 
     # Reset assembled magnitudes
@@ -102,14 +101,11 @@ function _assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
             _assemble!(state, fᵢₙₜ_e, e)
             _assemble!(state, kₛ_e, e)
             _assemble!(state, σ_e, ϵ_e, e)
-
         end
-
     end
 
     # Insert values in the assembler objet into the sysyem tangent stiffness matrix
-    _end_assemble!(state)
-
+    return _end_assemble!(state)
 end
 
 "Resets the assembled magnitudes of the `AbstractStructuralState` `state`."
@@ -118,7 +114,7 @@ function _reset_assemble!(state::AbstractStructuralState)
     internal_forces(state) .= 0.0
     tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
     # FIXME: Zero out stress and strain
-    nothing
+    return nothing
 end
 
 "Pushes the current state `c_state` into the `StatesSolution` `st_sol`."
@@ -140,7 +136,9 @@ function Base.push!(st_sol::StatesSolution, c_state::StaticState)
     ϵᵏ = dictionary([e => deepcopy(ϵ) for (e, ϵ) in pairs(strain(c_state))])
     iter_state = deepcopy(iteration_residuals(c_state))
 
-    push!(states(st_sol), StaticState(s, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state))
+    return push!(states(st_sol),
+                 StaticState(s, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
+                             iter_state))
 end
 
 include("LinearStaticAnalyses.jl")

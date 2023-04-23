@@ -20,7 +20,6 @@ struct Assembler{T}
     V::Vector{T}
 end
 
-
 "Constructor of an `Assembler` with size of the sparse matrix `N` ."
 function Assembler(N::Integer)
     I = Int[]
@@ -30,20 +29,21 @@ function Assembler(N::Integer)
     sizehint!(J, N)
     sizehint!(V, N)
 
-    Assembler(I, J, V)
+    return Assembler(I, J, V)
 end
 
 Assembler(s::AbstractStructure) = Assembler(num_free_dofs(s))
 
 """Assembles the element matrix `Ke` into the `Assembler` struct `a`."""
-_assemble!(a::Assembler{T}, dofs::AbstractVector{Dof}, Ke::AbstractMatrix{T}) where {T} = _assemble!(a, dofs, dofs, Ke)
+function _assemble!(a::Assembler{T}, dofs::AbstractVector{Dof}, Ke::AbstractMatrix{T}) where {T}
+    return _assemble!(a, dofs, dofs, Ke)
+end
 
 "Assembles the matrix `Ke` into `Assembler` `a` according to the dofs specified by `row_dof_indexes` and `col_dof_indexes`."
 function _assemble!(a::Assembler{T},
-    row_dof_indexes::AbstractVector{Int},
-    col_dof_indexes::AbstractVector{Int},
-    Ke::AbstractMatrix{T}) where {T}
-
+                    row_dof_indexes::AbstractVector{Int},
+                    col_dof_indexes::AbstractVector{Int},
+                    Ke::AbstractMatrix{T}) where {T}
     nrows = length(row_dof_indexes)
     ncols = length(col_dof_indexes)
     @assert size(Ke) == (nrows, ncols) "The size of the element matrix Ke does not match the number of dofs."
@@ -65,7 +65,7 @@ function _reset!(a::Assembler{T}) where {T}
     empty!(a.V)
     sizehint!(a.I, N)
     sizehint!(a.J, N)
-    sizehint!(a.V, N)
+    return sizehint!(a.V, N)
 end
 
 "Return an assembled `AbstractSparseMatrix` from the `Assembler` object `a`."
