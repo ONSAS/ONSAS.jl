@@ -21,7 +21,7 @@ ATOL = 1e-2 * (Rₑ - Rᵢ);
 plot_results = false;
 ## Refinement mesh factor
 ms = 0.75;
-include("cylinder_mesh.jl")
+include("cylinder_mesh.jl");
 # -------------------------------
 # Structure
 # -------------------------------
@@ -35,7 +35,7 @@ function cylinder_structure(
     # Physical entities labels
     # -------------------------------
     # material
-    mat_label = "mat"# label(material)
+    mat_label = label(material)
     # entities
     node_label = "node"
     faces_label = "triangle"
@@ -72,7 +72,6 @@ function cylinder_structure(
     dof_dim = 3
     dof_u_symbol = :u
     apply!(mesh, dof_u_symbol, dof_dim)
-    return mesh
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -84,18 +83,17 @@ function cylinder_structure(
     bc₄ = LocalPressureBoundaryCondition([:u], t -> pressure(t), bc₄_label)
     boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # Assign boundary conditions to the ones defined in the mesh
-    apply!(s_boundary_conditions, s_mesh)
+    apply!(boundary_conditions, mesh)
     # -------------------------------
     # Materials
     # -------------------------------
     materials = StructuralMaterials(material)
-
+    apply!(materials, mesh)
 
     # -------------------------------
     # Structure
     # -------------------------------
-    # return msh_mesh
-    structure = Structure(msh_mesh, materials, boundary_conditions, entities)
+    Structure(mesh, materials, boundary_conditions)
 end;
 # -------------------------------
 # Materials
@@ -109,18 +107,6 @@ svk_material = SVK(E=E, ν=ν, label=mat_label);
 @timeit "Building the non-linear structure 🔘" begin
     nonlinear_cylinder = cylinder_structure(svk_material, Lₖ, Rᵢ, Rₑ, pressure, ms=ms)
 end
-
-
-
-
-
-
-
-
-
-
-#=
-
 # -------------------------------
 # Structural Analysis
 # -------------------------------
@@ -309,6 +295,3 @@ uᵣ_not_depends_on_θ_case2, zero_uₖ_case2, zero_uₖ_axis_y_case2, zero_uⱼ
     @test zero_uₖ_axis_y_case2
     @test zero_uⱼ_axis_x_case2
 end
-
-
-=#
