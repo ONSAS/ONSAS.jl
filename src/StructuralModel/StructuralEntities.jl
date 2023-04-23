@@ -76,7 +76,6 @@ function Mesh(msh_file::MshFile, s_entities::StructuralEntities)
         local entity_position # in the mesh vetor of of entities
 
         if entity_type_label == PHYSICAL_NODE_LABEL
-            # Since is a node 
             entity_position = entity_nodes_indexes[]
             entity = nodes_entity[]
             _add_entity_to_set!(mesh, entity_type_label, entity_position, entity)
@@ -84,7 +83,6 @@ function Mesh(msh_file::MshFile, s_entities::StructuralEntities)
             entity_type = s_entities[entity_type_label]
             entity = create_entity(entity_type, nodes_entity)
             entity_position = push!(mesh, entity)
-            # Add entity label into sets
             _add_entity_to_set!(mesh, entity_type_label, entity_position, entity)
         end
 
@@ -102,14 +100,14 @@ function Mesh(msh_file::MshFile, s_entities::StructuralEntities)
 end
 
 "Add an entity index of type `AbstractNode` to the `Mesh` `m` node `Set`s."
-function _add_entity_to_set!(m::Mesh, entity_type_label::S, entity_position::Int, ::AbstractNode) where {S}
-    add_node_to_set!(m, Symbol(entity_type_label), entity_position)
-end
+_add_entity_to_set!(m::Mesh, entity_type_label::S, entity_position::Int, ::AbstractNode) where {S} =
+    add_node_to_set!(m, String(entity_type_label), entity_position)
+
 
 "Add an entity index of type `AbstractFace` to the `Mesh` `m` face `Set`s."
 _add_entity_to_set!(m::Mesh, entity_type_label::S, entity_position::Int, ::AbstractFace) where {S} =
-    add_face_to_set!(m, Symbol(entity_type_label), entity_position)
+    add_face_to_set!(m, String(entity_type_label), entity_position)
 
 "Add an entity index of type `AbstractElement` to the `Mesh` `m` element `Set`s."
 _add_entity_to_set!(mesh::Mesh, entity_type_label::S, entity_position::Int, ::AbstractElement) where {S} =
-    add_element_to_set!(mesh, Symbol(entity_type_label), entity_position)
+    add_element_to_set!(mesh, String(entity_type_label), entity_position)

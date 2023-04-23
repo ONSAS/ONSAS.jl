@@ -146,18 +146,18 @@ struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace,EX} <: A
     elements::Vector{E}
     faces::Vector{F}
     # Sets
-    node_sets::Dictionary{Symbol,Set{Int}}
-    element_sets::Dictionary{Symbol,Set{Int}}
-    face_sets::Dictionary{Symbol,Set{Int}}
+    node_sets::Dictionary{String,Set{Int}}
+    element_sets::Dictionary{String,Set{Int}}
+    face_sets::Dictionary{String,Set{Int}}
     # Extra data
     extra::EX
     function Mesh(
         nodes::Vector{N},
         elements::Vector{E}=Vector{AbstractElement}(),
         faces::Vector{F}=Vector{AbstractFace}(),
-        node_sets=Dictionary{Symbol,Set{Int}}(),
-        face_sets=Dictionary{Symbol,Set{Int}}(),
-        element_sets=Dictionary{Symbol,Set{Int}}(),
+        node_sets=Dictionary{String,Set{Int}}(),
+        face_sets=Dictionary{String,Set{Int}}(),
+        element_sets=Dictionary{String,Set{Int}}(),
         extra::EX=nothing,
     ) where {dim,N<:AbstractNode{dim},F<:AbstractFace,E<:AbstractElement,EX}
         new{dim,N,E,F,EX}(nodes, elements, faces, node_sets, element_sets, face_sets, extra)
@@ -177,27 +177,27 @@ end
 node_set(m::Mesh) = m.node_sets
 
 "Return the `Mesh` `m` `Node` `Set` with `node_set_name`. "
-node_set(m::Mesh, node_set_name::S) where {S} = node_set(m)[Symbol(node_set_name)]
+node_set(m::Mesh, node_set_name::S) where {S} = node_set(m)[String(node_set_name)]
 
 "Return the `Mesh` `m` `Element` `Set`s. "
 element_set(m::Mesh) = m.element_sets
 
 "Return the `Mesh` `m` `Element` `Set` with `element_set_name`. "
-element_set(m::Mesh, element_set_name::S) where {S} = element_set(m)[Symbol(element_set_name)]
+element_set(m::Mesh, element_set_name::S) where {S} = element_set(m)[String(element_set_name)]
 
 "Return the `Mesh` `m` `Face` `Set`s. "
 face_set(m::Mesh) = m.face_sets
 
 "Return the `Mesh` `m` `Element` `Set` with `element_set_name`. "
-face_set(m::Mesh, fae_set_name::S) where {S} = fae_set(m)[Symbol(fae_set_name)]
+face_set(m::Mesh, fae_set_name::S) where {S} = face_set(m)[String(fae_set_name)]
 
 "Add a `node_id` to the `Mesh` `m` `Set` `node_set_name`."
 function add_node_to_set!(m::Mesh, node_set_name::S, node_id::Int) where {S}
     node_sets = node_set(m)
     if haskey(node_sets, node_set_name)
-        push!(node_sets[Symbol(node_set_name)], node_id)
+        push!(node_sets[String(node_set_name)], node_id)
     else
-        insert!(node_sets, Symbol(node_set_name), Set(node_id))
+        insert!(node_sets, String(node_set_name), Set(node_id))
     end
     node_sets
 end
@@ -206,9 +206,9 @@ end
 function add_element_to_set!(m::Mesh, element_set_name::S, element_id::Int) where {S}
     element_sets = element_set(m)
     if haskey(element_sets, element_set_name)
-        push!(element_sets[Symbol(element_set_name)], element_id)
+        push!(element_sets[String(element_set_name)], element_id)
     else
-        insert!(element_sets, Symbol(element_set_name), Set(element_id))
+        insert!(element_sets, String(element_set_name), Set(element_id))
     end
     element_sets
 end
@@ -217,9 +217,9 @@ end
 function add_face_to_set!(m::Mesh, face_set_name::S, face_id::Int) where {S}
     face_sets = face_set(m)
     if haskey(face_sets, face_set_name)
-        push!(face_sets[Symbol(face_set_name)], face_id)
+        push!(face_sets[String(face_set_name)], face_id)
     else
-        insert!(face_sets, Symbol(face_set_name), Set(face_id))
+        insert!(face_sets, String(face_set_name), Set(face_id))
     end
     face_sets
 end
