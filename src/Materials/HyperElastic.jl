@@ -1,7 +1,7 @@
 using Tensors: SymmetricTensor, hessian
 
 using ..HyperElasticMaterials: AbstractHyperElasticMaterial
-using ...Utils: _voigt
+using ...Utils: voigt
 
 import ...Materials: parameters
 import ..HyperElasticMaterials: cosserat_stress, strain_energy
@@ -23,14 +23,16 @@ struct HyperElastic{T<:Real,F<:Function,R<:Union{T,Nothing}} <: AbstractHyperEla
     Ψ::F
     ρ::R
     label::Symbol
-    function HyperElastic(params::Vector{T}, Ψ::F, ρ::R, label::L=:no_labelled_mat) where
-    {T<:Real,F<:Function,R<:Union{Nothing,Real},L<:Union{Symbol,String}}
+    function HyperElastic(params::Vector{T}, Ψ::F, ρ::R,
+                          label::L=:no_labelled_mat) where
+             {T<:Real,F<:Function,R<:Union{Nothing,Real},L<:Union{Symbol,String}}
         return new{T,F,R}(params, Ψ, ρ, Symbol(label))
     end
 end
 
 "Constructor for an `HyperElastic` material with no density parameter `ρ`."
-function HyperElastic(params::Vector{<:Real}, Ψ::Function, label::L=:no_labelled_mat) where {L<:Union{Symbol,String}}
+function HyperElastic(params::Vector{<:Real}, Ψ::Function,
+                      label::L=:no_labelled_mat) where {L<:Union{Symbol,String}}
     return HyperElastic(params, Ψ, nothing, label)
 end
 
@@ -44,7 +46,6 @@ parameters(m::HyperElastic) = m.params
 considering a `SVK` material `m` and the Lagrangian Green 
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
 function cosserat_stress(m::HyperElastic, 𝔼::AbstractMatrix)
-
     𝔼 = SymmetricTensor{2,3}(𝔼)
 
     # Closure strain energy function
@@ -59,10 +60,9 @@ function cosserat_stress(m::HyperElastic, 𝔼::AbstractMatrix)
     row = 1
     for index in indexes
         i, j = index
-        ∂𝕊∂𝔼[row, :] .= _voigt(∂²Ψ∂E²[:, :, i, j])
+        ∂𝕊∂𝔼[row, :] .= voigt(∂²Ψ∂E²[:, :, i, j])
         row += 1
     end
 
     return 𝕊, ∂𝕊∂𝔼
-
 end

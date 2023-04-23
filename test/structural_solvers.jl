@@ -1,20 +1,15 @@
 ##########################
 # Structural model tests #
 ##########################
-using Test: @testset, @test
+using Test, LinearAlgebra, SparseArrays
 using ONSAS.StructuralSolvers
-using LinearAlgebra: norm
-using SparseArrays: SparseMatrixCSC, sparse
-
 
 @testset "ONSAS.StructuralSolvers.Criteria" begin
-
     @test ResidualForceCriterion <: AbstractConvergenceCriterion
     @test ΔUCriterion <: AbstractConvergenceCriterion
     @test ΔU_and_ResidualForce_Criteria <: AbstractConvergenceCriterion
     @test MaxIterCriterion <: AbstractConvergenceCriterion
     @test NotConvergedYet <: AbstractConvergenceCriterion
-
 end
 
 # Convergence settings
@@ -24,7 +19,6 @@ max_iter = 100
 tols = ConvergenceSettings(tol_u, tol_f, max_iter)
 
 @testset "ONSAS.StructuralSolvers.ResidualsIterationStep" begin
-
     @test residual_forces_tol(tols) == tol_f
     @test displacement_tol(tols) == tol_u
     @test max_iter_tol(tols) == max_iter
@@ -68,7 +62,6 @@ tols = ConvergenceSettings(tol_u, tol_f, max_iter)
     @test iter(residuals_current_step) == 0
     @test criterion(residuals_current_step) isa NotConvergedYet
     @test isconverged!(residuals_current_step, tols) isa NotConvergedYet
-
 end
 
 @testset "ONSAS.StructuralSolvers.NewtonRaphson" begin
@@ -77,17 +70,12 @@ end
 end
 
 @testset "ONSAS.StructuralSolvers.Assembler" begin
+    Ke = [1.0 2.0
+          3.0 4.0]
 
-    Ke = [
-        1.0 2.0
-        3.0 4.0
-    ]
-
-    K_glob = [
-        1.0 2.0 0.0
-        3.0 5.0 2.0
-        0.0 3.0 4.0
-    ]
+    K_glob = [1.0 2.0 0.0
+              3.0 5.0 2.0
+              0.0 3.0 4.0]
 
     dofs_element_1 = [Dof(1), Dof(2)]
     dofs_element_2 = [Dof(2), Dof(3)]
@@ -105,17 +93,16 @@ end
     @test a.I == [1, 2, 1, 2, 2, 3, 2, 3]
     @test a.J == [1, 1, 2, 2, 2, 2, 3, 3]
     @test a.V == [
-        # Element 1
-        Ke[1, 1],
-        Ke[2, 1],
-        Ke[1, 2],
-        Ke[2, 2],
-        # Element 2
-        Ke[1, 1],
-        Ke[2, 1],
-        Ke[1, 2],
-        Ke[2, 2],
-    ]
+       # Element 1
+                  Ke[1, 1],
+                  Ke[2, 1],
+                  Ke[1, 2],
+                  Ke[2, 2],
+       # Element 2
+                  Ke[1, 1],
+                  Ke[2, 1],
+                  Ke[1, 2],
+                  Ke[2, 2]]
 
     K_glob_assembler = end_assemble(a)
 
@@ -130,5 +117,4 @@ end
     @test isempty(a.I)
     @test isempty(a.J)
     @test isempty(a.V)
-
 end

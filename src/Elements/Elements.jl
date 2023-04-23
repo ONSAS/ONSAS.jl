@@ -18,11 +18,12 @@ using ..Utils: row_vector
 import StaticArrays
 import ..CrossSections: area
 
-export Dof, add!, Point
+export Dof, apply!, Point
 export AbstractNode, dimension, dofs, coordinates
 export AbstractEntity, nodes, coordinates, create_entity
 export AbstractFace, normal_direction
-export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress, weights
+export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
+       local_dofs, nodes, strain, stress, weights
 
 const Point{dim,T} = Union{<:AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
 
@@ -79,7 +80,7 @@ dofs(vn::Vector{<:AbstractNode}) = vcat(dofs.(vn)...)
 dofs(n::AbstractNode, s::Symbol) = n.dofs[s]
 
 "Sets a `Vector`s of dofs `vd` to the `AbstractNode` `n` assigned to the symbol `s`."
-function add!(n::AbstractNode, s::Symbol, vd::Vector{Dof})
+function apply!(n::AbstractNode, s::Symbol, vd::Vector{Dof})
     if s ∉ keys(dofs(n))
         insert!(dofs(n), s, vd)
     else
@@ -127,7 +128,7 @@ function dofs(e::AbstractEntity)
     vecdfs = dofs.(nodes(e))
     dfs = mergewith(vcat, vecdfs[1], vecdfs[2])
     [mergewith!(vcat, dfs, vecdfs[i]) for i in 3:length(vecdfs)]
-    dfs
+    return dfs
 end
 
 "Return the dofs of a `Vector` `ve` with `AbstractEntity`es."
@@ -261,5 +262,3 @@ include("./Truss.jl")
 include("./Tetrahedron.jl")
 
 end # module
-
-

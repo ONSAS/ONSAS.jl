@@ -1,11 +1,8 @@
 # ----------------------------- 
 # Uniaxial Compression Example
 # -----------------------------
-using ONSAS.StaticAnalyses
-using ONSAS.Utils: eye
-using Suppressor: @capture_out
-using Test: @test, @testset
-using LinearAlgebra: Symmetric, norm, det, tr
+using Test, LinearAlgebra, Suppressor
+using ONSAS
 
 # Mesh Cube with Gmsh.jl
 include(joinpath("..", "uniaxial_extension", "uniaxial_mesh.jl"))
@@ -65,7 +62,7 @@ function run_uniaxial_compression()
     # Dofs
     #--------------------------------
     dof_dim = 3
-    add!(s₁_mesh, :u, dof_dim)
+    apply!(s₁_mesh, :u, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------
@@ -89,7 +86,7 @@ function run_uniaxial_compression()
     # Assign this to faces 
     face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
     # Crete boundary conditions struct
-    s₁_boundary_conditions = StructuralBoundaryConditions(face_bcs=face_bc)
+    s₁_boundary_conditions = StructuralBoundaryConditions(; face_bcs=face_bc)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     # -------------------------------
     # Structure
@@ -99,7 +96,7 @@ function run_uniaxial_compression()
     # Structural Analysis
     # -------------------------------
     # Final load factor
-    sa₁ = NonLinearStaticAnalysis(s₁, NSTEPS=NSTEPS)
+    sa₁ = NonLinearStaticAnalysis(s₁; NSTEPS=NSTEPS)
     # Resets the analysis in order to run it multiple times
     reset!(sa₁)
     # -------------------------------
@@ -166,7 +163,7 @@ function run_uniaxial_compression()
         # First invariant
         I₁ = tr(ℂ)
         # Strain energy function 
-        Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
+        return Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
     end
     params = [K, μ] # The order must be the same defined in the strain energy (splatting)
     mat_label = "neoHyper"
@@ -236,21 +233,24 @@ function run_uniaxial_compression()
     # Analytic solution  
     #-----------------------------
     "Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
-    function u_ijk_numeric(
-        numerical_α::Vector{<:Real}, numerical_β::Vector{<:Real}, numerical_γ::Vector{<:Real},
-        x::Real, y::Real, z::Real)
+    function u_ijk_numeric(numerical_α::Vector{<:Real}, numerical_β::Vector{<:Real},
+                           numerical_γ::Vector{<:Real},
+                           x::Real, y::Real, z::Real)
         return x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
     end
     # Test with Second Piola-Kirchoff stress tensor `ℙ`.
     "Computes ℙ(1,1) given α, β and γ."
-    analytic_ℙᵢᵢ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K) =
-        μ * α - μ * (α .^ (-1)) + K * (β .^ 2) .* (α .* (β .^ 2) .- 1)
+    function analytic_ℙᵢᵢ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
+        return μ * α - μ * (α .^ (-1)) + K * (β .^ 2) .* (α .* (β .^ 2) .- 1)
+    end
     "Computes ℙ(2,2) given α, β and γ."
-    analytic_ℙⱼⱼ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K) =
-        μ * β - μ * (β .^ (-1)) + K * β .* ((α .^ 2) .* (β .^ 2) - α)
+    function analytic_ℙⱼⱼ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
+        return μ * β - μ * (β .^ (-1)) + K * β .* ((α .^ 2) .* (β .^ 2) - α)
+    end
     "Computes ℙ(2,2) given α, β and γ."
-    analytic_ℙₖₖ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K) =
-        analytic_ℙⱼⱼ(α, β, μ, K)
+    function analytic_ℙₖₖ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
+        return analytic_ℙⱼⱼ(α, β, μ, K)
+    end
     # Compute the analytic Second Piola-Kirchoff stress tensor `ℙ` for the numeric vectors α and β
     # Case 1 
     ℙᵢᵢ_analytic_case₁ = analytic_ℙᵢᵢ(numeric_α_case₁, numeric_β_case₁)
@@ -266,7 +266,8 @@ function run_uniaxial_compression()
     rand_point = [[rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ]]
     eval_handler_rand = PointEvalHandler(mesh(s₂), rand_point)
     # Compute analytic solution at a random point 
-    uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, rand_point[]...)
+    uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂,
+                                                 rand_point[]...)
     rand_point_uᵢ = displacements(states_sol_case₂, eval_handler_rand, 1)
     rand_point_uⱼ = displacements(states_sol_case₂, eval_handler_rand, 2)
     rand_point_uₖ = displacements(states_sol_case₂, eval_handler_rand, 3)

@@ -1,7 +1,7 @@
 ##########################
 # Structural model tests #
 ##########################
-using Test: @testset, @test
+using Test
 using ONSAS.StructuralModel
 
 # Scalar parameters
@@ -11,10 +11,18 @@ h = 1.0
 E = 2e9
 ν = 0.3
 # Nodes
-n₁ = Node(0, 0, 0, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)], :T => [Dof(25)]]))
-n₂ = Node(0, 1, 0, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)], :T => [Dof(26)]]))
-n₃ = Node(0, 0, 1, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)], :T => [Dof(27)]]))
-n₄ = Node(1, 1, 1, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)], :T => [Dof(28)]]))
+n₁ = Node(0, 0, 0,
+          dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)],
+                      :T => [Dof(25)]]))
+n₂ = Node(0, 1, 0,
+          dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)],
+                      :T => [Dof(26)]]))
+n₃ = Node(0, 0, 1,
+          dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)],
+                      :T => [Dof(27)]]))
+n₄ = Node(1, 1, 1,
+          dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)],
+                      :T => [Dof(28)]]))
 # Faces 
 face₁ = TriangularFace(n₁, n₂, n₃)
 face₂ = TriangularFace(n₃, n₄, n₃)
@@ -44,17 +52,15 @@ node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂, n�
 face_bc = dictionary([bc₃ => [face₁], bc₅ => [face₁]])
 elem_bc = dictionary([bc₄ => [truss₁, truss₂]])
 
-s_boundary_conditions_only_nodes = StructuralBoundaryConditions(node_bcs=node_bc)
-s_boundary_conditions_only_faces = StructuralBoundaryConditions(face_bcs=face_bc)
-s_boundary_conditions_only_elements = StructuralBoundaryConditions(element_bcs=elem_bc)
+s_boundary_conditions_only_nodes = StructuralBoundaryConditions(; node_bcs=node_bc)
+s_boundary_conditions_only_faces = StructuralBoundaryConditions(; face_bcs=face_bc)
+s_boundary_conditions_only_elements = StructuralBoundaryConditions(; element_bcs=elem_bc)
 s_boundary_conditions = StructuralBoundaryConditions(node_bc, face_bc, elem_bc)
 
 @testset "ONSAS.StructuralModel.StructuralMaterials" begin
-
     @test s_materials[truss₁] == steel
     @test s_materials["steel"] == steel
     @test truss₁ ∈ s_materials[steel] && truss₃ ∈ s_materials[steel]
-
 end
 
 @testset "ONSAS.StructuralModel.StructuralBoundaryConditions" begin
@@ -73,14 +79,17 @@ end
 
     @test s_boundary_conditions["fixed_uⱼ"] == bc₂
     @test truss₁ ∈ s_boundary_conditions[bc₄]
-    @test face₁ ∈ s_boundary_conditions[bc₃] && n₂ ∈ s_boundary_conditions[bc₃] && n₁ ∈ s_boundary_conditions[bc₃]
+    @test face₁ ∈ s_boundary_conditions[bc₃] && n₂ ∈ s_boundary_conditions[bc₃] &&
+          n₁ ∈ s_boundary_conditions[bc₃]
     @test length(s_boundary_conditions[bc₃]) == 3
     @test bc₂ ∈ s_boundary_conditions[n₂] && bc₃ ∈ s_boundary_conditions[n₂]
     @test bc₄ ∈ s_boundary_conditions[truss₁]
 
     # Constructor only with node or element boundary onditions(node_bc)
-    @test isempty(element_bcs(s_boundary_conditions_only_nodes)) && isempty(face_bcs(s_boundary_conditions_only_nodes))
-    @test isempty(element_bcs(s_boundary_conditions_only_faces)) && isempty(node_bcs(s_boundary_conditions_only_faces))
+    @test isempty(element_bcs(s_boundary_conditions_only_nodes)) &&
+          isempty(face_bcs(s_boundary_conditions_only_nodes))
+    @test isempty(element_bcs(s_boundary_conditions_only_faces)) &&
+          isempty(node_bcs(s_boundary_conditions_only_faces))
 
     # Apply boundary conditions
     @test _apply(s_boundary_conditions, bc₁) == vcat(Dof.(1:3), Dof.(7:9))
@@ -103,7 +112,6 @@ end
     @test dofs_bc₃_to_test == dofs_bc₃
     @test f_bc₃_to_test == f_bc₃
 
-
     # Push an entity to a boundary condition 
     push!(s_boundary_conditions, bc₃, n₁)
     push!(s_boundary_conditions, bc₃, face₂)
@@ -112,12 +120,9 @@ end
     @test n₁ ∈ s_boundary_conditions[bc₃] &&
           face₂ ∈ s_boundary_conditions[bc₃] &&
           truss₄ ∈ s_boundary_conditions[bc₄]
-
-
 end
 
 @testset "ONSAS.StructuralModel.StructuralEntities" begin
-
     sec = Square(1)
 
     tetra_label = "tetra_label"
@@ -136,18 +141,15 @@ end
     @test all([e ∈ all_entities(s_entities) for e in vcat(velems, vfaces)])
     @test s_entities[tetra_label] == velems[1]
     @test s_entities[truss_label] == velems[2]
-
 end
 
-
 @testset "ONSAS.StructuralModel.Structure" begin
-
     n₁ = Node(0, 0, 0)
     n₂ = Node(0, 1, 0)
     n₃ = Node(0, 0, 1)
 
     s_mesh = Mesh([n₁, n₂, n₃], [truss₁, truss₂, truss₃])
-    add!(s_mesh, :u, dof_dim)
+    apply!(s_mesh, :u, dof_dim)
     s = Structure(s_mesh, s_materials, s_boundary_conditions)
 
     # Dofs

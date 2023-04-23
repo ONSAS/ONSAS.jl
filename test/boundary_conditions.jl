@@ -1,19 +1,26 @@
 ###################################
 # BoundaryConditions module tests #
 ###################################
-using Test: @testset, @test
+using Test
 using ONSAS.BoundaryConditions
 using ONSAS.Elements
 
 # Entities 
-n₁ = Node(0, 0, 0, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)], :T => [Dof(25)]]))
-n₂ = Node(0, 1, 0, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)], :T => [Dof(26)]]))
-n₃ = Node(0, 0, 1, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)], :T => [Dof(27)]]))
-n₄ = Node(2, 0, 1, dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)], :T => [Dof(28)]]))
+n₁ = Node(0, 0, 0,
+          dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)],
+                      :T => [Dof(25)]]))
+n₂ = Node(0, 1, 0,
+          dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)],
+                      :T => [Dof(26)]]))
+n₃ = Node(0, 0, 1,
+          dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)],
+                      :T => [Dof(27)]]))
+n₄ = Node(2, 0, 1,
+          dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)],
+                      :T => [Dof(28)]]))
 
 t_face = TriangularFace(n₁, n₂, n₃)
 tetra = Tetrahedron(n₁, n₂, n₃, n₄)
-
 
 @testset "ONSAS.BoundaryConditions.FixedDofBoundaryCondition" begin
 
@@ -29,10 +36,9 @@ tetra = Tetrahedron(n₁, n₂, n₃, n₄)
 
     @test _apply(fixed_bc, n₃) == [Dof(7), Dof(9), Dof(19), Dof(21)]
     @test _apply(fixed_bc, t_face) == [Dof(1), Dof(3), Dof(13), Dof(15), Dof(4),
-        Dof(6), Dof(16), Dof(18), Dof(7), Dof(9), Dof(19), Dof(21)]
+                                       Dof(6), Dof(16), Dof(18), Dof(7), Dof(9), Dof(19), Dof(21)]
     @test _apply(fixed_bc, tetra) == [Dof(1), Dof(3), Dof(13), Dof(15), Dof(4), Dof(6), Dof(16),
-        Dof(18), Dof(7), Dof(9), Dof(19), Dof(21), Dof(10), Dof(12), Dof(22), Dof(24)]
-
+                                      Dof(18), Dof(7), Dof(9), Dof(19), Dof(21), Dof(10), Dof(12), Dof(22), Dof(24)]
 end
 
 t_to_test = 2.0
@@ -44,9 +50,7 @@ t_to_test = 2.0
     load_fact_generic(t) = [sin(t), t, t^2]
     generic_values = t -> load_fact_generic(t) .* [1, 1, 1]
     generic_bc_label = :bc_generic
-    generic_bc = GlobalLoadBoundaryCondition(
-        dofs_to_apply_bc, generic_values, generic_bc_label
-    )
+    generic_bc = GlobalLoadBoundaryCondition(dofs_to_apply_bc, generic_values, generic_bc_label)
 
     @test dofs(generic_bc) == dofs_to_apply_bc
     @test values(generic_bc) == generic_values
@@ -68,7 +72,6 @@ t_to_test = 2.0
     @test loaded_dofs == vcat(Dof.(1:24))
 
     @test b_vec == repeat(generic_bc(t_to_test) * volume(tetra) / 4, 8)
-
 end
 
 @testset "ONSAS.BoundaryConditions.LocalPressureBoundaryCondition" begin
@@ -89,4 +92,3 @@ end
     @test loaded_dofs == vcat(Dof.(1:9))
     @test p_vec == repeat([generic_values(t_to_test)[1] * area(t_face) / 3, 0, 0], 3)
 end
-

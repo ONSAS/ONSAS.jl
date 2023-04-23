@@ -17,12 +17,10 @@ import ..Meshes: mesh, num_dofs, elements, num_elements, num_nodes
 
 export Structure, materials, boundary_conditions, num_free_dofs, free_dofs
 
-
 # Structural properties 
 include("./StructuralMaterials.jl")
 include("./StructuralBoundaryConditions.jl")
 include("./StructuralEntities.jl")
-
 
 # ==========
 # Structure
@@ -108,6 +106,5 @@ materials(s::AbstractStructure) = s.materials
 # Abstract structure implementations #
 #====================================#
 include("./Structure.jl")
-
 
 end # module

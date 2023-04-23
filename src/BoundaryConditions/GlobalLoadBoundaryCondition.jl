@@ -18,8 +18,10 @@ struct GlobalLoadBoundaryCondition <: AbstractLoadBoundaryCondition
 end
 
 "Constructor for `LocalPressureBoundaryCondition` with a string label."
-GlobalLoadBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::String="no_labelled_bc") =
-    GlobalLoadBoundaryCondition(dofs, values, Symbol(name))
+function GlobalLoadBoundaryCondition(dofs::Vector{Symbol}, values::Function,
+                                     name::String="no_labelled_bc")
+    return GlobalLoadBoundaryCondition(dofs, values, Symbol(name))
+end
 
 "Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to 
 the `AbstractNode` `n` at time `t`. "
@@ -31,7 +33,7 @@ function _apply(lbc::GlobalLoadBoundaryCondition, n::AbstractNode, t::Real)
     f = lbc(t)
 
     # Repeat the values and build the force vector for all dofs
-    f_dofs = repeat(f, outer=Int(length(dofs_lbc) / length(f)))
+    f_dofs = repeat(f; outer=Int(length(dofs_lbc) / length(f)))
 
     @assert length(f_dofs) == length(dofs_lbc)
     "The length of the force vector must be equal to the length of the dofs vector."
@@ -53,14 +55,13 @@ function _apply(lbc::GlobalLoadBoundaryCondition, f::AbstractFace, t::Real)
     [push!(dofs_lbc, dofs(n)[dof_symbol]...) for dof_symbol in dofs(lbc) for n in nodes(f)]
 
     # Repeat the values and build the tension vector for all dofs
-    p_vec = repeat(p_nodal, outer=Int(length(dofs_lbc) / length(p)))
+    p_vec = repeat(p_nodal; outer=Int(length(dofs_lbc) / length(p)))
 
     @assert length(p_vec) == length(dofs_lbc)
     "The length of the tension vector must be equal to the length of the dofs vector."
 
     return dofs_lbc, p_vec
 end
-
 
 "Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractElement` `e` at time `t`."
 function _apply(lbc::GlobalLoadBoundaryCondition, e::AbstractElement, t::Real)
@@ -76,11 +77,10 @@ function _apply(lbc::GlobalLoadBoundaryCondition, e::AbstractElement, t::Real)
     [push!(dofs_lbc, dofs(n)[dof_symbol]...) for dof_symbol in dofs(lbc) for n in nodes(e)]
 
     # Repeat the values and build the tension vector for all dofs
-    b_vec = repeat(b_nodal, outer=Int(length(dofs_lbc) / length(b_nodal)))
+    b_vec = repeat(b_nodal; outer=Int(length(dofs_lbc) / length(b_nodal)))
 
     @assert length(b_vec) == length(dofs_lbc)
     "The length of the tension vector must be equal to the length of the dofs vector."
 
     return dofs_lbc, b_vec
 end
-

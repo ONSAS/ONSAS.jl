@@ -8,7 +8,7 @@ function strain_energy_neo(𝔼::AbstractMatrix, K::Real, μ::Real)
     # First invariant
     I₁ = tr(ℂ)
     # Strain energy function 
-    Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
+    return Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
 end
 
 # Include `create_mesh` function.
@@ -69,5 +69,5 @@ function uniaxial_compression_structure(; ms=0.5)
     labels = [mat_label, entities_labels, bc_labels]
     dir = joinpath(pkgdir(ONSAS), "benchmark", "uniaxial_compression")
     mesh = MshFile(create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms, dir))
-    Structure(mesh, materials, boundary_conditions, entities)
+    return Structure(mesh, materials, boundary_conditions, entities)
 end

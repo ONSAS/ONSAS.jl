@@ -1,9 +1,8 @@
 # ------------------------------------------------------------- 
 # Von Misses Truss Example from (Zerpa, Bazzano 2017 ) - 2.5.4
 # -------------------------------------------------------------
-using Test: @test
-using LinearAlgebra: norm
-using ONSAS.StaticAnalyses
+using Test, LinearAlgebra
+using ONSAS
 
 "Runs the Von Misses Truss example."
 function run_von_misses_truss_example()
@@ -40,11 +39,11 @@ function run_von_misses_truss_example()
     # Dofs
     #--------------------------------
     dof_dim = 3
-    add!(s_mesh, :u, dof_dim)
+    apply!(s_mesh, :u, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------
-    steel = SVK(E=E, ν=ν, label="steel")
+    steel = SVK(; E=E, ν=ν, label="steel")
     mat_dict = dictionary([steel => [truss₁, truss₂]])
     s_materials = StructuralMaterials(mat_dict)
     # -------------------------------
@@ -56,7 +55,7 @@ function run_von_misses_truss_example()
     # Load 
     bc₃ = GlobalLoadBoundaryCondition([:u], t -> [0, 0, Fₖ * t], "load in j")
     node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
-    s_boundary_conditions = StructuralBoundaryConditions(node_bcs=node_bc)
+    s_boundary_conditions = StructuralBoundaryConditions(; node_bcs=node_bc)
     # -------------------------------
     # Structure
     # -------------------------------
@@ -67,7 +66,7 @@ function run_von_misses_truss_example()
     # Final load factor
     λ₁ = 1
     NSTEPS = 10
-    sa = NonLinearStaticAnalysis(s, λ₁, NSTEPS=NSTEPS)
+    sa = NonLinearStaticAnalysis(s, λ₁; NSTEPS=NSTEPS)
     # -------------------------------
     # Algorithm
     # -------------------------------
@@ -96,10 +95,10 @@ function run_von_misses_truss_example()
     #-----------------------------
     "Analytic load factor solution for the displacement `uₖ` towards z axis at node `n₂`."
     function load_factors_analytic(uₖ::Real, E::Real=E, A::Real=A₀, H::Real=H, V::Real=V, l₀=L)
-        λ = -2 * E * A *
-            ((H + uₖ)^2 + V^2 - l₀^2) /
-            (l₀ * (l₀ + sqrt((H + uₖ)^2 + V^2))) *
-            (H + uₖ) / sqrt((H + uₖ)^2 + V^2)
+        return λ = -2 * E * A *
+                   ((H + uₖ)^2 + V^2 - l₀^2) /
+                   (l₀ * (l₀ + sqrt((H + uₖ)^2 + V^2))) *
+                   (H + uₖ) / sqrt((H + uₖ)^2 + V^2)
     end
     analytics_λᵥ = load_factors_analytic.(numerical_uₖ)
     #-----------------------------

@@ -13,34 +13,41 @@ A `Node` is a point in space. The coordinates of the node are stored using `SVec
 struct Node{dim,T} <: AbstractNode{dim,T}
     x::SVector{dim,T}
     dofs::Dictionary{Symbol,Vector{Dof}}
-    function Node(
-        x::SVector{dim,T}, dofs::Dictionary{Symbol,Vector{Dof}}) where {dim,T<:Real}
+    function Node(x::SVector{dim,T}, dofs::Dictionary{Symbol,Vector{Dof}}) where {dim,T<:Real}
         @assert dim ≤ 3 "Only 1D, 2D or 3D nodes are supported."
-        new{dim,T}(x, dofs)
+        return new{dim,T}(x, dofs)
     end
 end
 
 # TODO Add @show method?
 
 "1D `Node` constructor with coordinates `x₁`."
-Node(x₁::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =
-    Node(SVector(x₁), dofs)
+function Node(x₁::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real}
+    return Node(SVector(x₁), dofs)
+end
 
 "2D `Node` constructor with coordinates `x₁` and `x₂`."
-Node(x₁::T, x₂::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =
-    Node(SVector((x₁, x₂)), dofs)
+function Node(x₁::T, x₂::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real}
+    return Node(SVector((x₁, x₂)), dofs)
+end
 
 "3D `Node` constructor with coordinates `x₁`, `x₂`  and `x₃` and an optional `Dof` dictionary `dofs`.."
-Node(x₁::T, x₂::T, x₃::T, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =
-    Node(SVector(x₁, x₂, x₃), dofs)
+function Node(x₁::T, x₂::T, x₃::T,
+              dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real}
+    return Node(SVector(x₁, x₂, x₃), dofs)
+end
 
 "`Node` constructor with a `NTuple` `t` and an optional `Dof` dictionary `dofs`."
-Node(t::NTuple{dim,T}, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {dim,T<:Real} =
-    Node(SVector(t), dofs)
+function Node(t::NTuple{dim,T},
+              dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {dim,T<:Real}
+    return Node(SVector(t), dofs)
+end
 
 "`Node` constructor with an `AbstractVector` `v`."
-Node(v::AbstractVector{T}, dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real} =
-    Node(SVector(v...), dofs)
+function Node(v::AbstractVector{T},
+              dofs::Dictionary=Dictionary{Symbol,Vector{Dof}}()) where {T<:Real}
+    return Node(SVector(v...), dofs)
+end
 
 StaticArrays.similar_type(::Type{Node{dim,T}}, ::Type{T}, s::Size{dim}) where {dim,T} = Node{dim,T}
 

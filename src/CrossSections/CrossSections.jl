@@ -49,11 +49,11 @@ Ixz(::AbstractCrossSection) = cs.Ixz
 Iyz(::AbstractCrossSection) = cs.Iyz
 
 "Return the inertia tensor in the system of coordinates `x-y-z`"
-I_tensor_xyz(cs::AbstractCrossSection) = [
-    Ixx(cs) -Ixy(cs) -Ixz(cs)
-    -Ixy(cs) Iyy(cs) -Iyz(cs)
-    -Ixz(cs) -Iyz(cs) Izz(cs)
-]
+function I_tensor_xyz(cs::AbstractCrossSection)
+    return [Ixx(cs) -Ixy(cs) -Ixz(cs)
+            -Ixy(cs) Iyy(cs) -Iyz(cs)
+            -Ixz(cs) -Iyz(cs) Izz(cs)]
+end
 
 #======================================#
 # AbstractCrossSection implementations #
@@ -65,8 +65,3 @@ include("./Square.jl")
 include("./GenericCrossSection.jl")
 
 end # module
-
-
-
-
-

@@ -2,37 +2,37 @@ module ONSAS
 
 using Reexport: @reexport
 
-# Utils 
-include("./Utils.jl")
+FILES = ["Utils.jl",
+         "Materials/Materials.jl",
+         "CrossSections/CrossSections.jl",
+         "Elements/Elements.jl",
+         "BoundaryConditions/BoundaryConditions.jl",
+         "Meshes/Meshes.jl",
+         "StructuralModel/StructuralModel.jl",
+         "StructuralSolvers/StructuralSolvers.jl",
+         "StructuralAnalyses/StructuralAnalyses.jl"]
+
+foreach(FILES) do m
+    return include(m)
+end
+
+# Utility methods.
 @reexport using .Utils
 
-# Input modules
-include("Materials/Materials.jl")
+# Physical models.
 @reexport using .Materials
-
-include("CrossSections/CrossSections.jl")
 @reexport using .CrossSections
-
-include("Elements/Elements.jl")
 @reexport using .Elements
-
-include("BoundaryConditions/BoundaryConditions.jl")
 @reexport using .BoundaryConditions
-
-include("Meshes/Meshes.jl")
 @reexport using .Meshes
 
-# Structural model 
-include("StructuralModel/StructuralModel.jl")
+# Structural models.
 @reexport using .StructuralModel
 
-# Solvers
-include("StructuralSolvers/StructuralSolvers.jl")
+# Finite element solvers.
 @reexport using .StructuralSolvers
 
-# Analysis
-include("StructuralAnalyses/StructuralAnalyses.jl")
+# Structural analyses.
 @reexport using .StructuralAnalyses
-
 
 end # module

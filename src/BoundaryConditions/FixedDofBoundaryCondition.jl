@@ -19,8 +19,10 @@ Base.@kwdef struct FixedDofBoundaryCondition <: AbstractDisplacementBoundaryCond
     name::Symbol = :no_labelled_bc
 end
 
-FixedDofBoundaryCondition(dofs::Vector{Symbol}, components::Vector{Int}, name::String="no_labelled_bc") =
-    FixedDofBoundaryCondition(dofs, components, Symbol(name))
+function FixedDofBoundaryCondition(dofs::Vector{Symbol}, components::Vector{Int},
+                                   name::String="no_labelled_bc")
+    return FixedDofBoundaryCondition(dofs, components, Symbol(name))
+end
 
 "Return the fixed components of the `Dof`s defined in the boundary condition `bc`."
 components(bc::FixedDofBoundaryCondition) = bc.components
@@ -32,12 +34,12 @@ function _apply(fbc::FixedDofBoundaryCondition, n::AbstractNode)
     for dof_symbol in fbc_dofs_symbols
         push!(dofs_to_delete, getindex(dofs(n), dof_symbol)[components(fbc)]...)
     end
-    dofs_to_delete
+    return dofs_to_delete
 end
 
 "Return fixed `Dof`s of an `AbstractFace` or `AbstractElement` imposed in the `FixedDofBoundaryCondition` `fbc`."
 function _apply(fbc::FixedDofBoundaryCondition, e::E) where {E<:Union{AbstractFace,AbstractElement}}
     dofs_to_delete = Dof[]
     [push!(dofs_to_delete, _apply(fbc, n)...) for n in nodes(e)]
-    dofs_to_delete
+    return dofs_to_delete
 end

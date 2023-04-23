@@ -2,12 +2,9 @@
 # Uniaxial Extension ExampleExercise 4 from section 6.5 in (Holzapfel,2000).
 # For notation see: https://onsas.github.io/ONSAS.m/dev/examples/uniaxialExtension/
 # --------------------------------------------------------------------------
-using ONSAS.StaticAnalyses
-using ONSAS.Utils: eye
-using Suppressor: @capture_out
-using Test: @test, @testset
-using LinearAlgebra: det, tr
+using Test, LinearAlgebra, Suppressor
 using Roots: find_zero
+using ONSAS
 
 include("uniaxial_mesh.jl") # Mesh Cube with Gmsh.jl
 
@@ -62,11 +59,11 @@ function run_uniaxial_extension()
     #--------------------------------
     dof_dim = 3
     dof_u_symbol = :u
-    add!(s₁_mesh, dof_u_symbol, dof_dim)
+    apply!(s₁_mesh, dof_u_symbol, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------
-    svk = SVK(E=E, ν=ν, label="svk")
+    svk = SVK(; E=E, ν=ν, label="svk")
     mat_dict = dictionary([svk => [t₁, t₂, t₃, t₄, t₅, t₆]])
     s₁_materials = StructuralMaterials(mat_dict)
     # -------------------------------
@@ -85,7 +82,7 @@ function run_uniaxial_extension()
     # Assign this to faces 
     face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
     # Crete boundary conditions struct
-    s₁_boundary_conditions = StructuralBoundaryConditions(face_bcs=face_bc)
+    s₁_boundary_conditions = StructuralBoundaryConditions(; face_bcs=face_bc)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     # -------------------------------
     # Structure
@@ -96,7 +93,7 @@ function run_uniaxial_extension()
     # -------------------------------
     # Final load factor
     NSTEPS = 8
-    sa₁ = NonLinearStaticAnalysis(s₁, NSTEPS=NSTEPS)
+    sa₁ = NonLinearStaticAnalysis(s₁; NSTEPS=NSTEPS)
     # -------------------------------
     # Algorithm
     # -------------------------------
@@ -181,7 +178,7 @@ function run_uniaxial_extension()
     # -------------------------------
     s₂ = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
     # Final load factor
-    sa₂ = NonLinearStaticAnalysis(s₂, NSTEPS=NSTEPS)
+    sa₂ = NonLinearStaticAnalysis(s₂; NSTEPS=NSTEPS)
     # -------------------------------
     # Numerical solution
     # -------------------------------
@@ -200,14 +197,16 @@ function run_uniaxial_extension()
     # Analytic solution  
     #-----------------------------
     "Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
-    function u_ijk_numeric(
-        numerical_α::Vector{<:Real}, numerical_β::Vector{<:Real}, numerical_γ::Vector{<:Real},
-        x::Real, y::Real, z::Real)
+    function u_ijk_numeric(numerical_α::Vector{<:Real}, numerical_β::Vector{<:Real},
+                           numerical_γ::Vector{<:Real},
+                           x::Real, y::Real, z::Real)
         return x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
     end
     # Test with load factors
     "Analytic load factor solution for the displacement `uᵢ` towards `x` axis at node `n₆`."
-    load_factors_analytic(uᵢ::Real, p::Real=p, E::Real=E, Lᵢ::Real=Lᵢ) = 1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
+    function load_factors_analytic(uᵢ::Real, p::Real=p, E::Real=E, Lᵢ::Real=Lᵢ)
+        return 1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
+    end
     # Compute load factors with numerical solutions
     analytics_λᵥ_case₁ = load_factors_analytic.(numeric_uᵢ_case₁)
     analytics_λᵥ_case₂ = load_factors_analytic.(numeric_uᵢ_case₂)
@@ -217,11 +216,9 @@ function run_uniaxial_extension()
     β_analytic = sqrt(-ν * (α_analytic^2 - 1) + 1)
     # Gradient tensor
     # 𝑢 = (αx, βy, γz)
-    𝔽_analytic = [
-        α_analytic 0 0
-        0 β_analytic 0
-        0 0 β_analytic
-    ]
+    𝔽_analytic = [α_analytic 0 0
+                  0 β_analytic 0
+                  0 0 β_analytic]
     # Right hand Cauchy tensor 
     ℂ_analytic = 𝔽_analytic' * 𝔽_analytic
     𝕁 = det(ℂ_analytic)
@@ -241,7 +238,8 @@ function run_uniaxial_extension()
     rand_point = [[rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ]]
     eval_handler_rand = PointEvalHandler(mesh(s₂), rand_point)
     # Compute analytic solution at a random point 
-    uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, rand_point[]...)
+    uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂,
+                                                 rand_point[]...)
     rand_point_uᵢ = displacements(states_sol_case₂, eval_handler_rand, 1)
     rand_point_uⱼ = displacements(states_sol_case₂, eval_handler_rand, 2)
     rand_point_uₖ = displacements(states_sol_case₂, eval_handler_rand, 3)

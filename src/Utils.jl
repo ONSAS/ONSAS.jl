@@ -2,7 +2,7 @@ module Utils
 
 using LinearAlgebra: Diagonal
 
-export ScalarWrapper, label, _unwrap, eye, row_vector, Point, @debugtime
+export ScalarWrapper, label, _unwrap, eye, row_vector, Point, @debugtime, voigt
 
 #================================#
 # Generic functions to overload  #
@@ -37,8 +37,10 @@ eye(m::Integer, T=Bool) = Diagonal(ones(T, m))
 "Transforms a vector of vectors into a 1D row vector."
 row_vector(v::Vector{<:AbstractVector{T}}) where {T} = reduce(vcat, v)
 
-"Return the Voigt notation of tensor `𝕋`."
-_voigt(𝕋::AbstractMatrix, α::Real=1) = [𝕋[1, 1], 𝕋[2, 2], 𝕋[3, 3], α * 𝕋[2, 3], α * 𝕋[1, 3], α * 𝕋[1, 2]]
+"Return the tensor `𝕋` in Voigt notation."
+function voigt(𝕋::AbstractMatrix, α::Real=1)
+    return [𝕋[1, 1], 𝕋[2, 2], 𝕋[3, 3], α * 𝕋[2, 3], α * 𝕋[1, 3], α * 𝕋[1, 2]]
+end
 
 "Execute an expression returning the result and printing the elapsed time inside a `@debug` statement."
 macro debugtime(msg, expr)
