@@ -1,7 +1,9 @@
-using ..Elements: AbstractNode, AbstractEntity, AbstractFace, AbstractElement
-using Reexport: @reexport
+using Reexport
+
+using ..Elements
 
 @reexport import ..BoundaryConditions: _apply
+@reexport import ..Elements: apply!
 
 export StructuralBoundaryConditions, all_bcs, node_bcs, face_bcs, element_bcs, displacement_bcs, load_bcs, fixed_dof_bcs
 
@@ -156,5 +158,7 @@ function _apply(bcs::StructuralBoundaryConditions, lbc::AbstractLoadBoundaryCond
         return collect(keys(dofs_load_dict)), collect(values(dofs_load_dict))
     end
 
-    # TODO: Mergwirth built-in function can be used with each entity load and dofs dict 
 end
+
+"Apply the `StructuralBoundaryConditions` to the `AbstractMesh` `m`. For this is required an 
+`MshFile` into the `extra` field of the `AbstractMesh` `m`."
