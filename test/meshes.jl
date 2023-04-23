@@ -1,7 +1,7 @@
 #######################
 # Meshes module tests #
 #######################
-using Test, StaticArrays, Suppressor
+using Test, Suppressor
 using Dictionaries: dictionary
 using ONSAS.Meshes
 
@@ -163,8 +163,7 @@ end
     vec_linear_scalar_field = dictionary([n => linear_scalar_field(coordinates(n)...)
                                           for n in nodes_to_interpolate])
 
-    # TODO Define Point(...) constructor.
-    p₉ = SVector(rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ)
+    p₉ = Point(rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ)
     ph_rand = PointEvalHandler(s_mesh, p₉)
     interpol = interpolator(ph_rand)
     node_2_weights = node_to_weights(interpol)

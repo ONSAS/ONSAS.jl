@@ -1,4 +1,4 @@
-using BenchmarkTools, ONSAS, Suppressor, StaticArrays
+using BenchmarkTools, ONSAS, Suppressor
 
 # Utils
 include("./../bench_utils.jl")
@@ -25,8 +25,9 @@ function run_experiment(build_structure::Function,
     solution, t_solve, _ = @timed solve!(problem, alg)
 
     ph, t_point_eval_handler, _ = @timed PointEvalHandler(structure,
-                                                          [SVector(rand(3)...)
+                                                          [Point(rand(3)...)
                                                            for i in 1:N_POINTS_EVAL])
+
     _, t_eval_sol, _ = @timed displacements(solution, ph)
 
     return t_structure, t_problem, t_solve, t_point_eval_handler, t_eval_sol

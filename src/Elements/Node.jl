@@ -3,6 +3,8 @@ using ..Elements: AbstractNode, Dof
 using StaticArrays: SVector
 export Node
 
+import StaticArrays
+
 """
 A `Node` is a point in space. The coordinates of the node are stored using `SVector` data type from static arrays. 
 
