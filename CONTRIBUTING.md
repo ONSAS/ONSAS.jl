@@ -55,7 +55,7 @@ The code style is based on the [Julia style guide](https://docs.julialang.org/en
 * How to import packages and overload methods: 
     * First, external packages are included via `using` (e.g. `using LinearAlgebra`) without specifying the method `:`. Also a `,` should be used to separate packages instead of an enter.
     * Then , internal packages are included (e.g. `using ...Module`) without `:`.
-    * Finally, if a method is overloaded the module should export that method too. For that, use `@reexport import ONSAS.Module: method` with `:`.
+    * Finally, if a method is overloaded the module should export that method too. For that, use `@reexport import ONSAS.Module: method` with `:`. If the method lives in `Base` just use `Base.method(...)` in-place to overload.
 
 Here is an example:
 
