@@ -1,12 +1,10 @@
 # --------------------------------------------------
 # Cylinder submitted to an Internal Pressure Example  
 #----------------------------------------------------
-using LinearAlgebra: norm
-using ONSAS
-using StaticArrays: SVector
-using Test: @test, @testset
-using Suppressor: @capture_out
+using Test, LinearAlgebra, Suppressor, StaticArrays
 using TimerOutputs: @timeit, reset_timer!, print_timer
+using ONSAS
+
 # Benchmark clock
 reset_timer!()
 ## scalar parameters (dimensions in mm an MPa)

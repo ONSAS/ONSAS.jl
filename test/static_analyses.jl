@@ -1,8 +1,7 @@
 #########################
 # Static Analysis tests #
 #########################
-using Test: @testset, @test
-using LinearAlgebra: norm
+using Test, LinearAlgebra
 using ONSAS.StructuralAnalyses.StaticAnalyses
 
 const RTOL = 5e-2

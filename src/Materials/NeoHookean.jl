@@ -111,7 +111,7 @@ function _∂𝕊_∂𝔼(m::NeoHookean, 𝔼::AbstractMatrix, 𝕊_analytic::Fu
     row = 1
     for index in indexes
         i, j = index
-        ∂S∂𝔼_forward_diff[row, :] .= _voigt(
+        ∂S∂𝔼_forward_diff[row, :] .= voigt(
             gradient!(aux_gradients, E -> 𝕊_analytic(m, E)[i, j], collect(𝔼)), #TODO: Fix with Symmetric
             0.5
         )
