@@ -9,7 +9,7 @@ using ..Elements: AbstractElement, AbstractNode, Dof, dofs
 using LinearAlgebra: norm
 
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
-    MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet
+       MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet
 
 export ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol
 export ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!
@@ -59,7 +59,6 @@ struct MaxIterCriterion <: AbstractConvergenceCriterion end
 """ `NotConvergedYet` indicates that the current iteration has not converged. """
 struct NotConvergedYet <: AbstractConvergenceCriterion end
 
-
 """ ResidualsIterationStep struct.
 Stores the convergence information of at the current iteration step.
 ### Fields:
@@ -98,16 +97,18 @@ function _reset!(ri_step::ResidualsIterationStep{T}) where {T<:Real}
     ri_step.ΔU_norm = ri_step.Δr_norm = ri_step.ΔU_rel = ri_step.Δr_rel = 1e14 * ones(T)[1]
     ri_step.iter = 0
     ri_step.criterion = NotConvergedYet()
-    ri_step
+    return ri_step
 end
 
 "Updates the `ResidualsIterationStep` `i_step` current convergence criterion."
-_update!(ri_step::ResidualsIterationStep, criterion::AbstractConvergenceCriterion) = ri_step.criterion = criterion
+function _update!(ri_step::ResidualsIterationStep, criterion::AbstractConvergenceCriterion)
+    return ri_step.criterion = criterion
+end
 
 "Updates the `ResidualsIterationStep` `i_step` iteration step with the current values of the displacement residuals
 `ΔU_norm` and `ΔU_rel`, the norm of the residual forces increment `Δr_norm`, and the relative `Δr_rel`."
-function _update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real, Δr_norm::Real, Δr_rel::Real)
-
+function _update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real, Δr_norm::Real,
+                  Δr_rel::Real)
     ri_step.ΔU_norm = ΔU_norm
     ri_step.ΔU_rel = ΔU_rel
     ri_step.Δr_norm = Δr_norm
@@ -115,13 +116,11 @@ function _update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real
 
     _step!(ri_step)
 
-    ri_step
+    return ri_step
 end
-
 
 "Updates the `ResidualsIterationStep` `i_step` given a `ConvergenceSettings` `cs`."
 function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
-
     ΔU_relᵏ, ΔU_nromᵏ = displacement_tol(ri_step)
     Δr_relᵏ, Δr_nromᵏ = residual_forces_tol(ri_step)
 
@@ -152,7 +151,7 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
         return ΔU_and_ResidualForce_Criteria()
     end
 
-    NotConvergedYet()
+    return NotConvergedYet()
 end
 
 #==========#
@@ -171,7 +170,7 @@ step_size(solver::AbstractSolver) = solver.Δt
 tolerances(solver::AbstractSolver) = solver.tol
 
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
-function _step!(solver::AbstractSolver, analysis::A,) where {A} end
+function _step!(solver::AbstractSolver, analysis::A) where {A} end
 
 include("./NewtonRaphson.jl")
 
@@ -190,7 +189,7 @@ to obtain it.
 """
 function solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
     initialized_analysis = _init(analysis, alg, args...; kwargs...)
-    _solve!(initialized_analysis, alg, args...; kwargs...)
+    return _solve!(initialized_analysis, alg, args...; kwargs...)
 end
 
 "Internal solve function to be overloaded by each analysis."
@@ -209,7 +208,7 @@ A solution structure (`AbstractSolution`) that holds the result and the algorith
 to obtain it.
 """
 function solve!(analysis::A, args...; kwargs...) where {A}
-    _solve!(analysis, args...; kwargs...)
+    return _solve!(analysis, args...; kwargs...)
 end
 
 include("./Assembler.jl")

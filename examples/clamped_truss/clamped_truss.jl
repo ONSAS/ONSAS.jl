@@ -29,7 +29,7 @@ function run_clamped_truss_example()
     # Mesh
     # -------------
     v_nodes = [Node(l) for l in LinRange(0, L, N + 1)]
-    v_elements = [Truss(v_nodes[i], v_nodes[i+1], Square(sqrt(A))) for i in 1:N]
+    v_elements = [Truss(v_nodes[i], v_nodes[i + 1], Square(sqrt(A))) for i in 1:N]
     s_mesh = Mesh(v_nodes, v_elements)
     # -------------------------------
     # Dofs
@@ -39,7 +39,7 @@ function run_clamped_truss_example()
     # -------------------------------
     # Materials
     # -------------------------------
-    steel = SVK(E=E, ν=ν, ρ=ρ, label="steel")
+    steel = SVK(; E=E, ν=ν, ρ=ρ, label="steel")
     mat_dict = dictionary([steel => v_elements])
     s_materials = StructuralMaterials(mat_dict)
     # -------------------------------
@@ -51,7 +51,7 @@ function run_clamped_truss_example()
     bc₂ = GlobalLoadBoundaryCondition([:u], t -> [F * t], "load in j")
     # Apply bcs to the nodes
     node_bc = dictionary([bc₁ => [first(v_nodes)], bc₂ => [last(v_nodes)]])
-    s_boundary_conditions = StructuralBoundaryConditions(node_bcs=node_bc)
+    s_boundary_conditions = StructuralBoundaryConditions(; node_bcs=node_bc)
     # -------------------------------
     # Structure
     # -------------------------------
@@ -60,7 +60,7 @@ function run_clamped_truss_example()
     # Structural Analysis
     # -------------------------------
     NSTEPS = 10
-    sa = NonLinearStaticAnalysis(s, NSTEPS=NSTEPS)
+    sa = NonLinearStaticAnalysis(s; NSTEPS=NSTEPS)
     # -------------------------------
     # Algorithm
     # -------------------------------
@@ -101,7 +101,6 @@ function run_clamped_truss_example()
     @test analytic_F_tip ≈ numeric_F_tip rtol = 1e-3
     @test numeric_σ_tip ≈ analytic_σ_tip rtol = 1e-3
     @test numeric_ϵ_tip ≈ analytic_ϵ_tip rtol = 1e-3
-
 end
 
 run_clamped_truss_example()

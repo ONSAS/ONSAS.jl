@@ -3,17 +3,17 @@ module ONSAS
 using Reexport: @reexport
 
 FILES = ["Utils.jl",
-    "Materials/Materials.jl",
-    "CrossSections/CrossSections.jl",
-    "Elements/Elements.jl",
-    "BoundaryConditions/BoundaryConditions.jl",
-    "Meshes/Meshes.jl",
-    "StructuralModel/StructuralModel.jl",
-    "StructuralSolvers/StructuralSolvers.jl",
-    "StructuralAnalyses/StructuralAnalyses.jl"]
+         "Materials/Materials.jl",
+         "CrossSections/CrossSections.jl",
+         "Elements/Elements.jl",
+         "BoundaryConditions/BoundaryConditions.jl",
+         "Meshes/Meshes.jl",
+         "StructuralModel/StructuralModel.jl",
+         "StructuralSolvers/StructuralSolvers.jl",
+         "StructuralAnalyses/StructuralAnalyses.jl"]
 
 foreach(FILES) do m
-    include(m)
+    return include(m)
 end
 
 # Utility methods.

@@ -38,7 +38,9 @@ eye(m::Integer, T=Bool) = Diagonal(ones(T, m))
 row_vector(v::Vector{<:AbstractVector{T}}) where {T} = reduce(vcat, v)
 
 "Return the tensor `𝕋` in Voigt notation."
-voigt(𝕋::AbstractMatrix, α::Real=1) = [𝕋[1, 1], 𝕋[2, 2], 𝕋[3, 3], α * 𝕋[2, 3], α * 𝕋[1, 3], α * 𝕋[1, 2]]
+function voigt(𝕋::AbstractMatrix, α::Real=1)
+    return [𝕋[1, 1], 𝕋[2, 2], 𝕋[3, 3], α * 𝕋[2, 3], α * 𝕋[1, 3], α * 𝕋[1, 2]]
+end
 
 "Execute an expression returning the result and printing the elapsed time inside a `@debug` statement."
 macro debugtime(msg, expr)

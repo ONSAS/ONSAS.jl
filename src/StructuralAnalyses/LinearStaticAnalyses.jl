@@ -21,28 +21,31 @@ As this analysis is linear the stiffness of the structure remains constant at ea
 - `λᵥ`            -- stores the load factors vector of the analysis
 - `current_step`  -- stores the current load factor step
 """
-struct LinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <: AbstractStaticAnalysis
+struct LinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <:
+       AbstractStaticAnalysis
     s::S
     state::StaticState
     λᵥ::LFV
     current_step::ScalarWrapper{Int}
-    function LinearStaticAnalysis(s::S, λᵥ::LFV; initial_step::Int=1) where {S<:AbstractStructure,LFV<:AbstractVector{<:Real}}
+    function LinearStaticAnalysis(s::S, λᵥ::LFV;
+                                  initial_step::Int=1) where {S<:AbstractStructure,
+                                                              LFV<:AbstractVector{<:Real}}
         # Since linear analysis is not iterating 
-        iter_state = ResidualsIterationStep(nothing, nothing, nothing, nothing, 0, ΔU_and_ResidualForce_Criteria())
-        new{S,LFV}(s, StaticState(s, iter_state), λᵥ, ScalarWrapper(initial_step))
+        iter_state = ResidualsIterationStep(nothing, nothing, nothing, nothing, 0,
+                                            ΔU_and_ResidualForce_Criteria())
+        return new{S,LFV}(s, StaticState(s, iter_state), λᵥ, ScalarWrapper(initial_step))
     end
 end
 
 "Constructor for `LinearStaticAnalysis` given a final time (or load factor) `t₁` and the number of steps `NSTEPS`."
 function LinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1)
     t₀ = t₁ / NSTEPS
-    λᵥ = LinRange(t₀, t₁, NSTEPS) |> collect
-    LinearStaticAnalysis(s, λᵥ, initial_step=initial_step)
+    λᵥ = collect(LinRange(t₀, t₁, NSTEPS))
+    return LinearStaticAnalysis(s, λᵥ; initial_step=initial_step)
 end
 
 "Solves an `LinearStaticAnalysis` `sa`."
 function _solve!(sa::LinearStaticAnalysis)
-
     s = structure(sa)
 
     # Initialize solution
@@ -77,7 +80,7 @@ function _solve!(sa::LinearStaticAnalysis)
         _next!(sa)
     end
 
-    sol
+    return sol
 end
 
 "Computes ΔU for solving the `LinearStaticAnalysis`."
@@ -94,7 +97,7 @@ function _step!(sa::LinearStaticAnalysis)
     cg!(ΔU, K, fₑₓₜ_red)
 
     # Update displacements into the state
-    _update!(state, ΔU)
+    return _update!(state, ΔU)
 end
 
 end # endModule

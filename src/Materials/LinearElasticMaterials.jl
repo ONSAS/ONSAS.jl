@@ -3,7 +3,7 @@ module LinearElasticMaterials
 using ..Materials: AbstractMaterial
 
 export AbstractLinearElasticMaterial, lame_parameters, elasticity_modulus, shear_modulus,
-    bulk_modulus, poisson_ratio, cauchy_stress
+       bulk_modulus, poisson_ratio, cauchy_stress
 
 """ Abstract supertype for all elastic material models.
 
