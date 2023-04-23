@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------- 
 # Uniaxial Extension Example 1  from (Zerpa et. Al., 2019, CMAME).
 # ----------------------------------------------------------------
-using Test, LinearAlgebra, StaticArrays, Suppressor
+using Test, LinearAlgebra, Suppressor
 using ONSAS
 
 # Mesh with Gmsh.jl (see linear_extension_sketch)
@@ -83,8 +83,8 @@ function run_linear_extension_example()
     x₀_rand = Lᵢ * rand(2)
     y₀_rand = Lⱼ * rand(2)
     z₀_rand = Lₖ * rand(2)
-    p₁ = SVector(x₀_rand[1], y₀_rand[1], z₀_rand[1])
-    p₂ = SVector(x₀_rand[2], y₀_rand[2], z₀_rand[2])
+    p₁ = Point(x₀_rand[1], y₀_rand[1], z₀_rand[1])
+    p₂ = Point(x₀_rand[2], y₀_rand[2], z₀_rand[2])
     # Evaluate the solution at p₁, p₂
     eval_handler_rand = PointEvalHandler(mesh(s), [p₁, p₂])
     # rand points displacements

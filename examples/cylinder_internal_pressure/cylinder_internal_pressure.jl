@@ -1,7 +1,7 @@
 # --------------------------------------------------
 # Cylinder submitted to an Internal Pressure Example  
 #----------------------------------------------------
-using LinearAlgebra, StaticArrays, Test, Suppressor, TimerOutputs
+using LinearAlgebra, Test, Suppressor, TimerOutputs
 using ONSAS
 # Benchmark clock
 reset_timer!()
@@ -151,7 +151,7 @@ uᵣ_numeric_nₑ = displacements(states_lin_sol, nₑ, 1);
 rand_R, rand_θ, rand_z = rand_point_cylinder();
 # rand_R = Rᵢ;
 # rand_θ = 0.0
-p_rand = SVector(rand_R * cos(rand_θ), rand_R * sin(rand_θ), rand_z);
+p_rand = Point(rand_R * cos(rand_θ), rand_R * sin(rand_θ), rand_z);
 # Displacements at p
 point_evaluator = PointEvalHandler(linear_cylinder_mesh, p_rand);
 uᵢ_numeric_p_rand = displacements(states_lin_sol, point_evaluator, 1);
