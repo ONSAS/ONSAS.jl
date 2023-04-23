@@ -4,13 +4,11 @@ using Gmsh
 and fixed in k at (0,0,0) and (0,0,Lₖ), the boundary conditions and physical 
 properties are passed into as `labels`. The .msh file is generated at `filename`
 at a given `dir`ectory  with a refinement factor `ms`."
-function create_cylinder_mesh(
-    Rᵢ::Real, Rₑ::Real, Lₖ::Real,
-    labels::Vector,
-    filename::String,
-    ms::Real=1,
-    dir=@__DIR__
-)
+function create_cylinder_mesh(Rᵢ::Real, Rₑ::Real, Lₖ::Real,
+                              labels::Vector,
+                              filename::String,
+                              ms::Real=1,
+                              dir=@__DIR__)
 
     # Refinement factors for internal and external faces
     factorₑ = 0.015
@@ -99,7 +97,6 @@ function create_cylinder_mesh(
     gmsh.model.geo.addLine(8, 17, 27)
     gmsh.model.geo.addLine(9, 18, 28)
 
-
     # Curve and surfaces 
     # Rₑ
     gmsh.model.geo.addCurveLoop([-5, 25, 15, -26], 1)
@@ -119,7 +116,6 @@ function create_cylinder_mesh(
     gmsh.model.geo.addSurfaceFilling([-7], 7)
     gmsh.model.geo.addCurveLoop([-4, 24, 14, -21], 8)
     gmsh.model.geo.addSurfaceFilling([-8], 8)
-
 
     # Surface at z = 0 
     gmsh.model.geo.addCurveLoop([5, 6, 7, 8], 9)
@@ -168,5 +164,5 @@ function create_cylinder_mesh(
     gmsh.write(filename_msh)
     gmsh.finalize()
 
-    filename_msh
+    return filename_msh
 end

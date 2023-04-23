@@ -21,7 +21,8 @@ export Dof, apply!, Point
 export AbstractNode, dimension, dofs, coordinates
 export AbstractEntity, nodes, coordinates, create_entity
 export AbstractFace, normal_direction
-export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol, local_dofs, nodes, strain, stress, weights
+export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
+       local_dofs, nodes, strain, stress, weights
 
 const Point{dim,T} = Union{<:AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
 
@@ -131,7 +132,7 @@ function dofs(e::AbstractEntity)
     vecdfs = dofs.(nodes(e))
     dfs = mergewith(vcat, vecdfs[1], vecdfs[2])
     [mergewith!(vcat, dfs, vecdfs[i]) for i in 3:length(vecdfs)]
-    dfs
+    return dfs
 end
 
 "Return the dofs of a `Vector` `ve` with `AbstractEntity`es."
@@ -265,5 +266,3 @@ include("./Truss.jl")
 include("./Tetrahedron.jl")
 
 end # module
-
-

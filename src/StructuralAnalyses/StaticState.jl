@@ -4,7 +4,7 @@ using Dictionaries: Dictionary
 using ...Meshes: num_dofs
 using ...StructuralModel: AbstractStructure, num_free_dofs
 using ...StructuralAnalyses: displacements, Δ_displacements,
-    internal_forces, external_forces, iteration_residuals, stress, strain
+                             internal_forces, external_forces, iteration_residuals, stress, strain
 using ...StructuralSolvers: _reset!
 
 import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
@@ -28,10 +28,9 @@ during the displacements iteration.
 - `iter_state`  -- current Δu iteration state 
 """
 struct StaticState{ST<:AbstractStructure,
-    DU<:AbstractVector,U<:AbstractVector,
-    FE<:AbstractVector,FI<:AbstractVector,K<:AbstractMatrix,
-    E<:Dictionary,S<:Dictionary
-} <: AbstractStructuralState
+                   DU<:AbstractVector,U<:AbstractVector,
+                   FE<:AbstractVector,FI<:AbstractVector,K<:AbstractMatrix,
+                   E<:Dictionary,S<:Dictionary} <: AbstractStructuralState
     # Structure
     s::ST
     #Displacements
@@ -47,17 +46,22 @@ struct StaticState{ST<:AbstractStructure,
     # Iter
     assembler::Assembler
     iter_state::ResidualsIterationStep
-    function StaticState(s::ST, ΔUᵏ::DU, Uᵏ::U, Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Kₛᵏ::K, res_forces::DU, ϵᵏ::E, σᵏ::S,
-        assembler::Assembler, iter_state::ResidualsIterationStep) where {ST,DU,U,FE,FI,K,E,S}
+    function StaticState(s::ST, ΔUᵏ::DU, Uᵏ::U, Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Kₛᵏ::K, res_forces::DU, ϵᵏ::E,
+                         σᵏ::S,
+                         assembler::Assembler,
+                         iter_state::ResidualsIterationStep) where {ST,DU,U,FE,FI,K,E,S}
         # # Check dimensions
         @assert length(ΔUᵏ) == num_free_dofs(s)
-        @assert size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ) == num_dofs(s)
-        new{ST,DU,U,FE,FI,K,E,S}(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assembler, iter_state)
+        @assert size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ) ==
+                num_dofs(s)
+        return new{ST,DU,U,FE,FI,K,E,S}(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
+                                        assembler, iter_state)
     end
 end
 
 "Constructor for `StaticState` given an `AbstractStructure` `s`."
-function StaticState(s::AbstractStructure, iter_state::ResidualsIterationStep=ResidualsIterationStep())
+function StaticState(s::AbstractStructure,
+                     iter_state::ResidualsIterationStep=ResidualsIterationStep())
     n_dofs = num_dofs(s)
     n_fdofs = num_free_dofs(s)
     Uᵏ = zeros(n_dofs)
@@ -70,12 +74,13 @@ function StaticState(s::AbstractStructure, iter_state::ResidualsIterationStep=Re
     ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     assemblerᵏ = Assembler(s)
-    StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
+    return StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
 end
 
 "Update and return the current residual forces of the `StaticState` `sc`."
 function residual_forces!(sc::StaticState)
-    sc.res_forces .= view(external_forces(sc), free_dofs(sc)) - view(internal_forces(sc), free_dofs(sc))
+    return sc.res_forces .= view(external_forces(sc), free_dofs(sc)) -
+                            view(internal_forces(sc), free_dofs(sc))
 end
 
 "Return the current system tangent matrix of the `StaticState` `sc`."
@@ -83,7 +88,7 @@ tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
 "Updates displacements in the `StaticState` `sc` with a displacements increment vector `ΔU`."
 function _update!(sc::StaticState, ΔU::AbstractVector)
-    sc.Uᵏ[free_dofs(sc)] .+= ΔU
+    return sc.Uᵏ[free_dofs(sc)] .+= ΔU
 end
 
 "Resets the `StaticState` assembled magnitudes and the iteration state."
@@ -105,5 +110,5 @@ function reset!(state::StaticState)
     _reset!(iteration_residuals(state))
     # Return state
     @info "The structural state has been reset."
-    state
+    return state
 end

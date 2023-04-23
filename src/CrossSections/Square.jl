@@ -15,7 +15,9 @@ end
 area(s::Square) = s.width^2
 
 "Return the moment of inertia of a `Square` cross-section `s` with respect to the local x axis."
-Ixx(s::Square) = (0.5 * s.width)^4 * (16 / 3 - 3.36 * (1 - (0.5 * s.width)^4 / (12 * (0.5 * s.width)^4)))
+function Ixx(s::Square)
+    return (0.5 * s.width)^4 * (16 / 3 - 3.36 * (1 - (0.5 * s.width)^4 / (12 * (0.5 * s.width)^4)))
+end
 
 "Return the moment of inertia of a `Square` cross-section `s` with respect to the local y axis."
 Iyy(s::Square) = s.width^4 / 12

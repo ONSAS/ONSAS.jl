@@ -15,9 +15,10 @@ A `StructuralMaterials` is a collection of `Material`s and `Element`s assigning 
 - `mats_to_elems` -- Store a dictionary with materials as keys and the corresponding elements as values. """
 struct StructuralMaterials{M<:AbstractMaterial,E<:AbstractElement}
     mats_to_elems::Dictionary{M,Vector{E}}
-    function StructuralMaterials(mats_to_elems::Dictionary{M,Vector{E}}) where {M<:AbstractMaterial,E<:AbstractElement}
+    function StructuralMaterials(mats_to_elems::Dictionary{M,Vector{E}}) where {M<:AbstractMaterial,
+                                                                                E<:AbstractElement}
         @assert _element_material_is_unique(mats_to_elems) throw(ArgumentError("Each element must have a single material"))
-        new{M,E}(mats_to_elems)
+        return new{M,E}(mats_to_elems)
     end
 end
 
@@ -25,25 +26,26 @@ end
 element_materials(sm::StructuralMaterials) = sm.mats_to_elems
 
 "Constructor for empty `StructuralMaterials` with a `Vector` of materials `vmats`. This will assign an empty `Vector` of `Element`s to each material."
-StructuralMaterials(vmats::Vector{M}) where {M<:AbstractMaterial} =
-    StructuralMaterials(dictionary(map(mat -> mat => Vector{AbstractElement}(), vmats)))
+function StructuralMaterials(vmats::Vector{M}) where {M<:AbstractMaterial}
+    return StructuralMaterials(dictionary(map(mat -> mat => Vector{AbstractElement}(), vmats)))
+end
 
 StructuralMaterials(vmats::AbstractMaterial...) = StructuralMaterials(collect(vmats))
-
 
 "Return the `Material` mapped with the label `l`."
 function Base.getindex(sm::StructuralMaterials, l::L) where {L<:Union{Symbol,AbstractString}}
     materials_label_l = collect(filter(m -> label(m) == Symbol(l), keys(element_materials(sm))))
     @assert length(materials_label_l) == 1 throw(ArgumentError("The label $l is not unique. Please label each material differently."))
-    first(materials_label_l)
+    return first(materials_label_l)
 end
 
 "Return the `Vector` of `Element`s that are conformed by the `Material `m`."
 Base.getindex(sm::StructuralMaterials, m::M) where {M<:AbstractMaterial} = element_materials(sm)[m]
 
 "Return the `Vector` of `Material` of the element `e`."
-Base.getindex(sm::StructuralMaterials, e::E) where {E<:AbstractElement} =
-    first([m for (m, es) in pairs(element_materials(sm)) if e in es])
+function Base.getindex(sm::StructuralMaterials, e::E) where {E<:AbstractElement}
+    return first([m for (m, es) in pairs(element_materials(sm)) if e in es])
+end
 
 "Return `Pair`s of `Material` and `Element` in the `StructuralMaterials` `sm`."
 Base.pairs(sm::StructuralMaterials) = pairs(element_materials(sm))

@@ -16,7 +16,6 @@ const PHYSICAL_NODE_LABEL = "node"
 
 export MshFile, connectivity, material_label, entity_label, bc_label, physical_index, gmsh_println
 
-
 """ MshFile.
 A `MshFile` is a collection of `Node`s. Also the filename   
 ### Fields:
@@ -39,22 +38,21 @@ struct MshFile{dim,T,S,I1<:Integer,I2<:Integer}
     entities_labels::Vector{S}
     bc_labels::Vector{S}
     function MshFile(filename::String, vec_nodes::Vector{Node{dim,T}},
-        connectivity::Vector{Vector{I1}}, physical_index::Vector{I2},
-        material_labels::Vector{S}, entities_labels::Vector{S}, bc_labels::Vector{S}
-    ) where {dim,T,S,I1<:Integer,I2<:Integer}
-
+                     connectivity::Vector{Vector{I1}}, physical_index::Vector{I2},
+                     material_labels::Vector{S}, entities_labels::Vector{S},
+                     bc_labels::Vector{S}) where {dim,T,S,I1<:Integer,I2<:Integer}
         @assert length(physical_index) == length(connectivity) "The number of physical indexes = $(length(physical_index))
             must be equal to the number of elements = $(length(connectivity))."
         @assert length(material_labels) == length(entities_labels) == length(bc_labels) "The number of material labels = $(length(material_labels)), 
         entities labels = $(length(entities_labels)) and boundary conditions labels = $(length(bc_labels)) must be equal."
 
-        return new{dim,T,S,I1,I2}(filename, vec_nodes, connectivity, physical_index, material_labels, entities_labels, bc_labels)
+        return new{dim,T,S,I1,I2}(filename, vec_nodes, connectivity, physical_index,
+                                  material_labels, entities_labels, bc_labels)
     end
 end
 
 "Return material, entities and boundary conditions labels defined in `physical_names`."
 function _getlabels(physical_names::Vector{String})
-
     split_char = "_"
 
     physical_names = split.(physical_names, split_char)
@@ -66,7 +64,6 @@ function _getlabels(physical_names::Vector{String})
     bcs_labels = getindex.(filter(l -> length(l) == length_labels_elements, physical_names), 3)
 
     return material_labels, entity_labels, bcs_labels
-
 end
 
 "Constructor of the `MshFile` object with a file name `filename`."
@@ -77,7 +74,8 @@ function MshFile(filename::String)
 
     vec_nodes = [Node(n) for n in eachrow(nodes_coords)]
 
-    MshFile(filename, vec_nodes, connectivity, physical_index, material_labels, entities_labels, bcs_labels)
+    return MshFile(filename, vec_nodes, connectivity, physical_index, material_labels,
+                   entities_labels, bcs_labels)
 end
 
 "Return the connectivity defined in the `MshFile` `mfile`."
@@ -99,19 +97,25 @@ nodes(mfile::MshFile) = mfile.vec_nodes
 material_label(mfile::MshFile) = mfile.material_labels
 
 "Return material label for the `AbstractEntity` with index `entity_index`."
-material_label(mfile::MshFile, entity_index::Integer) = material_label(mfile)[physical_index(mfile)[entity_index]]
+function material_label(mfile::MshFile, entity_index::Integer)
+    return material_label(mfile)[physical_index(mfile)[entity_index]]
+end
 
 "Return entities labels defined in the `MshFile``mfile`."
 entity_label(mfile::MshFile) = mfile.entities_labels
 
 "Return entities label for the `AbstractEntity` with index `entity_index`."
-entity_label(mfile::MshFile, entity_index::Integer) = entity_label(mfile)[physical_index(mfile)[entity_index]]
+function entity_label(mfile::MshFile, entity_index::Integer)
+    return entity_label(mfile)[physical_index(mfile)[entity_index]]
+end
 
 "Return boundary conditions labels defined in the `MshFile``mfile`."
 bc_label(mfile::MshFile) = mfile.bc_labels
 
 "Return boundary conditions label for the `AbstractEntity` with index `entity_index`."
-bc_label(mfile::MshFile, entity_index::Integer) = bc_label(mfile)[physical_index(mfile)[entity_index]]
+function bc_label(mfile::MshFile, entity_index::Integer)
+    return bc_label(mfile)[physical_index(mfile)[entity_index]]
+end
 
 "Return the as variables prints from the REPL."
 function gmsh_println(output)
@@ -119,7 +123,7 @@ function gmsh_println(output)
     num_nodes = parse(Int, match(r"(\d+) nodes (\d+) elements", output).captures[1])
     num_entities = parse(Int, match(r"(\d+) nodes (\d+) elements", output).captures[2])
     println("The mesh contains $num_entities entities and $num_nodes nodes. ")
-    dictionary([:nnodes => num_nodes, :num_entities => num_entities])
+    return dictionary([:nnodes => num_nodes, :num_entities => num_entities])
 end
 
 end # module
