@@ -1,7 +1,7 @@
 ###############################
 # Cross-sections module tests #
 ###############################
-using Test: @testset, @test
+using Test
 using ONSAS.CrossSections
 
 rand_dim_1 = rand()

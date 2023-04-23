@@ -1,11 +1,8 @@
 ##########################
 # Structural model tests #
 ##########################
-using Test: @testset, @test
+using Test, LinearAlgebra, SparseArrays
 using ONSAS.StructuralSolvers
-using LinearAlgebra: norm
-using SparseArrays: SparseMatrixCSC, sparse
-
 
 @testset "ONSAS.StructuralSolvers.Criteria" begin
 

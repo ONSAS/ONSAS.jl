@@ -1,9 +1,7 @@
 #########################
 # Elements module tests #
 #########################
-using Test: @testset, @test
-using LinearAlgebra: norm, dot
-using StaticArrays: SVector
+using Test, LinearAlgebra, StaticArrays
 using ONSAS.Elements
 
 const RTOL = 1e-3
