@@ -95,10 +95,10 @@ function run_von_misses_truss_example()
     #-----------------------------
     "Analytic load factor solution for the displacement `uₖ` towards z axis at node `n₂`."
     function load_factors_analytic(uₖ::Real, E::Real=E, A::Real=A₀, H::Real=H, V::Real=V, l₀=L)
-        return λ = -2 * E * A *
-                   ((H + uₖ)^2 + V^2 - l₀^2) /
-                   (l₀ * (l₀ + sqrt((H + uₖ)^2 + V^2))) *
-                   (H + uₖ) / sqrt((H + uₖ)^2 + V^2)
+        λ = -2 * E * A *
+            ((H + uₖ)^2 + V^2 - l₀^2) /
+            (l₀ * (l₀ + sqrt((H + uₖ)^2 + V^2))) *
+            (H + uₖ) / sqrt((H + uₖ)^2 + V^2)
     end
     analytics_λᵥ = load_factors_analytic.(numerical_uₖ)
     #-----------------------------

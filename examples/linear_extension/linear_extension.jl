@@ -119,7 +119,7 @@ function run_linear_extension_example()
         uⱼ(t) = 0.0
         uₖ(t) = 0.0
 
-        return [[uᵢ(t) for t in λᵥ], [uⱼ(t) for t in λᵥ], [uₖ(t) for t in λᵥ]]
+        [[uᵢ(t) for t in λᵥ], [uⱼ(t) for t in λᵥ], [uₖ(t) for t in λᵥ]]
     end
     # point 1
     u_analytic_p₁ = u_ijk_analytic(load_factors(sa), p₁[1], p₁[2], p₁[3])
@@ -140,7 +140,7 @@ function run_linear_extension_example()
         ϵⱼ(t) = 0.0
         ϵₖ(t) = 0.0
 
-        return [[ϵᵢ(t) for t in λᵥ], [ϵⱼ(t) for t in λᵥ], [ϵₖ(t) for t in λᵥ]]
+        [[ϵᵢ(t) for t in λᵥ], [ϵⱼ(t) for t in λᵥ], [ϵₖ(t) for t in λᵥ]]
     end
     ## Stresses
     "Computes strains numeric solution ϵᵢ, ϵⱼ and ϵₖ for analytic validation."
@@ -156,7 +156,7 @@ function run_linear_extension_example()
         σⱼ(t) = λ * ϵᵢ(t) + (λ + 2G) * ϵⱼ(t) + λ * ϵₖ(t)
         σₖ(t) = λ * ϵᵢ(t) + λ * ϵⱼ(t) + (λ + 2G) * ϵₖ(t)
 
-        return [[σᵢ(t) for t in λᵥ], [σⱼ(t) for t in λᵥ], [σₖ(t) for t in λᵥ]]
+        [[σᵢ(t) for t in λᵥ], [σⱼ(t) for t in λᵥ], [σₖ(t) for t in λᵥ]]
     end
     # point in the rand element selected
     p_rand_e = rand(coordinates(e_rand))

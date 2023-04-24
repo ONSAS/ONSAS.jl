@@ -164,5 +164,5 @@ function create_cylinder_mesh(Rᵢ::Real, Rₑ::Real, Lₖ::Real,
     gmsh.write(filename_msh)
     gmsh.finalize()
 
-    return filename_msh
+    filename_msh
 end
