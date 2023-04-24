@@ -22,9 +22,8 @@ import ..StructuralSolvers: _assemble!, _update!, _end_assemble!
 
 export AbstractStructuralState, _apply!, _assemble!, Δ_displacements, tangent_matrix,
        residual_forces!,
-       tangent_matrix, structure, assembler, residual_forces_norms, residual_displacements_norms
-
-export AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done,
+       tangent_matrix, structure, assembler, residual_forces_norms, residual_displacements_norms,
+       AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done,
        current_state, current_iteration, reset!
 
 """ Abstract supertype to define a new structural state.
