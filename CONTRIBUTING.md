@@ -69,6 +69,14 @@ using ..Elements
 ```
 Note that the use of `..` and `...` depends on the number of levels you need to go up in the module hierarchy.
 
+* How to use docstrings: 
+    * Use `"` to start and end a docstring for a function.
+    * Use `"""` to start and end a docstring for a module, struct, type, etc.
+    * Use backtick when you want to refer to a data Structure in the text. Eg. "The function return a `Vector` of `Node`s".
+    * Use backtick to refer to the variable in the signature. "Add a `Dof` `d` to the `Mesh` `m`. 
+    * Start with `Return`, `Set`, `Add` ... depending on the function.
+    * Include docstrings before the `struct` field definition.
+
 ## Authors 
 
 The authorship of the code is based on the criteria defined by the [JOSS journal][joss]. The co-authors have collaborated in tasks such as: design, important new features development or extensive documentation contributions.

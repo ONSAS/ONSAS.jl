@@ -21,6 +21,7 @@ ATOL = 1e-2 * (Rₑ - Rᵢ);
 plot_results = false;
 ## Refinement mesh factor
 ms = 0.75;
+# ms = 2.5; #Heavy one
 include("cylinder_mesh.jl");
 # -------------------------------
 # Structure
@@ -269,10 +270,8 @@ function test_solution_at_slice(sol::AbstractSolution=states_lin_sol;
     return uᵣ_not_depends_on_θ, zero_uₖ, zero_uₖ_axis_y, zero_uⱼ_axis_x
 end;
 # Test simmetry and boundary conditions
-uᵣ_not_depends_on_θ, zero_uₖ, zero_uₖ_axis_y, zero_uⱼ_axis_x = test_solution_at_slice(states_lin_sol;
-                                                                                      atol=ATOL,
-                                                                                      atolr=10 *
-                                                                                            ATOL)
+test_bools = test_solution_at_slice(states_lin_sol; atol=ATOL, atolr=10 * ATOL)
+uᵣ_not_depends_on_θ, zero_uₖ, zero_uₖ_axis_y, zero_uⱼ_axis_x = test_bools
 @testset "Case 1: Linear Analysis " begin
     @info "uᵣ(r,θ₁,L₁) = uᵣ(r,θ₂,L₂)?" uᵣ_not_depends_on_θ
     @test zero_uₖ

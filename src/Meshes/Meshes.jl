@@ -11,8 +11,7 @@ using Reexport
 @reexport import ..Elements: apply!, dimension, dofs, nodes
 
 export AbstractMesh, Mesh, faces, face_set, elements, element_set, num_dofs, num_elements,
-       num_nodes, node_set,
-       add_node_to_set!, add_element_to_set!, add_face_to_set!
+       num_nodes, node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!
 
 """ Abstract supertype for all meshes.
 
@@ -54,7 +53,7 @@ function num_dofs(m::AbstractMesh)::Int
             max_dof = maximum([max_dof, maximum(dofs)])
         end
     end
-    return max_dof
+    max_dof
 end
 
 "Adds n `dofs_per_node` `Dof`s with `dof_symbol` to the `AbstractMesh` `m`."
@@ -97,15 +96,16 @@ num_elements(m::AbstractMesh) = length(elements(m))
 "Push a new `Node` into the `AbstractMesh` `m` and return the new `Node` position."
 function Base.push!(m::AbstractMesh, n::AbstractNode)
     push!(nodes(m), n)
-    return length(nodes(m))
+    length(nodes(m))
 end
+
 "Push a new  `Vector of `Node`s into the `AbstractMesh` `m`."
 Base.push!(m::AbstractMesh, vn::Vector{<:AbstractNode}) = [push!(nodes(m), n) for n in vn]
 
 "Push a new `Face` `f` into the `AbstractMesh` `m` and return the new `Face` position."
 function Base.push!(m::AbstractMesh, f::AbstractFace)
     push!(faces(m), f)
-    return length(faces(m))
+    length(faces(m))
 end
 
 "Push a new `Vector` of `Face`s `vf` into the `AbstractMesh` `m`."
@@ -114,41 +114,38 @@ Base.push!(m::AbstractMesh, vf::Vector{<:AbstractFace}) = [push!(faces(m), f) fo
 "Push a new `Element` into the `AbstractMesh` `m` and return the new `Element` position."
 function Base.push!(m::AbstractMesh, e::AbstractElement)
     push!(elements(m), e)
-    return length(elements(m))
+    length(elements(m))
 end
 
 "Push a new vector of `Element`s into the `AbstractMesh` `m`."
 Base.push!(m::AbstractMesh, ve::Vector{<:AbstractElement}) = [push!(elements(m), e) for e in ve]
 
-""" Mesh.
+""" 
 A `Mesh` is a collection of `Element`s, `Face`s and `Node`s that cover the discretized domain, 
 together with Sets of elements and nodes. 
-### Fields:
-- `nodes`         -- stores the `dim` dimensional `Node`s of the grid.
-- `faces`         -- stores the `Face`s of the grid.
-- `elements`      -- stores the `Element`s of the mesh.
-- `node_sets`     -- maps a `String` key to a `Set` of global `Node` indexes.
-- `face_sets`     -- maps a `String` key to a `Set` of global `Face` indexes.
-- `element_sets`  -- maps a `String` key to a `Set` of global `Element` indexes.
 
 ### Methods:
 * [`node_set`](@ref)
 * [`add_node_to_set!`](@ref)
 * [`element_set`](@ref)
-* [`add_element_to_set`](@ref)
+* [`add_element_to_set!`](@ref)
 * [`face_set`](@ref)
-* [`add_face_to_set`](@ref)
+* [`add_face_to_set!`](@ref)
 """
 struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace,EX} <: AbstractMesh{dim}
-    # Entities
+    "`Node`s of the mesh with dimension `dim`."
     nodes::Vector{N}
+    "`Element`s of the mesh."
     elements::Vector{E}
+    "`Face`s of the mesh."
     faces::Vector{F}
-    # Sets
+    "Sets of `Node`s mapped to a string key."
     node_sets::Dictionary{String,Set{Int}}
+    "Sets of `Element`s mapped to a string key."
     element_sets::Dictionary{String,Set{Int}}
+    "Sets of `Face`s mapped to a string key."
     face_sets::Dictionary{String,Set{Int}}
-    # Extra data
+    "Additional data or mesh info."
     extra::EX
     function Mesh(nodes::Vector{N},
                   elements::Vector{E}=Vector{AbstractElement}(),
@@ -156,18 +153,21 @@ struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace,EX} <: A
                   node_sets=Dictionary{String,Set{Int}}(),
                   face_sets=Dictionary{String,Set{Int}}(),
                   element_sets=Dictionary{String,Set{Int}}(),
-                  extra::EX=nothing) where {dim,N<:AbstractNode{dim},F<:AbstractFace,
-                                            E<:AbstractElement,EX}
-        return new{dim,N,E,F,EX}(nodes, elements, faces, node_sets, element_sets, face_sets, extra)
+                  extra::EX=nothing) where
+             {dim,N<:AbstractNode{dim},F<:AbstractFace,E<:AbstractElement,EX}
+        new{dim,N,E,F,EX}(nodes, elements, faces, node_sets, element_sets, face_sets, extra)
     end
 end
 
 "Constructor for `Mesh` with a `Node`'s`Vector` and extra."
 function Mesh(nodes::Vector{N}, extra::EX) where {dim,N<:AbstractNode{dim},EX}
-    return Mesh(nodes, Vector{AbstractElement}(), Vector{AbstractFace}(),
-                Dictionary{String,Set{Int}}(), Dictionary{String,Set{Int}}(),
-                Dictionary{String,Set{Int}}(),
-                extra)
+    Mesh(nodes,
+         Vector{AbstractElement}(),
+         Vector{AbstractFace}(),
+         Dictionary{String,Set{Int}}(),
+         Dictionary{String,Set{Int}}(),
+         Dictionary{String,Set{Int}}(),
+         extra)
 end
 
 "Return the `Mesh` `m` `Node` `Set`s. "
@@ -176,17 +176,12 @@ node_set(m::Mesh) = m.node_sets
 "Return the `Mesh` `m` `Node` `Set` with `node_set_name`. "
 node_set(m::Mesh, node_set_name::S) where {S} = node_set(m)[String(node_set_name)]
 
-"Return the `Mesh` `m` `Element` `Set`s. "
-element_set(m::Mesh) = m.element_sets
-
-"Return the `Mesh` `m` `Element` `Set` with `element_set_name`. "
-element_set(m::Mesh, element_set_name::S) where {S} = element_set(m)[String(element_set_name)]
-
-"Return the `Mesh` `m` `Face` `Set`s. "
-face_set(m::Mesh) = m.face_sets
-
-"Return the `Mesh` `m` `Element` `Set` with `element_set_name`. "
-face_set(m::Mesh, fae_set_name::S) where {S} = face_set(m)[String(fae_set_name)]
+"Return a `Vector` of `Node`s  with `node_set_name` in the `Mesh` `m`."
+function nodes(m::Mesh, node_set_name::S) where {S}
+    node_indexes = node_set(m, node_set_name)
+    mesh_nodes = nodes(m)
+    [mesh_nodes[i] for i in node_indexes]
+end
 
 "Add a `node_id` to the `Mesh` `m` `Set` `node_set_name`."
 function add_node_to_set!(m::Mesh, node_set_name::S, node_id::Int) where {S}
@@ -196,10 +191,30 @@ function add_node_to_set!(m::Mesh, node_set_name::S, node_id::Int) where {S}
     else
         insert!(node_sets, String(node_set_name), Set(node_id))
     end
-    return node_sets
+    node_sets
 end
 
-"Add `element_id`` to the `Mesh` `m` `Set` `element_set_name`."
+"Add a `Node` `n` to the `Set` `node_set_name`."
+function add_node_to_set!(m::Mesh, node_set_name::S, n::AbstractNode) where {S}
+    node_id = findfirst(n_mesh -> n_mesh == n, nodes(m))
+    isempty(node_id) && error("Node $n is not found in mesh.")
+    add_node_to_set!(m, node_set_name, node_id)
+end
+
+"Return the `Mesh` `m` `Element` `Set`s. "
+element_set(m::Mesh) = m.element_sets
+
+"Return the `Mesh` `m` `Element` `Set` with `element_set_name`. "
+element_set(m::Mesh, element_set_name::S) where {S} = element_set(m)[String(element_set_name)]
+
+"Return a `Vector` of `Element`s  with `element_set_name` in the `Mesh` `m`."
+function elements(m::Mesh, element_set_name::S) where {S}
+    element_indexes = element_set(m, element_set_name)
+    mesh_elements = elements(m)
+    [mesh_elements[i] for i in element_indexes]
+end
+
+"Add `element_id` to the `Mesh` `m` `Set` `element_set_name`."
 function add_element_to_set!(m::Mesh, element_set_name::S, element_id::Int) where {S}
     element_sets = element_set(m)
     if haskey(element_sets, element_set_name)
@@ -207,7 +222,27 @@ function add_element_to_set!(m::Mesh, element_set_name::S, element_id::Int) wher
     else
         insert!(element_sets, String(element_set_name), Set(element_id))
     end
-    return element_sets
+    element_sets
+end
+
+"Add an `Element` `e` to  the `Set` `element_set_name`."
+function add_element_to_set!(m::Mesh, element_set_name::S, e::AbstractElement) where {S}
+    element_id = findfirst(e_mesh -> e_mesh == e, elements(m))
+    isempty(element_id) && error("face $n is not found in mesh.")
+    add_element_to_set!(m, element_set_name, element_id)
+end
+
+"Return the `Mesh` `m` `Face` `Set`s. "
+face_set(m::Mesh) = m.face_sets
+
+"Return the `Mesh` `m` `Element` `Set` with `element_set_name`. "
+face_set(m::Mesh, fae_set_name::S) where {S} = face_set(m)[String(fae_set_name)]
+
+"Return a `Vector` of `Face`s  with `face_set_name` in the `Mesh` `m`."
+function faces(m::Mesh, face_set_name::S) where {S}
+    face_indexes = face_set(m, face_set_name)
+    mesh_faces = faces(m)
+    [mesh_faces[i] for i in face_indexes]
 end
 
 "Add `face_id` to the `Mesh` `m` `Set` `face_set_name`."
@@ -218,7 +253,14 @@ function add_face_to_set!(m::Mesh, face_set_name::S, face_id::Int) where {S}
     else
         insert!(face_sets, String(face_set_name), Set(face_id))
     end
-    return face_sets
+    face_sets
+end
+
+"Add a `Face` `n` to the `Set` `face_set_name`."
+function add_face_to_set!(m::Mesh, face_set_name::S, f::AbstractFace) where {S}
+    face_id = findfirst(f_mesh -> f_mesh == f, faces(m))
+    isempty(face_id) && error("face $n is not found in mesh.")
+    add_face_to_set!(m, face_set_name, face_id)
 end
 
 include("./Gmsh.jl")

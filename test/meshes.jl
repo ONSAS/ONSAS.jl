@@ -1,8 +1,8 @@
 #######################
 # Meshes module tests #
 #######################
-using Test, Suppressor
-using Dictionaries: dictionary
+using Test, Suppressor, Dictionaries
+
 using ONSAS.Meshes
 
 const RTOL = 1e-5
@@ -55,7 +55,8 @@ end
 
 uniaxial_mesh_path = joinpath(@__DIR__, "..", "examples", "uniaxial_extension", "uniaxial_mesh.jl")
 include(uniaxial_mesh_path)
-@testset "ONSAS.Meshes.GMSH " begin
+
+@testset "ONSAS.Meshes.GMSH.MshFile " begin
     Lᵢ = 2.0  # Dimension in x of the box in m 
     Lⱼ = 1.0  # Dimension in y of the box in m
     Lₖ = 1.0  # Dimension in z of the box in m
@@ -99,14 +100,12 @@ include(uniaxial_mesh_path)
     @test physical_index(msh_file, entity_index) == 5
 end
 
-@testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron" begin
+@testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron + Sets" begin
     Lᵢ = rand() * 20
     Lⱼ = rand() * 20
     Lₖ = rand() * 20
 
-    # -------------------------------
     # Mesh
-    #--------------------------------
     n₁ = Node(0.0, 0.0, 0.0)
     n₂ = Node(0.0, 0.0, Lₖ)
     n₃ = Node(0.0, Lⱼ, Lₖ)
@@ -138,9 +137,41 @@ end
     t₆ = Tetrahedron(n₄, n₇, n₆, n₈)
     vec_elems = [t₁, t₂, t₃, t₄, t₅, t₆]
     push!(s_mesh, vec_elems)
-    # -------------------------------
+
+    # Sets 
+    # nodes
+    node_ids_in_vec = [1, 2, 3, 4]
+    nodes_set = nodes(s_mesh)[node_ids_in_vec]
+    node_set_label = "left"
+    # add using node indexes
+    [add_node_to_set!(s_mesh, node_set_label, i) for i in node_ids_in_vec[1:3]]
+    # add using the node itself
+    add_node_to_set!(s_mesh, node_set_label, last(nodes_set))
+    @test all([i ∈ node_set(s_mesh, node_set_label) for i in node_ids_in_vec])
+    @test all([n ∈ nodes(s_mesh, node_set_label) for n in nodes_set])
+
+    # faces
+    face_ids_in_vec = [6, 5]
+    face_set_label = "front"
+    faces_set = faces(s_mesh)[face_ids_in_vec]
+    # add using face indexes
+    add_face_to_set!(s_mesh, face_set_label, first(face_ids_in_vec))
+    # add using the face itself
+    add_face_to_set!(s_mesh, face_set_label, last(faces_set))
+    @test all([i ∈ face_set(s_mesh, face_set_label) for i in face_ids_in_vec])
+    @test all([n ∈ faces(s_mesh, face_set_label) for n in faces_set])
+
+    elem_ids_in_vec = [5, 6]
+    element_set_label = "elems-with-node8"
+    elements_set = elements(s_mesh)[elem_ids_in_vec]
+    # add using element indexes
+    add_element_to_set!(s_mesh, element_set_label, first(elem_ids_in_vec))
+    # add using the element itself
+    add_element_to_set!(s_mesh, element_set_label, last(elements_set))
+    @test all([i ∈ element_set(s_mesh, element_set_label) for i in elem_ids_in_vec])
+    @test all([n ∈ elements(s_mesh, element_set_label) for n in elements_set])
+
     # Dofs
-    #--------------------------------
     dof_dim = 3
     apply!(s_mesh, :u, dof_dim)
 
