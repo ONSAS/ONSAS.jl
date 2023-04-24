@@ -198,10 +198,18 @@ function run_uniaxial_compression()
     end
     gmsh_println(output)
     msh_file = MshFile(mesh_path)
+    s₂_mesh = Mesh(msh_file, s_entities)
+    # -------------------------------
+    # Dofs
+    #--------------------------------
+    dof_dim = 3
+    apply!(s₂_mesh, :u, dof_dim)
     # -------------------------------
     # Structure
     # -------------------------------
-    s₂ = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
+    apply!(s_materials, s₂_mesh)
+    apply!(s_boundary_conditions, s₂_mesh)
+    s₂ = Structure(s₂_mesh, s_materials, s_boundary_conditions)
     # -------------------------------
     # Structural Analysis
     # -------------------------------
