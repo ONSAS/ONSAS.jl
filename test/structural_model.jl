@@ -36,6 +36,7 @@ truss₄ = Truss(n₄, n₃, s)
 # Mesh
 # Materials
 steel = SVK(E, ν, "steel")
+new_steel = SVK(2E, ν, "new_steel")
 aluminum = SVK(E / 3, ν, "aluminium")
 mat_dict = dictionary([steel => [truss₁, truss₃], aluminum => [truss₂]])
 s_materials = StructuralMaterials(mat_dict)
@@ -61,6 +62,15 @@ s_boundary_conditions = StructuralBoundaryConditions(node_bc, face_bc, elem_bc)
     @test s_materials[truss₁] == steel
     @test s_materials["steel"] == steel
     @test truss₁ ∈ s_materials[steel] && truss₃ ∈ s_materials[steel]
+    insert!(s_materials, new_steel)
+    @test new_steel ∈ keys(element_materials(s_materials))
+    delete!(s_materials, new_steel)
+    @test new_steel ∉ keys(element_materials(s_materials))
+    material_label_to_be_replaced = "steel"
+    replace!(s_materials, new_steel, material_label_to_be_replaced)
+    @test new_steel ∈ keys(element_materials(s_materials))
+    @test steel ∉ keys(element_materials(s_materials))
+    @test s_materials[truss₁] == new_steel
 end
 
 @testset "ONSAS.StructuralModel.StructuralBoundaryConditions" begin
@@ -160,12 +170,24 @@ end
     @test nodes(s) == nodes(mesh(s))
     @test num_nodes(s) == length(nodes(mesh(s)))
 
+    # Faces
+    @test faces(s) == faces(mesh(s))
+    @test num_faces(s) == length(faces(mesh(s)))
+
     # Elements
     @test elements(s) == elements(mesh(s))
     @test num_elements(s) == length(elements(mesh(s)))
 
     # Mesh
     @test mesh(s) == s_mesh
+
+    # Materials
+    @test materials(s) == s_materials
+    # Replace material 
+    label_material_to_be_replaced = "new_steel"
+    replace!(s, steel, label_material_to_be_replaced)
+    @test steel ∈ keys(element_materials(materials(s)))
+    @test new_steel ∉ keys(element_materials(materials(s)))
 
     # Boundary conditions
     @test boundary_conditions(s) == s_boundary_conditions

@@ -9,16 +9,17 @@ using ..Utils
 
 export StructuralMaterials, element_materials
 
-""" Structural materials struct.
+""" 
 A `StructuralMaterials` is a collection of `Material`s and `Element`s assigning materials to a vector of elements.
-### Fields:
-- `mats_to_elems` -- Store a dictionary with materials as keys and the corresponding elements as values. """
+"""
 struct StructuralMaterials{M<:AbstractMaterial,E<:AbstractElement}
+    "Stores materials as keys and the corresponding elements as values"
     mats_to_elems::Dictionary{M,Vector{E}}
-    function StructuralMaterials(mats_to_elems::Dictionary{M,Vector{E}}) where {M<:AbstractMaterial,
-                                                                                E<:AbstractElement}
-        @assert _element_material_is_unique(mats_to_elems) throw(ArgumentError("Each element must have a single material"))
-        return new{M,E}(mats_to_elems)
+    function StructuralMaterials(mats_to_elems::Dictionary{M,Vector{E}}) where
+             {M<:AbstractMaterial,E<:AbstractElement}
+        @assert _element_material_is_unique(mats_to_elems) error("Each element must have a single material")
+        # Abstract is used to replace materials 
+        new{AbstractMaterial,E}(mats_to_elems)
     end
 end
 
@@ -27,7 +28,7 @@ element_materials(sm::StructuralMaterials) = sm.mats_to_elems
 
 "Constructor for empty `StructuralMaterials` with a `Vector` of materials `vmats`. This will assign an empty `Vector` of `Element`s to each material."
 function StructuralMaterials(vmats::Vector{M}) where {M<:AbstractMaterial}
-    return StructuralMaterials(dictionary(map(mat -> mat => Vector{AbstractElement}(), vmats)))
+    StructuralMaterials(dictionary(map(mat -> mat => Vector{AbstractElement}(), vmats)))
 end
 
 StructuralMaterials(vmats::AbstractMaterial...) = StructuralMaterials(collect(vmats))
@@ -35,8 +36,8 @@ StructuralMaterials(vmats::AbstractMaterial...) = StructuralMaterials(collect(vm
 "Return the `Material` mapped with the label `l`."
 function Base.getindex(sm::StructuralMaterials, l::L) where {L<:Union{Symbol,AbstractString}}
     materials_label_l = collect(filter(m -> label(m) == Symbol(l), keys(element_materials(sm))))
-    @assert length(materials_label_l) == 1 throw(ArgumentError("The label $l is not unique. Please label each material differently."))
-    return first(materials_label_l)
+    @assert length(materials_label_l) == 1 throw(ArgumentError("The label $l is not found."))
+    first(materials_label_l)
 end
 
 "Return the `Vector` of `Element`s that are conformed by the `Material `m`."
@@ -44,7 +45,7 @@ Base.getindex(sm::StructuralMaterials, m::M) where {M<:AbstractMaterial} = eleme
 
 "Return the `Vector` of `Material` of the element `e`."
 function Base.getindex(sm::StructuralMaterials, e::E) where {E<:AbstractElement}
-    return first([m for (m, es) in pairs(element_materials(sm)) if e in es])
+    first([m for (m, es) in pairs(element_materials(sm)) if e in es])
 end
 
 "Return `Pair`s of `Material` and `Element` in the `StructuralMaterials` `sm`."
@@ -58,9 +59,30 @@ into the `Mesh` and the corresponding boundary condition labels declared in `bcs
 function apply!(sm::StructuralMaterials, m::AbstractMesh)
     vec_elements = elements(m)
     element_sets = element_set(m)
-
     for (mat, elements) in pairs(element_materials(sm))
         mat_label = string(label(mat))
         [push!(elements, vec_elements[element_index]) for element_index in element_sets[mat_label]]
     end
+end
+
+"Delete the `Material` `m` from the `StructuralMaterials` `sm`."
+function Base.delete!(sm::StructuralMaterials, m::M) where {M<:AbstractMaterial}
+    delete!(element_materials(sm), m)
+end
+
+"Insert the `Material` `m` into the `StructuralMaterials` `sm`."
+function Base.insert!(sm::StructuralMaterials, m::M,
+                      mat_elements::Vector{<:AbstractElement}=Vector{AbstractElement}()) where {M<:AbstractMaterial}
+    insert!(element_materials(sm), m, mat_elements)
+end
+
+"Replace the `AbstractMaterial` with the label `l` for the new material `new_m` in the `StructuralMaterials` `sm`.
+The previous material `Element`s are assigned to the new."
+function Base.replace!(sm::StructuralMaterials,
+                       new_material::AbstractMaterial,
+                       label::L=label(new_material)) where {L}
+    old_material = sm[label]
+    material_elements = sm[old_material]
+    delete!(sm, old_material)
+    insert!(sm, new_material, material_elements)
 end

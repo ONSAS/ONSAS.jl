@@ -10,10 +10,10 @@ using Reexport: @reexport
 @reexport using ..Elements
 @reexport using ..BoundaryConditions
 @reexport using ..Meshes
-using ..Utils: label
+using ..Utils
 
-import ..Elements: dofs, nodes
-import ..Meshes: mesh, num_dofs, elements, num_elements, num_nodes
+@reexport import ..Meshes: mesh, dofs, num_dofs, nodes, num_nodes, faces, num_faces,
+                           elements, num_elements
 
 export Structure, materials, boundary_conditions, num_free_dofs, free_dofs
 
@@ -26,8 +26,12 @@ include("./StructuralEntities.jl")
 # Structure
 # ==========
 
-""" Abstract supertype to define a new structure. An `AbstractStructure` object facilitates the process of assigning materials, 
-elements, and boundary conditions to the mesh. Moreover this struct is used to solve an specific structural analysis. 
+""" 
+Abstract supertype to define a new structure. 
+An `AbstractStructure` object facilitates the process of assigning materials, elements, 
+and boundary conditions to the mesh. Moreover this struct is used to solve an specific 
+structural analysis. 
+
 **Common methods:**
 
 ## Mesh: 
@@ -37,6 +41,8 @@ elements, and boundary conditions to the mesh. Moreover this struct is used to s
 * [`num_free_dofs`](@ref)
 * [`nodes`](@ref)
 * [`num_nodes`](@ref)
+* [`faces`](@ref)
+* [`num_faces`](@ref)
 * [`elements`](@ref)
 * [`num_elements`](@ref)
 * [`mesh`](@ref)
@@ -81,6 +87,12 @@ elements(s::AbstractStructure) = elements(mesh(s))
 
 "Return the number of `Element`s of the `AbstractStructure` `s`"
 num_elements(s::AbstractStructure) = num_elements(mesh(s))
+
+"Return the `Face`s of the `AbstractStructure` `s`"
+faces(s::AbstractStructure) = faces(mesh(s))
+
+"Return the number of `Face`s of the `AbstractStructure` `s`"
+num_faces(s::AbstractStructure) = num_faces(mesh(s))
 
 # Boundary Conditions 
 "Return the `StructuralBoundaryConditions` of the `AbstractStructure` `s`"
