@@ -127,7 +127,7 @@ function run_uniaxial_compression()
         # Displacements in the z (component 3) axis at node 7
         numerical_uₖ = displacements_n₇[3]
         numerical_γ = 1 .+ numerical_uₖ / Lₖ
-        return numerical_α, numerical_β, numerical_γ, numerical_uᵢ, numerical_uⱼ, numerical_uₖ
+        numerical_α, numerical_β, numerical_γ, numerical_uᵢ, numerical_uⱼ, numerical_uₖ
     end
     # Numeric solution for testing
     numeric_α_case₁, numeric_β_case₁, numeric_γ_case₁, numeric_uᵢ_case₁, _, _ = αβγ_numeric(states_sol_case₁)
@@ -163,7 +163,7 @@ function run_uniaxial_compression()
         # First invariant
         I₁ = tr(ℂ)
         # Strain energy function 
-        return Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
+        Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
     end
     params = [K, μ] # The order must be the same defined in the strain energy (splatting)
     mat_label = "neoHyper"
@@ -244,20 +244,20 @@ function run_uniaxial_compression()
     function u_ijk_numeric(numerical_α::Vector{<:Real}, numerical_β::Vector{<:Real},
                            numerical_γ::Vector{<:Real},
                            x::Real, y::Real, z::Real)
-        return x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
+        x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
     end
     # Test with Second Piola-Kirchoff stress tensor `ℙ`.
     "Computes ℙ(1,1) given α, β and γ."
     function analytic_ℙᵢᵢ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
-        return μ * α - μ * (α .^ (-1)) + K * (β .^ 2) .* (α .* (β .^ 2) .- 1)
+        μ * α - μ * (α .^ (-1)) + K * (β .^ 2) .* (α .* (β .^ 2) .- 1)
     end
     "Computes ℙ(2,2) given α, β and γ."
     function analytic_ℙⱼⱼ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
-        return μ * β - μ * (β .^ (-1)) + K * β .* ((α .^ 2) .* (β .^ 2) - α)
+        μ * β - μ * (β .^ (-1)) + K * β .* ((α .^ 2) .* (β .^ 2) - α)
     end
     "Computes ℙ(2,2) given α, β and γ."
     function analytic_ℙₖₖ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
-        return analytic_ℙⱼⱼ(α, β, μ, K)
+        analytic_ℙⱼⱼ(α, β, μ, K)
     end
     # Compute the analytic Second Piola-Kirchoff stress tensor `ℙ` for the numeric vectors α and β
     # Case 1 
