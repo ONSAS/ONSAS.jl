@@ -112,5 +112,5 @@ function create_linear_extension_mesh(Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
     gmsh.write(filename_msh)
     gmsh.finalize()
 
-    return filename_msh
+    filename_msh
 end

@@ -2,8 +2,7 @@
 # Uniaxial Extension ExampleExercise 4 from section 6.5 in (Holzapfel,2000).
 # For notation see: https://onsas.github.io/ONSAS.m/dev/examples/uniaxialExtension/
 # --------------------------------------------------------------------------
-using Test, LinearAlgebra, Suppressor
-using Roots: find_zero
+using Test, LinearAlgebra, Suppressor, Roots
 using ONSAS
 
 include("uniaxial_mesh.jl") # Mesh Cube with Gmsh.jl
@@ -119,7 +118,7 @@ function run_uniaxial_extension()
         # Displacements in the z (component 3) axis at node 7
         numerical_uₖ = displacements(states_sol_case₁, n₇, 3)
         numerical_γ = 1 .+ numerical_uₖ / Lₖ
-        return numerical_α, numerical_β, numerical_γ, numerical_uᵢ, numerical_uⱼ, numerical_uₖ
+        numerical_α, numerical_β, numerical_γ, numerical_uᵢ, numerical_uⱼ, numerical_uₖ
     end
     # Numeric solution for testing
     numeric_α_case₁, numeric_β_case₁, numeric_γ_case₁, numeric_uᵢ_case₁, _, _ = αβγ_numeric(states_sol_case₁)
@@ -200,12 +199,12 @@ function run_uniaxial_extension()
     function u_ijk_numeric(numerical_α::Vector{<:Real}, numerical_β::Vector{<:Real},
                            numerical_γ::Vector{<:Real},
                            x::Real, y::Real, z::Real)
-        return x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
+        x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
     end
     # Test with load factors
     "Analytic load factor solution for the displacement `uᵢ` towards `x` axis at node `n₆`."
     function load_factors_analytic(uᵢ::Real, p::Real=p, E::Real=E, Lᵢ::Real=Lᵢ)
-        return 1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
+        1 / p * E * 0.5 * ((1 + uᵢ / Lᵢ)^3 - (1 + uᵢ / Lᵢ))
     end
     # Compute load factors with numerical solutions
     analytics_λᵥ_case₁ = load_factors_analytic.(numeric_uᵢ_case₁)
