@@ -104,7 +104,7 @@ function run_uniaxial_extension()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol_case₁ = solve!(sa₁, nr)
+    states_sol_case₁ = ONSAS.solve!(sa₁, nr)
     "Computes numeric solution α, β and γ for analytic validation."
     function αβγ_numeric(states_sol::AbstractSolution)
         s = structure(analysis(states_sol))
@@ -181,7 +181,7 @@ function run_uniaxial_extension()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol_case₂ = solve!(sa₂, nr)
+    states_sol_case₂ = ONSAS.solve!(sa₂, nr)
     # Numeric solution for testing
     numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, numeric_uᵢ_case₂, _, _ = αβγ_numeric(states_sol_case₂)
     # Extract ℙ and ℂ from the last state using a random element
