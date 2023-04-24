@@ -9,23 +9,21 @@ using ..StructuralModel
 
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
-### Fields:
-- `mesh`      -- stores the structural mesh. 
-- `materials` -- stores the structural materials of the structure. 
-- `elements`  -- stores the structural elements of the structure.
-- `bcs`       -- stores the structural boundary conditions of the structure.
-- `free_dofs` -- stores the free degrees of freedom.
 """
 struct Structure{dim,MESH,MAT,E,NB,LB} <: AbstractStructure{dim,MAT,E}
+    "Stores the structure's mesh."
     mesh::MESH
+    "Stores the structure's materials and elements assignments."
     materials::StructuralMaterials{MAT,E}
+    "Stores the structure's boundary conditions and elements assignments."
     bcs::StructuralBoundaryConditions{NB,LB}
+    "Stores the structure's free degrees of freedom."
     free_dofs::Vector{Dof}
     function Structure(mesh::MESH,
                        materials::StructuralMaterials{MAT,E},
                        bcs::StructuralBoundaryConditions{NB,LB},
                        free_dofs::Vector{Dof}) where {dim,MESH<:AbstractMesh{dim},MAT,E,NB,LB}
-        return new{dim,MESH,MAT,E,NB,LB}(mesh, materials, bcs, free_dofs)
+        new{dim,MESH,MAT,E,NB,LB}(mesh, materials, bcs, free_dofs)
     end
 end
 
@@ -43,7 +41,7 @@ function Structure(mesh::AbstractMesh{dim},
 
     deleteat!(default_free_dofs, findall(x -> x in fixed_dofs, default_free_dofs))
 
-    return Structure(mesh, materials, bcs, default_free_dofs)
+    Structure(mesh, materials, bcs, default_free_dofs)
 end
 
 "Constructor of a `Structure` given a `MshFile` `msh_file`, `StructuralMaterials` `materials`,  `StructuralBoundaryConditions` `bcs`."
@@ -61,8 +59,6 @@ function Structure(msh_file::MshFile,
         nodes_entity = view(nodes, entity_nodes_indexes)
         entity_type_label = entity_label(msh_file, entity_index)
         # Check if the entity is a node, if not add it to the mesh
-        # Main.@infiltrate
-
         if entity_type_label == "node"
             entity = nodes_entity[]
         else
@@ -91,10 +87,18 @@ function Structure(msh_file::MshFile,
         apply!(mesh, dof_symbol, dof_dim)
     end
 
-    return Structure(mesh, materials, bcs)
+    Structure(mesh, materials, bcs)
 end
 
 "Constructor of a `PointEvalHandler` from a `Structure` and a `AbstractVector` of `Point`s ."
 function PointEvalHandler(s::Structure, vec_points::AbstractVector{P}) where {T,P<:Point{T}}
-    return PointEvalHandler(mesh(s), vec_points)
+    PointEvalHandler(mesh(s), vec_points)
+end
+
+"Replace the `AbstractMaterial` with the label `l` for the new material `new_m` in the `Structure`.
+The previous material `Element`s are assigned to the new."
+function Base.replace!(s::Structure,
+                       new_material::AbstractMaterial,
+                       label::L=label(new_material)) where {L}
+    replace!(materials(s), new_material, label)
 end

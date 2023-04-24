@@ -87,6 +87,9 @@ num_nodes(m::AbstractMesh) = length(nodes(m))
 "Return a `Vector` of `Face`s defined in the `AbstractMesh` `m`."
 faces(m::AbstractMesh) = m.faces
 
+"Return the number of `Face`s of the `AbstractMesh` `m`."
+num_faces(m::AbstractMesh) = length(faces(m))
+
 "Return the `Element`s of the `AbstractMesh` `m`."
 elements(m::AbstractMesh) = m.elements
 
