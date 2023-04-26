@@ -42,6 +42,13 @@ function NonLinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10
     return NonLinearStaticAnalysis(s, λᵥ; initial_step=initial_step)
 end
 
+function Base.show(io::IO, sa::NonLinearStaticAnalysis)
+    println("NonLinearStaticAnalysis for:")
+    println("• Current load factor of $(unwrap(sa.current_step)).")
+    show(io, sa.s)
+    show(io, sa.state)
+end
+
 "Solves an `NonLinearStaticAnalysis` `sa` with an AbstractSolver `alg`."
 function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
     s = structure(sa)

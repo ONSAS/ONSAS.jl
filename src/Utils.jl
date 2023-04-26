@@ -2,7 +2,7 @@ module Utils
 
 using LinearAlgebra: Diagonal
 
-export ScalarWrapper, label, _unwrap, eye, row_vector, Point, @debugtime, voigt
+export ScalarWrapper, label, unwrap, eye, row_vector, Point, @debugtime, voigt
 
 #================================#
 # Generic functions to overload  #
@@ -19,11 +19,12 @@ function label end
 "Unwraps the object fields."
 function _unwrap end
 
-"Scalar mutable struct to avoid making mutable larger structs"
+"Scalar mutable struct to avoid making mutable larger structs."
 mutable struct ScalarWrapper{T}
     x::T
 end
 
+unwrap(s::ScalarWrapper) = s.x
 @inline Base.getindex(s::ScalarWrapper) = s.x
 @inline Base.setindex!(s::ScalarWrapper, v) = s.x = v
 

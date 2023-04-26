@@ -217,6 +217,13 @@ function elements(m::Mesh, element_set_name::S) where {S}
     [mesh_elements[i] for i in element_indexes]
 end
 
+function Base.show(io::IO, m::Mesh)
+    nnodes = length(m.nodes)
+    nelems = length(m.elements)
+    nfaces = length(m.faces)
+    println("• Mesh with $nnodes nodes, $nelems elements and $nfaces faces.")
+end
+
 "Add `element_id` to the `Mesh` `m` `Set` `element_set_name`."
 function add_element_to_set!(m::Mesh, element_set_name::S, element_id::Int) where {S}
     element_sets = element_set(m)

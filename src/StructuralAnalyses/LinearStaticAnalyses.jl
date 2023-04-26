@@ -44,6 +44,12 @@ function LinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, i
     return LinearStaticAnalysis(s, λᵥ; initial_step=initial_step)
 end
 
+function Base.show(io::IO, sa::LinearStaticAnalysis)
+    println("LinearStaticAnalysis for:")
+    show(io, sa.s)
+    show(io, sa.state)
+end
+
 "Solves an `LinearStaticAnalysis` `sa`."
 function _solve!(sa::LinearStaticAnalysis)
     s = structure(sa)

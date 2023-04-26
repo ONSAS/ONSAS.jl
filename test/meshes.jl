@@ -2,7 +2,6 @@
 # Meshes module tests #
 #######################
 using Test, Suppressor, Dictionaries
-
 using ONSAS.Meshes
 
 const RTOL = 1e-5
