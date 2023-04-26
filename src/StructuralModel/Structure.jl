@@ -90,6 +90,12 @@ function Structure(msh_file::MshFile,
     Structure(mesh, materials, bcs)
 end
 
+function Base.show(io::IO, s::Structure)
+    ndofs = length(s.free_dofs)
+    println("• Structure with $ndofs free dofs.")
+    show(io, s.mesh)
+end
+
 "Constructor of a `PointEvalHandler` from a `Structure` and a `AbstractVector` of `Point`s ."
 function PointEvalHandler(s::Structure, vec_points::AbstractVector{P}) where {T,P<:Point{T}}
     PointEvalHandler(mesh(s), vec_points)

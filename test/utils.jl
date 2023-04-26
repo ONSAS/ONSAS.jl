@@ -1,4 +1,4 @@
-using Test: @testset, @test
+using Test
 using ONSAS.Utils
 
 # Test case for ScalarWrapper
@@ -7,10 +7,13 @@ using ONSAS.Utils
     s = ScalarWrapper(10)
     @test s.x == 10
 
-    # Test getindex method
+    # Test `unwrap` method.
+    @test unwrap(s) == 10
+
+    # Test `getindex` method.
     @test s[] == 10
 
-    # Test setindex! method
+    # Test `setindex!` method.
     s[] = 20
     @test s[] == 20
 end

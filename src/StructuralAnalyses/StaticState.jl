@@ -77,6 +77,14 @@ function StaticState(s::AbstractStructure,
     return StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
 end
 
+function Base.show(io::IO, sc::StaticState)
+    nu = length(sc.Uᵏ)
+    K = sc.Kₛᵏ
+    s = size(K)
+    println("• StaticState with $nu-element displacements vector Uᵏ " *
+            "and $(s[1]) × $(s[2]) tangent matrix Kₛᵏ with $(length(K.nzval)) stored entries.")
+end
+
 "Update and return the current residual forces of the `StaticState` `sc`."
 function residual_forces!(sc::StaticState)
     return sc.res_forces .= view(external_forces(sc), free_dofs(sc)) -
