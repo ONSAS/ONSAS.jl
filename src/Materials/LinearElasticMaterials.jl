@@ -18,7 +18,6 @@ An `AbstractLinearElasticMaterial` object facilitates the process of using elast
 **Common fields:**
 * label
 * ρ(density)
-
 """
 abstract type AbstractLinearElasticMaterial <: AbstractMaterial end
 

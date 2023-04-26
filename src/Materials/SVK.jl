@@ -21,28 +21,28 @@ For context see the [Hyperelastic material](https://en.wikipedia.org/wiki/Hypere
 It is also possible to construct an `SVK` material given its elasticity and shear modulus `E`, `ν` respectively and its density `ρ`. 
 For context see the [Lamé parameters](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters) wikipedia article.
 """
-struct SVK{T<:Real,R<:Union{T,Nothing}} <: AbstractHyperElasticMaterial
+struct SVK{T<:Real} <: AbstractHyperElasticMaterial
     "First Lamé parameter."
     λ::T
     "Shear modulus or second Lamé parameter (μ)."
     G::T
     "Density (`nothing` for static cases)."
-    ρ::R
+    ρ::Density
     "Material label."
     label::Label
-    function SVK(λ::T, G::T, ρ::R, label::Label=NO_LABEL) where {T<:Real,R<:Union{Nothing,Real}}
+    function SVK(λ::T, G::T, ρ::Density, label::Label=NO_LABEL) where {T<:Real}
         if ρ isa Real
             ρ > 0 || error("Density must be positive.")
         end
         @assert λ ≥ 0 "The first Lamé parameter `λ` must be positive."
         @assert G ≥ 0 "The second Lamé parameter or shear modulus `G` must be positive."
-        return new{T,R}(λ, G, ρ, Symbol(label))
+        return new{T}(λ, G, ρ, Symbol(label))
     end
 end
-function SVK(λ::T, G::T, label::Label=NO_LABEL) where {T<:Real,R<:Union{Nothing,Real}}
+function SVK(λ::T, G::T, label::Label=NO_LABEL) where {T<:Real}
     SVK(λ, G, nothing, label)
 end
-function SVK(; E::Real, ν::Real, ρ::R=nothing, label::Label=NO_LABEL) where {R<:Union{Nothing,Real}}
+function SVK(; E::Real, ν::Real, ρ::Density=nothing, label::Label=NO_LABEL)
     # Compute λ and μ (μ = G) given E and ν.
     λ = E * ν / ((1 + ν) * (1 - 2 * ν))
     G = E / (2 * (1 + ν))

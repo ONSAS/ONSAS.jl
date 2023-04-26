@@ -14,19 +14,18 @@ Material with hyperelastic properties.
 
 For context see the wikipedia article on [Hyperelastic_material](https://en.wikipedia.org/wiki/Hyperelastic_material).
 """
-struct HyperElastic{T<:Real,F<:Function,R<:Union{T,Nothing}} <:
-       AbstractHyperElasticMaterial
+struct HyperElastic{T<:Real,F<:Function} <: AbstractHyperElasticMaterial
     "Strain energy material parameters."
     params::Vector{T}
     "Strain energy function given `params` and the Green-Lagrange strain tensor `𝔼`."
     Ψ::F
     "Density (`nothing` for static cases)."
-    ρ::R
+    ρ::Density
     "Material label."
     label::Label
-    function HyperElastic(params::Vector{T}, Ψ::F, ρ::R,
-                          label::Label=NO_LABEL) where {T<:Real,F<:Function,R<:Union{Nothing,Real}}
-        return new{T,F,R}(params, Ψ, ρ, Symbol(label))
+    function HyperElastic(params::Vector{T}, Ψ::F, ρ::Density,
+                          label::Label=NO_LABEL) where {T<:Real,F<:Function}
+        return new{T,F}(params, Ψ, ρ, Symbol(label))
     end
 end
 function HyperElastic(params::Vector{T}, Ψ::F, label::Label=NO_LABEL) where {T<:Real,F<:Function}

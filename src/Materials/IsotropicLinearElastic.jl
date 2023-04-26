@@ -18,27 +18,24 @@ For context see the wikipedia article on [Linear elasticity](https://en.wikipedi
 It is also possible to construct an `IsotropicLinearElastic` material given its Lamé parameters `λ`, `G` and density `ρ`. 
 For context see the wikipedia article on [Lamé parameters](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters).
 """
-struct IsotropicLinearElastic{ET<:Real,NT<:Real,RT<:Union{ET,Nothing}} <:
-       AbstractLinearElasticMaterial
+struct IsotropicLinearElastic{ET<:Real,NT<:Real} <: AbstractLinearElasticMaterial
     "Elasticity modulus."
     E::ET
     "Poisson's ratio."
     ν::NT
     "Density (`nothing` for static cases)."
-    ρ::RT
+    ρ::Density
     "Material label."
     label::Label
-    function IsotropicLinearElastic(E::ET, ν::NT, ρ::RT,
-                                    label::Label=NO_LABEL) where {ET<:Real,NT<:Real,
-                                                                  RT<:Union{Nothing,Real}}
-        return new{ET,NT,RT}(E, ν, ρ, Symbol(label))
+    function IsotropicLinearElastic(E::ET, ν::NT, ρ::Density,
+                                    label::Label=NO_LABEL) where {ET<:Real,NT<:Real}
+        return new{ET,NT}(E, ν, ρ, Symbol(label))
     end
 end
 function IsotropicLinearElastic(E::ET, ν::NT, label::Label=NO_LABEL) where {ET<:Real,NT<:Real}
     return IsotropicLinearElastic(E, ν, nothing, label)
 end
-function IsotropicLinearElastic(; λ::Real, G::Real, ρ::R=nothing,
-                                label::Label=NO_LABEL) where {R<:Union{Nothing,Real}}
+function IsotropicLinearElastic(; λ::Real, G::Real, ρ::Density=nothing, label::Label=NO_LABEL)
     E = G * (3λ + 2G) / (λ + G)
     ν = λ / (2 * (λ + G))
     return IsotropicLinearElastic(E, ν, ρ, Symbol(label))
