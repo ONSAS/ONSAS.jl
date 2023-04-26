@@ -8,7 +8,7 @@ using AutoHashEquals: @auto_hash_equals
 using Reexport: @reexport
 @reexport using Dictionaries: Dictionary, dictionary
 using StaticArrays: Size, SVector, StaticArray
-using ..Utils: row_vector
+using ..Utils
 
 @reexport using ..Materials
 @reexport using ..CrossSections

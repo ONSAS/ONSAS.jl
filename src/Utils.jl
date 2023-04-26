@@ -2,7 +2,7 @@ module Utils
 
 using LinearAlgebra: Diagonal
 
-export ScalarWrapper, label, unwrap, eye, row_vector, Point, @debugtime, voigt
+export ScalarWrapper, label, unwrap, eye, row_vector, Point, @debugtime, voigt, Label, NO_LABEL
 
 #================================#
 # Generic functions to overload  #
@@ -55,5 +55,15 @@ macro debugtime(msg, expr)
         result
     end
 end
+
+#==================#
+# Type aliases     #
+#==================#
+
+"Used to assign labels to geometric or physical entities."
+const Label = Union{String,Symbol}
+
+"Label to design an entity without assigned label."
+const NO_LABEL = :no_label
 
 end # module

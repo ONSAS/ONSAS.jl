@@ -1,8 +1,9 @@
 using SparseArrays: sparse
-using ..Materials: SVK
-using ..Elements: AbstractElement, AbstractNode
-using ..CrossSections: AbstractCrossSection, area
-using ..Utils: eye
+using ..Materials
+using ..Elements
+using ..CrossSections
+using ..Utils
+using ..Utils
 
 import ..Elements: nodes, create_entity, cross_section, internal_forces, local_dof_symbol, strain,
                    stress
@@ -23,9 +24,9 @@ See [[ANLE]](@ref).
 struct Truss{dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection} <: AbstractElement{dim,T}
     nodes::SVector{2,N}
     cross_section::G
-    label::Symbol
+    label::Label
     function Truss(nodes::SVector{2,N}, g::G,
-                   label=:no_labelled_element) where
+                   label::Label=NO_LABEL) where
              {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
         @assert 1 ≤ dim ≤ 3 "Nodes of a truss element must comply  1 < dim < 3 ."
         return new{dim,T,N,G}(nodes, g, Symbol(label))
@@ -34,14 +35,14 @@ end
 
 "Constructor for a `Truss` element considering the nodes `n₁` and `n₂` and the cross-section `g`."
 function Truss(n₁::N, n₂::N, g::G,
-               label::L=:no_labelled_face) where
-         {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection,L<:Union{String,Symbol}}
-    return Truss(SVector(n₁, n₂), g, Symbol(label))
+               label::Label=NO_LABEL) where
+         {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
+    return Truss(SVector(n₁, n₂), g, label)
 end
 
 "Constructor for a `Truss` element without nodes and a `label`. This function is used to create meshes via GMSH."
-function Truss(g::AbstractCrossSection, label::L=:no_labelled_face) where {L<:Union{String,Symbol}}
-    return Truss(Node(0, 0, 0), Node(0, 0, 0), g, Symbol(label))
+function Truss(g::AbstractCrossSection, label::Label=NO_LABEL)
+    return Truss(Node(0, 0, 0), Node(0, 0, 0), g, label)
 end
 
 #==============================#

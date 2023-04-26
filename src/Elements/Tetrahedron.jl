@@ -1,14 +1,15 @@
 using StaticArrays: SVector
 using LinearAlgebra: Symmetric, det, diagm
 import LazySets
+using Reexport
 
-using ..Materials: AbstractHyperElasticMaterial, SVK, cosserat_stress
-using ..Materials: IsotropicLinearElastic, lame_parameters, cauchy_stress
-using ..Elements: AbstractElement, AbstractNode
-using ..CrossSections: AbstractCrossSection, area
-using ..Utils: eye, voigt
+using ..Materials
+using ..Elements
+using ..CrossSections
+using ..Utils
 
-import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress, weights
+@reexport import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress,
+                             weights
 
 export Tetrahedron, volume, reference_coordinates
 
@@ -23,23 +24,22 @@ See [[Belytschko]](@ref) and [[Gurtin]](@ref) for more details.
 """
 struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractElement{dim,T}
     nodes::SVector{4,N}
-    label::Symbol
+    label::Label
     function Tetrahedron(nodes::SVector{4,N},
-                         label=:no_labelled_element) where
+                         label::Label=NO_LABEL) where
              {dim,T<:Real,N<:AbstractNode{dim,T}}
         @assert dim == 3 "Nodes of a tetrahedron element must be 3D."
         return new{dim,T,N}(nodes, Symbol(label))
     end
 end
 
-function Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label=:no_labelled_element) where {N<:AbstractNode}
-    return Tetrahedron(SVector(n₁, n₂, n₃, n₄), Symbol(label))
+function Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label::Label=NO_LABEL) where {N<:AbstractNode}
+    return Tetrahedron(SVector(n₁, n₂, n₃, n₄), label)
 end
 
 "Constructor for a `Tetrahedron` element without nodes and a `label`. This function is used to create meshes via GMSH."
-function Tetrahedron(label::L=:no_labelled_face) where {L<:Union{String,Symbol}}
-    return Tetrahedron(SVector(Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0)),
-                       Symbol(label))
+function Tetrahedron(label::Label=NO_LABEL)
+    return Tetrahedron(SVector(Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0)), label)
 end
 
 "Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."

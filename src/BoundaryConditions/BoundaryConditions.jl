@@ -5,7 +5,7 @@ Overall, each boundary condition consists of a data type with a label, dofs and 
 """
 module BoundaryConditions
 
-using Reexport: @reexport
+using Reexport
 
 @reexport import ..Elements: dofs
 @reexport import ..Utils: label
