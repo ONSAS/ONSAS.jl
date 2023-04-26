@@ -1,28 +1,31 @@
-using Reexport: @reexport
+using Reexport, Dictionaries
 
-using Dictionaries: Dictionary
-using ..Meshes: AbstractMesh, elements
-using ..Elements: AbstractNode, AbstractElement, coordinates, index, weights
+using ..Meshes
+using ..Elements
 
-export PointEvalHandler, points, interpolator, mesh
+export PointEvalHandler, points, not_in_mesh_points, interpolator, mesh
 export PointsInterpolator, node_to_weights, points_to_element
 
-""" PointEvalHandler struct.
+"""
 A `PointEvalHandler` facilitates the process of evaluating a solution at a given vector of points 
 obtained at the `Node`s `Dof`s in a `Mesh`.
-### Fields:
-- `vec_points`   -- stores the points where the solution will be evaluated.
-- `mesh`         -- stores the mesh where the solution is obtained.
-- `interpolator` -- stores the interpolator used to evaluate the solution.
 """
-struct PointEvalHandler{I,M,P,VP<:Vector{P}}
-    vec_points::VP
+struct PointEvalHandler{I,M<:AbstractMesh,P,VP1<:AbstractVector{P},VP2<:AbstractVector{P}}
+    "`Vector` of `Point`s to evaluate the solution."
+    in_mesh_points::VP1
+    "`Vector` of `Point`s outside the mesh."
+    not_in_mesh_points::VP2
+    "`Mesh` where the solution is obtained."
     mesh::M
+    "`Interpolator` object used to evaluate the solution."
     interpolator::I
 end
 
 "Return the `Vector` of `Point`s where the solution will be evaluated."
-points(peh::PointEvalHandler) = peh.vec_points
+points(peh::PointEvalHandler) = peh.in_mesh_points
+
+"Return the `Vector` of `Point`s that are not in the mesh."
+not_in_mesh_points(peh::PointEvalHandler) = peh.not_in_mesh_points
 
 "Return the `Mesh` where the solution is obtained."
 mesh(peh::PointEvalHandler) = peh.mesh
@@ -30,15 +33,15 @@ mesh(peh::PointEvalHandler) = peh.mesh
 "Return the `Interpolator` used to evaluate the solution."
 interpolator(peh::PointEvalHandler) = peh.interpolator
 
-"""PointsInterpolator struct.
-A `PointsInterpolator` struct stores the weights nodes and elements needed to interpolate the solution at a given point.
-The index of each `Vector` is the index in the `Vector` of `Point`s.
-### Fields:
-- `node_to_weights` -- stores a `Dictionary` with `Node`s as keys and the corresponding weights as values.
-- `point_to_element` -- stores the `Element` where the point is located.
+"""
+A `PointsInterpolator` struct stores the weights nodes and elements needed 
+    to interpolate the solution at a given point.The index of each `Vector` 
+    is the index in the `Vector` of `Point`s.
 """
 struct PointsInterpolator{N<:AbstractNode,T,E<:AbstractElement}
+    "`Dictionary` with `Node`s as keys and the corresponding weights as values."
     node_to_weights::Vector{Dictionary{N,T}}
+    "`Element` where the point is located."
     points_to_element::Vector{E}
 end
 
@@ -92,15 +95,28 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::AbstractVector{P}) whe
         end
     end
 
-    @assert length(interpolated_vec_points_indexes) == length(vec_points) "
-    There are $(length(vec_points) - length(interpolated_vec_points_indexes)) points outside the mesh .
-    "
+    if length(interpolated_vec_points_indexes) == length(vec_points)
+        PointEvalHandler(vec_points, Vector{P}(undef, 0), mesh,
+                         PointsInterpolator(point_interpolators, point_to_element))
+    else
+        @warn "There are $(length(vec_points) - length(interpolated_vec_points_indexes)) points outside the mesh ."
+        # Pick in mesh and no in mesh points
+        sort!(interpolated_vec_points_indexes)
+        in_mesh_points = view(vec_points, interpolated_vec_points_indexes)
+        not_in_mesh_indexes = deleteat!(collect(1:length(vec_points)),
+                                        interpolated_vec_points_indexes)
+        not_in_mesh_points = view(vec_points, not_in_mesh_indexes)
 
-    return PointEvalHandler(vec_points, mesh,
-                            PointsInterpolator(point_interpolators, point_to_element))
+        # Remove undef in interpolator object
+        deleteat!(point_interpolators, not_in_mesh_indexes)
+        deleteat!(point_to_element, not_in_mesh_indexes)
+        interpolator = PointsInterpolator(point_interpolators, point_to_element)
+        # Return the PointEvalHandler
+        PointEvalHandler(in_mesh_points, not_in_mesh_points, mesh, interpolator)
+    end
 end
 
 "Constructor of a `PointEvalHandler` from a `Mesh` and a `Point` ."
 function PointEvalHandler(mesh::AbstractMesh, point::P) where {T,P<:Point{T}}
-    return PointEvalHandler(mesh, [point])
+    PointEvalHandler(mesh, [point])
 end
