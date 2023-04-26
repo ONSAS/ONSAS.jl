@@ -177,16 +177,21 @@ end
 
     # Interpolator
     #--------------------------------
-    # At the nodes
-    nodes_to_interpolate = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
+    # Outter nodes
+    n₉ = Node((n₇ + n₈)...)
+    # Inner nodes
+    nodes_to_interpolate = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈, n₉]
     vec_points = coordinates.(nodes_to_interpolate)
     ph_nodes = PointEvalHandler(s_mesh, vec_points)
     @test mesh(ph_nodes) == s_mesh
-    @test points(ph_nodes) == vec_points
+    in_mesh_indexes = [1, 2, 3, 4, 5, 6, 7, 8]
+    @test points(ph_nodes) == view(nodes_to_interpolate, in_mesh_indexes)
+    @test n₉ ∈ not_in_mesh_points(ph_nodes)
     point_elements = points_to_element(interpolator(ph_nodes))
+    node_2_weights = node_to_weights(interpolator(ph_nodes))
+    @test length(point_elements) == length(points(ph_nodes)) == length(in_mesh_indexes)
 
-    # If the point is at two elements then the first element will 
-    # be reported 
+    # If the point is at two elements then the first element will be reported 
     @test all([p ∈ point_elements[index_p] for (index_p, p) in enumerate(points(ph_nodes))])
 
     # Test interpolation for a linear scalar field 
