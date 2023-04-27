@@ -1,60 +1,52 @@
 using LinearAlgebra: tr
 using SparseArrays: SparseMatrixCSC
+using Reexport
 
-using ..HyperElasticMaterials: AbstractHyperElasticMaterial
-using ...Utils: eye
+using ..HyperElasticMaterials
+using ...Utils
 
-import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus,
-                                 poisson_ratio
-import ..HyperElasticMaterials: cosserat_stress, strain_energy
+@reexport import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus,
+                                           bulk_modulus,
+                                           poisson_ratio
+@reexport import ..HyperElasticMaterials: cosserat_stress, strain_energy
 
 export SVK
 
-""" Saint-Venant-Kirchhoff material struct.
+""" 
+Material with Saint-Venant-Kirchhoff properties.
+The strain energy `Ψ` is: `Ψ(𝔼)` = `λ`/2 tr(`𝔼`)^2 + `G` tr(`𝔼`^2).
 
-The strain energy `Ψ` is: `Ψ(𝔼)` = `λ`/2 tr(`𝔼`)^2 + `G` tr(`𝔼`^2)
+For context see the [Hyperelastic material](https://en.wikipedia.org/wiki/Hyperelastic_material) wikipedia article.
 
-### Fields:
-- `λ`     -- first Lamé parameter.
-- `G`     -- shear modulus or second Lamé parameter (μ).
-- `ρ`     -- density (`nothing` for static cases).
-- `label` -- material label.
-
-[See this ref.](https://en.wikipedia.org/wiki/Hyperelastic_material)
+It is also possible to construct an `SVK` material given its elasticity and shear modulus `E`, `ν` respectively and its density `ρ`. 
+For context see the [Lamé parameters](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters) wikipedia article.
 """
-struct SVK{T<:Real,R<:Union{T,Nothing}} <: AbstractHyperElasticMaterial
+struct SVK{T<:Real} <: AbstractHyperElasticMaterial
+    "First Lamé parameter."
     λ::T
+    "Shear modulus or second Lamé parameter (μ)."
     G::T
-    ρ::R
-    label::Symbol
-    function SVK(λ::T, G::T, ρ::R,
-                 label::L=:no_labelled_mat) where
-             {T<:Real,R<:Union{Nothing,Real},L<:Union{Symbol,String}}
+    "Density (`nothing` for static cases)."
+    ρ::Density
+    "Material label."
+    label::Label
+    function SVK(λ::T, G::T, ρ::Density, label::Label=NO_LABEL) where {T<:Real}
         if ρ isa Real
             ρ > 0 || error("Density must be positive.")
         end
         @assert λ ≥ 0 "The first Lamé parameter `λ` must be positive."
         @assert G ≥ 0 "The second Lamé parameter or shear modulus `G` must be positive."
-        return new{T,R}(λ, G, ρ, Symbol(label))
+        new{T}(λ, G, ρ, Symbol(label))
     end
 end
-
-"Material `SVK` constructor with no density parameter `ρ`."
-function SVK(λ::Real, G::Real, label::L=:no_labelled_mat) where {L<:Union{Symbol,String}}
-    return SVK(λ, G, nothing, label)
+function SVK(λ::T, G::T, label::Label=NO_LABEL) where {T<:Real}
+    SVK(λ, G, nothing, label)
 end
-
-"Material `SVK` constructor with elasticity and shear modulus `E`, `ν` and density `ρ`. 
-See [this ref](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters)."
-function SVK(; E::Real, ν::Real, ρ::R=nothing,
-             label::L=:no_labelled_mat) where
-         {R<:Union{Nothing,Real},L<:Union{Symbol,String}}
-
-    # Compute λ and μ (μ = G) given E and ν
+function SVK(; E::Real, ν::Real, ρ::Density=nothing, label::Label=NO_LABEL)
+    # Compute λ and μ (μ = G) given E and ν.
     λ = E * ν / ((1 + ν) * (1 - 2 * ν))
     G = E / (2 * (1 + ν))
-
-    return SVK(λ, G, ρ, Symbol(label))
+    SVK(λ, G, ρ, label)
 end
 
 "Return the strain energy for a `SVK` material `m` and the Green-Lagrange strain tensor `𝔼`."

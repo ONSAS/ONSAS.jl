@@ -23,8 +23,8 @@ mat_label = "steel"
     @test poisson_ratio(linear_steel_no_density) == ν
     @test shear_modulus(linear_steel_no_density) == G
     @test bulk_modulus(linear_steel_no_density) == K
-    @test density(linear_steel_no_density) == nothing
-    @test label(linear_steel_no_density) == :no_labelled_mat
+    @test isnothing(density(linear_steel_no_density))
+    @test label(linear_steel_no_density) == NO_LABEL
 
     linear_steel = IsotropicLinearElastic(; λ=λ, G=G, ρ=ρ, label=mat_label)
     @test label(linear_steel) == Symbol(mat_label)
@@ -80,7 +80,7 @@ Khyper = λhyper + 2 * Ghyper / 3
     svk_static = SVK(λ, G)
 
     @test lame_parameters(svk_static) == (λ, G)
-    @test density(svk_static) == nothing
+    @test isnothing(density(svk_static))
     @test elasticity_modulus(svk_static) ≈ E rtol = RTOL
     @test shear_modulus(svk_static) == G
     @test bulk_modulus(svk_static) ≈ K rtol = RTOL
@@ -111,7 +111,7 @@ Khyper = λhyper + 2 * Ghyper / 3
                  0.0 0.0 0.0 0.0 0.0 0.3846]
 
     @test parameters(svk_hyper) == [λhyper, Ghyper]
-    @test density(svk_hyper) == nothing
+    @test isnothing(density(svk_hyper))
     @test label(svk_hyper) == Symbol(l)
 
     # Constitutive driver svk type SVK

@@ -105,6 +105,6 @@ end
 The previous material `Element`s are assigned to the new."
 function Base.replace!(s::Structure,
                        new_material::AbstractMaterial,
-                       label::L=label(new_material)) where {L}
+                       label::Label=label(new_material))
     replace!(materials(s), new_material, label)
 end

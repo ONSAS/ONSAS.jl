@@ -1,49 +1,44 @@
 using LinearAlgebra: Symmetric, tr
+using Reexport
 
 using ..LinearElasticMaterials: AbstractLinearElasticMaterial
-using ...Utils: eye
+using ...Utils
 
-import ..LinearElasticMaterials: lame_parameters, shear_modulus, poisson_ratio, elasticity_modulus,
-                                 bulk_modulus, cauchy_stress
+@reexport import ..LinearElasticMaterials: lame_parameters, shear_modulus, poisson_ratio,
+                                           elasticity_modulus,
+                                           bulk_modulus, cauchy_stress
 
 export IsotropicLinearElastic
 
-""" IsotropicLinearElastic material struct.
-### Fields:
-- `E`         -- Elasticity modulus.
-- `ν`         -- Poisson's ratio.
-- `ρ`         -- density (`nothing` for static cases).
-- `label`     -- material label.
-
-[See this ref.](https://en.wikipedia.org/wiki/Linear_elasticity)
 """
-struct IsotropicLinearElastic{ET<:Real,NT<:Real,RT<:Union{ET,Nothing}} <:
-       AbstractLinearElasticMaterial
+Material with linear elastic properties.
+
+For context see the wikipedia article on [Linear elasticity](https://en.wikipedia.org/wiki/Linear_elasticity).
+
+It is also possible to construct an `IsotropicLinearElastic` material given its Lamé parameters `λ`, `G` and density `ρ`. 
+For context see the wikipedia article on [Lamé parameters](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters).
+"""
+struct IsotropicLinearElastic{ET<:Real,NT<:Real} <: AbstractLinearElasticMaterial
+    "Elasticity modulus."
     E::ET
+    "Poisson's ratio."
     ν::NT
-    ρ::RT
-    label::Symbol
-    function IsotropicLinearElastic(E::ET, ν::NT, ρ::RT,
-                                    label::L=:no_labelled_mat) where
-             {ET<:Real,NT<:Real,RT<:Union{Nothing,Real},L<:Union{Symbol,String}}
-        return new{ET,NT,RT}(E, ν, ρ, Symbol(label))
+    "Density (`nothing` for static cases)."
+    ρ::Density
+    "Material label."
+    label::Label
+    function IsotropicLinearElastic(E::ET, ν::NT, ρ::Density,
+                                    label::Label=NO_LABEL) where {ET<:Real,NT<:Real}
+        new{ET,NT}(E, ν, ρ, Symbol(label))
     end
 end
-"Material `IsotropicLinearElastic` constructor with no density parameter `ρ`."
-function IsotropicLinearElastic(E::Real, ν::Real,
-                                label::L=:no_labelled_mat) where {L<:Union{Symbol,String}}
-    return IsotropicLinearElastic(E, ν, nothing, label)
+function IsotropicLinearElastic(E::ET, ν::NT, label::Label=NO_LABEL) where {ET<:Real,NT<:Real}
+    IsotropicLinearElastic(E, ν, nothing, label)
 end
-
-"Material `IsotropicLinearElastic` constructor with Lamé parameters `λ`, `G` and density `ρ`. 
-See [this ref](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters)."
-function IsotropicLinearElastic(; λ::Real, G::Real, ρ::R=nothing,
-                                label::L=:no_labelled_mat) where
-         {R<:Union{Nothing,Real},L<:Union{Symbol,String}}
+function IsotropicLinearElastic(; λ::Real, G::Real, ρ::Density=nothing, label::Label=NO_LABEL)
     E = G * (3λ + 2G) / (λ + G)
     ν = λ / (2 * (λ + G))
-
-    return IsotropicLinearElastic(E, ν, ρ, Symbol(label))
+    IsotropicLinearElastic(E, ν, ρ, Symbol(label))
 end
 
 "Return the Elasticity modulus `E` from a `IsotropicLinearElastic` material `m`."
