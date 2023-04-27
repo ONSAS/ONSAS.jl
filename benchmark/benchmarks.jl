@@ -101,29 +101,16 @@ include(bench_path);
 ms_range = [0.5];
 n_points_each_axis_range = [10];
 
-ms = 0.5
-n_points_each_axis = 10
-
-structure = linear_cylinder_structure(; ms=ms);
-
-problem = LinearStaticAnalysis(structure; NSTEPS=NSTEPS);
-
-solution = solve!(problem);
-
-ph = point_eval_handler(structure; NPOINTS=n_points_each_axis);
-
-u_sol_ph = displacements(solution, ph);
-
 for n_points in n_points_each_axis_range
     for ms in ms_range
         local structure
-        structure = linear_cylinder_structure(; ms=$ms)
+        structure = linear_cylinder_structure(; ms=ms)
 
         nnodes, nelems = num_nodes(structure), num_elements(structure)
 
         problem = LinearStaticAnalysis(structure; NSTEPS=NSTEPS)
 
-        solution = @benchmarkable solve!($problem) evals = evals samples = samples
+        solution = solve!(problem)
 
         ph = point_eval_handler(structure; NPOINTS=n_points_each_axis)
 
