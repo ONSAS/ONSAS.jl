@@ -98,6 +98,13 @@ function _reset!(ri_step::ResidualsIterationStep{T}) where {T<:Real}
     return ri_step
 end
 
+"Sets the `ResidualsIterationStep` `i_step` iteration step with nothing."
+function _reset!(ri_step::ResidualsIterationStep{<:Nothing})
+    ri_step.iter = 0
+    ri_step.criterion = ResidualForceCriterion()
+    return ri_step
+end
+
 "Updates the `ResidualsIterationStep` `i_step` current convergence criterion."
 function _update!(ri_step::ResidualsIterationStep, criterion::AbstractConvergenceCriterion)
     return ri_step.criterion = criterion
