@@ -1,10 +1,10 @@
 using SparseArrays: sparse
-using Reexport: @reexport
+using Reexport
 
-@reexport using ..Elements: Dof, index
+using ..Elements: Dof, index
 using ..StructuralModel: AbstractStructure, num_free_dofs
 
-import ..StructuralSolvers: _reset!
+@reexport import ..StructuralSolvers: _reset!
 
 export Assembler, _assemble!, _reset_assembler!, end_assemble, _end_assemble!
 

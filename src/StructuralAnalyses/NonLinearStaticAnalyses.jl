@@ -49,7 +49,7 @@ function Base.show(io::IO, sa::NonLinearStaticAnalysis)
     show(io, sa.state)
 end
 
-"Solves an `NonLinearStaticAnalysis` `sa` with an AbstractSolver `alg`."
+"Solves an `NonLinearStaticAnalysis` problem with a given solver."
 function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
     s = structure(sa)
     # Initialize solution.

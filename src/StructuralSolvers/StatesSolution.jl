@@ -1,8 +1,9 @@
-using ..StructuralSolvers: AbstractSolution
-using ..Meshes: PointEvalHandler, interpolator, points, node_to_weights, node_to_weights,
-                points_to_element
+using Reexport
 
-import ..Elements: internal_forces, inertial_forces, strain, stress
+using ..StructuralSolvers
+using ..Meshes
+
+@reexport import ..Elements: internal_forces, inertial_forces, strain, stress
 
 export StatesSolution, stresses, strains, states, analysis, solver, iteration_residuals
 

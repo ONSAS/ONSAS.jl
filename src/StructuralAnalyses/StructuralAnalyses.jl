@@ -18,13 +18,13 @@ using Reexport: @reexport
 import ..Elements: internal_forces, inertial_forces, strain, stress
 import ..StructuralModel: free_dofs
 import ..StructuralSolvers: _assemble!, _update!, _end_assemble!
-@reexport import ..StructuralSolvers: displacements, external_forces, iteration_residuals
+@reexport import ..StructuralSolvers: displacements, external_forces, iteration_residuals, reset!
 
 export AbstractStructuralState, _apply!, _assemble!, Δ_displacements, tangent_matrix,
        residual_forces!,
        tangent_matrix, structure, assembler, residual_forces_norms, residual_displacements_norms,
        AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done,
-       current_state, current_iteration, reset!
+       current_state, current_iteration
 
 """ Abstract supertype to define a new structural state.
 **Common methods:**
