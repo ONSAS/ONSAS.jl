@@ -5,27 +5,26 @@ A _step! method is used to perform a single iteration step.
 """
 module StructuralSolvers
 
-using ..Elements: AbstractElement, AbstractNode, Dof, dofs
 using LinearAlgebra: norm
+
+using ..Elements
 
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet
-
 export ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol
 export ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!
-export AbstractSolver, step_size, tolerances, _step!, solve!, _solve!
+export AbstractSolver, step_size, tolerances, _step!, solve!, _solve!, solve, reset!
 export AbstractSolution
 
-""" ConvergenceSettings struct.
+"""
 Facilitates the process of defining and checking numerical convergence. 
-### Fields:
-- `rel_disp_tol`    -- Relative displacement tolerance.
-- `rel_force_tol`   -- Relative residual force tolerance.
-- `max_iter`        -- Maximum number of iterations.
 """
 Base.@kwdef struct ConvergenceSettings
+    "Relative displacement tolerance."
     rel_U_tol::Float64 = 1e-6
+    "Relative residual force tolerance."
     rel_res_force_tol::Float64 = 1e-6
+    "Maximum number of iterations."
     max_iter::Int = 20
 end
 
@@ -59,20 +58,19 @@ struct MaxIterCriterion <: AbstractConvergenceCriterion end
 """ `NotConvergedYet` indicates that the current iteration has not converged. """
 struct NotConvergedYet <: AbstractConvergenceCriterion end
 
-""" ResidualsIterationStep struct.
+"""
 Stores the convergence information of at the current iteration step.
-### Fields:
-`Δu_norm`   -- Norm of the displacement increment.
-`Δr_norm`   -- Norm of the residual force increment.
-`Δu_rel`    -- Relative norm of the displacement increment.
-`Δr_rel`    -- Relative norm of the residual force increment.
-`n_iter`    -- Current iteration number.
 """
 Base.@kwdef mutable struct ResidualsIterationStep{T}
+    "Norm of the displacement increment."
     ΔU_norm::T = 1e12
+    "Norm of the residual force increment."
     Δr_norm::T = 1e12
+    "Relative norm of the displacement increment."
     ΔU_rel::T = 1e12
+    "Relative norm of the residual force increment."
     Δr_rel::T = 1e12
+    "Current iteration number."
     iter::Int = 0
     criterion::AbstractConvergenceCriterion = NotConvergedYet()
 end
@@ -177,19 +175,33 @@ include("./NewtonRaphson.jl")
 # ===============
 # Solve function
 # ===============
+
 """
-Solve an structural analysis problem with the algorithm `alg`. 
-This function mutates the `AbstractStructuralState` through the time defined in the `analysis` problem.
-### Input
-- `analysis` -- structural analysis problem
-- `alg`     -- structural algorithm to solve the problem
-### Output
-A solution structure (`AbstractSolution`) that holds the result and the algorithm used
-to obtain it.
+Solve a structural analysis problem with the given solver.
 """
-function solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
-    initialized_analysis = _init(analysis, alg, args...; kwargs...)
-    return _solve!(initialized_analysis, alg, args...; kwargs...)
+function solve(analysis::A, alg::AbstractSolver=nothing, args...; kwargs...) where {A}
+    # FIXME Errors copying the mesh struct.
+    analysis = deepcopy(analysis)
+    reset!(analysis)
+    solve!(analysis, alg, args...; kwargs...)
+end
+
+"""
+Solve a structural analysis problem with the given solver.
+This function mutates the state defined in the `analysis` problem; use [`solve`](@ref) to avoid mutation.
+For linear analysis problems, `alg` doesn't need to be provided.
+
+Returns a solution structure holding the result and the algorithm used to obtain it.
+"""
+function solve!(analysis::A, alg::Union{AbstractSolver,Nothing}=nothing, args...;
+                kwargs...) where {A}
+    # TODO Dispatch on `nothing` only for linear problems.
+    if isnothing(alg)
+        _solve!(analysis, args...; kwargs...)
+    else
+        initialized_analysis = _init(analysis, alg, args...; kwargs...)
+        _solve!(initialized_analysis, alg, args...; kwargs...)
+    end
 end
 
 "Internal solve function to be overloaded by each analysis."
@@ -198,18 +210,8 @@ function _solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
 "Return the initialized `analysis`. By default, it Return the same analysis."
 _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
 
-"""
-Solve an structural analysis problem without an `alg`. For instance linear analysis problems.
-This function mutates the `AbstractStructuralState` through the time defined in the `analysis` problem.
-### Input
-- `analysis` -- structural analysis problem
-### Output
-A solution structure (`AbstractSolution`) that holds the result and the algorithm used
-to obtain it.
-"""
-function solve!(analysis::A, args...; kwargs...) where {A}
-    return _solve!(analysis, args...; kwargs...)
-end
+"Resets the analysis to the state before starting a new assembly."
+function reset! end
 
 include("./Assembler.jl")
 
@@ -230,8 +232,6 @@ Abstract supertype for all structural analysis solutions.
 **Common fields:**
 * analysis
 * solver
-    
-
 """
 abstract type AbstractSolution end
 

@@ -50,7 +50,7 @@ function Base.show(io::IO, sa::LinearStaticAnalysis)
     show(io, sa.state)
 end
 
-"Solves an `LinearStaticAnalysis` `sa`."
+"Solves a `LinearStaticAnalysis` problem mutating the state."
 function _solve!(sa::LinearStaticAnalysis)
     s = structure(sa)
 

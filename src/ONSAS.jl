@@ -13,7 +13,7 @@ FILES = ["Utils.jl",
          "StructuralAnalyses/StructuralAnalyses.jl"]
 
 foreach(FILES) do m
-    return include(m)
+    include(m)
 end
 
 # Utility methods.

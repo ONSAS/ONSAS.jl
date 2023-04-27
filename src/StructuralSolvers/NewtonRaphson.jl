@@ -1,6 +1,8 @@
-using ..StructuralSolvers: AbstractSolver, ConvergenceSettings
+using Reexport
 
-import ..StructuralSolvers: tolerances
+using ..StructuralSolvers
+
+@reexport import ..StructuralSolvers: tolerances
 
 export NewtonRaphson
 
