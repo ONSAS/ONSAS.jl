@@ -29,7 +29,7 @@ struct Truss{dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection} <: Abst
                    label::Label=NO_LABEL) where
              {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
         @assert 1 ≤ dim ≤ 3 "Nodes of a truss element must comply  1 < dim < 3 ."
-        return new{dim,T,N,G}(nodes, g, Symbol(label))
+        new{dim,T,N,G}(nodes, g, Symbol(label))
     end
 end
 
@@ -37,7 +37,7 @@ end
 function Truss(n₁::N, n₂::N, g::G,
                label::Label=NO_LABEL) where
          {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
-    return Truss(SVector(n₁, n₂), g, label)
+    Truss(SVector(n₁, n₂), g, label)
 end
 
 "Constructor for a `Truss` element without nodes and a `label`. This function is used to create meshes via GMSH."

@@ -36,7 +36,7 @@ struct NeoHookean{T<:Real} <: AbstractHyperElasticMaterial
         end
         @assert K ≥ 0 "The bulk modulus `K` must be positive."
         @assert G ≥ 0 "The shear modulus or second Lamé parameter `μ` must be positive."
-        return new{T}(K, G, ρ, Symbol(label))
+        new{T}(K, G, ρ, Symbol(label))
     end
 end
 function NeoHookean(K::T, G::T, label::Label=NO_LABEL) where {T<:Real}
@@ -47,7 +47,7 @@ function NeoHookean(; E::Real, ν::Real, ρ::Density=nothing, label::Label=NO_LA
     λ = E * ν / ((1 + ν) * (1 - 2 * ν))
     G = E / (2 * (1 + ν))
     K = λ + 2 * G / 3
-    return NeoHookean(K, G, ρ, label)
+    NeoHookean(K, G, ρ, label)
 end
 
 "Return the strain energy for a `NeoHookean` material `m` and the Green-Lagrange strain tensor `𝔼`."

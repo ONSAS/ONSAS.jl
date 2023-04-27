@@ -36,7 +36,7 @@ struct SVK{T<:Real} <: AbstractHyperElasticMaterial
         end
         @assert λ ≥ 0 "The first Lamé parameter `λ` must be positive."
         @assert G ≥ 0 "The second Lamé parameter or shear modulus `G` must be positive."
-        return new{T}(λ, G, ρ, Symbol(label))
+        new{T}(λ, G, ρ, Symbol(label))
     end
 end
 function SVK(λ::T, G::T, label::Label=NO_LABEL) where {T<:Real}
@@ -46,7 +46,7 @@ function SVK(; E::Real, ν::Real, ρ::Density=nothing, label::Label=NO_LABEL)
     # Compute λ and μ (μ = G) given E and ν.
     λ = E * ν / ((1 + ν) * (1 - 2 * ν))
     G = E / (2 * (1 + ν))
-    return SVK(λ, G, ρ, label)
+    SVK(λ, G, ρ, label)
 end
 
 "Return the strain energy for a `SVK` material `m` and the Green-Lagrange strain tensor `𝔼`."

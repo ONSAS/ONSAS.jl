@@ -29,16 +29,16 @@ struct IsotropicLinearElastic{ET<:Real,NT<:Real} <: AbstractLinearElasticMateria
     label::Label
     function IsotropicLinearElastic(E::ET, ν::NT, ρ::Density,
                                     label::Label=NO_LABEL) where {ET<:Real,NT<:Real}
-        return new{ET,NT}(E, ν, ρ, Symbol(label))
+        new{ET,NT}(E, ν, ρ, Symbol(label))
     end
 end
 function IsotropicLinearElastic(E::ET, ν::NT, label::Label=NO_LABEL) where {ET<:Real,NT<:Real}
-    return IsotropicLinearElastic(E, ν, nothing, label)
+    IsotropicLinearElastic(E, ν, nothing, label)
 end
 function IsotropicLinearElastic(; λ::Real, G::Real, ρ::Density=nothing, label::Label=NO_LABEL)
     E = G * (3λ + 2G) / (λ + G)
     ν = λ / (2 * (λ + G))
-    return IsotropicLinearElastic(E, ν, ρ, Symbol(label))
+    IsotropicLinearElastic(E, ν, ρ, Symbol(label))
 end
 
 "Return the Elasticity modulus `E` from a `IsotropicLinearElastic` material `m`."

@@ -34,7 +34,7 @@ struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractElement{dim,T}
 end
 
 function Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label::Label=NO_LABEL) where {N<:AbstractNode}
-    return Tetrahedron(SVector(n₁, n₂, n₃, n₄), label)
+    Tetrahedron(SVector(n₁, n₂, n₃, n₄), label)
 end
 
 "Constructor for a `Tetrahedron` element without nodes and a `label`. This function is used to create meshes via GMSH."

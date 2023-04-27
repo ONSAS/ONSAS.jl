@@ -25,7 +25,7 @@ struct HyperElastic{T<:Real,F<:Function} <: AbstractHyperElasticMaterial
     label::Label
     function HyperElastic(params::Vector{T}, Ψ::F, ρ::Density,
                           label::Label=NO_LABEL) where {T<:Real,F<:Function}
-        return new{T,F}(params, Ψ, ρ, Symbol(label))
+        new{T,F}(params, Ψ, ρ, Symbol(label))
     end
 end
 function HyperElastic(params::Vector{T}, Ψ::F, label::Label=NO_LABEL) where {T<:Real,F<:Function}

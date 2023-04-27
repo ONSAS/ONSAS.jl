@@ -20,7 +20,7 @@ struct TriangularFace{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractFace{dim,T}
                             label::Label=NO_LABEL) where
              {dim,T<:Real,N<:AbstractNode{dim,T}}
         @assert 2 ≤ dim ≤ 3 "TriangularFace is only defined for 2 < dim ≤ 3"
-        return new{dim,T,N}(nodes, Symbol(label))
+        new{dim,T,N}(nodes, Symbol(label))
     end
 end
 
@@ -28,12 +28,12 @@ end
 function TriangularFace(n₁::N, n₂::N, n₃::N,
                         label::Label=NO_LABEL) where
          {dim,T<:Real,N<:AbstractNode{dim,T}}
-    return TriangularFace(SVector(n₁, n₂, n₃), label)
+    TriangularFace(SVector(n₁, n₂, n₃), label)
 end
 
 "Constructor for a `TriangularFace` element without nodes and a `label`. This function is used to create meshes via GMSH."
 function TriangularFace(label::Label=NO_LABEL)
-    return TriangularFace(SVector(Node(0, 0), Node(0, 0), Node(0, 0)), label)
+    TriangularFace(SVector(Node(0, 0), Node(0, 0), Node(0, 0)), label)
 end
 
 "Return the area vector with direction and modulus of a `TriangularFace` element `tf`."
