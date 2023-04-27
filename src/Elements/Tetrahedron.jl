@@ -29,7 +29,7 @@ struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractElement{dim,T}
                          label::Label=NO_LABEL) where
              {dim,T<:Real,N<:AbstractNode{dim,T}}
         @assert dim == 3 "Nodes of a tetrahedron element must be 3D."
-        return new{dim,T,N}(nodes, Symbol(label))
+        new{dim,T,N}(nodes, Symbol(label))
     end
 end
 
