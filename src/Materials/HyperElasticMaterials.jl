@@ -16,7 +16,6 @@ These materials are characterized by a strain energy function ψ  that depends o
 **Common fields:**
 * label
 * ρ(density)
-
 """
 abstract type AbstractHyperElasticMaterial <: AbstractMaterial end
 

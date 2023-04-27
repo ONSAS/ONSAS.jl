@@ -80,7 +80,7 @@ end
 The previous material `Element`s are assigned to the new."
 function Base.replace!(sm::StructuralMaterials,
                        new_material::AbstractMaterial,
-                       label::L=label(new_material)) where {L}
+                       label::Label=label(new_material))
     old_material = sm[label]
     material_elements = sm[old_material]
     delete!(sm, old_material)

@@ -1,62 +1,55 @@
 using ForwardDiff: gradient!
 using LinearAlgebra: Symmetric, tr, det, inv
+using Reexport
 
-using ..HyperElasticMaterials: AbstractHyperElasticMaterial
-using ...Utils: eye
+using ..HyperElasticMaterials
+using ...Utils
 
-import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus, bulk_modulus,
-                                 poisson_ratio
-import ..HyperElasticMaterials: cosserat_stress, strain_energy
+@reexport import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus,
+                                           bulk_modulus,
+                                           poisson_ratio
+@reexport import ..HyperElasticMaterials: cosserat_stress, strain_energy
 
 export NeoHookean
 
-""" Neo-Hookean material struct.
-
+"""
+Material with Neo-Hookean properties.
 The strain energy `Ψ` is: `Ψ(𝔼)` = `G`/2 (tr(`ℂ`) -2 *log(`J`))^2 + `K`/2 (`J` - 1)^2
 
-### Fields:
-- `G`     -- shear modulus `G` or second Lamé parameter `μ`.
-- `K`     -- bulk modulus.
-- `ρ`     -- density (`nothing` for static cases).
-- `label` -- material label.
+For context see the wikipedia article on [Neo-Hookean_solid](https://en.wikipedia.org/wiki/Neo-Hookean_solid).
 
-[See this ref.](https://en.wikipedia.org/wiki/Neo-Hookean_solid)
+It is also possible to construct a `NeoHookean` material given its elasticity and shear modulus `E`, `ν` respectively and its density `ρ`. 
+For context see the wikipedia article on [Lamé parameters](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters).
 """
-struct NeoHookean{T<:Real,R<:Union{T,Nothing}} <: AbstractHyperElasticMaterial
+struct NeoHookean{T<:Real} <: AbstractHyperElasticMaterial
+    "Bulk modulus."
     K::T
+    "Shear modulus `G` or second Lamé parameter `μ`."
     G::T
-    ρ::R
-    label::Symbol
-    function NeoHookean(K::T, G::T, ρ::R,
-                        label::L=:no_labelled_mat) where
-             {T<:Real,R<:Union{Nothing,Real},L<:Union{Symbol,String}}
+    "Density (`nothing` for static cases)."
+    ρ::Density
+    "Material label."
+    label::Label
+    function NeoHookean(K::T, G::T, ρ::Density, label::Label=NO_LABEL) where {T<:Real}
         if ρ isa Real
             ρ > 0 || error("Density must be positive.")
         end
         @assert K ≥ 0 "The bulk modulus `K` must be positive."
         @assert G ≥ 0 "The shear modulus or second Lamé parameter `μ` must be positive."
-        return new{T,R}(K, G, ρ, Symbol(label))
+        new{T}(K, G, ρ, Symbol(label))
     end
 end
-
-"Material `NeoHookean` constructor with no density parameter `ρ`."
-function NeoHookean(K::Real, G::Real, label::L=:no_labelled_mat) where {L<:Union{Symbol,String}}
-    return NeoHookean(K, G, nothing, label)
+function NeoHookean(K::T, G::T, label::Label=NO_LABEL) where {T<:Real}
+    NeoHookean(K, G, nothing, label)
 end
-
-"Material `NeoHookean` constructor with elasticity and shear modulus `E`, `ν` and density `ρ`. 
-See [this ref](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters)."
-function NeoHookean(; E::Real, ν::Real, ρ::R=nothing,
-                    label::L=:no_labelled_mat) where
-         {R<:Union{Nothing,Real},L<:Union{Symbol,String}}
-
-    # Compute λ, μ and K (μ = G) given E and ν
+function NeoHookean(; E::Real, ν::Real, ρ::Density=nothing, label::Label=NO_LABEL)
+    # Compute λ, μ and K (μ = G) given E and ν.
     λ = E * ν / ((1 + ν) * (1 - 2 * ν))
     G = E / (2 * (1 + ν))
     K = λ + 2 * G / 3
-
-    return NeoHookean(K, G, ρ, Symbol(label))
+    NeoHookean(K, G, ρ, label)
 end
+
 "Return the strain energy for a `NeoHookean` material `m` and the Green-Lagrange strain tensor `𝔼`."
 function strain_energy(m::NeoHookean, 𝔼::AbstractMatrix)
     ℂ = Symmetric(2 * 𝔼 + eye(3))
