@@ -39,7 +39,7 @@ end
 
 "Constructor for a `Tetrahedron` element without nodes and a `label`. This function is used to create meshes via GMSH."
 function Tetrahedron(label::Label=NO_LABEL)
-    return Tetrahedron(SVector(Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0)), label)
+    Tetrahedron(SVector(Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0)), label)
 end
 
 "Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
