@@ -129,8 +129,8 @@ if linear_cylinder_internal_pressure
             SUITE[example_name]["solve!, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem) evals = evals samples = samples
 
             ph = point_eval_handler(structure; NPOINTS=n_points)
-            SUITE[example_name]["point_eval_handler, ms = $ms, nelems = $nelems, nnodes = $nnodes, npoints = $n_points"] = @benchmarkable point_eval_handler($structure,
-                                                                                                                                                             NPOINTS=$n_points) evals = evals samples = samples
+            SUITE[example_name]["point_eval_handler, ms = $ms, nelems = $nelems, nnodes = $nnodes, npoints = $(n_points^3)"] = @benchmarkable point_eval_handler($structure,
+                                                                                                                                                                 NPOINTS=$n_points) evals = evals samples = samples
             eval_solution = displacements(solution, ph)
         end
     end
