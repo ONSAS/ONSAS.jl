@@ -1,5 +1,5 @@
 """
-Module to export ONSAS data structures to `.vtk` files suitable [Paraview](https://www.paraview.org/).
+Module to export ONSAS data structures to `.vtk` files suitable for [Paraview](https://www.paraview.org/).
 """
 module VTK
 
