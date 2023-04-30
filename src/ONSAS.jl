@@ -8,6 +8,7 @@ FILES = ["Utils.jl",
          "Elements/Elements.jl",
          "BoundaryConditions/BoundaryConditions.jl",
          "Meshes/Meshes.jl",
+         "Meshes/Handlers.jl",
          "StructuralModel/StructuralModel.jl",
          "StructuralSolvers/StructuralSolvers.jl",
          "StructuralAnalyses/StructuralAnalyses.jl"]
@@ -24,7 +25,10 @@ end
 @reexport using .CrossSections
 @reexport using .Elements
 @reexport using .BoundaryConditions
+
+# GEometric entities and interpolation.
 @reexport using .Meshes
+@reexport using .Handlers
 
 # Structural models.
 @reexport using .StructuralModel

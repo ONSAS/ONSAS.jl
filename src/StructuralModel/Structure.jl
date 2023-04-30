@@ -5,7 +5,7 @@ using ..Meshes
 using ..BoundaryConditions
 using ..StructuralModel
 
-@reexport import ..Meshes: PointEvalHandler
+@reexport import ..Handlers: PointEvalHandler
 
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 

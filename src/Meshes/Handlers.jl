@@ -1,10 +1,12 @@
+module Handlers
+
 using Reexport, Dictionaries
 
 using ..Meshes
 using ..Elements
 
-export PointEvalHandler, points, not_in_mesh_points, interpolator, mesh
-export PointsInterpolator, node_to_weights, points_to_element
+export PointEvalHandler, points, not_in_mesh_points, interpolator, mesh, PointsInterpolator,
+       node_to_weights, points_to_element
 
 """
 A `PointEvalHandler` facilitates the process of evaluating a solution at a given vector of points 
@@ -120,3 +122,5 @@ end
 function PointEvalHandler(mesh::AbstractMesh, point::P) where {T,P<:Point{T}}
     PointEvalHandler(mesh, [point])
 end
+
+end # module

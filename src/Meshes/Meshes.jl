@@ -276,6 +276,4 @@ end
 include("./Gmsh.jl")
 @reexport using .Gmsh
 
-include("PointEvalHandler.jl")
-
 end # module
