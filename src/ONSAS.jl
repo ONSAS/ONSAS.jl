@@ -8,6 +8,8 @@ FILES = ["Utils.jl",
          "Elements/Elements.jl",
          "BoundaryConditions/BoundaryConditions.jl",
          "Meshes/Meshes.jl",
+         "Interfaces/Gmsh.jl",
+         "Interfaces/VTK.jl",
          "StructuralModel/StructuralModel.jl",
          "StructuralSolvers/StructuralSolvers.jl",
          "StructuralAnalyses/StructuralAnalyses.jl"]
@@ -25,6 +27,10 @@ end
 @reexport using .Elements
 @reexport using .BoundaryConditions
 @reexport using .Meshes
+
+# Interfaces with external programs.
+@reexport using .Gmsh
+@reexport using .VTK
 
 # Structural models.
 @reexport using .StructuralModel
