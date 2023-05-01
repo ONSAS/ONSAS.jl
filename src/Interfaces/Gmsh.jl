@@ -3,39 +3,37 @@ Module defining meshes created in GMSH software.
 """
 module Gmsh
 
+using Reexport
 using Dictionaries: dictionary
-using Reexport: @reexport
 using MshReader: MshFileReader
 
-using ..Elements: Node
+using ..Elements
 
 @reexport import ..Elements: dimension, nodes
 
 # Physical nodes index, all gmsh files should be defined with this label
 const PHYSICAL_NODE_LABEL = "node"
 
-export MshFile, connectivity, material_label, entity_label, bc_label, physical_index, gmsh_println
+export MshFile, connectivity, material_label, entity_label, bc_label, physical_index, gmsh_println,
+       PHYSICAL_NODE_LABEL
 
-""" MshFile.
-A `MshFile` is a collection of `Node`s. Also the filename   
-### Fields:
-- `filename`            -- stores the .geo file name.
-- `vec_nodes`           -- stores the `Nodes`s of the mesh.
-- `connectivity`        -- stores a `Vector` of `Vector` with the node indexes.
-- `material_labels`     -- stores a `Vector` of `String`s with the material type labels defined in the .geo.
-- `element_face_labels` -- stores a `Vector` of `String`s with the face and element type labels defined in the .geo.
-- `bc_labels`           -- stores a `Vector` of `String`s with the boundary condition type labels defined in the .geo.
+"""
+Collection of `Node`s.
 """
 struct MshFile{dim,T,S,I1<:Integer,I2<:Integer}
-    # Path
+    "Path to the `.geo` file."
     filename::String
-    # Nodes and connectivity
+    "Nodes of the mesh."
     vec_nodes::Vector{Node{dim,T}}
+    "Connectivity of the mesh."
     connectivity::Vector{Vector{I1}}
-    # Physical names
+    "Physical names."
     physical_index::Vector{I2}
+    "Material type labels."
     material_labels::Vector{S}
+    "Face and element type labels."
     entities_labels::Vector{S}
+    "Boundary condition type labels."
     bc_labels::Vector{S}
     function MshFile(filename::String, vec_nodes::Vector{Node{dim,T}},
                      connectivity::Vector{Vector{I1}}, physical_index::Vector{I2},

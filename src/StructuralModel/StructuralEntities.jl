@@ -4,7 +4,7 @@ using Reexport
 using ..Elements
 using ..Utils
 using ..Meshes
-using ..Meshes.Gmsh: PHYSICAL_NODE_LABEL
+using ..Gmsh
 
 @reexport import ..Meshes: Mesh
 
