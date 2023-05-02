@@ -12,9 +12,9 @@ using Reexport: @reexport
 @reexport using ..Meshes
 using ..Utils
 
-@reexport import ..Meshes: mesh, dofs, num_dofs, nodes, num_nodes, faces, num_faces,
+@reexport import ..Meshes: dofs, num_dofs, nodes, num_nodes, faces, num_faces,
                            elements, num_elements
-
+@reexport import ..Handlers: mesh
 export Structure, materials, boundary_conditions, num_free_dofs, free_dofs
 
 # Structural properties 

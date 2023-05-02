@@ -273,6 +273,4 @@ function add_face_to_set!(m::Mesh, face_set_name::S, f::AbstractFace) where {S}
     add_face_to_set!(m, face_set_name, face_id)
 end
 
-include("PointEvalHandler.jl")
-
 end # module

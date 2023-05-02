@@ -2,6 +2,7 @@ using Reexport
 
 using ..StructuralSolvers
 using ..Meshes
+using ..Handlers
 
 @reexport import ..Elements: internal_forces, inertial_forces, strain, stress
 

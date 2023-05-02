@@ -8,6 +8,7 @@ FILES = ["Utils.jl",
          "Elements/Elements.jl",
          "BoundaryConditions/BoundaryConditions.jl",
          "Meshes/Meshes.jl",
+         "Meshes/Handlers.jl",
          "Interfaces/Gmsh.jl",
          "Interfaces/VTK.jl",
          "StructuralModel/StructuralModel.jl",
@@ -26,7 +27,10 @@ end
 @reexport using .CrossSections
 @reexport using .Elements
 @reexport using .BoundaryConditions
+
+# GEometric entities and interpolation.
 @reexport using .Meshes
+@reexport using .Handlers
 
 # Interfaces with external programs.
 @reexport using .Gmsh
