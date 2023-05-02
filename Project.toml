@@ -19,6 +19,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
 Tensors = "48a634ad-e948-5137-8d70-aa71f2a747f4"
+WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
 
 [compat]
 AutoHashEquals = "0.2"
@@ -34,6 +35,7 @@ SafeTestsets = "0.0.1"
 StaticArrays = "1"
 Suppressor = "0.2"
 Tensors = "1"
+WriteVTK = "1"
 julia = "1"
 
 [extras]
