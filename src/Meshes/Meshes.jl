@@ -10,7 +10,7 @@ using Reexport
 @reexport using ..Elements
 @reexport import ..Elements: apply!, dimension, dofs, nodes
 
-export AbstractMesh, Mesh, faces, face_set, elements, element_set, num_dofs, num_elements,
+export AbstractMesh, Mesh, faces, face_set, element, elements, element_set, num_dofs, num_elements,
        num_nodes, node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!
 
 """ Abstract supertype for all meshes.
@@ -92,6 +92,9 @@ num_faces(m::AbstractMesh) = length(faces(m))
 
 "Return the `Element`s of the `AbstractMesh` `m`."
 elements(m::AbstractMesh) = m.elements
+
+"Return the `Element`s of the `AbstractMesh` `m` at index `i`."
+element(m::AbstractMesh, i::Int) = m.elements[i]
 
 "Return the number of elements of the `AbstractMesh` `m`."
 num_elements(m::AbstractMesh) = length(elements(m))
