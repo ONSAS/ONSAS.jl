@@ -239,7 +239,7 @@ end
 "Return the interpolation weights of a point `p` in a `Tetrahedron` element `t`."
 function weights(t::Tetrahedron{3}, p::Point{dim}) where {dim}
     @assert dim == 3 "The point $p must be a 3D vector."
-    return interpolation_matrix(t) * Point(1, p...)
+    interpolation_matrix(t) * Point(1, p...)
 end
 
 function Base.convert(::Type{LazySets.Tetrahedron}, t::Tetrahedron)
