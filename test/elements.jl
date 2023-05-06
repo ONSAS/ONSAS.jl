@@ -255,7 +255,7 @@ n₄ = Node(2.0, 0.0, 1.0,
                    -1.5304e-01 -1.4855e-01 -4.5671e-02 1.0016e-01 6.8747e-02 1.6826e-02 9.4948e-03 -8.4752e-02 -1.6946e-02 4.3388e-02 1.6456e-01 4.5791e-02
                    -1.5304e-01 -4.5671e-02 -1.4855e-01 2.6441e-02 2.1634e-02 4.4710e-02 7.3595e-02 -2.1754e-02 -7.9945e-02 5.3003e-02 4.5791e-02 1.8379e-01]
 
-    𝔼_e_test = [        1.3675 0.585 1.02
+    𝔼_e_test = [1.3675 0.585 1.02
                 0.585 1.87 1.44
                 1.02 1.44 3.28]
 
@@ -282,15 +282,16 @@ n₄ = Node(2.0, 0.0, 1.0,
     # The interpolation for a linear scalar field shloud be exact 
     scalar_linear_field(x, y, z) = 10x + 20y + 30z + 40
     sol_at_tetra_nodes = [scalar_linear_field(coordinates(n)...) for n in nodes(tetra)]
-    p = [0.5, 0.5, 0.5]
+    p = Point(0.5, 0.5, 0.5)
     exact_solution = scalar_linear_field(p...)
+    @show tetra
+    @show p
     interpolated_solution = dot(sol_at_tetra_nodes, weights(tetra, p))
     @test interpolated_solution ≈ exact_solution rtol = RTOL
 end
 
 @testset "ONSAS.Elements.Tetrahedron 3D IsotropicLinearElastic" begin
-    my_lin_mat = IsotropicLinearElastic(elasticity_modulus(my_svk_mat),
-                                        shear_modulus(my_svk_mat))
+    my_lin_mat = IsotropicLinearElastic(elasticity_modulus(my_svk_mat), shear_modulus(my_svk_mat))
 
     fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_lin_mat, tetra,
                                                u_global_structure[local_dofs(tetra)])
