@@ -284,8 +284,6 @@ n₄ = Node(2.0, 0.0, 1.0,
     sol_at_tetra_nodes = [scalar_linear_field(coordinates(n)...) for n in nodes(tetra)]
     p = Point(0.5, 0.5, 0.5)
     exact_solution = scalar_linear_field(p...)
-    @show tetra
-    @show p
     interpolated_solution = dot(sol_at_tetra_nodes, weights(tetra, p))
     @test interpolated_solution ≈ exact_solution rtol = RTOL
 end
