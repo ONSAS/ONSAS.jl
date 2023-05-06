@@ -1,4 +1,4 @@
-using StaticArrays: SVector
+using StaticArrays: SVector, MMatrix
 using LinearAlgebra: Symmetric, det, diagm
 import LazySets
 using Reexport
@@ -15,15 +15,13 @@ export Tetrahedron, volume, reference_coordinates
 
 """
 A `Tetrahedron` represents a 3D volume element with four nodes.
-### Fields:
-- `nodes`    -- stores the tetrahedron nodes.
-- `label`    -- stores the tetrahedron label.
 
-### References
 See [[Belytschko]](@ref) and [[Gurtin]](@ref) for more details.
 """
 struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractElement{dim,T}
+    "Tetrahedron nodes."
     nodes::SVector{4,N}
+    "Tetrahedron label."
     label::Label
     function Tetrahedron(nodes::SVector{4,N},
                          label::Label=NO_LABEL) where
@@ -32,11 +30,12 @@ struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractElement{dim,T}
         new{dim,T,N}(nodes, Symbol(label))
     end
 end
-
 function Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label::Label=NO_LABEL) where {N<:AbstractNode}
     Tetrahedron(SVector(n₁, n₂, n₃, n₄), label)
 end
-
+function Tetrahedron(nodes::AbstractVector{N}, label::Label=NO_LABEL) where {N<:AbstractNode}
+    Tetrahedron(SVector(nodes...), label)
+end
 "Constructor for a `Tetrahedron` element without nodes and a `label`. This function is used to create meshes via GMSH."
 function Tetrahedron(label::Label=NO_LABEL)
     Tetrahedron(SVector(Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0)), label)
@@ -206,38 +205,41 @@ function _shape_functions_derivatives(::Tetrahedron, order=1)
     return d
 end
 
-"Return the interpolation matrix `𝑀` for a `Tetrahedron` element `t`."
-function _interpolation_matrix(t::Tetrahedron{3,T}) where {T<:Real}
-    # Node coordinates matrix 𝐴
-    𝐴 = Matrix{T}(undef, 4, 4)
+"""
+Indices for computing the minors of the interpolation matrix, implemented as a hash table.
+"""
+const MINOR_INDICES = [([2, 3, 4], [2, 3, 4])    ([2, 3, 4], [1, 3, 4])    ([2, 3, 4], [1, 2, 4])    ([2, 3, 4], [1, 2, 3])
+                       ([1, 3, 4], [2, 3, 4])    ([1, 3, 4], [1, 3, 4])    ([1, 3, 4], [1, 2, 4])    ([1, 3, 4], [1, 2, 3])
+                       ([1, 2, 4], [2, 3, 4])    ([1, 2, 4], [1, 3, 4])    ([1, 2, 4], [1, 2, 4])    ([1, 2, 4], [1, 2, 3])
+                       ([1, 2, 3], [2, 3, 4])    ([1, 2, 3], [1, 3, 4])    ([1, 2, 3], [1, 2, 4])    ([1, 2, 3], [1, 2, 3])]
 
-    for (node_index, node) in enumerate(nodes(t))
-        𝐴[node_index, 1] = ones(T, 1)[]
+"Return the interpolation matrix `𝑀` for a `Tetrahedron` element `t`."
+function interpolation_matrix(t::Tetrahedron{3,T}) where {T<:Real}
+    # Node coordinates matrix 𝐴.
+    𝐴 = MMatrix{4,4,T}(undef)
+
+    @inbounds for (node_index, node) in enumerate(nodes(t))
+        𝐴[node_index, 1] = one(T)
         𝐴[node_index, 2:4] = coordinates(node)
     end
 
-    # 𝑀 matrix 
-    𝑀 = zeros(4, 4)
-    V = det(𝐴) / 6.0
+    # 𝑀 matrix.
+    𝑀 = MMatrix{4,4,T}(undef)
+    V = det(𝐴)
 
-    # I and J indexes
-    I_indexes = [1, 2, 3, 4]
-    J_indexes = [1, 2, 3, 4]
-
-    # Compute minors
-    for I in 1:4
-        for J in 1:4
-            Â = det(𝐴[deleteat!(copy(I_indexes), I), deleteat!(copy(J_indexes), J)])
-            𝑀[I, J] = Â / (6 * V) * (-1)^(I + J)
-        end
+    # Compute minors.
+    @inbounds for J in 1:4, I in 1:4
+        ridx, cidx = MINOR_INDICES[I, J]
+        Â = det(𝐴[ridx, cidx])
+        𝑀[I, J] = Â / V * (-1)^(I + J)
     end
     return 𝑀
 end
 
 "Return the interpolation weights of a point `p` in a `Tetrahedron` element `t`."
-function weights(t::Tetrahedron{3,T}, p::Point{dim,P}) where {T<:Real,dim,P<:Real}
-    @assert length(p) == 3 "The point $p must be a 3D vector."
-    return _interpolation_matrix(t) * [1, p...]
+function weights(t::Tetrahedron{3}, p::Point{dim}) where {dim}
+    @assert dim == 3 "The point $p must be a 3D vector."
+    return interpolation_matrix(t) * Point(1, p...)
 end
 
 function Base.convert(::Type{LazySets.Tetrahedron}, t::Tetrahedron)
