@@ -8,10 +8,10 @@ using Dictionaries
 using Reexport
 
 @reexport using ..Elements
-@reexport import ..Elements: apply!, dimension, dofs, nodes
+@reexport import ..Elements: apply!, dimension, dofs, nodes, num_nodes
 
 export AbstractMesh, Mesh, faces, face_set, element, elements, element_set, num_dofs, num_elements,
-       num_nodes, node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!
+       node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!
 
 """ Abstract supertype for all meshes.
 

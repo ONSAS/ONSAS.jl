@@ -22,7 +22,7 @@ export AbstractNode, dimension, dofs, coordinates
 export AbstractEntity, nodes, coordinates, create_entity
 export AbstractFace, normal_direction
 export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
-       local_dofs, nodes, strain, stress, weights
+       local_dofs, nodes, strain, stress, weights, num_nodes
 
 """
 Construct a point given its coordinates.
@@ -257,6 +257,11 @@ function stress(e::AbstractElement, args...; kwargs...) end
 "Return the weights to interpolate a scalar field at the `Node`s `Dof` corresponding 
 to the `AbstractElement` `e`."
 function weights(e::AbstractElement, p::AbstractVector) end
+
+"Return the number of nodes of element `e`."
+function num_nodes(e::AbstractElement)
+    length(nodes(e))
+end
 
 #=================================#
 # AbstractElement implementations #
