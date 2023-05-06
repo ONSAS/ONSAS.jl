@@ -237,8 +237,7 @@ function interpolation_matrix(t::Tetrahedron{3,T}) where {T<:Real}
 end
 
 "Return the interpolation weights of a point `p` in a `Tetrahedron` element `t`."
-function weights(t::Tetrahedron{3}, p::Point{dim}) where {dim}
-    @assert dim == 3 "The point $p must be a 3D vector."
+function weights(t::Tetrahedron{3}, p::Point{3})
     interpolation_matrix(t) * Point(1, p...)
 end
 
