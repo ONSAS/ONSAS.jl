@@ -24,12 +24,13 @@ export AbstractFace, normal_direction
 export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
        local_dofs, nodes, strain, stress, weights
 
-const Point{dim,T} = Union{<:AbstractVector{P},NTuple{dim,P}} where {dim,P<:Real}
-
 """
 Construct a point given its coordinates.
+
+It is a type alias for a statically sized array of dimension `dim` and element type `T`.
+Use either as a vararg function, `Point(1, 2, 3)`, or by splatting `Point(x...)` if `x` is an (abstract) vector.
 """
-Point(x::T...) where {T<:Real} = SVector(x...)
+const Point{dim,T} = SVector{dim,T} where {dim,T<:Real}
 
 # ========================
 # Degree of freedom (Dof)
@@ -47,8 +48,7 @@ index(d::Dof) = d
 # Abstract Node
 # =================
 
-""" Abstract supertype for all nodes.
-
+"""
 An `AbstractNode` object is a point in space.
 
 **Common methods:**

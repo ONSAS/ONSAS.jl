@@ -122,5 +122,8 @@ end
 function PointEvalHandler(mesh::AbstractMesh, point::P) where {T,P<:Point{T}}
     PointEvalHandler(mesh, [point])
 end
+function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{Vector{T}}) where {T}
+    PointEvalHandler(mesh, [Point(p...) for p in vec_points])
+end
 
 end # module

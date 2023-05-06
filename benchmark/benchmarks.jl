@@ -3,9 +3,9 @@ using BenchmarkTools, ONSAS, Suppressor
 include("bench_utils.jl");
 
 # Booleans to include examples into benchmarks 
-uniaxial_extension = false;
-uniaxial_compression = false;
-linear_extension = false;
+uniaxial_extension = true;
+uniaxial_compression = true;
+linear_extension = true;
 linear_cylinder_internal_pressure = true;
 
 # Parent BenchmarkGroup to contain our suite.
