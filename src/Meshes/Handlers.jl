@@ -16,11 +16,12 @@ A `PointsInterpolator` struct stores the weights nodes and elements needed
 to interpolate the solution at a given point.The index of each `Vector`
 is the index in the `Vector` of `Point`s.
 """
-struct PointsInterpolator{N<:AbstractNode,T<:Real,E<:AbstractElement} <: AbstractInterapolator
+struct PointsInterpolator{N<:AbstractNode,T<:Real,E<:AbstractElement,VE<:AbstractVector{E}} <:
+       AbstractInterapolator
     "`Dictionary` with `Node`s as keys and the corresponding weights as values."
     node_to_weights::Vector{Dictionary{N,T}}
     "`Element` where the point is located."
-    points_to_element::Vector{E}
+    points_to_element::VE
 end
 
 "Return a `Vector` that maps the weight corresponding to each `Node`."
@@ -33,7 +34,8 @@ points_to_element(points_interpolator::PointsInterpolator) = points_interpolator
 A `PointEvalHandler` facilitates the process of evaluating a solution at a given vector of points 
 obtained at the `Node`s `Dof`s in a `Mesh`.
 """
-struct PointEvalHandler{dim,T,PT<:Point{dim,T},WT<:AbstractVector{T},M<:AbstractMesh,
+struct PointEvalHandler{dim,T,PT<:Point{dim,T},VPT<:AbstractVector{PT},WT<:AbstractVector{T},
+                        M<:AbstractMesh,
                         I<:AbstractInterapolator}
     "`Mesh` where the solution is obtained."
     mesh::M
@@ -41,24 +43,30 @@ struct PointEvalHandler{dim,T,PT<:Point{dim,T},WT<:AbstractVector{T},M<:Abstract
     vec_points::Vector{PT}
     "Vector of indices of `vec_points` that lie inside the mesh."
     in_mesh_points_idx::Vector{Int64}
-    "Vector of indices of `elements` of the mesh corresponding to each entry of `in_mesh_points_idx`."
-    in_mesh_elements_idx::Vector{Int64}
     "Vector of indices of `vec_points` that don't line inside the mesh."
     not_in_mesh_points_idx::Vector{Int64}
+    "`Vector` of `Point`s to evaluate the solution."
+    in_mesh_points::VPT
+    "`Vector` of `Point`s outside the mesh."
+    not_in_mesh_points::VPT
+    "Vector of indices of `elements` of the mesh corresponding to each entry of `in_mesh_points_idx`."
+    in_mesh_elements_idx::Vector{Int64}
     "Vector of weights per pair of `(element, point)` in the handler."
     weights::Vector{WT}
-    "`Vector` of `Point`s to evaluate the solution."
-    in_mesh_points::Vector{PT}
-    "`Vector` of `Point`s outside the mesh."
-    not_in_mesh_points::Vector{PT}
     "`Interpolator` object used to evaluate the solution."
     interpolator::I
 end
+function PointEvalHandler(mesh::AbstractMesh, point::P) where {T,P<:Point{T}}
+    PointEvalHandler(mesh, [point])
+end
+function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{Vector{T}}) where {T}
+    PointEvalHandler(mesh, [Point(p...) for p in vec_points])
+end
 
-"Return the `Vector` of `Point`s where the solution will be evaluated."
+"Return the vector of points where the solution will be evaluated."
 points(peh::PointEvalHandler) = peh.in_mesh_points
 
-"Return the `Vector` of `Point`s that are not in the mesh."
+"Return the vector of points that are not in the mesh."
 not_in_mesh_points(peh::PointEvalHandler) = peh.not_in_mesh_points
 
 "Return the `Mesh` where the solution is obtained."
@@ -71,7 +79,10 @@ interpolator(peh::PointEvalHandler) = peh.interpolator
 function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT}) where {dim,T,PT<:Point{dim,T}}
     @assert dim ≤ 3 "Points must be 1D, 2D or 3D"
 
-    # For each point, obtain the elements that it belongs to.
+    # For each point, obtain the element(s) that it belongs to.
+    # If a point belongs to more than one element, keep only the first matching element.
+    # This is valid since the interpolation result will be the same for both elements.
+    # This case occurs when the point is located on the boundary of two elements, face or node.
     in_mesh_points_idx = Vector{Int64}()
     in_mesh_elements_idx = Vector{Int64}()
     for (point_idx, point) in enumerate(vec_points)
@@ -79,7 +90,8 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT}) where {dim
             if point ∈ elem
                 push!(in_mesh_points_idx, point_idx)
                 push!(in_mesh_elements_idx, elem_idx)
-                # TODO Add `in_mesh_points` in this loop if `point_idx` doesn't belong to `in_mesh_points_idx`. 
+                # Continue with next point, without checking the following elements.
+                break
             end
         end
     end
@@ -94,63 +106,33 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT}) where {dim
     end
     PointEvalHandler(mesh, vec_points, in_mesh_points_idx, in_mesh_elements_idx, weights)
 end
-function PointEvalHandler(mesh::AbstractMesh, point::P) where {T,P<:Point{T}}
-    PointEvalHandler(mesh, [point])
-end
-function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{Vector{T}}) where {T}
-    PointEvalHandler(mesh, [Point(p...) for p in vec_points])
-end
-
-#
-# p1 -> T1 
-# p1 -> T2
-# p2 -> T1
-# 
-# in_mesh_points_idx = [1, 1, 2]   --> unique_in_mesh_points_idx = [1, 2]
-# in_mesh_elements_idx = [1, 2, 1] --> unique_in_mesh_elements_idx = [1, 1]
-#
-
-# TODO Cleanup redundant fields.
 function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT},
                           in_mesh_points_idx::Vector{Int64},
                           in_mesh_elements_idx::Vector{Int64},
                           weights::Vector{WT}) where {dim,T,PT<:Point{dim,T},WT<:AbstractVector{T}}
     # Subset of `vec_points` that belong to the mesh.
-    unique_in_mesh_points_idx = unique(in_mesh_points_idx)
-    in_mesh_points = vec_points[unique_in_mesh_points_idx]
+    in_mesh_points = view(vec_points, in_mesh_points_idx)
 
     # Subset of `vec_points` that do not belong to the mesh.
     not_in_mesh_points_idx = collect(1:length(vec_points))
-    setdiff!(not_in_mesh_points_idx, unique_in_mesh_points_idx)
+    setdiff!(not_in_mesh_points_idx, in_mesh_points_idx)
+    not_in_mesh_points = view(vec_points, not_in_mesh_points_idx)
 
-    # Element where each point is located.
-    # If a point belongs to more than one element, we will keep the last element that 
-    # contains that point. This is valid since the interpolation result will be the same for both 
-    # elements. This case occurs when the point is located on the boundary of two elements, face or node.
-
-    points_to_element = Vector{AbstractElement}(undef, length(unique_in_mesh_points_idx))
-
-    for (i, element_index) in enumerate(in_mesh_elements_idx)
-        # Find the element and push it 
-        point_element = element(mesh, element_index)
-        # Point index 
-        point_index = in_mesh_points_idx[i]
-        # Replace the element corresponding to this point if is not defined
-        points_to_element[point_index] = point_element
-    end
+    # Element where each point is located. At this stage, only one element per point is provided.
+    points_to_element = view(elements(mesh), in_mesh_elements_idx)
 
     # Dictionary with nodes as keys and corresponding weights as values.
-    node_to_weights = Vector{Dictionary{AbstractNode,T}}()
-    sizehint!(node_to_weights, 4 * num_in_points)
-    for (i, elem_idx) in enumerate(in_mesh_elements_idx)
+    num_in_mesh_points = length(in_mesh_elements_idx)
+    node_to_weights = Vector{Dictionary{AbstractNode,T}}(undef, num_in_mesh_points)
+    @inbounds for (i, elem_idx) in enumerate(in_mesh_elements_idx)
         elem = element(mesh, elem_idx)
         dict = dictionary([n => weights[i][j] for (j, n) in enumerate(nodes(elem))])
-        push!(node_to_weights, dict)
+        node_to_weights[i] = dict
     end
     interpolator = PointsInterpolator(node_to_weights, points_to_element)
 
-    PointEvalHandler(mesh, vec_points, in_mesh_points_idx, in_mesh_elements_idx, weights,
-                     in_mesh_points, interpolator)
+    PointEvalHandler(mesh, vec_points, in_mesh_points_idx, not_in_mesh_points_idx, in_mesh_points,
+                     not_in_mesh_points, in_mesh_elements_idx, weights, interpolator)
 end
 
 end # module
