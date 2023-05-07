@@ -1,5 +1,7 @@
 using Test
 using ONSAS.Handlers
+using ONSAS.Elements
+using ONSAS.Meshes
 
 @testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron + Sets" begin
     Lᵢ = rand() * 20
