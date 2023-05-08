@@ -2,7 +2,8 @@
 # Static Analysis tests #
 #########################
 using Test, LinearAlgebra
-using ONSAS.StructuralAnalyses.StaticAnalyses
+using ONSAS.StaticAnalyses
+using ONSAS.StructuralAnalyses
 
 const RTOL = 5e-2
 

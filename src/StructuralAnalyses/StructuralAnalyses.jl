@@ -196,12 +196,6 @@ function _apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractLoadBou
 end
 
 # ================
-# Static analysis
-# ================
-include("./StaticAnalyses.jl")
-@reexport using .StaticAnalyses
-
-# ================
 # Dynamic analysis
 # ================
 

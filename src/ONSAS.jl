@@ -13,7 +13,8 @@ FILES = ["Utils.jl",
          "Interfaces/VTK.jl",
          "StructuralModel/StructuralModel.jl",
          "StructuralSolvers/StructuralSolvers.jl",
-         "StructuralAnalyses/StructuralAnalyses.jl"]
+         "StructuralAnalyses/StructuralAnalyses.jl",
+         "StructuralAnalyses/StaticAnalyses.jl"]
 
 foreach(FILES) do m
     include(m)
@@ -44,5 +45,6 @@ end
 
 # Structural analyses.
 @reexport using .StructuralAnalyses
+@reexport using .StaticAnalyses
 
 end # module
