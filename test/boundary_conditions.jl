@@ -2,7 +2,8 @@
 # BoundaryConditions module tests #
 ###################################
 using Test
-using ONSAS.BoundaryConditions
+using ONSAS.BoundaryConditions, ONSAS.FixedDofBoundaryConditions, ONSAS.DirichletBoundaryConditions,
+      ONSAS.NeumannBoundaryConditions
 using ONSAS.Elements
 
 # Entities 
@@ -22,13 +23,13 @@ n₄ = Node(2, 0, 1,
 t_face = TriangularFace(n₁, n₂, n₃)
 tetra = Tetrahedron(n₁, n₂, n₃, n₄)
 
-@testset "ONSAS.BoundaryConditions.FixedDofBoundaryCondition" begin
+@testset "ONSAS.BoundaryConditions.FixedDof" begin
 
     # Generic labeled boundary condition
     generic_fixed_dofs = [:u, :θ]
     fixed_components = [1, 3] # Fixes first, second and third component of the corresponding dofs
     generic_bc_label = :fixed_bc_generic
-    fixed_bc = FixedDofBoundaryCondition(generic_fixed_dofs, fixed_components, generic_bc_label)
+    fixed_bc = FixedDof(generic_fixed_dofs, fixed_components, generic_bc_label)
 
     @test dofs(fixed_bc) == generic_fixed_dofs
     @test components(fixed_bc) == fixed_components
