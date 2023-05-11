@@ -114,23 +114,23 @@ if linear_cylinder_internal_pressure
     ms_range = [0.5 1.0]
     n_points_each_axis_range = [5, 10]
 
-    for n_points in n_points_each_axis_range
+    for NPOINTS in n_points_each_axis_range
         for ms in ms_range
             local structure
-            structure = linear_cylinder_structure(; ms=ms)
+            structure = linear_cylinder_structure(; ms)
 
             nnodes, nelems = num_nodes(structure), num_elements(structure)
             SUITE[example_name]["structure, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable linear_cylinder_structure(ms=$ms) evals = evals samples = samples
 
-            problem = LinearStaticAnalysis(structure; NSTEPS=NSTEPS)
+            problem = LinearStaticAnalysis(structure; NSTEPS)
 
             solution = solve!(problem)
             reset!(problem)
             SUITE[example_name]["solve!, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem) evals = evals samples = samples
 
-            ph = point_eval_handler(structure; NPOINTS=n_points)
-            SUITE[example_name]["point_eval_handler, ms = $ms, nelems = $nelems, nnodes = $nnodes, npoints = $(n_points^3)"] = @benchmarkable point_eval_handler($structure,
-                                                                                                                                                                 NPOINTS=$n_points) evals = evals samples = samples
+            ph = point_eval_handler(structure; NPOINTS)
+            SUITE[example_name]["point_eval_handler, ms = $ms, nelems = $nelems, nnodes = $nnodes, npoints = $(NPOINTS^3)"] = @benchmarkable point_eval_handler($structure,
+                                                                                                                                                                NPOINTS=$NPOINTS) evals = evals samples = samples
             eval_solution = displacements(solution, ph)
         end
     end

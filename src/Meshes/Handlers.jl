@@ -75,26 +75,21 @@ mesh(peh::PointEvalHandler) = peh.mesh
 "Return the `Interpolator` used to evaluate the solution."
 interpolator(peh::PointEvalHandler) = peh.interpolator
 
+abstract type SearchAlgorithm end
+
+struct Serial <: SearchAlgorithm end
+struct Threaded <: SearchAlgorithm end
+
 "Constructor of a `PointEvalHandler` given a mesh and an array of points."
-function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT}) where {dim,T,PT<:Point{dim,T}}
+function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT};
+                          alg::SearchAlgorithm=Threaded()) where {dim,T,PT<:Point{dim,T}}
     @assert dim ≤ 3 "Points must be 1D, 2D or 3D"
 
     # For each point, obtain the element(s) that it belongs to.
     # If a point belongs to more than one element, keep only the first matching element.
     # This is valid since the interpolation result will be the same for both elements.
     # This case occurs when the point is located on the boundary of two elements, face or node.
-    in_mesh_points_idx = Vector{Int64}()
-    in_mesh_elements_idx = Vector{Int64}()
-    for (point_idx, point) in enumerate(vec_points)
-        for (elem_idx, elem) in enumerate(elements(mesh))
-            if point ∈ elem
-                push!(in_mesh_points_idx, point_idx)
-                push!(in_mesh_elements_idx, elem_idx)
-                # Continue with next point, without checking the following elements.
-                break
-            end
-        end
-    end
+    in_mesh_points_idx, in_mesh_elements_idx = evaluate_points_in_mesh(mesh, vec_points, alg)
 
     # For each element found, compute the associated weight used for interpolation.
     # Assume that the mesh has a unique element type.
@@ -133,6 +128,43 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT},
 
     PointEvalHandler(mesh, vec_points, in_mesh_points_idx, not_in_mesh_points_idx, in_mesh_points,
                      not_in_mesh_points, in_mesh_elements_idx, weights, interpolator)
+end
+
+function evaluate_points_in_mesh(mesh::AbstractMesh, vec_points::Vector{PT},
+                                 ::Serial) where {dim,T,PT<:Point{dim,T}}
+    in_mesh_points_idx = Vector{Int64}()
+    in_mesh_elements_idx = Vector{Int64}()
+    for (point_idx, point) in enumerate(vec_points)
+        for (elem_idx, elem) in enumerate(elements(mesh))
+            if point ∈ elem
+                push!(in_mesh_points_idx, point_idx)
+                push!(in_mesh_elements_idx, elem_idx)
+                # Continue with next point, without checking the following elements.
+                break
+            end
+        end
+    end
+    in_mesh_points_idx, in_mesh_elements_idx
+end
+
+function evaluate_points_in_mesh(mesh::AbstractMesh, vec_points::Vector{PT},
+                                 ::Threaded) where {dim,T,PT<:Point{dim,T}}
+    numthreads = Threads.nthreads()
+    in_mesh_points_idx = [Vector{Int64}() for _ in 1:numthreads]
+    in_mesh_elements_idx = [Vector{Int64}() for _ in 1:numthreads]
+    Threads.@threads for point_idx in 1:length(vec_points)
+        id = Threads.threadid()
+        point = vec_points[point_idx]
+        for (elem_idx, elem) in enumerate(elements(mesh))
+            if point ∈ elem
+                push!(in_mesh_points_idx[id], point_idx)
+                push!(in_mesh_elements_idx[id], elem_idx)
+                # Continue with next point, without checking the following elements.
+                break
+            end
+        end
+    end
+    return reduce(vcat, in_mesh_points_idx), reduce(vcat, in_mesh_elements_idx)
 end
 
 end # module
