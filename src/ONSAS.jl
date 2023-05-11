@@ -6,12 +6,20 @@ FILES = ["Utils.jl",
          "Materials/Materials.jl",
          "CrossSections/CrossSections.jl",
          "Elements/Elements.jl",
+         # Boundary conditions
          "BoundaryConditions/BoundaryConditions.jl",
+         "BoundaryConditions/FixedDofBoundaryConditions.jl",
+         "BoundaryConditions/GlobalLoadBoundaryConditions.jl",
+         "BoundaryConditions/LocalLoadBoundaryConditions.jl",
+         # Meshes
          "Meshes/Meshes.jl",
          "Meshes/Handlers.jl",
+         # Interfaces
          "Interfaces/Gmsh.jl",
          "Interfaces/VTK.jl",
+         #Structural Model
          "StructuralModel/StructuralModel.jl",
+         # Structural Solverss
          "StructuralSolvers/StructuralSolvers.jl",
          "StructuralAnalyses/StructuralAnalyses.jl",
          "StructuralAnalyses/StaticAnalyses.jl"]
@@ -24,11 +32,21 @@ end
 @reexport using .Utils
 
 # Physical models.
+# Materials
 @reexport using .Materials
+# Cross-sections
 @reexport using .CrossSections
+# Entities
 @reexport using .Elements
+# Boundary conditions
 @reexport using .BoundaryConditions
+@reexport using .FixedDofBoundaryConditions
+@reexport using .DirichletBoundaryConditions
+@reexport using .NeumannBoundaryConditions
+@reexport using .LocalLoadBoundaryConditions
+@reexport using .GlobalLoadBoundaryConditions
 
+#=
 # GEometric entities and interpolation.
 @reexport using .Meshes
 @reexport using .Handlers
@@ -46,5 +64,5 @@ end
 # Structural analyses.
 @reexport using .StructuralAnalyses
 @reexport using .StaticAnalyses
-
-end # module
+=#
+end
