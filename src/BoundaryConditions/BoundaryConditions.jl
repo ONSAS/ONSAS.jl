@@ -5,15 +5,10 @@ Overall, each boundary condition consists of a data type with a label, dofs and 
 """
 module BoundaryConditions
 
-using Reexport
-
-@reexport import ..Elements: dofs
-@reexport import ..Utils: label
+using ..Elements, ..Utils
 
 export AbstractBoundaryCondition, AbstractNeumannBoundaryCondition,
-       AbstractDirichletBoundaryCondition, _apply
-export DisplacementBoundaryCondition, FixedDofBoundaryCondition, components
-export GlobalLoadBoundaryCondition, LocalPressureBoundaryCondition
+       AbstractDirichletBoundaryCondition, apply
 
 """ Abstract supertype for all elements.
 
@@ -32,7 +27,7 @@ An `AbstractBoundaryCondition` object facilitates the process of defining:
 abstract type AbstractBoundaryCondition end
 
 "Apply the boundary condition `bc` to an`entity`."
-function _apply(bc::AbstractBoundaryCondition, entity) end
+function apply(::AbstractBoundaryCondition, ::AbstractEntity) end
 
 "Return the degrees of freedom symbol where the boundary condition is imposed"
 dofs(bc::AbstractBoundaryCondition) = bc.dofs
@@ -60,4 +55,4 @@ abstract type AbstractNeumannBoundaryCondition <: AbstractBoundaryCondition end
 "Abstract functor for a `AbstractLoadBoundaryCondition` that evaluates the load at time `t`."
 (lbc::AbstractNeumannBoundaryCondition)(t::Real) = values(lbc)(t)
 
-end # module
+end
