@@ -216,6 +216,8 @@ function evaluate_points_in_mesh(mesh::AbstractMesh, vec_points::Vector{PT},
                     if point ∈ element(mesh, elem_idx)
                         push!(in_mesh_points_idx, point_idx)
                         push!(in_mesh_elements_idx, elem_idx)
+                        found = true
+                        break
                     end
                 end
                 if found
@@ -260,6 +262,8 @@ function evaluate_points_in_mesh(mesh::AbstractMesh, vec_points::Vector{PT},
                     if point ∈ element(mesh, elem_idx)
                         push!(in_mesh_points_idx[id], point_idx)
                         push!(in_mesh_elements_idx[id], elem_idx)
+                        found = true
+                        break
                     end
                 end
                 if found
