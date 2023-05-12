@@ -26,9 +26,11 @@ end
 "Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
 function apply(lbc::LocalLoad, f::AbstractFace, t::Real)
 
-    # Compute tension vector for each node 
+    # Extract the normal vector and the area of the face
     n = normal_direction(f)
     A = area(f)
+
+    # Compute the local tension vector
     p = first(lbc(t)) * A * n
     num_nodes = length(nodes(f))
     p_nodal = p / num_nodes

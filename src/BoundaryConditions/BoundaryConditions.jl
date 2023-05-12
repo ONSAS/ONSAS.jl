@@ -58,7 +58,7 @@ const AbstractDisplacementBoundaryCondition = AbstractDirichletBoundaryCondition
 """ Abstract supertype for all Neumann boundary conditions."""
 abstract type AbstractNeumannBoundaryCondition <: AbstractBoundaryCondition end
 
-const AbstractLoadBoundaryCondition = AbstractDirichletBoundaryCondition
+const AbstractLoadBoundaryCondition = AbstractNeumannBoundaryCondition
 
 "Abstract functor for a `AbstractNeumannBoundaryCondition` that evaluates the load at time `t`."
 (lbc::AbstractNeumannBoundaryCondition)(t::Real) = values(lbc)(t)

@@ -21,7 +21,7 @@ Base.@kwdef struct FixedDof <: AbstractDirichletBoundaryCondition
     "Symbols where the where the boundary condition is subscribed."
     dofs::Vector{Symbol} = [:u]
     "Vectors of integer indicating the degree of freedom component fixed."
-    components::Vector{Int}
+    components::Vector{Dof}
     "Label of the boundary condition."
     name::Label = NO_LABEL
 end
