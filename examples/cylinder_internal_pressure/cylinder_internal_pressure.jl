@@ -75,9 +75,9 @@ function cylinder_structure(material::AbstractMaterial,
     # Boundary conditions
     # -------------------------------
     # Dirichlet boundary conditions 
-    bc₁ = FixedDofBoundaryCondition([:u], [1], bc₁_label)
-    bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
-    bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
+    bc₁ = FixedDof([:u], [1], bc₁_label)
+    bc₂ = FixedDof([:u], [2], bc₂_label)
+    bc₃ = FixedDof([:u], [3], bc₃_label)
     # Neumann boundary conditions 
     bc₄ = LocalLoad([:u], t -> pressure(t), bc₄_label)
     boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)

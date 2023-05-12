@@ -34,14 +34,14 @@ function run_linear_extension_example()
     # -------------------------------
     # Fixed dofs
     bc₁_label = "fixed-ux"
-    bc₁ = FixedDofBoundaryCondition([:u], [1], bc₁_label)
+    bc₁ = FixedDof([:u], [1], bc₁_label)
     bc₂_label = "fixed-uj"
-    bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
+    bc₂ = FixedDof([:u], [2], bc₂_label)
     bc₃_label = "fixed-uk"
-    bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
+    bc₃ = FixedDof([:u], [3], bc₃_label)
     # Load
     bc₄_label = "tension"
-    bc₄ = GlobalLoadBoundaryCondition([:u], t -> [tension(t), 0, 0], bc₄_label)
+    bc₄ = GlobalLoad([:u], t -> [tension(t), 0, 0], bc₄_label)
     # Get bc labels for the mesh
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     s_boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)

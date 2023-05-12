@@ -81,7 +81,7 @@ function Base.show(io::IO, sc::StaticState)
     nu = length(sc.Uᵏ)
     K = sc.Kₛᵏ
     s = size(K)
-    println("• StaticState with $nu-element displacements vector Uᵏ " *
+    println("• StaticState with $nu-dofs displacements vector Uᵏ " *
             "and $(s[1]) × $(s[2]) tangent matrix Kₛᵏ with $(length(K.nzval)) stored entries.")
 end
 

@@ -5,8 +5,7 @@ an specific state which describes the current state of structure in the analysis
 """
 module StructuralAnalyses
 
-using LinearAlgebra: norm
-using Reexport: @reexport
+using LinearAlgebra, Reexport
 
 @reexport using ..Materials
 @reexport using ..Elements
@@ -16,17 +15,16 @@ using Reexport: @reexport
 @reexport using ..StructuralSolvers
 @reexport using ..Utils
 
-import ..Utils: apply!
-import ..Elements: internal_forces, inertial_forces, strain, stress
-import ..StructuralModel: free_dofs
-import ..StructuralSolvers: _assemble!, _update!, _end_assemble!
+@reexport import ..Utils: apply!
+@reexport import ..Elements: internal_forces, inertial_forces, strain, stress
+@reexport import ..StructuralModel: free_dofs
+@reexport import ..StructuralSolvers: _assemble!, _update!, _end_assemble!
 @reexport import ..StructuralSolvers: displacements, external_forces, iteration_residuals, reset!
 
 export AbstractStructuralState, _assemble!, Δ_displacements, tangent_matrix,
-       residual_forces!,
-       tangent_matrix, structure, assembler, residual_forces_norms, residual_displacements_norms,
-       AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done,
-       current_state, current_iteration
+       residual_forces!, tangent_matrix, structure, assembler, residual_forces_norms,
+       residual_displacements_norms, AbstractStructuralAnalysis, initial_time, current_time,
+       final_time, _next!, is_done, current_state, current_iteration
 
 """ Abstract supertype to define a new structural state.
 **Common methods:**
