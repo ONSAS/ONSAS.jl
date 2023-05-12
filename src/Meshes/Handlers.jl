@@ -97,7 +97,7 @@ end
 
 "Constructor of a `PointEvalHandler` given a mesh and an array of points."
 function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT};
-                          alg::SearchAlgorithm=PartitionThreaded()) where {dim,T,PT<:Point{dim,T}}
+                          alg::SearchAlgorithm=Serial()) where {dim,T,PT<:Point{dim,T}}
     @assert dim ≤ 3 "Points must be 1D, 2D or 3D"
 
     # For each point, obtain the element(s) that it belongs to.
