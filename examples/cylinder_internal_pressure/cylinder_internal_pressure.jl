@@ -12,16 +12,15 @@ Rₑ = 200; # outer radius in mm
 p = 10; # internal pressure in MPa
 E = 210.0;  # Young modulus in MPa
 ν = 0.3;  # Poisson ratio
-pressure(t::Real) = -p * t;
+pressure(t::Real) = p * t;
 ## number of steps 
 NSTEPS = 9;
 ## tolerances for testing
 ATOL = 1e-2 * (Rₑ - Rᵢ);
 ## Plot results
-plot_results = false;
+PLOT_RESULTS = false;
 ## Refinement mesh factor
-ms = 0.75;
-# ms = 2.5; #Heavy one
+ms = 0.8; # ms = 2.5; #Heavy one
 include("cylinder_mesh.jl");
 # -------------------------------
 # Structure
@@ -75,11 +74,11 @@ function cylinder_structure(material::AbstractMaterial,
     # Boundary conditions
     # -------------------------------
     # Dirichlet boundary conditions 
-    bc₁ = FixedDof([:u], [1], bc₁_label)
-    bc₂ = FixedDof([:u], [2], bc₂_label)
-    bc₃ = FixedDof([:u], [3], bc₃_label)
+    bc₁ = FixedDof(; components=[1], name=bc₁_label)
+    bc₂ = FixedDof(; components=[2], name=bc₂_label)
+    bc₃ = FixedDof(; components=[3], name=bc₃_label)
     # Neumann boundary conditions 
-    bc₄ = LocalLoad([:u], t -> pressure(t), bc₄_label)
+    bc₄ = Pressure(; values=pressure, name=bc₄_label)
     boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # Assign boundary conditions to the ones defined in the mesh
     apply!(boundary_conditions, mesh)
@@ -160,11 +159,11 @@ function uᵣ(r::Real, t::Real,
             Rᵢ::Real=Rᵢ, Rₑ::Real=Rₑ)
     "Constant A for the analytic solution."
     function A(t::Real, Rᵢ::Real, Rₑ::Real, E::Real, ν::Real, p::Function)
-        (1 + ν) * (1 - 2 * ν) * Rᵢ^2 * -p(t) / (E * (Rₑ^2 - Rᵢ^2))
+        (1 + ν) * (1 - 2 * ν) * Rᵢ^2 * p(t) / (E * (Rₑ^2 - Rᵢ^2))
     end
     "Constant B for the analytic solution."
     function B(t::Real, Rᵢ::Real, Rₑ::Real, E::Real, ν::Real, p::Function)
-        (1 + ν) * Rᵢ^2 * Rₑ^2 * -p(t) / (E * (Rₑ^2 - Rᵢ^2))
+        (1 + ν) * Rᵢ^2 * Rₑ^2 * p(t) / (E * (Rₑ^2 - Rᵢ^2))
     end
     uᵣ = A(t, Rᵢ, Rₑ, E, ν, p) * r + B(t, Rᵢ, Rₑ, E, ν, p) / r
 end;
@@ -185,25 +184,27 @@ function test_solution_at_slice(sol::AbstractSolution=states_lin_sol;
     # Set by force Lₖ
     rand_θ₂ = rand() * 2 * π
     # Random point ∈ axis x
-    p_randᵢ = [rand_R, 0.0, Lₖ]
+    p_rand_in_axis_x = [rand_R, 0.0, Lₖ]
     # Random point ∈ axis y
-    p_randⱼ = [0.0, rand_R, Lₖ]
+    p_rand_in_axis_y = [0.0, rand_R, Lₖ]
     # Random point between the internal and external surface
     p_rand₁ = [rand_R * cos(rand_θ₁), rand_R * sin(rand_θ₁), Lₖ]
     p_rand₂ = [rand_R * cos(rand_θ₂), rand_R * sin(rand_θ₂), Lₖ]
     # Vector of points to test
-    vec_points = [p_randᵢ, p_randⱼ, p_rand₁, p_rand₂]
+    vec_points = [p_rand_in_axis_x, p_rand_in_axis_y, p_rand₁, p_rand₂]
     #
     point_evaluator = PointEvalHandler(mesh(structure), vec_points)
     U = displacements(sol, point_evaluator)
     # Check uₖ = 0 ∀ p ∈ s
     zero_uₖ = all([≈(norm(u[3]), 0.0; atol=atol) for u in U])
     # Check uᵢ = 0 ∀ p ∈ s & ∈ axis y
-    Uᵢ_in_axis_y = displacements(states_lin_sol, point_evaluator, 2)[1]
-    zero_uₖ_axis_y = all([≈(norm(uᵢ_p_in_axis_y), 0.0; atol=atol)
+    index_p_rand_in_axis_y = findall([p == p_rand_in_axis_y for p in vec_points])
+    Uᵢ_in_axis_y = getindex(displacements(sol, point_evaluator, 1), index_p_rand_in_axis_y)
+    zero_uᵢ_axis_y = all([≈(norm(uᵢ_p_in_axis_y), 0.0; atol=atol)
                           for uᵢ_p_in_axis_y in Uᵢ_in_axis_y])
     # Check uⱼ = 0 ∀ p ∈ s & ∈ axis x
-    Uⱼ_in_axis_x = displacements(states_lin_sol, point_evaluator, 1)[2]
+    index_p_rand_in_axis_x = findall([p == p_rand_in_axis_x for p in vec_points])
+    Uⱼ_in_axis_x = getindex(displacements(sol, point_evaluator, 2), index_p_rand_in_axis_x)
     zero_uⱼ_axis_x = all([≈(norm(uⱼ_p_in_axis_y), 0.0; atol=atol)
                           for uⱼ_p_in_axis_y in Uⱼ_in_axis_x])
     # Check uᵣ(r,θ₁) =  uᵣ(r,θ₁)  at last time
@@ -217,16 +218,7 @@ function test_solution_at_slice(sol::AbstractSolution=states_lin_sol;
 end;
 # Test symmetry and boundary conditions
 test_bools = test_solution_at_slice(states_lin_sol; atol=ATOL, atolr=10 * ATOL)
-uᵣ_not_depends_on_θ, zero_uₖ, zero_uₖ_axis_y, zero_uⱼ_axis_x = test_bools
-@testset "Case 1: Linear Analysis " begin
-    @info "uᵣ(r,θ₁,L₁) = uᵣ(r,θ₂,L₂)?" uᵣ_not_depends_on_θ
-    @test zero_uₖ
-    @test zero_uₖ_axis_y
-    @test zero_uⱼ_axis_x
-    @test uᵣ_numeric_p_rand ≈ uᵣ_analytic_p_rand atol = ATOL
-    @test uᵣ_analytic_nᵢ ≈ uᵣ_numeric_nᵢ atol = ATOL
-    @test uᵣ_analytic_nₑ ≈ -uᵣ_numeric_nₑ atol = ATOL
-end
+uᵣ_not_depends_on_θ_linear, zero_uₖ_linear, zero_uₖ_axis_y_linear, zero_uⱼ_axis_x_linear = test_bools
 # -----------------------------------------------
 # Case 2 - Static non-linear elastic case
 #----------------------------------------------
@@ -248,19 +240,27 @@ end
 uᵣ_numeric_nonlinear_nᵢ = displacements(states_nonlinear_sol, nᵢ, 2);
 # Get the external radial displacement at p = (-Rₑ, 0, Lₖ)
 uᵣ_numeric_nonlinear_nₑ = displacements(states_nonlinear_sol, nₑ, 1);
+# Test symmetry and boundary conditions
+test_silce_bools = test_solution_at_slice(states_nonlinear_sol; atol=ATOL, atolr=10 * ATOL)
+uᵣ_not_depends_on_θ_nonlinear, zero_uₖ_case2_nonlinear, zero_uₖ_axis_y_nonlinear, zero_uⱼ_axis_x_nonlinear = test_silce_bools
 #-----------------------------
 # Test booleans
 #-----------------------------
-# Test symmetry and boundary conditions
-test_silce_bools = test_solution_at_slice(states_lin_sol; atol=ATOL, atolr=10 * ATOL)
-uᵣ_not_depends_on_θ_case2, zero_uₖ_case2, zero_uₖ_axis_y_case2, zero_uⱼ_axis_x_case2 = test_silce_bools
-@testset "Case 2: Non-Linear Analysis " begin
-    @info "uᵣ(r,θ₁,L₁) = uᵣ(r,θ₂,L₂)?" uᵣ_not_depends_on_θ_case2
-    @test zero_uₖ_case2
-    @test zero_uₖ_axis_y_case2
-    @test zero_uⱼ_axis_x_case2
+@testset "Case 1: Linear Analysis " begin
+    @info "uᵣ(r,θ₁,L₁) = uᵣ(r,θ₂,L₂)?" uᵣ_not_depends_on_θ_linear
+    @test zero_uₖ_linear
+    @test zero_uₖ_axis_y_linear
+    @test zero_uⱼ_axis_x_linear
+    @test uᵣ_numeric_p_rand ≈ uᵣ_analytic_p_rand atol = ATOL
+    @test uᵣ_analytic_nᵢ ≈ uᵣ_numeric_nᵢ atol = ATOL
+    @test uᵣ_analytic_nₑ ≈ -uᵣ_numeric_nₑ atol = ATOL
 end
-
+@testset "Case 2: Non-Linear Analysis " begin
+    @info "uᵣ(r,θ₁,L₁) = uᵣ(r,θ₂,L₂)?" uᵣ_not_depends_on_θ_nonlinear
+    @test zero_uₖ_case2_nonlinear
+    @test zero_uₖ_axis_y_nonlinear
+    @test zero_uⱼ_axis_x_nonlinear
+end
 #-----------------------------
 # Print & plots 
 #-----------------------------
@@ -268,10 +268,10 @@ nnodes = num_nodes(cylinder);
 nelems = num_elements(cylinder);
 nfaces = num_faces(cylinder);
 print_timer(; title="Analysis with $(nelems) elements and $nnodes nodes");
-if plot_results
+if PLOT_RESULTS
     using Plots
-    vec_p = [-pressure(λ) for λ in λᵥ]
-    vec_p_non_in = [-pressure(λ) for λ in load_factors(nonlinear_analysis)]
+    vec_p = [pressure(λ) for λ in λᵥ]
+    vec_p_non_in = [pressure(λ) for λ in load_factors(nonlinear_analysis)]
     fig = plot(vec_p, uᵣ_numeric_nᵢ; label="numeric linear uᵣ n=(0, Rᵢ, 0)",
                legend=:topleft, color=:orange, lw=2, ls=:dash, markershape=:circle)
     plot!(fig,

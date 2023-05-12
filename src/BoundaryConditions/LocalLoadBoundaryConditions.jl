@@ -9,29 +9,35 @@ using ..Utils, ..BoundaryConditions, ..Elements
 
 @reexport import ..BoundaryConditions: apply
 
-export LocalLoad
+export Pressure
 
 """ 
-Load boundary condition imposed in local coordinates to the `AbstractElement` or `AbstractFace`.
+Pressure boundary condition imposed in local coordinates to the `AbstractElement` or `AbstractFace`.
+This is a force along the minus normal direction of the face.
 """
-Base.@kwdef struct LocalLoad <: AbstractNeumannBoundaryCondition
+Base.@kwdef struct Pressure <: AbstractNeumannBoundaryCondition
     "Degrees of freedom where the boundary condition is imposed"
     dofs::Vector{Symbol} = [:u]
     "Values imposed function"
     values::Function
     "Boundary condition label"
     name::Label = NO_LABEL
+    # Check values is real Function
+    function Pressure(dofs::Vector{Symbol}, values::Function, name::Label)
+        @assert values(rand()) isa Real
+        new(dofs, values, name)
+    end
 end
 
 "Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
-function apply(lbc::LocalLoad, f::AbstractFace, t::Real)
+function apply(lbc::Pressure, f::AbstractFace, t::Real)
 
     # Extract the normal vector and the area of the face
     n = normal_direction(f)
     A = area(f)
 
-    # Compute the local tension vector
-    p = first(lbc(t)) * A * n
+    # Compute the normal tension in global coordinates
+    p = lbc(t) * (-n) * A
     num_nodes = length(nodes(f))
     p_nodal = p / num_nodes
 

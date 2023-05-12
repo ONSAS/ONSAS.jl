@@ -148,7 +148,7 @@ function run_uniaxial_extension()
     # Boundary Conditions
     # -------------------------------
     # Redefine the load boundary condition 
-    bc₄ = LocalLoad([:u], t -> [p * t], bc₄_label)
+    bc₄ = Pressure([:u], t -> -p * t, bc₄_label)
     # BoundaryConditions types without assigned node, feces and elements
     s_boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # -------------------------------

@@ -101,7 +101,7 @@ boundary_conditions(s::AbstractStructure) = s.bcs
 "Return the `DisplacementBoundaryCondition`s of the `AbstractStructure` `s`"
 displacement_bcs(s::AbstractStructure) = displacement_bcs(s.bcs)
 
-"Return the `LocalLoad`s of the `AbstractStructure` `s`"
+"Return the `AbstractLoadBoundaryCondition`s of the `AbstractStructure` `s`"
 load_bcs(s::AbstractStructure) = load_bcs(s.bcs)
 
 "Return the `AbstractBoundaryCondition`s imposed to `Node`s in the `AbstractStructure` `s`"

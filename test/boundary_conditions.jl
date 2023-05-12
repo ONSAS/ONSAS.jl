@@ -77,21 +77,22 @@ t_to_test = 2.0
     @test b_vec == repeat(generic_bc(t_to_test) * volume(tetra) / 4, 8)
 end
 
-@testset "ONSAS.BoundaryConditions.LocalLoad" begin
+@testset "ONSAS.BoundaryConditions.Pressure" begin
 
     # Generic labeled global load boundary condition
     dofs_toapply_bc = [:u]
     load_fact_generic(t) = t^2
-    generic_values = t -> load_fact_generic(t) .* [1]
-    generic_bc_label = :bc_generic
-    generic_bc = LocalLoad(; dofs=dofs_toapply_bc, values=generic_values)
+    generic_values = t -> load_fact_generic(t)
+    generic_bc_label = :normal_pressure
+    generic_bc = Pressure(; dofs=dofs_toapply_bc, values=generic_values, name=generic_bc_label)
 
     @test dofs(generic_bc) == dofs_toapply_bc
     @test values(generic_bc) == generic_values
     @test generic_bc(t_to_test) == values(generic_bc)(t_to_test)
+    @test label(generic_bc) == generic_bc_label
 
     # Face tension computation 
     loaded_dofs, p_vec = apply(generic_bc, t_face, t_to_test)
     @test loaded_dofs == vcat(Dof.(1:9))
-    @test p_vec == repeat([generic_values(t_to_test)[1] * area(t_face) / 3, 0, 0], 3)
+    @test p_vec == -repeat([generic_values(t_to_test) * area(t_face) / 3, 0, 0], 3)
 end
