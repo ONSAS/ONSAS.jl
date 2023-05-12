@@ -49,7 +49,7 @@ function uniaxial_compression_structure(; ms=0.5)
     bc₃ = FixedDof([:u], [3], bc₃_label)
 
     # Neumann boundary conditions 
-    bc₄ = LocalLoad([:u], t -> [p * t], bc₄_label)
+    bc₄ = Pressure([:u], t -> -p * t, bc₄_label)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
 
     # BoundaryConditions types without assigned node, feces and elements.

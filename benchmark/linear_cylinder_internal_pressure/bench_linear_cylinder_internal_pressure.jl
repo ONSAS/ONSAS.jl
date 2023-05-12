@@ -17,7 +17,7 @@ function linear_cylinder_structure(; ms::Real=0.5)
     ν = 0.3         # Poisson ratio
 
     p = 25.0        # pressure in MPa
-    pressure(t) = p * t
+    pressure(t) = -p * t
 
     # -------------------------------
     # Physical entities labels
@@ -67,11 +67,11 @@ function linear_cylinder_structure(; ms::Real=0.5)
     # Boundary conditions
     # -------------------------------
     # Dirichlet boundary conditions 
-    bc₁ = FixedDof([:u], [1], bc₁_label)
-    bc₂ = FixedDof([:u], [2], bc₂_label)
-    bc₃ = FixedDof([:u], [3], bc₃_label)
+    bc₁ = FixedDof(; components=[1], name=bc₁_label)
+    bc₂ = FixedDof(; components=[2], name=bc₂_label)
+    bc₃ = FixedDof(; components=[3], name=bc₃_label)
     # Neumann boundary conditions 
-    bc₄ = LocalLoad([:u], t -> pressure(t), bc₄_label)
+    bc₄ = Pressure(; values=pressure, name=bc₄_label)
     boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # Assign boundary conditions to the ones defined in the mesh
     apply!(boundary_conditions, mesh)
