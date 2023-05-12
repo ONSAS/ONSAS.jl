@@ -33,9 +33,9 @@ function uniaxial_extension_structure(; ms=0.5)
     bc₂_label = "fixed-uj"
     bc₃_label = "fixed-uk"
     bc₄_label = "tension"
-    bc₁ = FixedDofBoundaryCondition([:u], [1], bc₁_label)
-    bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
-    bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
+    bc₁ = FixedDof([:u], [1], bc₁_label)
+    bc₂ = FixedDof([:u], [2], bc₂_label)
+    bc₃ = FixedDof([:u], [3], bc₃_label)
 
     # Neumann boundary conditions 
     bc₄ = LocalLoad([:u], t -> [p * t], bc₄_label)
