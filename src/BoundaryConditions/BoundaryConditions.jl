@@ -5,10 +5,14 @@ Overall, each boundary condition consists of a data type with a label, dofs and 
 """
 module BoundaryConditions
 
+using Reexport
+
 using ..Elements, ..Utils
 
-export AbstractBoundaryCondition, AbstractNeumannBoundaryCondition,
-       AbstractDirichletBoundaryCondition, apply
+@reexport import ..Utils: dofs, label
+
+export AbstractBoundaryCondition, AbstractNeumannBoundaryCondition, AbstractLoadBoundaryCondition,
+       AbstractDirichletBoundaryCondition, AbstractDisplacementBoundaryCondition, apply
 
 """ Abstract supertype for all elements.
 
@@ -19,7 +23,7 @@ An `AbstractBoundaryCondition` object facilitates the process of defining:
 
 **Common methods:**
 
-* [`_apply`](@ref)
+* [`apply`](@ref)
 * [`Base.values`](@ref)
 * [`dofs`](@ref)
 * [`label`](@ref)
@@ -46,13 +50,17 @@ Base.values(bc::AbstractBoundaryCondition) = bc.values
 """ Abstract supertype for all Dirichlet boundary conditions."""
 abstract type AbstractDirichletBoundaryCondition <: AbstractBoundaryCondition end
 
+const AbstractDisplacementBoundaryCondition = AbstractDirichletBoundaryCondition
+
 #================================#
 # Neumann boundary conditions  #
 #================================#
 """ Abstract supertype for all Neumann boundary conditions."""
 abstract type AbstractNeumannBoundaryCondition <: AbstractBoundaryCondition end
 
-"Abstract functor for a `AbstractLoadBoundaryCondition` that evaluates the load at time `t`."
+const AbstractLoadBoundaryCondition = AbstractDirichletBoundaryCondition
+
+"Abstract functor for a `AbstractNeumannBoundaryCondition` that evaluates the load at time `t`."
 (lbc::AbstractNeumannBoundaryCondition)(t::Real) = values(lbc)(t)
 
 end

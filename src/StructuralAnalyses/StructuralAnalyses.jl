@@ -14,13 +14,15 @@ using Reexport: @reexport
 @reexport using ..Meshes
 @reexport using ..StructuralModel
 @reexport using ..StructuralSolvers
+@reexport using ..Utils
 
+import ..Utils: apply!
 import ..Elements: internal_forces, inertial_forces, strain, stress
 import ..StructuralModel: free_dofs
 import ..StructuralSolvers: _assemble!, _update!, _end_assemble!
 @reexport import ..StructuralSolvers: displacements, external_forces, iteration_residuals, reset!
 
-export AbstractStructuralState, _apply!, _assemble!, Δ_displacements, tangent_matrix,
+export AbstractStructuralState, _assemble!, Δ_displacements, tangent_matrix,
        residual_forces!,
        tangent_matrix, structure, assembler, residual_forces_norms, residual_displacements_norms,
        AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done,
@@ -182,17 +184,17 @@ function reset!(a::AbstractStructuralState) end
 # Common methods
 # ================
 
-"Apply an `AbstractLoadBoundaryCondition` lbc into the structural analysis `sa` at the current analysis time `t`"
-function _apply!(sa::AbstractStructuralAnalysis, lbc::AbstractLoadBoundaryCondition)
+"Apply an `AbstractNeumannBoundaryCondition` lbc into the structural analysis `sa` at the current analysis time `t`"
+function apply!(sa::AbstractStructuralAnalysis, lbc::AbstractNeumannBoundaryCondition)
     t = current_time(sa)
     bcs = boundary_conditions(structure(sa))
-    dofs_lbc, dofs_values = _apply(bcs, lbc, t)
+    dofs_lbc, dofs_values = apply(bcs, lbc, t)
     return external_forces(current_state(sa))[dofs_lbc] = dofs_values
 end
 
 "Apply a vector of load boundary conditions to the structure `s` "
-function _apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractLoadBoundaryCondition})
-    return [_apply!(sa, lbc) for lbc in l_bcs]
+function apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractNeumannBoundaryCondition})
+    return [apply!(sa, lbc) for lbc in l_bcs]
 end
 
 # ================

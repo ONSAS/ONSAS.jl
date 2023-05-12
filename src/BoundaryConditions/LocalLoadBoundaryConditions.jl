@@ -1,11 +1,11 @@
 """
 Module to handle loads in local coordinates.
 """
-module LocalLoadsBoundaryConditions
+module LocalLoadBoundaryConditions
 
 using Reexport
 
-using ..BoundaryConditions, ..Elements
+using ..Utils, ..BoundaryConditions, ..Elements
 
 @reexport import ..BoundaryConditions: apply
 
@@ -14,27 +14,17 @@ export LocalLoad
 """ 
 Load boundary condition imposed in local coordinates to the `AbstractElement` or `AbstractFace`.
 """
-struct LocalPressureBoundaryCondition <: AbstractLoadBoundaryCondition
+Base.@kwdef struct LocalLoad <: AbstractNeumannBoundaryCondition
     "Degrees of freedom where the boundary condition is imposed"
-    dofs::Vector{Symbol}
+    dofs::Vector{Symbol} = [:u]
     "Values imposed function"
     values::Function
     "Boundary condition label"
-    name::Symbol
-    function LocalPressureBoundaryCondition(dofs::Vector{Symbol}, values::Function, name::Symbol)
-        @assert length(values(rand())) == 1 "Only a normal pressure is supported."
-        new(dofs, values, name)
-    end
-end
-
-"Constructor for `LocalPressureBoundaryCondition` with a string label."
-function LocalPressureBoundaryCondition(dofs::Vector{Symbol}, values::Function,
-                                        name::String="no_labelled_bc")
-    LocalPressureBoundaryCondition(dofs, values, Symbol(name))
+    name::Label = NO_LABEL
 end
 
 "Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
-function apply(lbc::LocalPressureBoundaryCondition, f::AbstractFace, t::Real)
+function apply(lbc::LocalLoad, f::AbstractFace, t::Real)
 
     # Compute tension vector for each node 
     n = normal_direction(f)
@@ -53,5 +43,7 @@ function apply(lbc::LocalPressureBoundaryCondition, f::AbstractFace, t::Real)
     @assert length(p_vec) == length(dofs_lbc)
     "The length of the tension vector must be equal to the length of the dofs vector."
 
-    return dofs_lbc, p_vec
+    dofs_lbc, p_vec
+end
+
 end

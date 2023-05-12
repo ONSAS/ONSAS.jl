@@ -79,7 +79,7 @@ function cylinder_structure(material::AbstractMaterial,
     bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
     bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
     # Neumann boundary conditions 
-    bc₄ = LocalPressureBoundaryCondition([:u], t -> pressure(t), bc₄_label)
+    bc₄ = LocalLoad([:u], t -> pressure(t), bc₄_label)
     boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # Assign boundary conditions to the ones defined in the mesh
     apply!(boundary_conditions, mesh)

@@ -5,7 +5,7 @@ module GlobalLoadBoundaryConditions
 
 using Reexport
 
-using ..BoundaryConditions, ..Elements
+using ..Utils, ..BoundaryConditions, ..Elements
 
 @reexport import ..BoundaryConditions: apply
 
@@ -14,19 +14,13 @@ export GlobalLoad
 """ 
 Load boundary condition imposed in global coordinates of the element.
 """
-struct GlobalLoad <: AbstractNeumannBoundaryCondition
+Base.@kwdef struct GlobalLoad <: AbstractNeumannBoundaryCondition
     "Degrees of freedom where the boundary condition is imposed."
-    dofs::Vector{Symbol}
+    dofs::Vector{Symbol} = [:u]
     "Values imposed function."
     values::Function
     "Label of the boundary condition."
-    name::Symbol
-end
-
-"Constructor for `LocalPressureBoundaryCondition` with a string label."
-function GlobalLoad(dofs::Vector{Symbol}, values::Function,
-                                     name::String="no_labelled_bc")
-    GlobalLoad(dofs, values, Symbol(name))
+    name::Label = NO_LABEL
 end
 
 "Return the dofs and the values imposed in the `GlobalLoad` `lbc` to 
@@ -89,4 +83,6 @@ function apply(lbc::GlobalLoad, e::AbstractElement, t::Real)
     "The length of the tension vector must be equal to the length of the dofs vector."
 
     dofs_lbc, b_vec
+end
+
 end

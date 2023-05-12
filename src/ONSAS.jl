@@ -9,6 +9,7 @@ FILES = ["Utils.jl",
          # Boundary conditions
          "BoundaryConditions/BoundaryConditions.jl",
          "BoundaryConditions/FixedDofBoundaryConditions.jl",
+         "BoundaryConditions/DirichletBoundaryConditions.jl",
          "BoundaryConditions/GlobalLoadBoundaryConditions.jl",
          "BoundaryConditions/LocalLoadBoundaryConditions.jl",
          # Meshes
@@ -42,12 +43,10 @@ end
 @reexport using .BoundaryConditions
 @reexport using .FixedDofBoundaryConditions
 @reexport using .DirichletBoundaryConditions
-@reexport using .NeumannBoundaryConditions
 @reexport using .LocalLoadBoundaryConditions
 @reexport using .GlobalLoadBoundaryConditions
 
-#=
-# GEometric entities and interpolation.
+# Geometric entities and interpolation.
 @reexport using .Meshes
 @reexport using .Handlers
 
@@ -64,5 +63,5 @@ end
 # Structural analyses.
 @reexport using .StructuralAnalyses
 @reexport using .StaticAnalyses
-=#
+
 end

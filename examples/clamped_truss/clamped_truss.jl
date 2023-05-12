@@ -45,9 +45,9 @@ function run_clamped_truss_example()
     # Boundary conditions
     # -------------------------------
     # Fixed dofs
-    bc₁ = FixedDofBoundaryCondition([:u], [1], "fixed_uₓ")
+    bc₁ = FixedDof(; components=[1], name="fixed_uₓ")
     # Load 
-    bc₂ = GlobalLoadBoundaryCondition([:u], t -> [F * t], "load in j")
+    bc₂ = GlobalLoad(; values=t -> [F * t], name="load in j")
     # Apply bcs to the nodes
     node_bc = dictionary([bc₁ => [first(v_nodes)], bc₂ => [last(v_nodes)]])
     s_boundary_conditions = StructuralBoundaryConditions(; node_bcs=node_bc)

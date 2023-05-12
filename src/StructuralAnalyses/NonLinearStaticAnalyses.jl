@@ -62,7 +62,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
         _reset!(current_iteration(sa))
 
         # Computes external forces
-        _apply!(sa, load_bcs(s))
+        apply!(sa, load_bcs(s))
 
         # Displacements iteration.
         while isconverged!(current_iteration(sa), tolerances(alg)) isa NotConvergedYet

@@ -1,8 +1,8 @@
 using Reexport
 
-using ..Elements
+using ..Elements, ..BoundaryConditions, ..FixedDofBoundaryConditions
 
-@reexport import ..BoundaryConditions: _apply
+@reexport import ..BoundaryConditions: apply
 @reexport import ..Elements: apply!
 
 export StructuralBoundaryConditions, all_bcs, node_bcs, face_bcs, element_bcs, displacement_bcs,
@@ -119,48 +119,48 @@ function displacement_bcs(se::StructuralBoundaryConditions)
     return unique(vbc)
 end
 
-"Return a `Vector` of `FixedDofBoundaryCondition`s applied to `Node`s, `Face`s and `Element`s. in the `StructuralBoundaryConditions` `se`."
+"Return a `Vector` of `FixedDof`s applied to `Node`s, `Face`s and `Element`s. in the `StructuralBoundaryConditions` `se`."
 function fixed_dof_bcs(se::StructuralBoundaryConditions)
-    vbc = Vector{FixedDofBoundaryCondition}()
-    fixed_bcs = filter(bc -> bc isa FixedDofBoundaryCondition, all_bcs(se))
+    vbc = Vector{FixedDof}()
+    fixed_bcs = filter(bc -> bc isa FixedDof, all_bcs(se))
     push!(vbc, fixed_bcs...)
     return unique(vbc)
 end
 
-"Return a `Vector` of `Dof`s to delete given a `FixedDofBoundaryCondition` and a set of `StructuralBoundaryConditions` `bcs`."
-function _apply(bcs::StructuralBoundaryConditions, fbc::FixedDofBoundaryCondition)
+"Return a `Vector` of `Dof`s to delete given a `FixedDof` and a set of `StructuralBoundaryConditions` `bcs`."
+function apply(bcs::StructuralBoundaryConditions, fbc::FixedDof)
     # Extract nodes, faces and elements 
     entities = bcs[fbc]
     dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, _apply(fbc, e)...) for e in entities]
+    [push!(dofs_to_delete, apply(fbc, e)...) for e in entities]
     return unique!(dofs_to_delete)
 end
 
-"Return a `Vector` of `FixedDofBoundaryCondition` `f_bcs` and a set of `StructuralBoundaryConditions` `bcs`."
-function _apply(bcs::StructuralBoundaryConditions, f_bcs::Vector{<:FixedDofBoundaryCondition})
+"Return a `Vector` of `FixedDof` `f_bcs` and a set of `StructuralBoundaryConditions` `bcs`."
+function apply(bcs::StructuralBoundaryConditions, f_bcs::Vector{<:FixedDof})
     dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, _apply(bcs, fbc)...) for fbc in f_bcs]
+    [push!(dofs_to_delete, apply(bcs, fbc)...) for fbc in f_bcs]
     return unique!(dofs_to_delete)
 end
 
-"Return a `Vector` of `FixedDofBoundaryCondition`s applied to `Node`s and `Element`s in the `StructuralBoundaryConditions` `bcs`."
+"Return a `Vector` of `FixedDof`s applied to `Node`s and `Element`s in the `StructuralBoundaryConditions` `bcs`."
 function load_bcs(bcs::StructuralBoundaryConditions)
-    vbc = Vector{AbstractLoadBoundaryCondition}()
-    load_bcs = filter(bc -> bc isa AbstractLoadBoundaryCondition, all_bcs(bcs))
+    vbc = Vector{AbstractNeumannBoundaryCondition}()
+    load_bcs = filter(bc -> bc isa AbstractNeumannBoundaryCondition, all_bcs(bcs))
     push!(vbc, load_bcs...)
     return unique(vbc)
 end
 
 "Return a `Vector` of `Dof`s and values to apply a `LoadDofBoundaryCondition` and a set of `StructuralBoundaryConditions` `bcs`
 at time `t`."
-function _apply(bcs::StructuralBoundaryConditions, lbc::AbstractLoadBoundaryCondition, t::Real)
+function apply(bcs::StructuralBoundaryConditions, lbc::AbstractNeumannBoundaryCondition, t::Real)
     # Extract nodes, faces and elements 
     entities = bcs[lbc]
     dofs_to_load = Dof[]
     load_vec = Float64[]
 
     for e in entities
-        dofs_lbc_e, load_vec_e = _apply(lbc, e, t)
+        dofs_lbc_e, load_vec_e = apply(lbc, e, t)
         push!(load_vec, load_vec_e...)
         push!(dofs_to_load, dofs_lbc_e...)
     end
@@ -180,15 +180,15 @@ end
 "Apply the `StructuralBoundaryConditions` to the `AbstractMesh` `m`. For this is required sets 
 into the `Mesh` and the corresponding boundary condition labels declared in `bcs`."
 function apply!(bcs::StructuralBoundaryConditions, m::AbstractMesh)
-    _apply_node_bcs!(bcs, m)
-    _apply_face_bcs!(bcs, m)
-    _apply_element_bcs!(bcs, m)
+    apply_node_bcs!(bcs, m)
+    apply_face_bcs!(bcs, m)
+    apply_element_bcs!(bcs, m)
     _delete_empty_bcs!(bcs)
     return bcs
 end
 
 "Apply `Node` boundary conditions given the `AbstractMesh` `m` to the `StructuralBoundaryConditions` `bcs`."
-function _apply_node_bcs!(bcs::StructuralBoundaryConditions, m::AbstractMesh)
+function apply_node_bcs!(bcs::StructuralBoundaryConditions, m::AbstractMesh)
     # Assign entities to the node boundary conditions
     vec_nodes = nodes(m)
     node_sets = node_set(m)
@@ -205,7 +205,7 @@ function _apply_node_bcs!(bcs::StructuralBoundaryConditions, m::AbstractMesh)
 end
 
 "Apply `Face` boundary conditions given the `AbstractMesh` `m` to the `StructuralBoundaryConditions` `bcs`."
-function _apply_face_bcs!(bcs::StructuralBoundaryConditions, m::AbstractMesh)
+function apply_face_bcs!(bcs::StructuralBoundaryConditions, m::AbstractMesh)
     # Assign entities to the node boundary conditions
     vec_faces = faces(m)
     face_sets = face_set(m)
@@ -222,7 +222,7 @@ function _apply_face_bcs!(bcs::StructuralBoundaryConditions, m::AbstractMesh)
 end
 
 "Apply `Element` boundary conditions given the `AbstractMesh` `m` to the `StructuralBoundaryConditions` `bcs`."
-function _apply_element_bcs!(bcs::StructuralBoundaryConditions, m::AbstractMesh)
+function apply_element_bcs!(bcs::StructuralBoundaryConditions, m::AbstractMesh)
     # Assign entities to the node boundary conditions
     vec_elements = elements(m)
     element_sets = element_set(m)

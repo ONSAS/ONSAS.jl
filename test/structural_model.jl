@@ -102,22 +102,22 @@ end
           isempty(node_bcs(s_boundary_conditions_only_faces))
 
     # Apply boundary conditions
-    @test _apply(s_boundary_conditions, bc₁) == vcat(Dof.(1:3), Dof.(7:9))
-    @test _apply(s_boundary_conditions, bc₂) == [Dof(5)]
-    @test _apply(s_boundary_conditions, bc₅) == Dof.(25:27)
+    @test apply(s_boundary_conditions, bc₁) == vcat(Dof.(1:3), Dof.(7:9))
+    @test apply(s_boundary_conditions, bc₂) == [Dof(5)]
+    @test apply(s_boundary_conditions, bc₅) == Dof.(25:27)
 
     t_to_test = first(rand(1))
-    dofs_bc₃_nodes, f_bc₃_nodes = _apply(s_boundary_conditions_only_nodes, bc₃, t_to_test)
+    dofs_bc₃_nodes, f_bc₃_nodes = apply(s_boundary_conditions_only_nodes, bc₃, t_to_test)
     dofs_load_nodes_bc₃ = dictionary(dofs_bc₃_nodes .=> f_bc₃_nodes)
     # dofs__bc₃_nodes_to_test = vcat(dofs(n₁)[dofs(bc₃)...], dofs(n₂)[dofs(bc₃)...])
-    dofs_bc₃_faces, f_bc₃_faces = _apply(s_boundary_conditions_only_faces, bc₃, t_to_test)
+    dofs_bc₃_faces, f_bc₃_faces = apply(s_boundary_conditions_only_faces, bc₃, t_to_test)
     dofs_load_faces_bc₃ = dictionary(dofs_bc₃_faces .=> f_bc₃_faces)
 
     dofs_load_bc₃ = mergewith(+, dofs_load_nodes_bc₃, dofs_load_faces_bc₃)
     dofs_bc₃_to_test = collect(keys(dofs_load_bc₃))
     f_bc₃_to_test = collect(values(dofs_load_bc₃))
 
-    dofs_bc₃, f_bc₃ = _apply(s_boundary_conditions, bc₃, t_to_test)
+    dofs_bc₃, f_bc₃ = apply(s_boundary_conditions, bc₃, t_to_test)
 
     @test dofs_bc₃_to_test == dofs_bc₃
     @test f_bc₃_to_test == f_bc₃

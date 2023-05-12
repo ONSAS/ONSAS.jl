@@ -3,7 +3,7 @@ Module to handle Dirichlet boundary conditions.
 """
 module DirichletBoundaryConditions
 
-using ..BoundaryConditions
+using ..Utils, ..BoundaryConditions
 
 export Dirichlet
 
@@ -16,7 +16,7 @@ export Dirichlet
 Base.@kwdef struct Dirichlet <: AbstractDirichletBoundaryCondition
     dofs::Vector{Symbol} = [:u]
     values::Function
-    name::Symbol = :no_labelled_bc
+    name::Label = NO_LABEL
 end
 
 end

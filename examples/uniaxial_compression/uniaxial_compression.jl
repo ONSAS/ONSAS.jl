@@ -174,7 +174,7 @@ function run_uniaxial_compression()
     # Boundary Conditions
     # -------------------------------
     # Redefine the load boundary condition 
-    bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], bc₄_label)
+    bc₄ = LocalLoad([:u], t -> [p * t], bc₄_label)
     # BoundaryConditions types without assigned node, feces and elements
     s_boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # -------------------------------

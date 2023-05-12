@@ -20,6 +20,9 @@ function label end
 "Unwraps the object fields."
 function _unwrap end
 
+"Apply one object to the other."
+function apply! end
+
 "Scalar mutable struct to avoid making mutable larger structs."
 mutable struct ScalarWrapper{T}
     x::T

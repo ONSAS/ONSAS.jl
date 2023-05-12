@@ -54,8 +54,8 @@ s_materials = StructuralMaterials(mat_dict)
 # Boundary conditions
 # -------------------------------
 # Fixed dofs
-bc₁ = FixedDofBoundaryCondition([:u], [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
-bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed_uⱼ")
+bc₁ = FixedDof([:u], [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
+bc₂ = FixedDof([:u], [2], "fixed_uⱼ")
 # Load 
 bc₃ = GlobalLoadBoundaryCondition([:u], t -> [0, 0, Fₖ * t], "load in j")
 node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
