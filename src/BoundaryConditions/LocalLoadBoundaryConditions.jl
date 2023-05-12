@@ -9,7 +9,7 @@ using ..Utils, ..BoundaryConditions, ..Elements
 
 @reexport import ..BoundaryConditions: apply
 
-export Pressure, NormalTension
+export Pressure
 
 """ 
 Pressure boundary condition imposed in local coordinates to the `AbstractElement` or `AbstractFace`.
@@ -29,33 +29,15 @@ Base.@kwdef struct Pressure <: AbstractNeumannBoundaryCondition
     end
 end
 
-""" 
-Tension boundary condition imposed in local coordinates to the `AbstractElement` or `AbstractFace`.
-This is a force along the normal direction of the face.
-"""
-Base.@kwdef struct NormalTension <: AbstractNeumannBoundaryCondition
-    "Degrees of freedom where the boundary condition is imposed"
-    dofs::Vector{Symbol} = [:u]
-    "Values imposed function"
-    values::Function
-    "Boundary condition label"
-    name::Label = NO_LABEL
-    # Check values is real Function
-    function NormalTension(dofs::Vector{Symbol}, values::Function, name::Label)
-        @assert values(rand()) isa Real
-        new(dofs, values, name)
-    end
-end
-
 "Return the dofs and the values imposed in the `GlobalLoadBoundaryCondition` `lbc` to the `AbstractFace` `f` at time `t`."
-function apply(lbc::BC, f::AbstractFace, t::Real) where {BC<:Union{Pressure,NormalTension}}
+function apply(lbc::Pressure, f::AbstractFace, t::Real)
 
     # Extract the normal vector and the area of the face
     n = normal_direction(f)
     A = area(f)
 
-    # Compute the local tension vector
-    p = _normal_tension(lbc, A, n, t)
+    # Compute the normal tension in global coordinates
+    p = lbc(t) * (-n) * A
     num_nodes = length(nodes(f))
     p_nodal = p / num_nodes
 
@@ -71,13 +53,5 @@ function apply(lbc::BC, f::AbstractFace, t::Real) where {BC<:Union{Pressure,Norm
 
     dofs_lbc, p_vec
 end
-
-"Return normal tension applied in global coordinates to the face `f` with area `A` and 
-normal `Vector` `n` by the `lbc` `Pressure` at time  `t`."
-_normal_tension(lbc::Pressure, A::Real, n::AbstractVector, t::Real) = lbc(t) * A * (-n)
-
-"Return tension in global coordinates applied to the face `f` with area `A` and normal 
-`Vector` `n` at time `t`."
-_normal_tension(lbc::NormalTension, A::Real, n::AbstractVector, t::Real) = lbc(t) * A * n
 
 end
