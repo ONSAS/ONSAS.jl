@@ -12,7 +12,7 @@ Rₑ = 200; # outer radius in mm
 p = 10; # internal pressure in MPa
 E = 210.0;  # Young modulus in MPa
 ν = 0.3;  # Poisson ratio
-pressure(t::Real) = -p * t;
+pressure(t::Real) = p * t;
 ## number of steps 
 NSTEPS = 9;
 ## tolerances for testing
@@ -79,7 +79,7 @@ function cylinder_structure(material::AbstractMaterial,
     bc₂ = FixedDof([:u], [2], bc₂_label)
     bc₃ = FixedDof([:u], [3], bc₃_label)
     # Neumann boundary conditions 
-    bc₄ = LocalLoad([:u], t -> pressure(t), bc₄_label)
+    bc₄ = Pressure(; valeus=pressure, name=bc₄_label)
     boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # Assign boundary conditions to the ones defined in the mesh
     apply!(boundary_conditions, mesh)

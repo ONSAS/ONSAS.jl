@@ -13,7 +13,7 @@ function run_uniaxial_compression()
     ν = 0.3                    # Poisson's ratio
     μ = G = E / (2 * (1 + ν))  # Second Lamé parameter 
     K = E / (3 * (1 - 2 * ν))  # Bulk modulus
-    p = -1                     # Tension load in Pa
+    p = 1                      # Pressure load in Pa
     Lᵢ = 2.0                   # Dimension in x of the box in m 
     Lⱼ = 1.0                   # Dimension in y of the box in m
     Lₖ = 1.0                   # Dimension in z of the box in m
@@ -82,7 +82,7 @@ function run_uniaxial_compression()
     bc₃ = FixedDof(; components=[3], name=bc₃_label)
     # Load
     bc₄_label = "compression"
-    bc₄ = GlobalLoad(; values=t -> [p * t, 0, 0], name=bc₄_label)
+    bc₄ = GlobalLoad(; values=t -> [-p * t, 0, 0], name=bc₄_label)
     # Assign this to faces 
     face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
     # Crete boundary conditions struct
@@ -174,7 +174,7 @@ function run_uniaxial_compression()
     # Boundary Conditions
     # -------------------------------
     # Redefine the load boundary condition 
-    bc₄ = LocalLoad([:u], t -> [p * t], bc₄_label)
+    bc₄ = Pressure(; values=t -> p * t, name=bc₄_label)
     # BoundaryConditions types without assigned node, feces and elements
     s_boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # -------------------------------
@@ -290,7 +290,7 @@ function run_uniaxial_compression()
         @test ℙₖₖ_analytic_case₁ ≈ ℙₖₖ_numeric_case₁ atol = ATOL
         @test norm(ℙⱼⱼ_analytic_case₁) ≈ 0 atol = ATOL
         @test norm(ℙₖₖ_analytic_case₁) ≈ 0 atol = ATOL
-        @test p * load_factors_case₁ ≈ ℙᵢᵢ_analytic_case₁ rtol = RTOL
+        @test -p * load_factors_case₁ ≈ ℙᵢᵢ_analytic_case₁ rtol = RTOL
     end
 
     @testset "Case 2 Uniaxial Compression Example" begin
@@ -300,7 +300,7 @@ function run_uniaxial_compression()
         @test ℙₖₖ_analytic_case₂ ≈ ℙₖₖ_numeric_case₂ atol = ATOL
         @test norm(ℙⱼⱼ_analytic_case₂) ≈ 0 atol = ATOL
         @test norm(ℙₖₖ_analytic_case₂) ≈ 0 atol = ATOL
-        @test p * load_factors_case₂ ≈ ℙᵢᵢ_analytic_case₂ rtol = RTOL
+        @test -p * load_factors_case₂ ≈ ℙᵢᵢ_analytic_case₂ rtol = RTOL
         # Interpolation
         @test uᵢ_case₂ ≈ rand_point_uᵢ rtol = RTOL
         @test uⱼ_case₂ ≈ rand_point_uⱼ rtol = RTOL
