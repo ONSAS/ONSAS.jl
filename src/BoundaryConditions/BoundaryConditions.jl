@@ -7,30 +7,31 @@ module BoundaryConditions
 
 using Reexport
 
-@reexport import ..Elements: dofs
-@reexport import ..Utils: label
+using ..Elements, ..Utils
 
-export AbstractBoundaryCondition, AbstractDisplacementBoundaryCondition,
-       AbstractLoadBoundaryCondition, _apply
-export DisplacementBoundaryCondition, FixedDofBoundaryCondition, components
-export GlobalLoadBoundaryCondition, LocalPressureBoundaryCondition
+@reexport import ..Utils: dofs, label
+
+export AbstractBoundaryCondition, AbstractNeumannBoundaryCondition, AbstractLoadBoundaryCondition,
+       AbstractDirichletBoundaryCondition, AbstractDisplacementBoundaryCondition, apply
 
 """ Abstract supertype for all elements.
 
 An `AbstractBoundaryCondition` object facilitates the process of defining:
 
-    - Displacements (Dirichlet) boundary conditions.
-    - Load (Neumann) boundary conditions.
+    - Dirichlet or displacements boundary conditions.
+    - Neumann or load boundary conditions.
 
 **Common methods:**
 
+* [`apply`](@ref)
+* [`Base.values`](@ref)
 * [`dofs`](@ref)
 * [`label`](@ref)
 """
 abstract type AbstractBoundaryCondition end
 
 "Apply the boundary condition `bc` to an`entity`."
-function _apply(bc::AbstractBoundaryCondition, entity) end
+function apply(::AbstractBoundaryCondition, ::AbstractEntity) end
 
 "Return the degrees of freedom symbol where the boundary condition is imposed"
 dofs(bc::AbstractBoundaryCondition) = bc.dofs
@@ -39,30 +40,27 @@ dofs(bc::AbstractBoundaryCondition) = bc.dofs
 label(bc::AbstractBoundaryCondition) = bc.name
 
 "Return the values function imposed to the respective degrees of freedom.
-This should be a function of time returning a vector with the same size as the node or element dofs."
+This should be a function of time returning a vector with the same size as the `Node` or `Element` `Dof`s."
 Base.values(bc::AbstractBoundaryCondition) = bc.values
 
-# ================================
-# Displacement Boundary Conditions 
-# ================================
+#================================#
+# Dirichlet boundary conditions  #
+#================================#
 
-""" Abstract supertype for all displacement boundary conditions."""
-abstract type AbstractDisplacementBoundaryCondition <: AbstractBoundaryCondition end
+""" Abstract supertype for all Dirichlet boundary conditions."""
+abstract type AbstractDirichletBoundaryCondition <: AbstractBoundaryCondition end
 
-include("FixedDofBoundaryCondition.jl")
-include("DisplacementBoundaryCondition.jl")
+const AbstractDisplacementBoundaryCondition = AbstractDirichletBoundaryCondition
 
-# ========================
-# Load Boundary Conditions 
-# =========================
+#================================#
+# Neumann boundary conditions  #
+#================================#
+""" Abstract supertype for all Neumann boundary conditions."""
+abstract type AbstractNeumannBoundaryCondition <: AbstractBoundaryCondition end
 
-""" Abstract supertype for all displacement boundary conditions."""
-abstract type AbstractLoadBoundaryCondition <: AbstractBoundaryCondition end
+const AbstractLoadBoundaryCondition = AbstractNeumannBoundaryCondition
 
-" Abstract functor for a `AbstractLoadBoundaryCondition` Return the load at time `t`. "
-(lbc::AbstractLoadBoundaryCondition)(t::Real) = values(lbc)(t)
+"Abstract functor for a `AbstractNeumannBoundaryCondition` that evaluates the load at time `t`."
+(lbc::AbstractNeumannBoundaryCondition)(t::Real) = values(lbc)(t)
 
-include("GlobalLoadBoundaryCondition.jl")
-include("LocalPressureBoundaryCondition.jl")
-
-end # module
+end

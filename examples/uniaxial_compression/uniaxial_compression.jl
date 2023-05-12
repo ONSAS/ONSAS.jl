@@ -75,14 +75,14 @@ function run_uniaxial_compression()
     # -------------------------------
     # Fixed dofs
     bc₁_label = "fixed-ux"
-    bc₁ = FixedDofBoundaryCondition([:u], [1], bc₁_label)
+    bc₁ = FixedDof(; components=[1], name=bc₁_label)
     bc₂_label = "fixed-uj"
-    bc₂ = FixedDofBoundaryCondition([:u], [2], bc₂_label)
+    bc₂ = FixedDof(; components=[2], name=bc₂_label)
     bc₃_label = "fixed-uk"
-    bc₃ = FixedDofBoundaryCondition([:u], [3], bc₃_label)
+    bc₃ = FixedDof(; components=[3], name=bc₃_label)
     # Load
     bc₄_label = "compression"
-    bc₄ = GlobalLoadBoundaryCondition([:u], t -> [p * t, 0, 0], bc₄_label)
+    bc₄ = GlobalLoad(; values=t -> [p * t, 0, 0], name=bc₄_label)
     # Assign this to faces 
     face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
     # Crete boundary conditions struct
@@ -174,7 +174,7 @@ function run_uniaxial_compression()
     # Boundary Conditions
     # -------------------------------
     # Redefine the load boundary condition 
-    bc₄ = LocalPressureBoundaryCondition([:u], t -> [p * t], bc₄_label)
+    bc₄ = LocalLoad([:u], t -> [p * t], bc₄_label)
     # BoundaryConditions types without assigned node, feces and elements
     s_boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
     # -------------------------------

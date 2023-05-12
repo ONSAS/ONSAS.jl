@@ -63,7 +63,7 @@ function _solve!(sa::LinearStaticAnalysis)
         displacements(current_state(sa)) .= 0.0
 
         # Compute external force
-        _apply!(sa, load_bcs(s)) # Compute Fext
+        apply!(sa, load_bcs(s)) # Compute Fext
 
         # Assemble K
         _assemble!(s, sa)

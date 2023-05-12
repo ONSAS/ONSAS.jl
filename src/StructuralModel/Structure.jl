@@ -37,7 +37,7 @@ function Structure(mesh::AbstractMesh{dim},
         [push!(default_free_dofs, vec_dof...) for vec_dof in collect(values(node_dofs))]
     end
 
-    fixed_dofs = _apply(bcs, fixed_dof_bcs(bcs))
+    fixed_dofs = apply(bcs, fixed_dof_bcs(bcs))
 
     deleteat!(default_free_dofs, findall(x -> x in fixed_dofs, default_free_dofs))
 

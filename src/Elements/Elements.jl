@@ -12,13 +12,13 @@ using ..Utils
 
 @reexport using ..Materials
 @reexport using ..CrossSections
-@reexport import ..Utils: label
+@reexport import ..Utils: label, apply!, dofs
 @reexport import Dictionaries: index
 
 import ..CrossSections: area
 
-export Dof, apply!, Point
-export AbstractNode, dimension, dofs, coordinates
+export Dof, Point
+export AbstractNode, dimension, coordinates
 export AbstractEntity, nodes, coordinates, create_entity
 export AbstractFace, normal_direction
 export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,

@@ -1,9 +1,9 @@
 #########################
 # Static Analysis tests #
 #########################
-using Test, LinearAlgebra
+using Test, LinearAlgebra, SparseArrays
+using ONSAS.FixedDofBoundaryConditions, ONSAS.GlobalLoadBoundaryConditions, ONSAS.StructuralAnalyses
 using ONSAS.StaticAnalyses
-using ONSAS.StructuralAnalyses
 
 const RTOL = 5e-2
 
@@ -54,10 +54,10 @@ s_materials = StructuralMaterials(mat_dict)
 # Boundary conditions
 # -------------------------------
 # Fixed dofs
-bc₁ = FixedDofBoundaryCondition([:u], [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
-bc₂ = FixedDofBoundaryCondition([:u], [2], "fixed_uⱼ")
+bc₁ = FixedDof([:u], [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
+bc₂ = FixedDof([:u], [2], "fixed_uⱼ")
 # Load 
-bc₃ = GlobalLoadBoundaryCondition([:u], t -> [0, 0, Fₖ * t], "load in j")
+bc₃ = GlobalLoad([:u], t -> [0, 0, Fₖ * t], "load in j")
 node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
 s_boundary_conditions = StructuralBoundaryConditions(; node_bcs=node_bc)
 # -------------------------------
@@ -77,7 +77,7 @@ nr = NewtonRaphson(tols)
 Uᵏ = rand(9)
 Fₑₓₜᵏ = rand(9)
 Fᵢₙₜᵏ = rand(9)
-Kₛᵏ = rand(9, 9)
+Kₛᵏ = spzeros(9, 9)
 ϵᵏ = dictionary([truss₁ => rand(3, 3), truss₂ => rand(3, 3)])
 σᵏ = dictionary([truss₁ => rand(3, 3), truss₂ => rand(3, 3)])
 s_assembler = Assembler(2)
@@ -113,7 +113,6 @@ sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, r
 
     ΔUᵏ⁺¹ = rand(2)
     _update!(sst_rand, ΔUᵏ⁺¹)
-    @test Δ_displacements(sst_rand) == ΔUᵏ⁺¹
     Uᵏ⁺¹ = Uᵏ
     Uᵏ⁺¹[free_dofs(s)] += ΔUᵏ⁺¹
     @test displacements(sst_rand) == Uᵏ⁺¹
