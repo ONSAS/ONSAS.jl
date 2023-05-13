@@ -12,10 +12,16 @@ MODULES = ["materials.jl",
            "structural_solvers.jl",
            "static_analyses.jl"]
 
-EXAMPLES = [joinpath("..", "examples", "von_misses_truss", "von_misses_truss.jl"),
-            joinpath("..", "examples", "linear_extension", "linear_extension.jl"),
-            joinpath("..", "examples", "uniaxial_extension", "uniaxial_extension.jl"),
-            joinpath("..", "examples", "uniaxial_compression", "uniaxial_compression.jl")]
+EXAMPLES_FOLDER = joinpath("..", "examples")
+
+EXAMPLE_NAMES = ["von_misses_truss",
+                 "linear_extension",
+                 "uniaxial_extension",
+                 "uniaxial_compression",
+                 "cylinder_internal_pressure"]
+
+EXAMPLES = [joinpath(EXAMPLES_FOLDER, EXAMPLE_NAME, EXAMPLE_NAME * ".jl")
+            for EXAMPLE_NAME in EXAMPLE_NAMES]
 
 function test(files::Vector)
     @testset "ONSAS.jl" begin
