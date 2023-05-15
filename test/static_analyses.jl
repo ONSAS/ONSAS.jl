@@ -112,7 +112,7 @@ sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, r
     @test residual_displacements_norms(sst_rand) == (norm_ΔU, norm_ΔU / norm_U)
 
     ΔUᵏ⁺¹ = rand(2)
-    _update!(sst_rand, ΔUᵏ⁺¹)
+    sst_rand.Uᵏ[free_dofs(s)] += ΔUᵏ⁺¹
     Uᵏ⁺¹ = Uᵏ
     Uᵏ⁺¹[free_dofs(s)] += ΔUᵏ⁺¹
     @test displacements(sst_rand) == Uᵏ⁺¹
