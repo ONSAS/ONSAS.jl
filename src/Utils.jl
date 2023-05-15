@@ -3,7 +3,7 @@ module Utils
 using LinearAlgebra: Diagonal
 
 export ScalarWrapper, label, unwrap, eye, row_vector, Point, @debugtime, voigt, Label, NO_LABEL,
-       Density
+       Density, Field
 
 #================================#
 # Generic functions to overload  #
@@ -72,5 +72,8 @@ const NO_LABEL = :no_label
 
 "Physical paramater defining density of a material (`nothing` reserved for static cases)."
 const Density = Union{Float64,Nothing}
+
+"Type alias used for field labels as degree-of-freedom keys such as `:T` or `:θ`."
+const Field = Symbol
 
 end # module

@@ -5,7 +5,9 @@ module LocalLoadBoundaryConditions
 
 using Reexport
 
-using ..Utils, ..BoundaryConditions, ..Elements
+using ..Utils
+using ..BoundaryConditions
+using ..Elements
 
 @reexport import ..BoundaryConditions: apply
 
@@ -16,14 +18,14 @@ Pressure boundary condition imposed in local coordinates to the `AbstractElement
 This is a force along the minus normal direction of the face.
 """
 Base.@kwdef struct Pressure <: AbstractNeumannBoundaryCondition
-    "Degrees of freedom where the boundary condition is imposed"
-    dofs::Vector{Symbol} = [:u]
-    "Values imposed function"
+    "Degrees of freedom where the boundary condition is imposed."
+    dofs::Vector{Field} = [:u]
+    "Values imposed function."
     values::Function
-    "Boundary condition label"
+    "Boundary condition label."
     name::Label = NO_LABEL
     # Check values is real Function
-    function Pressure(dofs::Vector{Symbol}, values::Function, name::Label)
+    function Pressure(dofs::Vector{Field}, values::Function, name::Label)
         @assert values(rand()) isa Real
         new(dofs, values, name)
     end

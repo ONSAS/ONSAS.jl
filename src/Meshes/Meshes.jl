@@ -7,7 +7,9 @@ module Meshes
 using Dictionaries
 using Reexport
 
-@reexport using ..Elements
+using ..Utils
+using ..Elements
+
 @reexport import ..Elements: apply!, dimension, dofs, nodes, num_nodes
 
 export AbstractMesh, Mesh, faces, face_set, element, elements, element_set, num_dofs, num_elements,
@@ -57,7 +59,7 @@ function num_dofs(m::AbstractMesh)::Int
 end
 
 "Adds n `dofs_per_node` `Dof`s with `dof_symbol` to the `AbstractMesh` `m`."
-function apply!(m::AbstractMesh, dof_symbol::Symbol, dofs_per_node::Int)
+function apply!(m::AbstractMesh, dof_symbol::Field, dofs_per_node::Int)
     mesh_dofs = dofs(m)
     dof_not_added_yet = dof_symbol ∉ keys.(mesh_dofs)
     @assert dof_not_added_yet throw(ArgumentError("Dof symbol $dof_symbol already exists."))

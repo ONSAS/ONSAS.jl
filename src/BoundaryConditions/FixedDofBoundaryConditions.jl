@@ -6,21 +6,24 @@ module FixedDofBoundaryConditions
 
 using Reexport
 
-using ..BoundaryConditions, ..Elements, ..Utils
+using ..BoundaryConditions
+using ..Elements
+using ..Utils
 
-@reexport import ..Utils: dofs
 @reexport import ..BoundaryConditions: apply
 
 export FixedDof, components
 
-""" Fixed displacement boundary condition struct:
+"""
+Fixed displacement boundary condition.
+
 This is a particular instance of the struct `DisplacementBoundaryCondition`
-    considering null dof value at an specific component of the dof displacements
+considering null dof value at an specific component of the dof displacements.
 """
 Base.@kwdef struct FixedDof <: AbstractDirichletBoundaryCondition
     "Symbols where the where the boundary condition is subscribed."
-    dofs::Vector{Symbol} = [:u]
-    "Vectors of integer indicating the degree of freedom component fixed."
+    dofs::Vector{Field} = [:u]
+    "Vectors of integer indicating the fixed degree of freedom component."
     components::Vector{Dof}
     "Label of the boundary condition."
     name::Label = NO_LABEL
