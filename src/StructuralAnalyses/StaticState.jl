@@ -8,7 +8,6 @@ using ...StructuralAnalyses: displacements, Δ_displacements,
 using ...StructuralSolvers: _reset!
 
 import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
-import ...StructuralSolvers: _update!
 
 export StaticState
 
@@ -93,11 +92,6 @@ end
 
 "Return the current system tangent matrix of the `StaticState` `sc`."
 tangent_matrix(sc::StaticState) = sc.Kₛᵏ
-
-"Updates displacements in the `StaticState` `sc` with a displacements increment vector `ΔU`."
-function _update!(sc::StaticState, ΔU::AbstractVector)
-    return sc.Uᵏ[free_dofs(sc)] .+= ΔU
-end
 
 "Resets the `StaticState` assembled magnitudes and the iteration state."
 function reset!(state::StaticState)

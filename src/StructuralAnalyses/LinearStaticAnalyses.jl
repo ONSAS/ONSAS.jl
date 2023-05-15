@@ -88,16 +88,16 @@ end
 function _step!(sa::LinearStaticAnalysis)
     # Extract state info
     state = current_state(sa)
-    f_dofs_indexes = free_dofs(state)
+    free_dofs_idx = free_dofs(state)
 
     # Compute Δu.
-    fₑₓₜ_red = view(external_forces(state), f_dofs_indexes)
-    K = tangent_matrix(state)[f_dofs_indexes, f_dofs_indexes]
+    fₑₓₜ_red = view(external_forces(state), free_dofs_idx)
+    K = tangent_matrix(state)[free_dofs_idx, free_dofs_idx]
     ΔU = Δ_displacements(state)
     cg!(ΔU, K, fₑₓₜ_red)
 
     # Update displacements into the state.
-    return _update!(state, ΔU)
+    state.Uᵏ[free_dofs_idx] .+= ΔU
 end
 
 end # module
