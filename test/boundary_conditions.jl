@@ -4,9 +4,11 @@
 using Test
 
 using ONSAS.Elements
-
-using ONSAS.BoundaryConditions, ONSAS.FixedDofBoundaryConditions, ONSAS.DirichletBoundaryConditions,
-      ONSAS.GlobalLoadBoundaryConditions, ONSAS.LocalLoadBoundaryConditions
+using ONSAS.BoundaryConditions
+using ONSAS.FixedDofBoundaryConditions
+using ONSAS.DirichletBoundaryConditions
+using ONSAS.GlobalLoadBoundaryConditions
+using ONSAS.LocalLoadBoundaryConditions
 
 # Entities 
 n₁ = Node(0, 0, 0,
