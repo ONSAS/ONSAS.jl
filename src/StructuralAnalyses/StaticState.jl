@@ -1,49 +1,47 @@
 using SparseArrays: spzeros
 using Dictionaries: Dictionary
+using Reexport
 
-using ...Meshes: num_dofs
-using ...StructuralModel: AbstractStructure, num_free_dofs
-using ...StructuralAnalyses: displacements, Δ_displacements,
-                             internal_forces, external_forces, iteration_residuals, stress, strain
-using ...StructuralSolvers: _reset!
+using ...Meshes
+using ...StructuralModel
+using ...StructuralAnalyses
+using ...StructuralSolvers
+using ...Utils
 
-import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
+@reexport import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
 
 export StaticState
 
 """
-An `StaticState` object facilitates the process of storing the relevant static variables of the structure
-during the displacements iteration. 
-### Fields:
-- `s`           -- stores the structure
-- `ΔUᵏ`         -- stores displacements vector increment.
-- `Uᵏ`          -- stores displacements vector.
-- `Fₑₓₜᵏ`       -- stores external forces vector.
-- `Fᵢₙₜᵏ`       -- stores internal forces vector.
-- `Kₛᵏ`         -- stores the system tangent matrix.
-- `ϵᵏ`          -- stores a vector with strains for each element.
-- `σᵏ`          -- stores a vector with stresses for each element.
-- `assembler`   -- assembler handler object 
-- `iter_state`  -- current Δu iteration state 
+Stores the relevant static variables of the structure during the displacements iteration.
 """
 struct StaticState{ST<:AbstractStructure,
                    DU<:AbstractVector,U<:AbstractVector,
                    FE<:AbstractVector,FI<:AbstractVector,K<:AbstractMatrix,
                    E<:Dictionary,S<:Dictionary} <: AbstractStructuralState
-    # Structure
+    "Structure (to be removed)."
     s::ST
-    #Displacements
+    "Free degrees of freedom."
+    free_dofs::Vector{Dof}
+    "Displacements vector increment."
     ΔUᵏ::DU
+    "Displacements vector."
     Uᵏ::U
-    #Forces
+    "External forces vector."
     Fₑₓₜᵏ::FE
+    "Internal forces vector."
     Fᵢₙₜᵏ::FI
+    "System's tangent matrix."
     Kₛᵏ::K
+    "Residual forces cache."
     res_forces::DU
+    "Vector with straings for each element."
     ϵᵏ::E
+    "Vector with stresses for each element."
     σᵏ::S
-    # Iter
+    "Assembler handler."
     assembler::Assembler
+    "Current iteration state."
     iter_state::ResidualsIterationStep
     function StaticState(s::ST, ΔUᵏ::DU, Uᵏ::U, Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Kₛᵏ::K, res_forces::DU, ϵᵏ::E,
                          σᵏ::S,
@@ -53,7 +51,8 @@ struct StaticState{ST<:AbstractStructure,
         @assert length(ΔUᵏ) == num_free_dofs(s)
         @assert size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ) ==
                 num_dofs(s)
-        return new{ST,DU,U,FE,FI,K,E,S}(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
+        fdofs = free_dofs(s)
+        return new{ST,DU,U,FE,FI,K,E,S}(s, fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
                                         assembler, iter_state)
     end
 end
