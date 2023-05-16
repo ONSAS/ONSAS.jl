@@ -4,6 +4,7 @@
 using Test, Suppressor, Dictionaries
 using ONSAS.Meshes
 using ONSAS.Gmsh
+using ONSAS.Elements
 
 const RTOL = 1e-5
 

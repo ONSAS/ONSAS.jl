@@ -5,7 +5,9 @@ module GlobalLoadBoundaryConditions
 
 using Reexport
 
-using ..Utils, ..BoundaryConditions, ..Elements
+using ..Utils
+using ..BoundaryConditions
+using ..Elements
 
 @reexport import ..BoundaryConditions: apply
 
@@ -16,7 +18,7 @@ Load boundary condition imposed in global coordinates of the element.
 """
 Base.@kwdef struct GlobalLoad <: AbstractNeumannBoundaryCondition
     "Degrees of freedom where the boundary condition is imposed."
-    dofs::Vector{Symbol} = [:u]
+    dofs::Vector{Field} = [:u]
     "Values imposed function."
     values::Function
     "Label of the boundary condition."

@@ -81,10 +81,10 @@ dofs(n::AbstractNode) = n.dofs
 dofs(vn::Vector{<:AbstractNode}) = vcat(dofs.(vn)...)
 
 "Return `AbstractNode` `n` degrees of freedom with symbol `s`."
-dofs(n::AbstractNode, s::Symbol) = n.dofs[s]
+dofs(n::AbstractNode, s::Field) = n.dofs[s]
 
-"Sets a `Vector`s of dofs `vd` to the `AbstractNode` `n` assigned to the symbol `s`."
-function apply!(n::AbstractNode, s::Symbol, vd::Vector{Dof})
+"Sets a `Vector`s of dofs `vd` to the `AbstractNode` `n` assigned to the field `s`."
+function apply!(n::AbstractNode, s::Field, vd::Vector{Dof})
     if s ∉ keys(dofs(n))
         insert!(dofs(n), s, vd)
     else

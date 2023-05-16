@@ -3,19 +3,20 @@ Module to handle Dirichlet boundary conditions.
 """
 module DirichletBoundaryConditions
 
-using ..Utils, ..BoundaryConditions
+using ..Utils
+using ..BoundaryConditions
 
 export Dirichlet
 
-""" Generalized displacement boundary condition struct.
-### Fields:
-- `dofs`    -- Vectors of symbols the where the boundary condition is subscripted. 
-- `values`  -- Values imposed function. 
-- `name`    -- Boundary condition label.
+"""
+Generalized displacement boundary condition. 
 """
 Base.@kwdef struct Dirichlet <: AbstractDirichletBoundaryCondition
-    dofs::Vector{Symbol} = [:u]
+    "Vector of fields for which this boundary condition applies to."
+    dofs::Vector{Field} = [:u]
+    "Function defining values which are imposed by this boundary condition."
     values::Function
+    "Boundary condition label."
     name::Label = NO_LABEL
 end
 

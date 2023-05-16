@@ -48,7 +48,7 @@ end
 function Structure(msh_file::MshFile,
                    materials::StructuralMaterials, bcs::StructuralBoundaryConditions,
                    s_entities::StructuralEntities,
-                   dofs_to_dim::Dictionary{Symbol,<:Integer}=dictionary([:u => 3]))
+                   dofs_to_dim::Dictionary{Field,<:Integer}=dictionary([:u => 3]))
     nodes = msh_file.vec_nodes
     mesh = Mesh(nodes)
 
