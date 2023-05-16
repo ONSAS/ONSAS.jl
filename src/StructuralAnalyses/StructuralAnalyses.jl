@@ -77,9 +77,6 @@ stress(st::AbstractStructuralState) = st.σᵏ
 "Return strains for each `Element` in the `AbstractStructuralState` `st`."
 strain(st::AbstractStructuralState) = st.ϵᵏ
 
-"Return the structure of the `AbstractStructuralState` `st`."
-structure(st::AbstractStructuralState) = st.s
-
 "Return free `Dof`s of the structure in the `AbstractStructuralState` `st`."
 free_dofs(st::AbstractStructuralState) = st.free_dofs
 

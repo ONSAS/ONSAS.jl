@@ -15,12 +15,9 @@ export StaticState
 """
 Stores the relevant static variables of the structure during the displacements iteration.
 """
-struct StaticState{ST<:AbstractStructure,
-                   DU<:AbstractVector,U<:AbstractVector,
+struct StaticState{DU<:AbstractVector,U<:AbstractVector,
                    FE<:AbstractVector,FI<:AbstractVector,K<:AbstractMatrix,
                    E<:Dictionary,S<:Dictionary} <: AbstractStructuralState
-    "Structure (to be removed)."
-    s::ST
     "Free degrees of freedom."
     free_dofs::Vector{Dof}
     "Displacements vector increment."
@@ -43,17 +40,16 @@ struct StaticState{ST<:AbstractStructure,
     assembler::Assembler
     "Current iteration state."
     iter_state::ResidualsIterationStep
-    function StaticState(s::ST, ΔUᵏ::DU, Uᵏ::U, Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Kₛᵏ::K, res_forces::DU, ϵᵏ::E,
+    function StaticState(fdofs::Vector{Dof}, ΔUᵏ::DU, Uᵏ::U, Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Kₛᵏ::K,
+                         res_forces::DU, ϵᵏ::E,
                          σᵏ::S,
                          assembler::Assembler,
-                         iter_state::ResidualsIterationStep) where {ST,DU,U,FE,FI,K,E,S}
+                         iter_state::ResidualsIterationStep) where {DU,U,FE,FI,K,E,S}
         # # Check dimensions
-        @assert length(ΔUᵏ) == num_free_dofs(s)
-        @assert size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ) ==
-                num_dofs(s)
-        fdofs = free_dofs(s)
-        return new{ST,DU,U,FE,FI,K,E,S}(s, fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
-                                        assembler, iter_state)
+        @assert length(ΔUᵏ) == length(fdofs)
+        @assert size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ)
+        new{DU,U,FE,FI,K,E,S}(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assembler,
+                              iter_state)
     end
 end
 
@@ -72,7 +68,9 @@ function StaticState(s::AbstractStructure,
     ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     assemblerᵏ = Assembler(s)
-    return StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
+    fdofs = free_dofs(s)
+    return StaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
+                       iter_state)
 end
 
 function Base.show(io::IO, sc::StaticState)
