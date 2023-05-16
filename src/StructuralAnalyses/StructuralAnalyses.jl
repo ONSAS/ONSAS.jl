@@ -81,7 +81,7 @@ strain(st::AbstractStructuralState) = st.ϵᵏ
 structure(st::AbstractStructuralState) = st.s
 
 "Return free `Dof`s of the structure in the `AbstractStructuralState` `st`."
-free_dofs(st::AbstractStructuralState) = free_dofs(structure(st))
+free_dofs(st::AbstractStructuralState) = st.free_dofs
 
 # Assemble
 "Assembles the element `e` internal forces `fᵢₙₜ_e` into the `AbstractState` `st`"
