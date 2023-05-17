@@ -58,8 +58,8 @@ bc₁ = FixedDof([:u], [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
 bc₂ = FixedDof([:u], [2], "fixed_uⱼ")
 # Load 
 bc₃ = GlobalLoad([:u], t -> [0, 0, Fₖ * t], "load in j")
-node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
-s_boundary_conditions = StructuralBoundaryConditions(; node_bcs=node_bc)
+node_bcs = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
+s_boundary_conditions = StructuralBoundaryConditions(; node_bcs)
 # -------------------------------
 # Structure
 # -------------------------------
@@ -84,7 +84,7 @@ s_assembler = Assembler(2)
 iter_residuals = ResidualsIterationStep()
 res_forces = zeros(2)
 
-sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, s_assembler,
+sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, s_assembler,
                        iter_residuals)
 
 @testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticState" begin
@@ -98,7 +98,6 @@ sst_rand = StaticState(s, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, r
     @test tangent_matrix(sst_rand) == Kₛᵏ
     @test strain(sst_rand) == ϵᵏ
     @test stress(sst_rand) == σᵏ
-    @test structure(sst_rand) == s
     @test free_dofs(sst_rand) == free_dofs(s)
 
     # Iteration 
@@ -207,7 +206,9 @@ end
     num_states = length(solved_states)
     nr = NewtonRaphson()
     states_sol = StatesSolution(sa, nr)
-    [push!(states_sol, st) for st in solved_states]
+    foreach(solved_states) do st
+        push!(states_sol, st)
+    end
 
     @test length(states(states_sol)) == num_states
     @test analysis(states_sol) == sa

@@ -119,13 +119,8 @@ end
 
 "Pushes the current state `c_state` into the `StatesSolution` `st_sol`."
 function Base.push!(st_sol::StatesSolution, c_state::StaticState)
-
-    # Pointers
-    s = structure(c_state)
-    # Empty assembler since the info is stored in k
-    assemblerᵏ = Assembler(s)
-
-    # Deep copies 
+    # Copies TODO Need to store all these?
+    fdofs = free_dofs(c_state)
     Uᵏ = deepcopy(displacements(c_state))
     ΔUᵏ = deepcopy(Δ_displacements(c_state))
     fₑₓₜᵏ = deepcopy(external_forces(c_state))
@@ -135,10 +130,12 @@ function Base.push!(st_sol::StatesSolution, c_state::StaticState)
     σᵏ = dictionary([e => deepcopy(σ) for (e, σ) in pairs(stress(c_state))])
     ϵᵏ = dictionary([e => deepcopy(ϵ) for (e, ϵ) in pairs(strain(c_state))])
     iter_state = deepcopy(iteration_residuals(c_state))
+    # Empty assembler since the info is stored in k
+    assemblerᵏ = c_state.assembler
 
-    return push!(states(st_sol),
-                 StaticState(s, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
-                             iter_state))
+    state_copy = StaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
+                             iter_state)
+    return push!(states(st_sol), state_copy)
 end
 
 include("LinearStaticAnalyses.jl")
