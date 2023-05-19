@@ -3,8 +3,17 @@ module ONSAS
 using Reexport: @reexport
 
 FILES = ["Utils.jl",
+         # Materials
          "Materials/Materials.jl",
+         "Materials/LinearElasticMaterials.jl",
+         "Materials/HyperElasticMaterials.jl",
+         "Materials/IsotropicLinearElasticMaterial.jl",
+         "Materials/SvkMaterial.jl",
+         "Materials/NeoHookeanMaterial.jl",
+         "Materials/HyperElasticMaterial.jl",
+         # Cross-sections
          "CrossSections/CrossSections.jl",
+         # Elements
          "Elements/Elements.jl",
          # Boundary conditions
          "BoundaryConditions/BoundaryConditions.jl",
@@ -20,7 +29,7 @@ FILES = ["Utils.jl",
          "Interfaces/VTK.jl",
          #Structural Model
          "StructuralModel/StructuralModel.jl",
-         # Structural Solverss
+         # Structural Solvers
          "StructuralSolvers/StructuralSolvers.jl",
          "StructuralAnalyses/StructuralAnalyses.jl",
          "StructuralAnalyses/StaticAnalyses.jl"]
@@ -33,13 +42,19 @@ end
 @reexport using .Utils
 
 # Physical models.
-# Materials
+## Materials
 @reexport using .Materials
-# Cross-sections
+@reexport using .LinearElasticMaterials
+@reexport using .IsotropicLinearElasticMaterial
+@reexport using .HyperElasticMaterials
+@reexport using .SvkMaterial
+@reexport using .NeoHookeanMaterial
+@reexport using .HyperElasticMaterial
+## Cross-sections
 @reexport using .CrossSections
-# Entities
+## Entities
 @reexport using .Elements
-# Boundary conditions
+## Boundary conditions
 @reexport using .BoundaryConditions
 @reexport using .FixedDofBoundaryConditions
 @reexport using .DirichletBoundaryConditions
