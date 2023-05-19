@@ -1,3 +1,4 @@
+"Module defining the interface to handle hyper-elastic materials."
 module HyperElasticMaterials
 
 using ..Materials: AbstractMaterial
@@ -26,9 +27,5 @@ function strain_energy(m::AbstractHyperElasticMaterial, 𝔼) end
 "Return the Cosserat or Second-Piola Kirchhoff stress tensor `𝕊` given an `AbstractMaterial` `m` and the 
 Green-Lagrange strain tensor `𝔼`."
 function cosserat_stress(m::AbstractMaterial, 𝔼::AbstractMatrix) end
-
-include("SVK.jl")
-include("NeoHookean.jl")
-include("HyperElastic.jl")
 
 end
