@@ -37,24 +37,27 @@ include("make.jl")
 
 A new `docs/build/` folder will be automatically created, to preview the docs open the `index.html` file. 
 
-
 ## Code changes
 
 In case you encounter a bug or issue with ONSAS.jl, you can create an [issue][open-issues] by providing as much information as possible about the problem. Ideally, include some code that can be easily copied and pasted to replicate the issue (refer to [How to create a Minimal, Reproducible Example][create-rep-example]). If you're able to identify a solution for the bug, please create an [issue][open-issues] and then a [pull request][open-pull-request] solving it.  
-
 
 ## Style guide 
 
 The code style is based on the [Julia style guide](https://docs.julialang.org/en/v1/manual/style-guide/) and is done automatically using [JuliaFormatter.jl](https://github.com/domluna/JuliaFormatter.jl). Moreover, this items should be considered:
 
+* Naming files:
+    * The abstract interfaces should be named in plural like `Elements.jl`, `Materials.jl`, `LinearElasticMaterials.jl` `LoadBoundaryConditions.jl`, etc.
+    * The concrete implementations should wrapped into a module and  named in singular. For instance if a `GlobalLoad` object is defined then the file name should be `GlobalLoadBoundaryCondition.jl`.
+    * Each file should be a module named as the file name without the extension. For instance, `Elements.jl` should be `module Elements`.
+
 * Testing files:
     * They should be named `<module_name>.jl` and placed in the `test/` folder.
-    * Unitary tests should use `using ONSAS.Module` as the module name.
+    * Unitary tests should use `using ONSAS.Module` as the module name. And also using `ONSAS.OtherModule` if needed.
     * End-to-end tests should use `using ONSAS`.
 
 * How to import packages and overload methods: 
     * First, external packages are included via `using` (e.g. `using LinearAlgebra`) without specifying the method `:`. Also a `,` should be used to separate packages instead of an enter.
-    * Then , internal packages are included (e.g. `using ...Module`) without `:`.
+    * Then , internal packages are included (e.g. `using ...Module`) without `:` followed by an enter.
     * Finally, if a method is overloaded the module should export that method too. For that, use `@reexport import ONSAS.Module: method` with `:`. If the method lives in `Base` just use `Base.method(...)` in-place to overload.
 
 Here is an example:
