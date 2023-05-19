@@ -1,8 +1,10 @@
-#########################
-# Elements module tests #
-#########################
 using Test, LinearAlgebra
+
+# Modules to test
 using ONSAS.Elements
+
+using ONSAS.IsotropicLinearElasticMaterial
+using ONSAS.SvkMaterial
 
 const RTOL = 1e-3
 
@@ -92,7 +94,7 @@ end
 
 E = 1.0
 ν = 0.3
-my_svk_mat = SVK(; E=E, ν=ν)
+my_svk_mat = Svk(; E=E, ν=ν)
 
 @testset "ONSAS.Elements.Truss 1D" begin
 
@@ -189,7 +191,7 @@ n₄ = Node(2, 0, 1,
 
 λ = 0.5769
 G = 0.3846
-my_svk_mat = SVK(λ, G)
+my_svk_mat = Svk(λ, G)
 
 tetra_label = "my_tetrahedron"
 tetra = Tetrahedron(n₁, n₂, n₃, n₄, tetra_label)
@@ -295,7 +297,7 @@ end
                                                u_global_structure[local_dofs(tetra)])
 
     # Test internal forces with an HyperElastic material model and zero 𝑢
-    equivalent_svk = SVK(lame_parameters(my_lin_mat)...)
+    equivalent_svk = Svk(lame_parameters(my_lin_mat)...)
     _, Kᵢₙₜ_e_svk, A_, B = internal_forces(equivalent_svk, tetra, zeros(12))
 
     fᵢₙₜ_e_svk = Kᵢₙₜ_e_svk * u_global_structure[local_dofs(tetra)]

@@ -1,8 +1,14 @@
-##########################
-# Materials module tests #
-##########################
-using Test, LinearAlgebra
+using Test, LinearAlgebra, ForwardDiff
+
+# Modules to test
 using ONSAS.Materials
+using ONSAS.LinearElasticMaterials
+using ONSAS.IsotropicLinearElasticMaterial
+using ONSAS.HyperElasticMaterials
+using ONSAS.SvkMaterial
+using ONSAS.NeoHookeanMaterial
+using ONSAS.HyperElasticMaterial
+
 using ONSAS.Utils
 
 const RTOL = 1e-3
@@ -16,7 +22,7 @@ K = E / (3 * (1 - 2 * ν))
 ρ = 7500.0
 mat_label = "steel"
 
-@testset "ONSAS.Materials.AbstractLinearElasticMaterial.IsotropicLinearElastic" begin
+@testset "ONSAS.IsotropicLinearElasticMaterial" begin
     linear_steel_no_density = IsotropicLinearElastic(E, ν)
 
     @test elasticity_modulus(linear_steel_no_density) == E
@@ -74,10 +80,10 @@ Khyper = λhyper + 2 * Ghyper / 3
                0.2925 0.435 0.72
                0.51 0.72 1.14])
 
-@testset "ONSAS.Materials.AbstractHyperElasticMaterial.SVK" begin
+@testset "ONSAS.SvkMaterial + ONSAS.HyperElasticMaterial" begin
 
     # SVK for static analysis
-    svk_static = SVK(λ, G)
+    svk_static = Svk(λ, G)
 
     @test lame_parameters(svk_static) == (λ, G)
     @test isnothing(density(svk_static))
@@ -87,7 +93,7 @@ Khyper = λhyper + 2 * Ghyper / 3
     @test poisson_ratio(svk_static) == ν
 
     # SVK for dynamic analysis
-    svk_dynamic = SVK(; E=E, ν=ν, ρ=ρ, label=mat_label)
+    svk_dynamic = Svk(; E=E, ν=ν, ρ=ρ, label=mat_label)
     @test density(svk_dynamic) == ρ
     @test collect(lame_parameters(svk_dynamic)) ≈ [λ, G] rtol = RTOL
     @test label(svk_dynamic) == Symbol(mat_label)
@@ -97,7 +103,7 @@ Khyper = λhyper + 2 * Ghyper / 3
 
     l = "svk_HyperElastic"
     svk_hyper = HyperElastic([λhyper, Ghyper], strain_energy_svk, l)
-    svk = SVK(λhyper, Ghyper)
+    svk = Svk(λhyper, Ghyper)
 
     𝕊_test = Symmetric([1.15596 0.224991 0.392292
                         0.224991 1.34922 0.553824
@@ -126,7 +132,7 @@ Khyper = λhyper + 2 * Ghyper / 3
     @test ∂𝕊∂𝔼_svk ≈ ∂𝕊∂𝔼_test rtol = RTOL
 end
 
-@testset "ONSAS.Materials..AbstractHyperElasticMaterial.NeoHookean" begin
+@testset "ONSAS.SvkMaterial + ONSAS.NeoHookeanMaterial" begin
     neo = NeoHookean(K, G)
     @test bulk_modulus(neo) == K
     @test shear_modulus(neo) == G
