@@ -1,5 +1,6 @@
 using SparseArrays: sparse
 using ..Materials
+using ..IsotropicLinearElasticMaterial
 using ..Elements
 using ..CrossSections
 using ..Utils
@@ -100,7 +101,7 @@ function strain(t::Truss{dim}, u_e::AbstractVector) where {dim}
 end
 
 "Return the stress of given `Truss` element `t` with a element displacement vector `u_e`. "
-stress(m::SVK, t::Truss, u_e::AbstractVector) = m.E * strain(t, u_e)
+stress(m::IsotropicLinearElastic, t::Truss, u_e::AbstractVector) = m.E * strain(t, u_e)
 
 "Return "
 function _aux_matrices(dim::Integer)

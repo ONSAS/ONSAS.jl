@@ -3,7 +3,7 @@ using LinearAlgebra: Symmetric, det, diagm
 import LazySets
 using Reexport
 
-using ..Materials
+using ..HyperElasticMaterials
 using ..Elements
 using ..CrossSections
 using ..Utils
@@ -43,7 +43,7 @@ end
 
 "Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
 function create_entity(t::Tetrahedron, vn::AbstractVector{<:AbstractNode})
-    return Tetrahedron(vn[1], vn[2], vn[3], vn[4], label(t))
+    Tetrahedron(vn[1], vn[2], vn[3], vn[4], label(t))
 end
 
 "Return the `Tetrahedron` `t` volume in the reference configuration."
@@ -52,7 +52,6 @@ function volume(t::Tetrahedron)
     coords = _coordinates_matrix(t)
     J = _jacobian_mat(coords, ∂X∂ζ)
     vol = _volume(J)
-    return vol
 end
 
 "Return the local dof symbol of a `Tetrahedron` element."
@@ -63,14 +62,14 @@ _coordinates_matrix(t::Tetrahedron) = reduce(hcat, coordinates(t))
 
 "Computes Jacobian matrix"
 function _jacobian_mat(tetrahedron_coords_matrix::AbstractMatrix, derivatives::AbstractMatrix)
-    return tetrahedron_coords_matrix * derivatives'
+    tetrahedron_coords_matrix * derivatives'
 end
 
 "Computes volume element of a tetrahedron given J = det(𝔽)."
 function _volume(jacobian_mat::AbstractMatrix)
     volume = det(jacobian_mat) / 6.0
     @assert volume > 0 throw(ArgumentError("Element with negative volume, check connectivity."))
-    return volume
+    volume
 end
 
 function _B_mat(deriv::AbstractMatrix, 𝔽::AbstractMatrix)
@@ -85,7 +84,7 @@ function _B_mat(deriv::AbstractMatrix, 𝔽::AbstractMatrix)
                                         deriv[1, k] * 𝔽[:, 3]' + deriv[3, k] * 𝔽[:, 1]'
                                         deriv[1, k] * 𝔽[:, 2]' + deriv[2, k] * 𝔽[:, 1]']
     end
-    return B
+    B
 end
 
 "Return the internal force of a `Tetrahedron` element `t` doted with an `AbstractHyperElasticMaterial` `m` +
@@ -148,10 +147,11 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
     # Cauchy strain tensor
     ℂ = Symmetric(𝔽' * 𝔽)
 
-    return fᵢₙₜ_e, Kᵢₙₜ_e, ℙ, ℂ
+    fᵢₙₜ_e, Kᵢₙₜ_e, ℙ, ℂ
 end
 
-"Return the internal force of a `Tetrahedron` element `t` doted with an `LinearIsotropicMaterial` `m`.
+"
+Return the internal force of a `Tetrahedron` element `t` doted with an `LinearIsotropicMaterial` `m`.
 ## Arguments
 - `material`: `IsotropicLinearElastic` type, the linear elastic material of the tetrahedron element.
 - `element`: `Tetrahedron` type, the tetrahedron element for which internal forces are to be computed.
@@ -190,7 +190,7 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
 
     fᵢₙₜ_e = Kᵢₙₜ_e * u_e
 
-    return fᵢₙₜ_e, Kᵢₙₜ_e, σ, ϵ
+    fᵢₙₜ_e, Kᵢₙₜ_e, σ, ϵ
 end
 
 "Return the shape functions derivatives of a `Tetrahedron` element."
@@ -202,7 +202,7 @@ function _shape_functions_derivatives(::Tetrahedron, order=1)
         d[3, 3] = 1
         d[2, 4] = 1
     end
-    return d
+    d
 end
 
 """
@@ -233,7 +233,7 @@ function interpolation_matrix(t::Tetrahedron{3,T}) where {T<:Real}
         Â = det(𝐴[ridx, cidx])
         𝑀[I, J] = Â / V * (-1)^(I + J)
     end
-    return 𝑀
+    𝑀
 end
 
 "Return the interpolation weights of a point `p` in a `Tetrahedron` element `t`."
@@ -242,7 +242,7 @@ function weights(t::Tetrahedron{3}, p::Point{3})
 end
 
 function Base.convert(::Type{LazySets.Tetrahedron}, t::Tetrahedron)
-    return LazySets.Tetrahedron(nodes(t))
+    LazySets.Tetrahedron(nodes(t))
 end
 
 "Checks if a point `p` is inside a `Tetrahedron` element `t`."
