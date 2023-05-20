@@ -1,12 +1,13 @@
-using LinearAlgebra: Symmetric, tr
-using Reexport
+"Module defining an isotropic linear elastic material."
+module IsotropicLinearElasticMaterial
 
-using ..LinearElasticMaterials: AbstractLinearElasticMaterial
+using LinearAlgebra, Reexport
+
+using ..LinearElasticMaterials
 using ...Utils
 
 @reexport import ..LinearElasticMaterials: lame_parameters, shear_modulus, poisson_ratio,
-                                           elasticity_modulus,
-                                           bulk_modulus, cauchy_stress
+                                           elasticity_modulus, bulk_modulus, cauchy_stress
 
 export IsotropicLinearElastic
 
@@ -32,9 +33,13 @@ struct IsotropicLinearElastic{ET<:Real,NT<:Real} <: AbstractLinearElasticMateria
         new{ET,NT}(E, ν, ρ, Symbol(label))
     end
 end
+
+"Constructor for `IsotropicLinearElastic` material with no density."
 function IsotropicLinearElastic(E::ET, ν::NT, label::Label=NO_LABEL) where {ET<:Real,NT<:Real}
     IsotropicLinearElastic(E, ν, nothing, label)
 end
+
+"Constructor for `IsotropicLinearElastic` from first Lamé `λ` and shear modulus `G`."
 function IsotropicLinearElastic(; λ::Real, G::Real, ρ::Density=nothing, label::Label=NO_LABEL)
     E = G * (3λ + 2G) / (λ + G)
     ν = λ / (2 * (λ + G))
@@ -59,7 +64,7 @@ function lame_parameters(m::IsotropicLinearElastic)
     G = shear_modulus(m)
     ν = poisson_ratio(m)
     λ = E * ν / ((1 + ν) * (1 - 2 * ν))
-    return λ, G
+    λ, G
 end
 
 "Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ` 
@@ -72,5 +77,7 @@ function cauchy_stress(m::IsotropicLinearElastic, ϵ::AbstractMatrix)
     ∂σ∂ϵ[1:3, 1:3] = λ * ones(3, 3) + 2 * G * eye(3)
     ∂σ∂ϵ[4:6, 4:6] = G * eye(3)
 
-    return σ, ∂σ∂ϵ
+    σ, ∂σ∂ϵ
+end
+
 end

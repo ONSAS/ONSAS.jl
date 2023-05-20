@@ -1,9 +1,11 @@
-##########################
-# Structural model tests #
-##########################
 using Test
-using ONSAS.FixedDofBoundaryConditions, ONSAS.GlobalLoadBoundaryConditions
+
+# Module to test
 using ONSAS.StructuralModel
+
+using ONSAS.SvkMaterial
+using ONSAS.FixedDofBoundaryConditions
+using ONSAS.GlobalLoadBoundaryConditions
 
 # Scalar parameters
 d = 0.1
@@ -36,9 +38,9 @@ truss₃ = Truss(n₁, n₃, s)
 truss₄ = Truss(n₄, n₃, s)
 # Mesh
 # Materials
-steel = SVK(E, ν, "steel")
-new_steel = SVK(2E, ν, "new_steel")
-aluminum = SVK(E / 3, ν, "aluminium")
+steel = Svk(E, ν, "steel")
+new_steel = Svk(2E, ν, "new_steel")
+aluminum = Svk(E / 3, ν, "aluminium")
 mat_dict = dictionary([steel => [truss₁, truss₃], aluminum => [truss₂]])
 s_materials = StructuralMaterials(mat_dict)
 # Boundary conditions

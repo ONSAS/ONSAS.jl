@@ -62,7 +62,7 @@ function run_uniaxial_extension()
     # -------------------------------
     # Materials
     # -------------------------------
-    svk = SVK(; E=E, ν=ν, label="svk")
+    svk = Svk(; E=E, ν=ν, label="svk")
     mat_dict = dictionary([svk => [t₁, t₂, t₃, t₄, t₅, t₆]])
     s₁_materials = StructuralMaterials(mat_dict)
     # -------------------------------

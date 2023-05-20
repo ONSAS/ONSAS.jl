@@ -216,7 +216,7 @@ function run_cylinder_internal_pressure_example()
     # -----------------------------------------------
     # Case 2 - Static non-linear elastic case
     #----------------------------------------------
-    svk_material = SVK(; E=E, ν=ν, label=mat_label)
+    svk_material = Svk(; E=E, ν=ν, label=mat_label)
     replace!(cylinder, svk_material)
     nonlinear_analysis = static_analysis(cylinder, NonLinearStaticAnalysis; NSTEPS=NSTEPS)
     #  Non-linear analysis
@@ -235,7 +235,7 @@ function run_cylinder_internal_pressure_example()
     # Test booleans
     #-----------------------------
     @testset "Case 1: Linear Analysis " begin
-        @info "uᵣ(r,θ₁,L₁) = uᵣ(r,θ₂,L₂)? $(uᵣ_not_depends_on_θ_linear)"
+        @test uᵣ_not_depends_on_θ_linear
         @test zero_uₖ_linear
         @test zero_uᵢ_axis_y_linear
         @test zero_uⱼ_axis_x_linear
@@ -244,7 +244,7 @@ function run_cylinder_internal_pressure_example()
         @test uᵣ_analytic_nₑ ≈ -uᵣ_numeric_nₑ atol = ATOL
     end
     @testset "Case 2: Non-Linear Analysis " begin
-        @info "uᵣ(r,θ₁,L₁) = uᵣ(r,θ₂,L₂)?" uᵣ_not_depends_on_θ_nonlinear
+        @test uᵣ_not_depends_on_θ_nonlinear
         @test zero_uₖ_case2_nonlinear
         @test zero_uᵢ_axis_y_nonlinear
         @test zero_uⱼ_axis_x_nonlinear

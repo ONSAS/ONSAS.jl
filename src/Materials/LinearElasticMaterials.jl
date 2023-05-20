@@ -1,6 +1,7 @@
+"Module defining the interface to handle linear elastic materials."
 module LinearElasticMaterials
 
-using ..Materials: AbstractMaterial
+using ..Materials
 
 export AbstractLinearElasticMaterial, lame_parameters, elasticity_modulus, shear_modulus,
        bulk_modulus, poisson_ratio, cauchy_stress
@@ -39,7 +40,5 @@ function bulk_modulus(m::AbstractLinearElasticMaterial) end
 "Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ` 
 considering a `IsotropicLinearElastic` material `m`."
 function cauchy_stress(m::AbstractLinearElasticMaterial, ϵ::AbstractMatrix) end
-
-include("IsotropicLinearElastic.jl")
 
 end

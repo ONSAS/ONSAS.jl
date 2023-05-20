@@ -1,13 +1,13 @@
-using ForwardDiff: gradient!
-using LinearAlgebra: Symmetric, tr, det, inv
-using Reexport
+"Module defining a Neo-Hookean hyper-elastic material."
+module NeoHookeanMaterial
+
+using ForwardDiff, LinearAlgebra, Reexport
 
 using ..HyperElasticMaterials
-using ...Utils
+using ..Utils
 
 @reexport import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus,
-                                           bulk_modulus,
-                                           poisson_ratio
+                                           bulk_modulus, poisson_ratio
 @reexport import ..HyperElasticMaterials: cosserat_stress, strain_energy
 
 export NeoHookean
@@ -39,9 +39,13 @@ struct NeoHookean{T<:Real} <: AbstractHyperElasticMaterial
         new{T}(K, G, ρ, Symbol(label))
     end
 end
+
+"Constructor for `NeoHookean` material with no density."
 function NeoHookean(K::T, G::T, label::Label=NO_LABEL) where {T<:Real}
     NeoHookean(K, G, nothing, label)
 end
+
+"Constructor for `NeoHookean` material given its elasticity and shear modulus `E`, `ν` respectively and its density `ρ`."
 function NeoHookean(; E::Real, ν::Real, ρ::Density=nothing, label::Label=NO_LABEL)
     # Compute λ, μ and K (μ = G) given E and ν.
     λ = E * ν / ((1 + ν) * (1 - 2 * ν))
@@ -57,14 +61,14 @@ function strain_energy(m::NeoHookean, 𝔼::AbstractMatrix)
     # First invariant
     I₁ = tr(ℂ)
     # Strain energy function 
-    return Ψ = shear_modulus(m) / 2 * (I₁ - 2 * log(J)) + bulk_modulus(m) / 2 * (J - 1)^2
+    Ψ = shear_modulus(m) / 2 * (I₁ - 2 * log(J)) + bulk_modulus(m) / 2 * (J - 1)^2
 end
 
 "Return Lamé parameters `λ` and `G` from a `NeoHookean` material `m`."
 function lame_parameters(m::NeoHookean)
     G = shear_modulus(m)
     λ = bulk_modulus(m) - 2 * G / 3
-    return λ, G
+    λ, G
 end
 
 "Return the shear modulus `G` from a `NeoHookean` material `m`."
@@ -73,13 +77,13 @@ shear_modulus(m::NeoHookean) = m.G
 "Return the Poisson's ration `ν` form a `NeoHookean` material `m`."
 function poisson_ratio(m::NeoHookean)
     λ, G = lame_parameters(m)
-    return λ / (2 * (λ + G))
+    λ / (2 * (λ + G))
 end
 
 "Return the elasticity modulus `E` form a `NeoHookean` material `m`."
 function elasticity_modulus(m::NeoHookean)
     λ, G = lame_parameters(m)
-    return G * (3 * λ + 2 * G) / (λ + G)
+    G * (3 * λ + 2 * G) / (λ + G)
 end
 
 "Return the bulk_modulus `K` for a `NeoHookean` material `m`."
@@ -92,7 +96,7 @@ function _𝕊_analytic(m::NeoHookean, 𝔼::AbstractMatrix)
     ℂ⁻¹ = inv(ℂ)
     J = sqrt(det(ℂ))
     # Compute 𝕊 
-    return shear_modulus(m) * (eye(3) - ℂ⁻¹) + bulk_modulus(m) * (J * (J - 1) * ℂ⁻¹)
+    shear_modulus(m) * (eye(3) - ℂ⁻¹) + bulk_modulus(m) * (J * (J - 1) * ℂ⁻¹)
 end
 
 "Return the `∂𝕊∂𝔼` for a material `m`, the Gree-Lagrange strain tensor `𝔼` and a
@@ -106,17 +110,19 @@ function _∂𝕊_∂𝔼(m::NeoHookean, 𝔼::AbstractMatrix, 𝕊_analytic::Fu
     row = 1
     for index in indexes
         i, j = index
-        ∂S∂𝔼_forward_diff[row, :] .= voigt(gradient!(aux_gradients, E -> 𝕊_analytic(m, E)[i, j],
-                                                     collect(𝔼)), #TODO: Fix with Symmetric
-                                           0.5)
+        ∂S∂𝔼_forward_diff[row, :] .= voigt(ForwardDiff.gradient!(aux_gradients,
+                                                                 E -> 𝕊_analytic(m, E)[i, j],
+                                                                 collect(𝔼)), 0.5)
         row += 1
     end
-    return ∂S∂𝔼_forward_diff
+    ∂S∂𝔼_forward_diff
 end
 
 "Return the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
 considering a `SVK` material `m` and the Green-Lagrange  
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
 function cosserat_stress(m::NeoHookean, 𝔼::AbstractMatrix)
-    return _𝕊_analytic(m, 𝔼), _∂𝕊_∂𝔼(m, 𝔼, _𝕊_analytic)
+    _𝕊_analytic(m, 𝔼), _∂𝕊_∂𝔼(m, 𝔼, _𝕊_analytic)
+end
+
 end

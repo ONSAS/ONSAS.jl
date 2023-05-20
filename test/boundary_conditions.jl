@@ -1,14 +1,13 @@
-###################################
-# BoundaryConditions module tests #
-###################################
 using Test
 
-using ONSAS.Elements
+# Modules to test
 using ONSAS.BoundaryConditions
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.DirichletBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.LocalLoadBoundaryConditions
+
+using ONSAS.Elements
 
 # Entities 
 n₁ = Node(0, 0, 0,

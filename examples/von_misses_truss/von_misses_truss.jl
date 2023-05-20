@@ -43,7 +43,7 @@ function run_von_misses_truss_example()
     # -------------------------------
     # Materials
     # -------------------------------
-    steel = SVK(; E=E, ν=ν, label="steel")
+    steel = Svk(; E=E, ν=ν, label="steel")
     mat_dict = dictionary([steel => [truss₁, truss₂]])
     s_materials = StructuralMaterials(mat_dict)
     # -------------------------------

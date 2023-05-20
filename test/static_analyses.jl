@@ -1,9 +1,13 @@
-#########################
-# Static Analysis tests #
-#########################
+
 using Test, LinearAlgebra, SparseArrays
-using ONSAS.FixedDofBoundaryConditions, ONSAS.GlobalLoadBoundaryConditions, ONSAS.StructuralAnalyses
+
+# Module to test
 using ONSAS.StaticAnalyses
+
+using ONSAS.SvkMaterial
+using ONSAS.FixedDofBoundaryConditions
+using ONSAS.GlobalLoadBoundaryConditions
+using ONSAS.StructuralAnalyses
 
 const RTOL = 5e-2
 
@@ -19,7 +23,7 @@ Fₖ = -3e8  # vertical   load in N
 # -------------------------------
 # Materials
 # -------------------------------
-steel = SVK(; E=E, ν=ν, label="steel")
+steel = Svk(; E=E, ν=ν, label="steel")
 # -------------------------------
 # Geometries
 # -------------------------------

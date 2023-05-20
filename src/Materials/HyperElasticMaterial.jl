@@ -1,5 +1,7 @@
-using Tensors: SymmetricTensor, hessian
-using Reexport
+"Module defining a generic hyper elastic material model form the strain energy function."
+module HyperElasticMaterial
+
+using Tensors, Reexport
 
 using ..HyperElasticMaterials
 using ...Utils
@@ -28,8 +30,10 @@ struct HyperElastic{T<:Real,F<:Function} <: AbstractHyperElasticMaterial
         new{T,F}(params, Ψ, ρ, Symbol(label))
     end
 end
+
+"Constructor for `HyperElastic` material with no density."
 function HyperElastic(params::Vector{T}, Ψ::F, label::Label=NO_LABEL) where {T<:Real,F<:Function}
-    return HyperElastic(params, Ψ, nothing, label)
+    HyperElastic(params, Ψ, nothing, label)
 end
 
 "Return the strain energy function `Ψ` for a `HyperElastic` material `m`."
@@ -60,5 +64,7 @@ function cosserat_stress(m::HyperElastic, 𝔼::AbstractMatrix)
         row += 1
     end
 
-    return 𝕊, ∂𝕊∂𝔼
+    𝕊, ∂𝕊∂𝔼
+end
+
 end
