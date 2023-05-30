@@ -2,7 +2,7 @@ module Utils
 
 using LinearAlgebra: Diagonal
 
-export ScalarWrapper, label, unwrap, eye, row_vector, Point, @debugtime, voigt, Label, NO_LABEL,
+export ScalarWrapper, label, unwrap, eye, row_vector, @debugtime, voigt, Label, NO_LABEL,
        Density, Field
 
 #================================#
