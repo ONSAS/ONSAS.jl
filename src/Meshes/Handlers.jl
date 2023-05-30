@@ -1,7 +1,6 @@
 module Handlers
 
-using Reexport, Dictionaries
-using StaticArrays: SVector
+using Reexport, Dictionaries, StaticArrays
 using LazySets: UnionSetArray, box_approximation, Singleton, split, is_intersection_empty
 
 using ..Meshes
@@ -9,10 +8,10 @@ using ..Elements
 
 import LazySets
 
-export PointEvalHandler, points, not_in_mesh_points, interpolator, mesh, PointsInterpolator,
-       node_to_weights, points_to_element
+export AbstractInterpolator, PointEvalHandler, points, not_in_mesh_points, interpolator, mesh,
+       PointsInterpolator, node_to_weights, points_to_element
 
-abstract type AbstractInterapolator end
+abstract type AbstractInterpolator end
 
 """
 A `PointsInterpolator` struct stores the weights nodes and elements needed
@@ -20,7 +19,7 @@ to interpolate the solution at a given point.The index of each `Vector`
 is the index in the `Vector` of `Point`s.
 """
 struct PointsInterpolator{N<:AbstractNode,T<:Real,E<:AbstractElement,VE<:AbstractVector{E}} <:
-       AbstractInterapolator
+       AbstractInterpolator
     "`Dictionary` with `Node`s as keys and the corresponding weights as values."
     node_to_weights::Vector{Dictionary{N,T}}
     "`Element` where the point is located."
@@ -40,7 +39,7 @@ obtained at the `Node`s `Dof`s in a `Mesh`.
 struct PointEvalHandler{dim,T,PT<:Point{dim,T},VPT<:AbstractVector{PT},
                         WT<:AbstractVector{T},
                         M<:AbstractMesh,
-                        I<:AbstractInterapolator}
+                        I<:AbstractInterpolator}
     "`Mesh` where the solution is obtained."
     mesh::M
     "Vector of test points."
