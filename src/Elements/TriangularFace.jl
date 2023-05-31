@@ -1,7 +1,8 @@
-using ..Elements
-using ..Utils
 using LinearAlgebra
 using Reexport
+
+using ..Elements
+using ..Utils
 
 @reexport import ..Elements: area, create_entity, normal_direction
 
@@ -9,18 +10,18 @@ export TriangularFace, normal_direction
 
 """
 A `TriangularFace` represents an element composed by three `Node`s.
-### Fields:
-- `nodes`    -- stores triangle nodes.
-- `label` -- stores the triangle label.
 """
-struct TriangularFace{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractFace{dim,T}
-    nodes::SVector{3,N}
+struct TriangularFace{dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N}} <:
+       AbstractFace{dim,T}
+    "Stores triangle nodes."
+    nodes::VN
+    "Stores the triangle label."
     label::Label
-    function TriangularFace(nodes::SVector{3,N},
+    function TriangularFace(nodes::VN,
                             label::Label=NO_LABEL) where
-             {dim,T<:Real,N<:AbstractNode{dim,T}}
+             {dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N}}
         @assert 2 ≤ dim ≤ 3 "TriangularFace is only defined for 2 < dim ≤ 3"
-        new{dim,T,N}(nodes, Symbol(label))
+        new{dim,T,N,VN}(nodes, Symbol(label))
     end
 end
 
@@ -38,8 +39,8 @@ end
 
 "Return the area vector with direction and modulus of a `TriangularFace` element `tf`."
 function _area_vec(tf::TriangularFace)
-    return cross(coordinates(tf)[2] - coordinates(tf)[1], coordinates(tf)[3] - coordinates(tf)[1]) /
-           2
+    coords = coordinates(tf)
+    1 / 2 * cross(coords[2] - coords[1], coords[3] - coords[1])
 end
 
 "Return the area of a `TriangularFace` element `tf`."
