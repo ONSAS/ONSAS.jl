@@ -1,9 +1,12 @@
+"""
+Module defining utilities and generic module independent methods.
+"""
 module Utils
 
-using LinearAlgebra: Diagonal
+using LinearAlgebra
 
-export ScalarWrapper, label, unwrap, eye, row_vector, @debugtime, voigt, Label, NO_LABEL,
-       Density, Field
+export ScalarWrapper, label, mesh, unwrap, eye, row_vector,
+       @debugtime, voigt, Label, NO_LABEL, Density, Field
 
 #================================#
 # Generic functions to overload  #
@@ -27,6 +30,9 @@ function apply! end
 mutable struct ScalarWrapper{T}
     x::T
 end
+
+"Return the `Mesh` of an object."
+function mesh end
 
 unwrap(s::ScalarWrapper) = s.x
 @inline Base.getindex(s::ScalarWrapper) = s.x
