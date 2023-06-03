@@ -1,7 +1,7 @@
 "Module defining truss elements."
 module Trusses
 
-using Reexport, SparseArrays
+using Reexport, StaticArrays
 
 using ..Materials
 using ..IsotropicLinearElasticMaterial

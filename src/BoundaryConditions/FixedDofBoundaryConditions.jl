@@ -7,7 +7,8 @@ module FixedDofBoundaryConditions
 using Reexport
 
 using ..BoundaryConditions
-using ..Elements
+using ..Nodes
+using ..Entities
 using ..Utils
 
 @reexport import ..BoundaryConditions: apply

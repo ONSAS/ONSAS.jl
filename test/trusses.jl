@@ -1,8 +1,17 @@
 using Test, Dictionaries, StaticArrays, LinearAlgebra
 
+using ONSAS.SvkMaterial
+using ONSAS.Trusses
+using ONSAS.Circles
+using ONSAS.Squares
 using ONSAS.Nodes
 using ONSAS.Entities
-using ONSAS.TriangularFaces
+
+E = 1.0
+ν = 0.3
+my_svk_mat = Svk(; E=E, ν=ν)
+
+const RTOL = 1e-3
 
 @testset "ONSAS.Elements.Truss 1D" begin
 

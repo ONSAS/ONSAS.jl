@@ -18,9 +18,11 @@ FILES = ["Utils.jl",
          "CrossSections/Squares.jl",
          "CrossSections/GenericCrossSections.jl",
          # Elements
-         "Elements/Nodes.jl"
-         #=
-         "Elements/Elements.jl",
+         "Entities/Nodes.jl",
+         "Entities/Entities.jl",
+         "Entities/Trusses.jl",
+         "Entities/Tetrahedrons.jl",
+         "Entities/TriangularFaces.jl",
          # Boundary conditions
          "BoundaryConditions/BoundaryConditions.jl",
          "BoundaryConditions/FixedDofBoundaryConditions.jl",
@@ -44,9 +46,7 @@ FILES = ["Utils.jl",
          "StructuralSolvers/Solutions.jl",
          # Structural Analyses
          "StructuralAnalyses/StructuralAnalyses.jl",
-         "StructuralAnalyses/StaticAnalyses.jl"
-         =#
-         ]
+         "StructuralAnalyses/StaticAnalyses.jl"]
 
 foreach(FILES) do m
     include(m)
@@ -73,14 +73,12 @@ end
 @reexport using .GenericCrossSections
 
 ## Entities
-<<<<<<< Updated upstream
-@reexport using .Elements
-
-=======
 @reexport using .Nodes
+@reexport using .Entities
+@reexport using .Trusses
+@reexport using .Tetrahedrons
+@reexport using .TriangularFaces
 
-#=
->>>>>>> Stashed changes
 ## Boundary conditions
 @reexport using .BoundaryConditions
 @reexport using .FixedDofBoundaryConditions
@@ -111,5 +109,4 @@ end
 @reexport using .StructuralAnalyses
 @reexport using .StaticAnalyses
 
-=#
 end
