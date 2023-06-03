@@ -1,5 +1,6 @@
 
 using Test, LinearAlgebra, SparseArrays
+using Dictionaries: dictionary
 using ONSAS.StaticAnalyses
 using ONSAS.Circles
 using ONSAS.SvkMaterial
@@ -10,6 +11,8 @@ using ONSAS.Solvers
 using ONSAS.Assemblers
 using ONSAS.Solutions
 using ONSAS.Structures
+using ONSAS.Nodes
+using ONSAS.Trusses
 
 const RTOL = 5e-2
 
@@ -40,7 +43,7 @@ n₁ = Node(0.0, 0.0, 0.0)
 n₂ = Node(d, 0.0, h)
 n₃ = Node(2d, 0.0, 0.0)
 nodes = [n₁, n₂, n₃]
-## Elements 
+## Entities 
 truss₁ = Truss(n₁, n₂, s, "left_truss") # [n₁, n₂]
 truss₂ = Truss(n₂, n₃, s, "right_truss") # [n₂, n₃]
 elements = [truss₁, truss₂]

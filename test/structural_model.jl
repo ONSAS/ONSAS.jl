@@ -1,10 +1,15 @@
 using Test
+using Dictionaries: dictionary
 using ONSAS.StructuralModel
 using ONSAS.Squares
 using ONSAS.SvkMaterial
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.Structures
+using ONSAS.Nodes
+using ONSAS.TriangularFaces
+using ONSAS.Trusses
+using ONSAS.Tetrahedrons
 
 # Scalar parameters
 d = 0.1
@@ -30,7 +35,7 @@ face₁ = TriangularFace(n₁, n₂, n₃)
 face₂ = TriangularFace(n₃, n₄, n₃)
 # Cross section
 s = Square(d)
-# Elements
+# Entities
 truss₁ = Truss(n₁, n₂, s)
 truss₂ = Truss(n₂, n₃, s)
 truss₃ = Truss(n₁, n₃, s)
@@ -176,7 +181,7 @@ end
     @test faces(s) == faces(mesh(s))
     @test num_faces(s) == length(faces(mesh(s)))
 
-    # Elements
+    # Entities
     @test elements(s) == elements(mesh(s))
     @test num_elements(s) == length(elements(mesh(s)))
 

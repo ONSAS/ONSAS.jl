@@ -7,7 +7,7 @@ module BoundaryConditions
 
 using Reexport
 
-using ..Elements, ..Utils
+using ..Entities, ..Utils
 
 @reexport import ..Utils: dofs, label
 

@@ -8,7 +8,7 @@ module StructuralAnalyses
 using LinearAlgebra, Reexport
 
 @reexport using ..Materials
-@reexport using ..Elements
+@reexport using ..Entities
 @reexport using ..BoundaryConditions
 @reexport using ..Meshes
 @reexport using ..StructuralModel
@@ -16,7 +16,7 @@ using LinearAlgebra, Reexport
 @reexport using ..Utils
 
 @reexport import ..Utils: apply!
-@reexport import ..Elements: internal_forces, inertial_forces, strain, stress
+@reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 @reexport import ..StructuralModel: free_dofs
 @reexport import ..StructuralSolvers: _update!
 @reexport import ..Assemblers: _assemble!, _end_assemble!

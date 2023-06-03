@@ -1,13 +1,15 @@
 module Structures
 
 using Reexport
+using Dictionaries: Dictionary, dictionary
 
-using ..Elements
+using ..Entities
 using ..Meshes
 using ..Gmsh
 using ..BoundaryConditions
 using ..StructuralModel
 using ..Utils
+using ..Nodes
 
 @reexport import ..Handlers: PointEvalHandler
 

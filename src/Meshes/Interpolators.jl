@@ -3,7 +3,8 @@ module Interpolators
 
 using Dictionaries, Reexport
 
-using ..Elements
+using ..Entities
+using ..Nodes
 
 export AbstractInterpolator, FEMInterpolator, points, interpolate, node_to_weights,
        points_to_element

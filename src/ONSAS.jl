@@ -17,8 +17,12 @@ FILES = ["Utils.jl",
          "CrossSections/Rectangles.jl",
          "CrossSections/Squares.jl",
          "CrossSections/GenericCrossSections.jl",
-         # Elements
-         "Elements/Elements.jl",
+         # Entities
+         "Entities/Nodes.jl",
+         "Entities/Entities.jl",
+         "Entities/Trusses.jl",
+         "Entities/Tetrahedrons.jl",
+         "Entities/TriangularFaces.jl",
          # Boundary conditions
          "BoundaryConditions/BoundaryConditions.jl",
          "BoundaryConditions/FixedDofBoundaryConditions.jl",
@@ -69,7 +73,11 @@ end
 @reexport using .GenericCrossSections
 
 ## Entities
-@reexport using .Elements
+@reexport using .Nodes
+@reexport using .Entities
+@reexport using .Trusses
+@reexport using .Tetrahedrons
+@reexport using .TriangularFaces
 
 ## Boundary conditions
 @reexport using .BoundaryConditions

@@ -4,7 +4,7 @@ using Dictionaries: dictionary
 using Reexport: @reexport
 
 @reexport using ..Materials
-@reexport using ...Elements
+@reexport using ...Entities
 @reexport using ...Meshes
 @reexport using ...StructuralModel: AbstractStructure, load_bcs
 @reexport using ..StructuralAnalyses

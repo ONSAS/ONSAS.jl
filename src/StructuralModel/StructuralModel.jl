@@ -7,7 +7,7 @@ module StructuralModel
 using Reexport: @reexport
 
 @reexport using ..Materials
-@reexport using ..Elements
+@reexport using ..Entities
 @reexport using ..BoundaryConditions
 @reexport using ..Meshes
 using ..Utils

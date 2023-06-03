@@ -1,4 +1,4 @@
-using Test
+using Test, Dictionaries
 
 # Modules to test
 using ONSAS.BoundaryConditions
@@ -6,8 +6,10 @@ using ONSAS.FixedDofBoundaryConditions
 using ONSAS.DirichletBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.LocalLoadBoundaryConditions
-
-using ONSAS.Elements
+using ONSAS.CrossSections
+using ONSAS.Nodes
+using ONSAS.TriangularFaces
+using ONSAS.Tetrahedrons
 
 # Entities 
 n₁ = Node(0, 0, 0,

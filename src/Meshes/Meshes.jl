@@ -4,7 +4,7 @@ Module defining a mesh interface, `AbstractMesh`, and the default implementation
 Each mesh consists of different kinds of entities, stores as dense arrays:
 
 - Nodes.
-- Elements.
+- Entities.
 - Faces.
 
 In addition to the entities, metadata mapping names to entity indices (`EntitySet`) can be provided.
@@ -14,10 +14,11 @@ module Meshes
 using Dictionaries
 using Reexport
 
-using ..Elements
+using ..Entities
+using ..Nodes
 using ..Utils
 
-@reexport import ..Elements: apply!, dimension, dofs, nodes, num_nodes
+@reexport import ..Entities: apply!, dimension, dofs, nodes, num_nodes
 
 export AbstractMesh, Mesh, faces, face_set, element, elements, element_set, num_dofs, num_elements,
        node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!, add_entity_to_set!

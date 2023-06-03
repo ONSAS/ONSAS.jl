@@ -7,9 +7,10 @@ using Reexport
 using Dictionaries: dictionary
 using MshReader: MshFileReader
 
-using ..Elements
+using ..Entities
+using ..Nodes
 
-@reexport import ..Elements: dimension, nodes
+@reexport import ..Entities: dimension, nodes
 
 # Physical nodes index, all gmsh files should be defined with this label
 const PHYSICAL_NODE_LABEL = "node"

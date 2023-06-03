@@ -3,8 +3,9 @@ module Assemblers
 using SparseArrays: sparse
 using Reexport
 
-using ..Elements: Dof, index
-using ..StructuralModel: AbstractStructure, num_free_dofs
+using ..Entities
+using ..Nodes
+using ..StructuralModel
 
 @reexport import ..StructuralSolvers: _reset!
 

@@ -8,6 +8,7 @@ using ...StructuralAnalyses
 using ...StructuralSolvers
 using ..Assemblers
 using ...Utils
+using ...Nodes
 
 @reexport import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
 

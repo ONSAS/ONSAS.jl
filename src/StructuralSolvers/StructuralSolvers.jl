@@ -7,7 +7,7 @@ module StructuralSolvers
 
 using LinearAlgebra: norm
 
-using ..Elements
+using ..Entities
 
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet

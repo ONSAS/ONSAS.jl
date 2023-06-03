@@ -2,10 +2,10 @@ using Reexport
 using Dictionaries
 
 using ..Materials
-using ..Elements
+using ..Entities
 using ..Utils
 
-@reexport import ..Elements: apply!
+@reexport import ..Entities: apply!
 
 export StructuralMaterials, element_materials
 

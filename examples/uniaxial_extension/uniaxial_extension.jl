@@ -3,6 +3,7 @@
 # For notation see: https://onsas.github.io/ONSAS.m/dev/examples/uniaxialExtension/
 # --------------------------------------------------------------------------
 using Test, LinearAlgebra, Suppressor, Roots
+using Dictionaries: dictionary
 using ONSAS
 
 include("uniaxial_mesh.jl") # Mesh Cube with Gmsh.jl
@@ -44,7 +45,7 @@ function run_uniaxial_extension()
     f₈ = TriangularFace(n₄, n₈, n₅, "z=0_face_2")
     vec_faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
     append!(faces(s₁_mesh), vec_faces)
-    ## Elements 
+    ## Entities 
     t₁ = Tetrahedron(n₁, n₄, n₂, n₆, "tetra_1")
     t₂ = Tetrahedron(n₆, n₂, n₃, n₄, "tetra_2")
     t₃ = Tetrahedron(n₄, n₃, n₆, n₇, "tetra_3")
