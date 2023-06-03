@@ -16,6 +16,7 @@ using ONSAS.StructuralMaterials
 using ONSAS.Nodes
 using ONSAS.Trusses
 using ONSAS.StaticStates
+using ONSAS.NonLinearStaticAnalyses
 
 const RTOL = 5e-2
 

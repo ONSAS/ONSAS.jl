@@ -141,10 +141,4 @@ function Base.push!(st_sol::StatesSolution, c_state::StaticState)
     return push!(states(st_sol), state_copy)
 end
 
-include("LinearStaticAnalyses.jl")
-@reexport using .LinearStaticAnalyses
-
-include("NonLinearStaticAnalyses.jl")
-@reexport using .NonLinearStaticAnalyses
-
 end # module
