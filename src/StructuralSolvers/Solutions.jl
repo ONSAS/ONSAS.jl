@@ -1,13 +1,37 @@
+module Solutions
+
 using Reexport
 
-using ..StructuralSolvers
+using ..Elements
 using ..Meshes
 using ..Handlers
+using ..Utils
+using ..StructuralSolvers
 
 @reexport import ..Elements: internal_forces, inertial_forces, strain, stress
 
-export StatesSolution, stresses, strains, states, analysis, solver, iteration_residuals
+export AbstractSolution, StatesSolution, stresses, strains, states, analysis, solver,
+       displacements, external_forces, iteration_residuals
 
+"""
+Abstract supertype for all structural analysis solutions.
+
+**Common methods:**
+* [`displacements`](@ref)
+* [`external_forces`](@ref)
+* [`internal_forces`](@ref)
+* [`stress`](@ref)
+* [`strain`](@ref)
+
+**Common fields:**
+* analysis
+* solver
+"""
+abstract type AbstractSolution end
+
+"""
+Solution that stores all intermediate arrays during the analysis.
+"""
 struct StatesSolution{ST<:Vector,A,SS<:AbstractSolver} <: AbstractSolution
     states::ST
     analysis::A
@@ -155,3 +179,5 @@ function stress(st_sol::StatesSolution, peh::PointEvalHandler)
     end
     return sol_points
 end
+
+end # module

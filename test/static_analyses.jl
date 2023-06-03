@@ -8,6 +8,7 @@ using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.StructuralAnalyses
 using ONSAS.Solvers
 using ONSAS.Assemblers
+using ONSAS.Solutions
 
 const RTOL = 5e-2
 

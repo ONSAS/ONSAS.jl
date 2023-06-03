@@ -10,6 +10,7 @@ using Reexport: @reexport
 @reexport using ..StructuralAnalyses
 @reexport using ...StructuralSolvers
 using ..Solvers
+using ..Solutions
 
 @reexport import ..StructuralAnalyses: initial_time, current_time, final_time, _next!,
                                        iteration_residuals, is_done, reset!

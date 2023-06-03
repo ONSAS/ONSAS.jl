@@ -218,26 +218,4 @@ _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
 "Resets the analysis to the state before starting a new assembly."
 function reset! end
 
-#=================#
-# AbstractSolution
-#=================#
-
-"""
-Abstract supertype for all structural analysis solutions.
-
-**Common methods:**
-* [`displacements`](@ref)
-* [`external_forces`](@ref)
-* [`internal_forces`](@ref)
-* [`stress`](@ref)
-* [`strain`](@ref)
-
-**Common fields:**
-* analysis
-* solver
-"""
-abstract type AbstractSolution end
-
-include("StatesSolution.jl")
-
 end # module
