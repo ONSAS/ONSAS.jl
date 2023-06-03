@@ -20,7 +20,8 @@ using LinearAlgebra, Reexport
 @reexport import ..StructuralModel: free_dofs
 @reexport import ..StructuralSolvers: _update!
 @reexport import ..Assemblers: _assemble!, _end_assemble!
-@reexport import ..StructuralSolvers: displacements, external_forces, iteration_residuals, reset!
+@reexport import ..StructuralSolvers: reset!
+@reexport import ..Solutions: displacements, external_forces, iteration_residuals
 
 export AbstractStructuralState, Δ_displacements, tangent_matrix,
        residual_forces!, tangent_matrix, structure, assembler, residual_forces_norms,
