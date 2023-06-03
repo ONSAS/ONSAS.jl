@@ -7,6 +7,7 @@ using ONSAS.Solvers
 using ONSAS.Assemblers
 using ONSAS.Utils
 using ONSAS.Entities
+using ONSAS.Nodes
 
 @testset "ONSAS.StructuralSolvers.Criteria" begin
     @test ResidualForceCriterion <: AbstractConvergenceCriterion

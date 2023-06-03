@@ -15,8 +15,7 @@ using ..Materials
 
 @reexport import ..Utils: label, apply!, dofs
 @reexport import ..Nodes: coordinates, dimension
-
-import ..CrossSections: area
+@reexport import ..CrossSections: area
 
 export AbstractEntity, nodes, create_entity
 export AbstractFace, normal_direction, volume

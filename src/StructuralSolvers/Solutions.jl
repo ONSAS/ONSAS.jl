@@ -7,6 +7,7 @@ using ..Meshes
 using ..Handlers
 using ..Utils
 using ..StructuralSolvers
+using ..Nodes
 
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 

@@ -2,6 +2,7 @@
 # Uniaxial Compression Example
 # -----------------------------
 using Test, LinearAlgebra, Suppressor
+using Dictionaries: dictionary
 using ONSAS
 
 # Mesh Cube with Gmsh.jl

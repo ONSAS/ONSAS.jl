@@ -5,7 +5,9 @@ A Node is a point in space with degrees of freedom.
 """
 module Nodes
 
-using Reexport, StaticArrays, Dictionaries
+using Reexport
+using StaticArrays
+using Dictionaries: Dictionary
 
 using ..Utils
 

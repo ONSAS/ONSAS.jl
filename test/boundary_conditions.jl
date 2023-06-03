@@ -6,7 +6,6 @@ using ONSAS.FixedDofBoundaryConditions
 using ONSAS.DirichletBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.LocalLoadBoundaryConditions
-
 using ONSAS.CrossSections
 using ONSAS.Nodes
 using ONSAS.TriangularFaces

@@ -1,6 +1,7 @@
 using Test
 using ONSAS.Handlers
 using ONSAS.Entities
+using ONSAS.Nodes
 using ONSAS.Meshes
 
 @testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron + Sets" begin

@@ -1,5 +1,6 @@
 
 using Test, LinearAlgebra, SparseArrays
+using Dictionaries: dictionary
 using ONSAS.StaticAnalyses
 using ONSAS.Circles
 using ONSAS.SvkMaterial
@@ -10,6 +11,8 @@ using ONSAS.Solvers
 using ONSAS.Assemblers
 using ONSAS.Solutions
 using ONSAS.Structures
+using ONSAS.Nodes
+using ONSAS.Trusses
 
 const RTOL = 5e-2
 

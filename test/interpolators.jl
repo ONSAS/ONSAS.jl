@@ -1,6 +1,7 @@
 using Test, Dictionaries
 using ONSAS.Interpolators
 using ONSAS.Entities
+using ONSAS.Nodes
 using ONSAS.Meshes
 
 @testset "ONSAS.Interpolators.FEMInterpolator" begin

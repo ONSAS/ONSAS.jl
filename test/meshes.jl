@@ -5,7 +5,9 @@ using Test, Suppressor, Dictionaries
 using ONSAS.Meshes
 using ONSAS.Gmsh
 using ONSAS.Entities
+using ONSAS.Nodes
 using ONSAS.Circles
+using ONSAS.Trusses
 
 const RTOL = 1e-5
 

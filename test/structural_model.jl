@@ -1,10 +1,14 @@
 using Test
+using Dictionaries: dictionary
 using ONSAS.StructuralModel
 using ONSAS.Squares
 using ONSAS.SvkMaterial
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.Structures
+using ONSAS.Nodes
+using ONSAS.TriangularFaces
+using ONSAS.Trusses
 
 # Scalar parameters
 d = 0.1

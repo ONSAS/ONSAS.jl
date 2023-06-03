@@ -8,6 +8,7 @@ using Reexport
 using ..Utils
 using ..BoundaryConditions
 using ..Entities
+using ..Nodes
 
 @reexport import ..BoundaryConditions: apply
 

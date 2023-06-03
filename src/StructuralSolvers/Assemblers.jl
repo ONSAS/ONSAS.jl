@@ -4,6 +4,7 @@ using SparseArrays: sparse
 using Reexport
 
 using ..Entities
+using ..Nodes
 using ..StructuralModel
 
 @reexport import ..StructuralSolvers: _reset!
