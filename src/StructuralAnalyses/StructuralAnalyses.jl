@@ -18,10 +18,11 @@ using LinearAlgebra, Reexport
 @reexport import ..Utils: apply!
 @reexport import ..Elements: internal_forces, inertial_forces, strain, stress
 @reexport import ..StructuralModel: free_dofs
-@reexport import ..StructuralSolvers: _assemble!, _update!, _end_assemble!
+@reexport import ..StructuralSolvers: _update!
+@reexport import ..Assemblers: _assemble!, _end_assemble!
 @reexport import ..StructuralSolvers: displacements, external_forces, iteration_residuals, reset!
 
-export AbstractStructuralState, _assemble!, Δ_displacements, tangent_matrix,
+export AbstractStructuralState, Δ_displacements, tangent_matrix,
        residual_forces!, tangent_matrix, structure, assembler, residual_forces_norms,
        residual_displacements_norms, AbstractStructuralAnalysis, initial_time, current_time,
        final_time, _next!, is_done, current_state, current_iteration

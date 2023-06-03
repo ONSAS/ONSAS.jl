@@ -11,8 +11,9 @@ using Reexport: @reexport
 @reexport using ...StructuralSolvers
 using ..Solvers
 
-import ..StructuralAnalyses: _assemble!, initial_time, current_time, final_time, _next!,
-                             iteration_residuals, is_done, reset!
+@reexport import ..StructuralAnalyses: initial_time, current_time, final_time, _next!,
+                                       iteration_residuals, is_done, reset!
+@reexport import ..Assemblers: _assemble!
 
 export AbstractStaticAnalysis, load_factors, current_load_factor
 

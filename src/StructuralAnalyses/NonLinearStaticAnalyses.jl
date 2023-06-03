@@ -9,6 +9,7 @@ using ....Utils
 using ..StaticAnalyses
 using ...StructuralSolvers
 using ...StructuralModel
+using ..Assemblers
 
 @reexport import ...StructuralSolvers: _solve!, _step!
 
