@@ -39,7 +39,7 @@ using ONSAS.Meshes
     elements = [t₁, t₂, t₃, t₄, t₅, t₆]
 
     ## Mesh
-    mesh = Mesh(nodes, elements, faces)
+    mesh = Mesh(; nodes, elements, faces)
 
     ## points to interpolate 
     p₁ = Point(coordinates(n₁)...)

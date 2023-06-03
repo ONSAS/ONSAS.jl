@@ -28,24 +28,24 @@ const RTOL = 1e-5
     vec_elements = [t₁, t₂, t₃]
 
     # Constructors
-    mesh_with_sets = Mesh(vec_nodes, vec_elements)
-    mesh = Mesh(vec_nodes, vec_elements)
+    mesh = Mesh(; nodes=vec_nodes, elements=vec_elements)
 
     @test dimension(mesh) == dimension(n₁)
     @test all(isempty.(dofs(mesh)))
     @test elements(mesh) == vec_elements
     @test nodes(mesh) == vec_nodes
 
-    # Add nodes and elements
+    # Add new nodes and elements.
     new_node₁ = Node(3L, 0, 5L)
     new_node₂ = Node(3L, 0, 5L)
-    push!(mesh, [new_node₁, new_node₂])
+    append!(nodes(mesh), [new_node₁, new_node₂])
     @test last(nodes(mesh)) == new_node₂
-    new_t₄ = Truss(n₃, n₄, s₁)
-    new_t₅ = Truss(n₂, n₁, s₁)
-    push!(mesh, [new_t₄, new_t₅])
+    new_t₄ = Truss(n₃, new_node₁, s₁)
+    new_t₅ = Truss(n₂, new_node₂, s₁)
+    append!(elements(mesh), [new_t₄, new_t₅])
     @test last(elements(mesh)) == new_t₅
-    # Add dofs 
+
+    # Add dofs
     u_dim = 3
     apply!(mesh, :u, u_dim)
     @test num_nodes(mesh) * u_dim == num_dofs(mesh)

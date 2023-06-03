@@ -37,13 +37,13 @@ s = Circle(a)
 n₁ = Node(0.0, 0.0, 0.0)
 n₂ = Node(d, 0.0, h)
 n₃ = Node(2d, 0.0, 0.0)
-vec_nodes = [n₁, n₂, n₃]
+nodes = [n₁, n₂, n₃]
 ## Elements 
 truss₁ = Truss(n₁, n₂, s, "left_truss") # [n₁, n₂]
 truss₂ = Truss(n₂, n₃, s, "right_truss") # [n₂, n₃]
-vec_elems = [truss₁, truss₂]
+elements = [truss₁, truss₂]
 ## Mesh
-s_mesh = Mesh(vec_nodes, vec_elems)
+s_mesh = Mesh(; nodes, elements)
 # -------------------------------
 # Dofs
 #--------------------------------
@@ -129,8 +129,8 @@ sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ,
     @test iszero(tangent_matrix(sst_rand))
     @test iszero(displacements(sst_rand))
     @test iszero(Δ_displacements(sst_rand))
-    @test all([iszero(strain(sst_rand)[e]) for e in elements(s)])
-    @test all([iszero(stress(sst_rand)[e]) for e in elements(s)])
+    @test all([iszero(strain(sst_rand)[e]) for e in Meshes.elements(s)])
+    @test all([iszero(stress(sst_rand)[e]) for e in Meshes.elements(s)])
 
     # Default static analysis of the structure 
     default_s = StaticState(s)
