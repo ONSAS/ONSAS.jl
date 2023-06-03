@@ -11,6 +11,8 @@ using ONSAS.Solvers
 using ONSAS.Assemblers
 using ONSAS.Solutions
 using ONSAS.Structures
+using ONSAS.StructuralBoundaryConditions
+using ONSAS.StructuralMaterials
 using ONSAS.Nodes
 using ONSAS.Trusses
 
@@ -58,7 +60,7 @@ apply!(s_mesh, :u, dof_dim)
 # Materials
 # -------------------------------
 mat_dict = dictionary([steel => [truss₁, truss₂]])
-s_materials = StructuralMaterials(mat_dict)
+s_materials = StructuralMaterial(mat_dict)
 # -------------------------------
 # Boundary conditions
 # -------------------------------
@@ -68,7 +70,7 @@ bc₂ = FixedDof([:u], [2], "fixed_uⱼ")
 # Load 
 bc₃ = GlobalLoad([:u], t -> [0, 0, Fₖ * t], "load in j")
 node_bcs = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
-s_boundary_conditions = StructuralBoundaryConditions(; node_bcs)
+s_boundary_conditions = StructuralBoundaryCondition(; node_bcs)
 # -------------------------------
 # Structure
 # -------------------------------

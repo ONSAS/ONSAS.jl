@@ -40,7 +40,7 @@ function run_clamped_truss_example()
     # -------------------------------
     steel = Svk(; E=E, ν=ν, ρ=ρ, label="steel")
     mat_dict = dictionary([steel => elements])
-    s_materials = StructuralMaterials(mat_dict)
+    s_materials = StructuralMaterial(mat_dict)
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -50,7 +50,7 @@ function run_clamped_truss_example()
     bc₂ = GlobalLoad(; values=t -> [F * t], name="load in j")
     # Apply bcs to the nodes
     node_bc = dictionary([bc₁ => [first(nodes)], bc₂ => [last(nodes)]])
-    s_boundary_conditions = StructuralBoundaryConditions(; node_bcs=node_bc)
+    s_boundary_conditions = StructuralBoundaryCondition(; node_bcs=node_bc)
     # -------------------------------
     # Structure
     # -------------------------------

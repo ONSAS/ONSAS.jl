@@ -65,7 +65,7 @@ function run_uniaxial_extension()
     # -------------------------------
     svk = Svk(; E=E, ν=ν, label="svk")
     mat_dict = dictionary([svk => [t₁, t₂, t₃, t₄, t₅, t₆]])
-    s₁_materials = StructuralMaterials(mat_dict)
+    s₁_materials = StructuralMaterial(mat_dict)
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -82,7 +82,7 @@ function run_uniaxial_extension()
     # Assign this to faces 
     face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
     # Crete boundary conditions struct
-    s₁_boundary_conditions = StructuralBoundaryConditions(; face_bcs=face_bc)
+    s₁_boundary_conditions = StructuralBoundaryCondition(; face_bcs=face_bc)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     # -------------------------------
     # Structure
@@ -144,14 +144,14 @@ function run_uniaxial_extension()
     mat_label = "svkHyper"
     svk_hyper_elastic = HyperElastic(params, strain_energy_svk, mat_label)
     # Material types without assigned elements
-    s_materials = StructuralMaterials(svk_hyper_elastic)
+    s_materials = StructuralMaterial(svk_hyper_elastic)
     # -------------------------------
     # Boundary Conditions
     # -------------------------------
     # Redefine the load boundary condition 
     bc₄ = Pressure([:u], t -> -p * t, bc₄_label)
     # BoundaryConditions types without assigned node, feces and elements
-    s_boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
+    s_boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
     # -------------------------------
     # Entities
     # -------------------------------
@@ -160,7 +160,7 @@ function run_uniaxial_extension()
     elems_label = "tetrahedron"
     vfaces = [TriangularFace(faces_label)]
     velems = [Tetrahedron(elems_label)]
-    s_entities = StructuralEntities(velems, vfaces)
+    s_entities = StructuralEntity(velems, vfaces)
     entities_labels = [faces_label, elems_label]
     # -------------------------------
     # Mesh

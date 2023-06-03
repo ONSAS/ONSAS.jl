@@ -46,7 +46,7 @@ function run_von_misses_truss_example()
     # -------------------------------
     steel = Svk(; E=E, ν=ν, label="steel")
     mat_dict = dictionary([steel => [truss₁, truss₂]])
-    s_materials = StructuralMaterials(mat_dict)
+    s_materials = StructuralMaterial(mat_dict)
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -56,7 +56,7 @@ function run_von_misses_truss_example()
     # Load 
     bc₃ = GlobalLoad([:u], t -> [0, 0, Fₖ * t], "load in j")
     node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
-    s_boundary_conditions = StructuralBoundaryConditions(; node_bcs=node_bc)
+    s_boundary_conditions = StructuralBoundaryCondition(; node_bcs=node_bc)
     # -------------------------------
     # Structure
     # -------------------------------

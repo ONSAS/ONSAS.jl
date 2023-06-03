@@ -43,7 +43,7 @@ function linear_cylinder_structure(; ms::Real=0.5)
     # Entities types without assigned nodes, faces and elements
     vfaces = [TriangularFace(faces_label)]
     velems = [Tetrahedron(elements_label)]
-    entities = StructuralEntities(velems, vfaces)
+    entities = StructuralEntity(velems, vfaces)
     # -------------------------------
     # Mesh
     # -------------------------------
@@ -72,14 +72,14 @@ function linear_cylinder_structure(; ms::Real=0.5)
     bc₃ = FixedDof(; components=[3], name=bc₃_label)
     # Neumann boundary conditions 
     bc₄ = Pressure(; values=pressure, name=bc₄_label)
-    boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
+    boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
     # Assign boundary conditions to the ones defined in the mesh
     apply!(boundary_conditions, mesh)
     # -------------------------------
     # Materials
     # -------------------------------
     material = IsotropicLinearElastic(E, ν, mat_label)
-    materials = StructuralMaterials(material)
+    materials = StructuralMaterial(material)
     apply!(materials, mesh)
     # -------------------------------
     # Structure

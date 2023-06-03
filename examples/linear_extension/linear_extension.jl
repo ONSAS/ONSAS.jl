@@ -28,7 +28,7 @@ function run_linear_extension_example()
     # -------------------------------
     mat_label = "mat"
     mat = IsotropicLinearElastic(E, ν, mat_label)
-    s_materials = StructuralMaterials(mat)
+    s_materials = StructuralMaterial(mat)
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -44,7 +44,7 @@ function run_linear_extension_example()
     bc₄ = GlobalLoad([:u], t -> [tension(t), 0, 0], bc₄_label)
     # Get bc labels for the mesh
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
-    s_boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
+    s_boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
     # -------------------------------
     # Entities
     # -------------------------------
@@ -54,7 +54,7 @@ function run_linear_extension_example()
     vfaces = [TriangularFace(faces_label)]
     velems = [Tetrahedron(elems_label)]
     entities_labels = [faces_label, elems_label]
-    s_entities = StructuralEntities(velems, vfaces)
+    s_entities = StructuralEntity(velems, vfaces)
     # -------------------------------
     # Mesh
     # -------------------------------
