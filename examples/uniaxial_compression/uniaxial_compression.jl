@@ -37,7 +37,7 @@ function run_uniaxial_compression()
     n₇ = Node(Lᵢ, Lⱼ, Lₖ)
     n₈ = Node(Lᵢ, Lⱼ, 0.0)
     vec_nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
-    s₁_mesh = Mesh(vec_nodes)
+    s₁_mesh = Mesh(; nodes=vec_nodes)
     ## Faces 
     f₁ = TriangularFace(n₅, n₈, n₆, "loaded_face_1")
     f₂ = TriangularFace(n₆, n₈, n₇, "loaded_face_2")
@@ -48,7 +48,7 @@ function run_uniaxial_compression()
     f₇ = TriangularFace(n₁, n₄, n₅, "z=0_face_1")
     f₈ = TriangularFace(n₄, n₈, n₅, "z=0_face_2")
     vec_faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
-    push!(s₁_mesh, vec_faces)
+    append!(faces(s₁_mesh), vec_faces)
     ## Elements 
     t₁ = Tetrahedron(n₁, n₄, n₂, n₆, "tetra_1")
     t₂ = Tetrahedron(n₆, n₂, n₃, n₄, "tetra_2")
@@ -57,7 +57,7 @@ function run_uniaxial_compression()
     t₅ = Tetrahedron(n₄, n₆, n₅, n₈, "tetra_5")
     t₆ = Tetrahedron(n₄, n₇, n₆, n₈, "tetra_6")
     vec_elems = [t₁, t₂, t₃, t₄, t₅, t₆]
-    push!(s₁_mesh, vec_elems)
+    append!(elements(s₁_mesh), vec_elems)
     # -------------------------------
     # Dofs
     #--------------------------------
