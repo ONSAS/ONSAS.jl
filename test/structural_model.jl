@@ -9,6 +9,7 @@ using ONSAS.Structures
 using ONSAS.Nodes
 using ONSAS.TriangularFaces
 using ONSAS.Trusses
+using ONSAS.Tetrahedrons
 
 # Scalar parameters
 d = 0.1
