@@ -9,6 +9,7 @@ using ..Gmsh
 using ..BoundaryConditions
 using ..StructuralModel
 using ..StructuralEntities
+using ..StructuralBoundaryConditions
 using ..Utils
 using ..Nodes
 

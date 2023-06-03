@@ -1,16 +1,19 @@
+module StructuralBoundaryConditions
+
 using Reexport
+using Dictionaries: Dictionary, dictionary
 
 using ..Utils
 using ..Entities
 using ..BoundaryConditions
 using ..FixedDofBoundaryConditions
 using ..Nodes
+using ..Meshes
 
 @reexport import ..BoundaryConditions: apply
 @reexport import ..Entities: apply!
-
-export StructuralBoundaryCondition, all_bcs, node_bcs, face_bcs, element_bcs, displacement_bcs,
-       load_bcs, fixed_dof_bcs
+@reexport import ..StructuralModel: load_bcs, displacement_bcs, element_bcs, face_bcs, node_bcs
+export StructuralBoundaryCondition, all_bcs, fixed_dof_bcs
 
 """ Structural boundary conditions.
 A `StructuralBoundaryCondition` is a collection of `BoundaryConditions` defining the boundary conditions of the structure.
@@ -252,3 +255,5 @@ function _delete_empty_bcs!(bcs::StructuralBoundaryCondition)
     end
     bcs
 end
+
+end # module

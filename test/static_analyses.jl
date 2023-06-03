@@ -11,6 +11,7 @@ using ONSAS.Solvers
 using ONSAS.Assemblers
 using ONSAS.Solutions
 using ONSAS.Structures
+using ONSAS.StructuralBoundaryConditions
 using ONSAS.Nodes
 using ONSAS.Trusses
 

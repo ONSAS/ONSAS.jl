@@ -15,11 +15,11 @@ using ..Utils
 @reexport import ..Meshes: dofs, num_dofs, nodes, num_nodes, faces, num_faces,
                            elements, num_elements
 @reexport import ..Handlers: mesh
-export AbstractStructure, Structure, materials, boundary_conditions, num_free_dofs, free_dofs
+export AbstractStructure, Structure, materials, boundary_conditions, num_free_dofs, free_dofs,
+       load_bcs, displacement_bcs, element_bcs, face_bcs, node_bcs
 
 # Structural properties 
 include("./StructuralMaterials.jl")
-include("./StructuralBoundaryConditions.jl")
 
 # ==========
 # Structure
@@ -108,6 +108,9 @@ node_bcs(s::AbstractStructure) = node_bcs(s.bcs)
 
 "Return the `AbstractBoundaryCondition`s imposed to `Element`s in the `AbstractStructure` `s`"
 element_bcs(s::AbstractStructure) = element_bcs(s.bcs)
+
+"Return the `AbstractBoundaryCondition`s imposed to `Face`s in the `AbstractStructure` `s`"
+face_bcs(s::AbstractStructure) = face_bcs(s.bcs)
 
 # Materials
 "Return the `StructuralMaterial`s of the `AbstractStructure` `s`"
