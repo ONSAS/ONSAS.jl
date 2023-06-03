@@ -1,9 +1,7 @@
 
 using Test, LinearAlgebra, SparseArrays
-
-# Module to test
 using ONSAS.StaticAnalyses
-
+using ONSAS.Circles
 using ONSAS.SvkMaterial
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions

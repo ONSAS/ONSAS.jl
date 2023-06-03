@@ -1,16 +1,18 @@
-using ...CrossSections: AbstractCrossSection
+module Rectangles
+
+using ..CrossSections: AbstractCrossSection
 
 import ..CrossSections: area, Ixx, Iyy, Izz, Ixy, Ixz, Iyz
 
 export Rectangle
 
-""" Rectangle cross-section.
-### Fields:
-- `width_y` -- width in `y` local axis.
-- `width_z` -- width in `z` local axis.
+"""
+Rectangle cross-section.
 """
 struct Rectangle{T<:Real} <: AbstractCrossSection
+    "Width in `y` local axis."
     width_y::T
+    "Width in `z` local axis."
     width_z::T
 end
 
@@ -41,3 +43,5 @@ Ixz(r::Rectangle) = 0.0
 
 "Return the product moment of area of a `Rectangle` cross-section `r` with respect to the local y and z axes."
 Iyz(r::Rectangle) = 0.0
+
+end # module
