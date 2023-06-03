@@ -8,6 +8,7 @@ using ..Meshes
 using ..Gmsh
 using ..BoundaryConditions
 using ..StructuralModel
+using ..StructuralEntities
 using ..Utils
 using ..Nodes
 
@@ -22,24 +23,24 @@ struct Structure{dim,MESH,MAT,E,NB,LB} <: AbstractStructure{dim,MAT,E}
     "Stores the structure's mesh."
     mesh::MESH
     "Stores the structure's materials and elements assignments."
-    materials::StructuralMaterials{MAT,E}
+    materials::StructuralMaterial{MAT,E}
     "Stores the structure's boundary conditions and elements assignments."
-    bcs::StructuralBoundaryConditions{NB,LB}
+    bcs::StructuralBoundaryCondition{NB,LB}
     "Stores the structure's free degrees of freedom."
     free_dofs::Vector{Dof}
     function Structure(mesh::MESH,
-                       materials::StructuralMaterials{MAT,E},
-                       bcs::StructuralBoundaryConditions{NB,LB},
+                       materials::StructuralMaterial{MAT,E},
+                       bcs::StructuralBoundaryCondition{NB,LB},
                        free_dofs::Vector{Dof}) where {dim,MESH<:AbstractMesh{dim},MAT,E,NB,LB}
         new{dim,MESH,MAT,E,NB,LB}(mesh, materials, bcs, free_dofs)
     end
 end
 
-"Constructor with  `StructuralMaterials` `materials`,  `StructuralBoundaryConditions` `bcs` 
+"Constructor with  `StructuralMaterial` `materials`,  `StructuralBoundaryCondition` `bcs` 
 and `AbstractMesh` `mesh` seting fixed dofs with `FixedDofBoundaryCondition` defined in `bcs`"
 function Structure(mesh::AbstractMesh{dim},
-                   materials::StructuralMaterials{M,E},
-                   bcs::StructuralBoundaryConditions{NB,LB}) where {dim,M,E,NB,LB}
+                   materials::StructuralMaterial{M,E},
+                   bcs::StructuralBoundaryCondition{NB,LB}) where {dim,M,E,NB,LB}
     default_free_dofs = Vector{Dof}()
     for node_dofs in dofs(mesh)
         [push!(default_free_dofs, vec_dof...) for vec_dof in collect(values(node_dofs))]
@@ -52,10 +53,10 @@ function Structure(mesh::AbstractMesh{dim},
     Structure(mesh, materials, bcs, default_free_dofs)
 end
 
-"Constructor of a `Structure` given a `MshFile` `msh_file`, `StructuralMaterials` `materials`,  `StructuralBoundaryConditions` `bcs`."
+"Constructor of a `Structure` given a `MshFile` `msh_file`, `StructuralMaterial` `materials`,  `StructuralBoundaryCondition` `bcs`."
 function Structure(msh_file::MshFile,
-                   materials::StructuralMaterials, bcs::StructuralBoundaryConditions,
-                   s_entities::StructuralEntities,
+                   materials::StructuralMaterial, bcs::StructuralBoundaryCondition,
+                   s_entities::StructuralEntity,
                    dofs_to_dim::Dictionary{Field,<:Integer}=dictionary([:u => 3]))
     nodes = msh_file.vec_nodes
     mesh = Mesh(; nodes)

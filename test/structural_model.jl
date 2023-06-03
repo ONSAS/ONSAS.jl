@@ -6,6 +6,7 @@ using ONSAS.SvkMaterial
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.Structures
+using ONSAS.StructuralEntities
 using ONSAS.Nodes
 using ONSAS.TriangularFaces
 using ONSAS.Trusses
@@ -46,7 +47,7 @@ steel = Svk(E, ν, "steel")
 new_steel = Svk(2E, ν, "new_steel")
 aluminum = Svk(E / 3, ν, "aluminium")
 mat_dict = dictionary([steel => [truss₁, truss₃], aluminum => [truss₂]])
-s_materials = StructuralMaterials(mat_dict)
+s_materials = StructuralMaterial(mat_dict)
 # Boundary conditions
 Fⱼ = 20.0
 Fᵢ = 10.0
@@ -60,12 +61,12 @@ node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂, n�
 face_bc = dictionary([bc₃ => [face₁], bc₅ => [face₁]])
 elem_bc = dictionary([bc₄ => [truss₁, truss₂]])
 
-s_boundary_conditions_only_nodes = StructuralBoundaryConditions(; node_bcs=node_bc)
-s_boundary_conditions_only_faces = StructuralBoundaryConditions(; face_bcs=face_bc)
-s_boundary_conditions_only_elements = StructuralBoundaryConditions(; element_bcs=elem_bc)
-s_boundary_conditions = StructuralBoundaryConditions(node_bc, face_bc, elem_bc)
+s_boundary_conditions_only_nodes = StructuralBoundaryCondition(; node_bcs=node_bc)
+s_boundary_conditions_only_faces = StructuralBoundaryCondition(; face_bcs=face_bc)
+s_boundary_conditions_only_elements = StructuralBoundaryCondition(; element_bcs=elem_bc)
+s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
 
-@testset "ONSAS.StructuralModel.StructuralMaterials" begin
+@testset "ONSAS.StructuralModel.StructuralMaterial" begin
     @test s_materials[truss₁] == steel
     @test s_materials["steel"] == steel
     @test truss₁ ∈ s_materials[steel] && truss₃ ∈ s_materials[steel]
@@ -80,7 +81,7 @@ s_boundary_conditions = StructuralBoundaryConditions(node_bc, face_bc, elem_bc)
     @test s_materials[truss₁] == new_steel
 end
 
-@testset "ONSAS.StructuralModel.StructuralBoundaryConditions" begin
+@testset "ONSAS.StructuralModel.StructuralBoundaryCondition" begin
 
     # Access and filter boundary conditions
     @test node_bcs(s_boundary_conditions) == node_bc
@@ -139,7 +140,7 @@ end
           truss₄ ∈ s_boundary_conditions[bc₄]
 end
 
-@testset "ONSAS.StructuralModel.StructuralEntities" begin
+@testset "ONSAS.StructuralModel.StructuralEntity" begin
     sec = Square(1)
 
     tetra_label = "tetra_label"
@@ -149,7 +150,7 @@ end
     velems = [Tetrahedron(tetra_label), Truss(sec, truss_label)]
     vfaces = [TriangularFace(face_label)]
 
-    s_entities = StructuralEntities(velems, vfaces)
+    s_entities = StructuralEntity(velems, vfaces)
 
     @test elem_types_to_elements(s_entities) == s_entities.elem_types_to_elements
     @test face_types_to_faces(s_entities) == s_entities.face_types_to_faces

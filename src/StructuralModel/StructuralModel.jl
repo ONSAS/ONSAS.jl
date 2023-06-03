@@ -20,7 +20,6 @@ export AbstractStructure, Structure, materials, boundary_conditions, num_free_do
 # Structural properties 
 include("./StructuralMaterials.jl")
 include("./StructuralBoundaryConditions.jl")
-include("./StructuralEntities.jl")
 
 # ==========
 # Structure
@@ -95,7 +94,7 @@ faces(s::AbstractStructure) = faces(mesh(s))
 num_faces(s::AbstractStructure) = num_faces(mesh(s))
 
 # Boundary Conditions 
-"Return the `StructuralBoundaryConditions` of the `AbstractStructure` `s`"
+"Return the `StructuralBoundaryCondition` of the `AbstractStructure` `s`"
 boundary_conditions(s::AbstractStructure) = s.bcs
 
 "Return the `DisplacementBoundaryCondition`s of the `AbstractStructure` `s`"
@@ -111,7 +110,7 @@ node_bcs(s::AbstractStructure) = node_bcs(s.bcs)
 element_bcs(s::AbstractStructure) = element_bcs(s.bcs)
 
 # Materials
-"Return the `StructuralMaterials`s of the `AbstractStructure` `s`"
+"Return the `StructuralMaterial`s of the `AbstractStructure` `s`"
 materials(s::AbstractStructure) = s.materials
 
 end # module
