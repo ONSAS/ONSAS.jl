@@ -7,6 +7,7 @@ using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.Structures
 using ONSAS.StructuralEntities
+using ONSAS.StructuralMaterials
 using ONSAS.StructuralBoundaryConditions
 using ONSAS.Nodes
 using ONSAS.TriangularFaces

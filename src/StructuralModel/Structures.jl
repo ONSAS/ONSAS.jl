@@ -8,6 +8,7 @@ using ..Meshes
 using ..Gmsh
 using ..BoundaryConditions
 using ..StructuralModel
+using ..StructuralMaterials
 using ..StructuralEntities
 using ..StructuralBoundaryConditions
 using ..Utils

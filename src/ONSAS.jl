@@ -40,6 +40,7 @@ FILES = ["Utils.jl",
          "StructuralModel/StructuralModel.jl",
          "StructuralModel/StructuralEntities.jl",
          "StructuralModel/StructuralBoundaryConditions.jl",
+         "StructuralModel/StructuralMaterials.jl",
          "StructuralModel/Structures.jl",
          # Structural Solvers
          "StructuralSolvers/StructuralSolvers.jl",
@@ -101,6 +102,7 @@ end
 @reexport using .StructuralModel
 @reexport using .StructuralEntities
 @reexport using .StructuralBoundaryConditions
+@reexport using .StructuralMaterials
 @reexport using .Structures
 
 # Finite element solvers.

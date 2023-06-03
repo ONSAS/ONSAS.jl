@@ -1,9 +1,12 @@
+module StructuralMaterials
+
 using Reexport
 using Dictionaries
 
 using ..Materials
 using ..Entities
 using ..Utils
+using ..Meshes
 
 @reexport import ..Entities: apply!
 
@@ -61,7 +64,9 @@ function apply!(sm::StructuralMaterial, m::AbstractMesh)
     element_sets = element_set(m)
     for (mat, elements) in pairs(element_materials(sm))
         mat_label = string(label(mat))
-        [push!(elements, vec_elements[element_index]) for element_index in element_sets[mat_label]]
+        for element_index in element_sets[mat_label]
+            push!(elements, vec_elements[element_index])
+        end
     end
 end
 
@@ -86,3 +91,5 @@ function Base.replace!(sm::StructuralMaterial,
     delete!(sm, old_material)
     insert!(sm, new_material, material_elements)
 end
+
+end # module

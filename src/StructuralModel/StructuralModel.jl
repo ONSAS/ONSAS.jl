@@ -15,11 +15,9 @@ using ..Utils
 @reexport import ..Meshes: dofs, num_dofs, nodes, num_nodes, faces, num_faces,
                            elements, num_elements
 @reexport import ..Handlers: mesh
+
 export AbstractStructure, Structure, materials, boundary_conditions, num_free_dofs, free_dofs,
        load_bcs, displacement_bcs, element_bcs, face_bcs, node_bcs
-
-# Structural properties 
-include("./StructuralMaterials.jl")
 
 # ==========
 # Structure
