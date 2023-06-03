@@ -3,6 +3,7 @@
 ##########################
 using Test, LinearAlgebra, SparseArrays
 using ONSAS.StructuralSolvers
+using ONSAS.Solvers
 using ONSAS.Utils
 using ONSAS.Elements
 

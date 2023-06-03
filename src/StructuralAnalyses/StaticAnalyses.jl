@@ -9,6 +9,7 @@ using Reexport: @reexport
 @reexport using ...StructuralModel: AbstractStructure, load_bcs
 @reexport using ..StructuralAnalyses
 @reexport using ...StructuralSolvers
+using ..Solvers
 
 import ..StructuralAnalyses: _assemble!, initial_time, current_time, final_time, _next!,
                              iteration_residuals, is_done, reset!

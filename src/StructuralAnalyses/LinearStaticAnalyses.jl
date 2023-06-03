@@ -7,6 +7,7 @@ using ....Utils
 using ..StaticAnalyses
 using ...StructuralSolvers
 using ...StructuralModel
+using ..Solvers
 
 @reexport import ...StructuralSolvers: _solve!, _step!
 
