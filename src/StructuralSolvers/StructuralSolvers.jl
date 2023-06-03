@@ -218,8 +218,6 @@ _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
 "Resets the analysis to the state before starting a new assembly."
 function reset! end
 
-include("./Assembler.jl")
-
 #=================#
 # AbstractSolution
 #=================#

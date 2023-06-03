@@ -37,6 +37,8 @@ FILES = ["Utils.jl",
          # Structural Solvers
          "StructuralSolvers/StructuralSolvers.jl",
          "StructuralSolvers/Solvers.jl",
+         "StructuralSolvers/Assemblers.jl",
+         # Structural Analyses
          "StructuralAnalyses/StructuralAnalyses.jl",
          "StructuralAnalyses/StaticAnalyses.jl"]
 
@@ -89,6 +91,7 @@ end
 # Finite element solvers.
 @reexport using .StructuralSolvers
 @reexport using .Solvers
+@reexport using .Assemblers
 
 # Structural analyses.
 @reexport using .StructuralAnalyses

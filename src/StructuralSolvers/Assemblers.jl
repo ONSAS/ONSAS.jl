@@ -1,3 +1,5 @@
+module Assemblers
+
 using SparseArrays: sparse
 using Reexport
 
@@ -8,15 +10,15 @@ using ..StructuralModel: AbstractStructure, num_free_dofs
 
 export Assembler, _assemble!, _reset_assembler!, end_assemble, _end_assemble!
 
-"Assembler struct
-This struct stores column indexes, row indexes and values for the assemble process.
-### Fields:
-- `I` -- column indexes
-- `J` -- row indexes
-- `V` -- values"
+""""
+Struct that stores column indexes, row indexes and values for the assemble process.
+ """
 struct Assembler{T}
+    "Column indexes."
     I::Vector{Int}
+    "Row indexes."
     J::Vector{Int}
+    "Values."
     V::Vector{T}
 end
 
@@ -77,3 +79,5 @@ function _end_assemble!(K_sys::AbstractMatrix{T}, a::Assembler{T}) where {T}
         K_sys[a.I[index_v], a.J[index_v]] += v
     end
 end
+
+end # module

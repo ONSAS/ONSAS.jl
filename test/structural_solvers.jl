@@ -4,6 +4,7 @@
 using Test, LinearAlgebra, SparseArrays
 using ONSAS.StructuralSolvers
 using ONSAS.Solvers
+using ONSAS.Assemblers
 using ONSAS.Utils
 using ONSAS.Elements
 

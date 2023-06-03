@@ -6,6 +6,7 @@ using ...Meshes
 using ...StructuralModel
 using ...StructuralAnalyses
 using ...StructuralSolvers
+using ..Assemblers
 using ...Utils
 
 @reexport import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
