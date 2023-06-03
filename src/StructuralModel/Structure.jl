@@ -50,7 +50,7 @@ function Structure(msh_file::MshFile,
                    s_entities::StructuralEntities,
                    dofs_to_dim::Dictionary{Field,<:Integer}=dictionary([:u => 3]))
     nodes = msh_file.vec_nodes
-    mesh = Mesh(nodes)
+    mesh = Mesh(; nodes)
 
     # Loop over all physical entities
     for (entity_index, entity_nodes_indexes) in enumerate(msh_file.connectivity)
@@ -77,7 +77,7 @@ function Structure(msh_file::MshFile,
 
         # Find boundary conditions 
         bc_type_label = bc_label(msh_file, entity_index)
-        if ~isempty(bc_type_label)
+        if !isempty(bc_type_label)
             bc_type = bcs[bc_type_label]
             push!(bcs, bc_type, entity)
         end

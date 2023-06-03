@@ -19,7 +19,7 @@ using ONSAS.Meshes
     n₈ = Node(Lᵢ, Lⱼ, 0.0)
     vec_nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
     # nothing is a placeholder for extra data
-    s_mesh = Mesh(vec_nodes, nothing)
+    mesh = Mesh(; nodes=vec_nodes)
     ## Faces 
     f₁ = TriangularFace(n₅, n₈, n₆)
     f₂ = TriangularFace(n₆, n₈, n₇)
@@ -30,7 +30,7 @@ using ONSAS.Meshes
     f₇ = TriangularFace(n₁, n₄, n₅)
     f₈ = TriangularFace(n₄, n₈, n₅)
     vec_faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
-    push!(s_mesh, vec_faces)
+    append!(faces(mesh), vec_faces)
     ## Elements 
     t₁ = Tetrahedron(n₁, n₄, n₂, n₆)
     t₂ = Tetrahedron(n₆, n₂, n₃, n₄)
@@ -39,44 +39,44 @@ using ONSAS.Meshes
     t₅ = Tetrahedron(n₄, n₆, n₅, n₈)
     t₆ = Tetrahedron(n₄, n₇, n₆, n₈)
     vec_elems = [t₁, t₂, t₃, t₄, t₅, t₆]
-    push!(s_mesh, vec_elems)
+    append!(elements(mesh), vec_elems)
 
     # Sets 
     # nodes
     node_ids_in_vec = [1, 2, 3, 4]
-    nodes_set = nodes(s_mesh)[node_ids_in_vec]
+    nodes_set = nodes(mesh)[node_ids_in_vec]
     node_set_label = "left"
     # add using node indexes
-    [add_node_to_set!(s_mesh, node_set_label, i) for i in node_ids_in_vec[1:3]]
+    [add_node_to_set!(mesh, node_set_label, i) for i in node_ids_in_vec[1:3]]
     # add using the node itself
-    add_node_to_set!(s_mesh, node_set_label, last(nodes_set))
-    @test all([i ∈ node_set(s_mesh, node_set_label) for i in node_ids_in_vec])
-    @test all([n ∈ nodes(s_mesh, node_set_label) for n in nodes_set])
+    add_node_to_set!(mesh, node_set_label, last(nodes_set))
+    @test all([i ∈ node_set(mesh, node_set_label) for i in node_ids_in_vec])
+    @test all([n ∈ nodes(mesh, node_set_label) for n in nodes_set])
 
     # faces
     face_ids_in_vec = [6, 5]
     face_set_label = "front"
-    faces_set = faces(s_mesh)[face_ids_in_vec]
+    faces_set = faces(mesh)[face_ids_in_vec]
     # add using face indexes
-    add_face_to_set!(s_mesh, face_set_label, first(face_ids_in_vec))
+    add_face_to_set!(mesh, face_set_label, first(face_ids_in_vec))
     # add using the face itself
-    add_face_to_set!(s_mesh, face_set_label, last(faces_set))
-    @test all([i ∈ face_set(s_mesh, face_set_label) for i in face_ids_in_vec])
-    @test all([n ∈ faces(s_mesh, face_set_label) for n in faces_set])
+    add_face_to_set!(mesh, face_set_label, last(faces_set))
+    @test all([i ∈ face_set(mesh, face_set_label) for i in face_ids_in_vec])
+    @test all([n ∈ faces(mesh, face_set_label) for n in faces_set])
 
     elem_ids_in_vec = [5, 6]
     element_set_label = "elems-with-node8"
-    elements_set = elements(s_mesh)[elem_ids_in_vec]
+    elements_set = elements(mesh)[elem_ids_in_vec]
     # add using element indexes
-    add_element_to_set!(s_mesh, element_set_label, first(elem_ids_in_vec))
+    add_element_to_set!(mesh, element_set_label, first(elem_ids_in_vec))
     # add using the element itself
-    add_element_to_set!(s_mesh, element_set_label, last(elements_set))
-    @test all([i ∈ element_set(s_mesh, element_set_label) for i in elem_ids_in_vec])
-    @test all([n ∈ elements(s_mesh, element_set_label) for n in elements_set])
+    add_element_to_set!(mesh, element_set_label, last(elements_set))
+    @test all([i ∈ element_set(mesh, element_set_label) for i in elem_ids_in_vec])
+    @test all([n ∈ elements(mesh, element_set_label) for n in elements_set])
 
     # Dofs
     dof_dim = 3
-    apply!(s_mesh, :u, dof_dim)
+    apply!(mesh, :u, dof_dim)
 
     # Interpolator
     #--------------------------------
@@ -85,8 +85,8 @@ using ONSAS.Meshes
     # Inner nodes
     nodes_to_interpolate = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈, n₉]
     vec_points = coordinates.(nodes_to_interpolate)
-    ph_nodes = PointEvalHandler(s_mesh, vec_points)
-    @test mesh(ph_nodes) == s_mesh
+    ph_nodes = PointEvalHandler(mesh, vec_points)
+    @test ph_nodes.mesh == mesh
     in_mesh_indexes = [1, 2, 3, 4, 5, 6, 7, 8]
     @test points(ph_nodes) == view(nodes_to_interpolate, in_mesh_indexes)
     @test n₉ ∈ not_in_mesh_points(ph_nodes)
@@ -103,7 +103,7 @@ using ONSAS.Meshes
                                           for n in nodes_to_interpolate])
 
     p₉ = Point(rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ)
-    ph_rand = PointEvalHandler(s_mesh, p₉)
+    ph_rand = PointEvalHandler(mesh, p₉)
     interpol = interpolator(ph_rand)
     node_2_weights = node_to_weights(interpol)
     node_to_interpolate_p₉ = first(node_2_weights)

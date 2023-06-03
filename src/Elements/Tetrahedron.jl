@@ -18,16 +18,17 @@ A `Tetrahedron` represents a 3D volume element with four nodes.
 
 See [[Belytschko]](@ref) and [[Gurtin]](@ref) for more details.
 """
-struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T}} <: AbstractElement{dim,T}
+struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N}} <:
+       AbstractElement{dim,T}
     "Tetrahedron nodes."
-    nodes::SVector{4,N}
+    nodes::VN
     "Tetrahedron label."
     label::Label
-    function Tetrahedron(nodes::SVector{4,N},
+    function Tetrahedron(nodes::VN,
                          label::Label=NO_LABEL) where
-             {dim,T<:Real,N<:AbstractNode{dim,T}}
+             {dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N}}
         @assert dim == 3 "Nodes of a tetrahedron element must be 3D."
-        new{dim,T,N}(nodes, Symbol(label))
+        new{dim,T,N,VN}(nodes, Symbol(label))
     end
 end
 function Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label::Label=NO_LABEL) where {N<:AbstractNode}

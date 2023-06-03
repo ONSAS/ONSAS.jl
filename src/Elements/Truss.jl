@@ -4,7 +4,6 @@ using ..IsotropicLinearElasticMaterial
 using ..Elements
 using ..CrossSections
 using ..Utils
-using ..Utils
 
 import ..Elements: nodes, create_entity, cross_section, internal_forces, local_dof_symbol, strain,
                    stress
@@ -13,24 +12,23 @@ export Truss
 
 """
 A `Truss` represents an element composed by two `Node`s that transmits axial force only.
-### Fields:
-- `nodes`          -- stores the truss nodes.
-- `cross_sections` -- stores the truss cross-section properties.
-- `label`          -- stores the truss label.
 
 ### References
 See [[ANLE]](@ref).
-
 """
-struct Truss{dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection} <: AbstractElement{dim,T}
-    nodes::SVector{2,N}
+struct Truss{dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N},G<:AbstractCrossSection} <:
+       AbstractElement{dim,T}
+    "Stores the truss nodes."
+    nodes::VN
+    "Stores the truss cross-section properties."
     cross_section::G
+    "Stores the truss label."
     label::Label
-    function Truss(nodes::SVector{2,N}, g::G,
+    function Truss(nodes::VN, g::G,
                    label::Label=NO_LABEL) where
-             {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
+             {dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N},G<:AbstractCrossSection}
         @assert 1 ≤ dim ≤ 3 "Nodes of a truss element must comply  1 < dim < 3 ."
-        new{dim,T,N,G}(nodes, g, Symbol(label))
+        new{dim,T,N,VN,G}(nodes, g, Symbol(label))
     end
 end
 

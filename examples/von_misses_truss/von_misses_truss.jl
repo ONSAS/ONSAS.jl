@@ -23,7 +23,7 @@ function run_von_misses_truss_example()
     n₁ = Node(0.0, 0.0, 0.0)
     n₂ = Node(V, 0.0, H)
     n₃ = Node(2V, 0.0, 0.0)
-    vec_nodes = [n₁, n₂, n₃]
+    nodes = [n₁, n₂, n₃]
     ## Cross sections
     d = sqrt(4 * A₀ / pi)
     s₁ = Circle(d)
@@ -32,9 +32,9 @@ function run_von_misses_truss_example()
     ## Elements 
     truss₁ = Truss(n₁, n₂, s₁, "left_truss") # [n₁, n₂]
     truss₂ = Truss(n₂, n₃, s₂, "right_truss") # [n₂, n₃]
-    vec_elems = [truss₁, truss₂]
+    elements = [truss₁, truss₂]
     ## Mesh
-    s_mesh = Mesh(vec_nodes, vec_elems)
+    s_mesh = Mesh(; nodes, elements)
     # -------------------------------
     # Dofs
     #--------------------------------
