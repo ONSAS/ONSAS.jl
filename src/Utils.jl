@@ -3,7 +3,7 @@ module Utils
 using LinearAlgebra: Diagonal
 
 export ScalarWrapper, label, unwrap, eye, row_vector, @debugtime, voigt, Label, NO_LABEL,
-       Density, Field
+       Density, Field, index
 
 #================================#
 # Generic functions to overload  #

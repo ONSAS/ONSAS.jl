@@ -1,14 +1,15 @@
-using StaticArrays: SVector, MMatrix
-using LinearAlgebra: Symmetric, det, diagm
-import LazySets
-using Reexport
+"Module defining tetrahedron elements."
+module Tetrahedrons
 
-using ..HyperElasticMaterials
-using ..Elements
-using ..CrossSections
+using StaticArrays, LinearAlgebra, LazySets, Reexport
+
 using ..Utils
+using ..Nodes
+using ..Entities
+using ..IsotropicLinearElasticMaterial
+using ..HyperElasticMaterials
 
-@reexport import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress,
+@reexport import ..Entities: create_entity, internal_forces, local_dof_symbol, strain, stress,
                              weights
 
 export Tetrahedron, volume, reference_coordinates
@@ -248,3 +249,5 @@ end
 
 "Checks if a point `p` is inside a `Tetrahedron` element `t`."
 Base.:∈(p::Point, t::Tetrahedron) = p ∈ convert(LazySets.Tetrahedron, t)
+
+end
