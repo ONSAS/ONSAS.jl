@@ -2,6 +2,9 @@ using Test
 using ONSAS.Handlers
 using ONSAS.Elements
 using ONSAS.Meshes
+using ONSAS.Interpolators
+
+const RTOL = 1e-5
 
 @testset "ONSAS.Meshes.PointEvalHandler + TriangularFace + Tetrahedron + Sets" begin
     Lᵢ = rand() * 20
@@ -86,6 +89,7 @@ using ONSAS.Meshes
     nodes_to_interpolate = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈, n₉]
     vec_points = coordinates.(nodes_to_interpolate)
     ph_nodes = PointEvalHandler(mesh, vec_points)
+
     @test ph_nodes.mesh == mesh
     in_mesh_indexes = [1, 2, 3, 4, 5, 6, 7, 8]
     @test points(ph_nodes) == view(nodes_to_interpolate, in_mesh_indexes)

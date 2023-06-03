@@ -24,9 +24,8 @@ FILES = ["Utils.jl",
          # Meshes
          "Meshes/Meshes.jl",
          "Meshes/Searches.jl",
-         "Meshes/Interpolators.jl"
-         #=
-         #  "Meshes/Handlers.jl",
+         "Meshes/Interpolators.jl",
+         "Meshes/Handlers.jl",
          # Interfaces
          "Interfaces/Gmsh.jl",
          "Interfaces/VTK.jl",
@@ -37,7 +36,6 @@ FILES = ["Utils.jl",
          "StructuralAnalyses/StructuralAnalyses.jl",
          "StructuralAnalyses/StaticAnalyses.jl"
          #end 
-         =#
          ]
 
 foreach(FILES) do m
@@ -71,20 +69,20 @@ end
 @reexport using .Meshes
 @reexport using .Searches
 @reexport using .Interpolators
-# @reexport using .Handlers
+@reexport using .Handlers
 
 # # Interfaces with external programs.
-# @reexport using .Gmsh
-# @reexport using .VTK
+@reexport using .Gmsh
+@reexport using .VTK
 
 # # Structural models.
-# @reexport using .StructuralModel
+@reexport using .StructuralModel
 
 # # Finite element solvers.
-# @reexport using .StructuralSolvers
+@reexport using .StructuralSolvers
 
 # # Structural analyses.
-# @reexport using .StructuralAnalyses
-# @reexport using .StaticAnalyses
+@reexport using .StructuralAnalyses
+@reexport using .StaticAnalyses
 
 end
