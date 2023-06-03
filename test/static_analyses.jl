@@ -6,6 +6,7 @@ using ONSAS.SvkMaterial
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.StructuralAnalyses
+using ONSAS.Solvers
 
 const RTOL = 5e-2
 

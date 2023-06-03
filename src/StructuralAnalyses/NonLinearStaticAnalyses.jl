@@ -4,6 +4,7 @@ using LinearAlgebra: norm
 using IterativeSolvers: cg!
 using Reexport
 
+using ..Solvers
 using ....Utils
 using ..StaticAnalyses
 using ...StructuralSolvers

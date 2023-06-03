@@ -177,8 +177,6 @@ tolerances(solver::AbstractSolver) = solver.tol
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
 function _step!(solver::AbstractSolver, analysis::A) where {A} end
 
-include("./NewtonRaphson.jl")
-
 # ===============
 # Solve function
 # ===============
