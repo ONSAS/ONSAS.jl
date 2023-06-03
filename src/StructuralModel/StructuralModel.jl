@@ -15,7 +15,7 @@ using ..Utils
 @reexport import ..Meshes: dofs, num_dofs, nodes, num_nodes, faces, num_faces,
                            elements, num_elements
 @reexport import ..Handlers: mesh
-export Structure, materials, boundary_conditions, num_free_dofs, free_dofs
+export AbstractStructure, Structure, materials, boundary_conditions, num_free_dofs, free_dofs
 
 # Structural properties 
 include("./StructuralMaterials.jl")
@@ -113,10 +113,5 @@ element_bcs(s::AbstractStructure) = element_bcs(s.bcs)
 # Materials
 "Return the `StructuralMaterials`s of the `AbstractStructure` `s`"
 materials(s::AbstractStructure) = s.materials
-
-#====================================#
-# Abstract structure implementations #
-#====================================#
-include("./Structure.jl")
 
 end # module
