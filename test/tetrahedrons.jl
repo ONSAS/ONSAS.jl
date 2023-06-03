@@ -42,7 +42,7 @@ n₃ = Node(0.0, 0.0, 1.0,
 n₄ = Node(2.0, 0.0, 1.0,
           dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)]]))
 
-@testset "ONSAS.Elements.Tetrahedron 3D SVK" begin
+@testset "ONSAS.Entities.Tetrahedron 3D SVK" begin
     tetra_no_label = Tetrahedron(n₁, n₂, n₃, n₄)
     tetra_empty_nodes = Tetrahedron(tetra_label)
     @test label(tetra_empty_nodes) == Symbol(tetra_label)
@@ -115,7 +115,7 @@ n₄ = Node(2.0, 0.0, 1.0,
     @test interpolated_solution ≈ exact_solution rtol = RTOL
 end
 
-@testset "ONSAS.Elements.Tetrahedron 3D IsotropicLinearElastic" begin
+@testset "ONSAS.Entities.Tetrahedron 3D IsotropicLinearElastic" begin
     my_lin_mat = IsotropicLinearElastic(elasticity_modulus(my_svk_mat), shear_modulus(my_svk_mat))
 
     fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_lin_mat, tetra,

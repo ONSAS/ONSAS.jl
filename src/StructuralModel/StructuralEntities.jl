@@ -1,7 +1,7 @@
 using Dictionaries
 using Reexport
 
-using ..Elements
+using ..Entities
 using ..Utils
 using ..Meshes
 using ..Gmsh

@@ -4,7 +4,7 @@ using ONSAS.Nodes
 using ONSAS.Entities
 using ONSAS.TriangularFaces
 
-@testset "ONSAS.Elements.TriangularFace 3D" begin
+@testset "ONSAS.Entities.TriangularFace 3D" begin
     x₁ = [0, 0, 0]
     x₂ = [1, 0, 0]
     x₃ = [0, 1, 0]

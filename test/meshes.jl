@@ -4,7 +4,7 @@
 using Test, Suppressor, Dictionaries
 using ONSAS.Meshes
 using ONSAS.Gmsh
-using ONSAS.Elements
+using ONSAS.Entities
 using ONSAS.Circles
 
 const RTOL = 1e-5
@@ -20,7 +20,7 @@ const RTOL = 1e-5
     n₄ = Node(2L, 0, 5L)
     vec_nodes = [n₁, n₂, n₃, n₄]
 
-    ## Elements
+    ## Entities
     d = 0.2
     s₁ = Circle(d)
     t₁ = Truss(n₁, n₂, s₁)

@@ -2,7 +2,7 @@ module Structures
 
 using Reexport
 
-using ..Elements
+using ..Entities
 using ..Meshes
 using ..Gmsh
 using ..BoundaryConditions

@@ -13,7 +13,7 @@ my_svk_mat = Svk(; E=E, ν=ν)
 
 const RTOL = 1e-3
 
-@testset "ONSAS.Elements.Truss 1D" begin
+@testset "ONSAS.Entities.Truss 1D" begin
 
     # General case considering a mesh with rotations 
     x₁ = [-1]
@@ -57,7 +57,7 @@ const RTOL = 1e-3
     @test Kᵢₙₜ_e ≈ Kᵢₙₜ_e[1, 1] * [1 -1; -1 1] rtol = RTOL
 end
 
-@testset "ONSAS.Elements.Truss 3D" begin
+@testset "ONSAS.Entities.Truss 3D" begin
 
     # General case considering a mesh with rotations 
     x₁ = [-1, 0, 0]

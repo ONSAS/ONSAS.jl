@@ -3,7 +3,7 @@ Module defining an interface, `AbstractEntity`.
 
 Each entity consists of an object with material and nodes. The following entities are defined:
 
-- Elements.
+- Entities.
 - Faces.
 """
 module Entities
@@ -19,7 +19,7 @@ using ..Materials
 import ..CrossSections: area
 
 export AbstractEntity, nodes, create_entity
-export AbstractFace, normal_direction
+export AbstractFace, normal_direction, volume
 export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
        local_dofs, nodes, strain, stress, weights, num_nodes
 
@@ -184,5 +184,8 @@ function weights(e::AbstractElement, p::AbstractVector) end
 function num_nodes(e::AbstractElement)
     length(nodes(e))
 end
+
+"Return the volume of the element."
+function volume(e::AbstractElement) end
 
 end # module

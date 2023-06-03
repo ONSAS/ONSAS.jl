@@ -10,9 +10,9 @@ using ..IsotropicLinearElasticMaterial
 using ..HyperElasticMaterials
 
 @reexport import ..Entities: create_entity, internal_forces, local_dof_symbol, strain, stress,
-                             weights
+                             weights, volume
 
-export Tetrahedron, volume, reference_coordinates
+export Tetrahedron, reference_coordinates
 
 """
 A `Tetrahedron` represents a 3D volume element with four nodes.

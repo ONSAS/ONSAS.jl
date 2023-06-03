@@ -46,9 +46,9 @@ In case you encounter a bug or issue with ONSAS.jl, you can create an [issue][op
 The code style is based on the [Julia style guide](https://docs.julialang.org/en/v1/manual/style-guide/) and is done automatically using [JuliaFormatter.jl](https://github.com/domluna/JuliaFormatter.jl). Moreover, this items should be considered:
 
 * Naming files:
-    * The abstract interfaces should be named in plural like `Elements.jl`, `Materials.jl`, `LinearElasticMaterials.jl` `LoadBoundaryConditions.jl`, etc.
+    * The abstract interfaces should be named in plural like `Entities.jl`, `Materials.jl`, `LinearElasticMaterials.jl` `LoadBoundaryConditions.jl`, etc.
     * The concrete implementations should wrapped into a module and  named in singular. For instance if a `GlobalLoad` object is defined then the file name should be `GlobalLoadBoundaryCondition.jl`.
-    * Each file should be a module named as the file name without the extension. For instance, `Elements.jl` should be `module Elements`.
+    * Each file should be a module named as the file name without the extension. For instance, `Entities.jl` should be `module Entities`.
 
 * Testing files:
     * They should be named `<module_name>.jl` and placed in the `test/` folder.
@@ -66,9 +66,9 @@ Here is an example:
 using ExternalPkgs, Reexport
 
 using ..Materials
-using ..Elements
+using ..Entities
 
-@reexport import ..Elements: strain_energy
+@reexport import ..Entities: strain_energy
 ```
 Note that the use of `..` and `...` depends on the number of levels you need to go up in the module hierarchy.
 

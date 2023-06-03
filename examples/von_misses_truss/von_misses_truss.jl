@@ -29,7 +29,7 @@ function run_von_misses_truss_example()
     s₁ = Circle(d)
     a = sqrt(A₀)
     s₂ = Square(a)
-    ## Elements 
+    ## Entities 
     truss₁ = Truss(n₁, n₂, s₁, "left_truss") # [n₁, n₂]
     truss₂ = Truss(n₂, n₃, s₂, "right_truss") # [n₂, n₃]
     elements = [truss₁, truss₂]

@@ -17,7 +17,7 @@ FILES = ["Utils.jl",
          "CrossSections/Rectangles.jl",
          "CrossSections/Squares.jl",
          "CrossSections/GenericCrossSections.jl",
-         # Elements
+         # Entities
          "Entities/Nodes.jl",
          "Entities/Entities.jl",
          "Entities/Trusses.jl",

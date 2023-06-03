@@ -1,9 +1,13 @@
 using Reexport
 
-using ..Utils, ..Elements, ..BoundaryConditions, ..FixedDofBoundaryConditions
+using ..Utils
+using ..Entities
+using ..BoundaryConditions
+using ..FixedDofBoundaryConditions
+using ..Nodes
 
 @reexport import ..BoundaryConditions: apply
-@reexport import ..Elements: apply!
+@reexport import ..Entities: apply!
 
 export StructuralBoundaryConditions, all_bcs, node_bcs, face_bcs, element_bcs, displacement_bcs,
        load_bcs, fixed_dof_bcs

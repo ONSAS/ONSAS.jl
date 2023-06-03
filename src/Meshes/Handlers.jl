@@ -4,7 +4,8 @@ using Reexport, Dictionaries, StaticArrays
 using LazySets: UnionSetArray, box_approximation, Singleton, split, is_intersection_empty
 
 using ..Meshes
-using ..Elements
+using ..Entities
+using ..Nodes
 
 import LazySets
 
@@ -110,7 +111,7 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT};
     nnodes = num_nodes(element(mesh, 1))
     weights = Vector{SVector{nnodes,T}}()
     @inbounds for (elem_idx, point_idx) in zip(in_mesh_elements_idx, in_mesh_points_idx)
-        w = Elements.weights(element(mesh, elem_idx), vec_points[point_idx])
+        w = Entities.weights(element(mesh, elem_idx), vec_points[point_idx])
         push!(weights, w)
     end
     PointEvalHandler(mesh, vec_points, in_mesh_points_idx, in_mesh_elements_idx, weights)

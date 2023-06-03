@@ -56,7 +56,7 @@ x_test_3D = rand(x_test_vec_3D)
     @test dofs(n_dofs, field) == dofs_indexes
 end
 
-@testset "ONSAS.Elements.Node 2D" begin
+@testset "ONSAS.Entities.Node 2D" begin
     node = Node(x_test_2D[1], x_test_2D[2])
     @test all([node[i] == xᵢ for (i, xᵢ) in enumerate(coordinates(node))])
     @test dimension(node) == length(x_vec2D)
@@ -72,7 +72,7 @@ end
     @test length(dofs(node)[:u]) == length(new_dofs_node)
 end
 
-@testset "ONSAS.Elements.Node 3D" begin
+@testset "ONSAS.Entities.Node 3D" begin
     node = Node(x_test_3D[1], x_test_3D[2], x_test_3D[3])
     @test all([node[i] == xᵢ for (i, xᵢ) in enumerate(coordinates(node))])
     @test dimension(node) == length(x_test_3D)

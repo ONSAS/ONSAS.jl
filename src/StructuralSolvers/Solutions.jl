@@ -2,13 +2,13 @@ module Solutions
 
 using Reexport
 
-using ..Elements
+using ..Entities
 using ..Meshes
 using ..Handlers
 using ..Utils
 using ..StructuralSolvers
 
-@reexport import ..Elements: internal_forces, inertial_forces, strain, stress
+@reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 
 export AbstractSolution, StatesSolution, stresses, strains, states, analysis, solver,
        displacements, external_forces, iteration_residuals
