@@ -4,6 +4,7 @@ using ONSAS.Squares
 using ONSAS.SvkMaterial
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
+using ONSAS.Structures
 
 # Scalar parameters
 d = 0.1

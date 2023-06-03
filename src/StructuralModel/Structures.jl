@@ -1,11 +1,17 @@
+module Structures
+
 using Reexport
 
 using ..Elements
 using ..Meshes
+using ..Gmsh
 using ..BoundaryConditions
 using ..StructuralModel
+using ..Utils
 
 @reexport import ..Handlers: PointEvalHandler
+
+export Structure
 
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis. 
@@ -108,3 +114,5 @@ function Base.replace!(s::Structure,
                        label::Label=label(new_material))
     replace!(materials(s), new_material, label)
 end
+
+end # module

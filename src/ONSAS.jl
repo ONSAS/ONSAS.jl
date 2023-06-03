@@ -34,6 +34,7 @@ FILES = ["Utils.jl",
          "Interfaces/VTK.jl",
          #Structural Model
          "StructuralModel/StructuralModel.jl",
+         "StructuralModel/Structures.jl",
          # Structural Solvers
          "StructuralSolvers/StructuralSolvers.jl",
          "StructuralSolvers/Solvers.jl",
@@ -88,6 +89,7 @@ end
 
 # Structural models.
 @reexport using .StructuralModel
+@reexport using .Structures
 
 # Finite element solvers.
 @reexport using .StructuralSolvers

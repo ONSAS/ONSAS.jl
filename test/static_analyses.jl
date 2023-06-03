@@ -9,6 +9,7 @@ using ONSAS.StructuralAnalyses
 using ONSAS.Solvers
 using ONSAS.Assemblers
 using ONSAS.Solutions
+using ONSAS.Structures
 
 const RTOL = 5e-2
 
