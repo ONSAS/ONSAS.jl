@@ -49,6 +49,7 @@ FILES = ["Utils.jl",
          "StructuralSolvers/Solutions.jl",
          # Structural Analyses
          "StructuralAnalyses/StructuralAnalyses.jl",
+         "StructuralAnalyses/StaticStates.jl",
          "StructuralAnalyses/StaticAnalyses.jl"]
 
 foreach(FILES) do m
@@ -113,6 +114,7 @@ end
 
 # Structural analyses.
 @reexport using .StructuralAnalyses
+@reexport using .StaticStates
 @reexport using .StaticAnalyses
 
 end

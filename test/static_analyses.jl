@@ -15,6 +15,7 @@ using ONSAS.StructuralBoundaryConditions
 using ONSAS.StructuralMaterials
 using ONSAS.Nodes
 using ONSAS.Trusses
+using ONSAS.StaticStates
 
 const RTOL = 5e-2
 

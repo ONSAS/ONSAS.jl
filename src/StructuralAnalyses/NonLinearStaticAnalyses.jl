@@ -11,6 +11,7 @@ using ...StructuralSolvers
 using ...StructuralModel
 using ..Assemblers
 using ..Solutions
+using ..StaticStates
 
 @reexport import ...StructuralSolvers: _solve!, _step!
 
