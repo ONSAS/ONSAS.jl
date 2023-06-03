@@ -1,8 +1,7 @@
 using Test, LinearAlgebra
-
-# Modules to test
 using ONSAS.Elements
-
+using ONSAS.Circles
+using ONSAS.Squares
 using ONSAS.IsotropicLinearElasticMaterial
 using ONSAS.SvkMaterial
 

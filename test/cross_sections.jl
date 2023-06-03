@@ -3,6 +3,9 @@
 ###############################
 using Test
 using ONSAS.CrossSections
+using ONSAS.Circles
+using ONSAS.Rectangles
+using ONSAS.Squares
 
 rand_dim_1 = rand()
 rand_dim_2 = rand_dim_1 + rand()
@@ -39,3 +42,5 @@ end
     b = 1 / 2 * minimum([h, b])
     @test Ixx(rectangle) == a * b^3 * (16 / 3 - 3.36 * b / a * (1 - b^4 / (12 * a^4)))
 end
+
+# TODO Add generic cross section unit test.

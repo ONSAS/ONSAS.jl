@@ -1,14 +1,16 @@
+module Squares
+
 using ..CrossSections: AbstractCrossSection
 
 import ..CrossSections: area, Ixx, Iyy, Izz, Ixy, Ixz, Iyz
 
 export Square
 
-""" Square cross-section.
-### Fields:
-- `width` -- width in `y` and `z` axes.
+"""
+Square cross-section.
 """
 struct Square{T<:Real} <: AbstractCrossSection
+    "Width in `y` and `z` axes."
     width::T
 end
 
@@ -33,3 +35,5 @@ Ixz(s::Square) = 0.0
 
 "Return the product moment of area of a `Square` cross-section `s` with respect to the local y and z axes."
 Iyz(s::Square) = 0.0
+
+end

@@ -13,6 +13,10 @@ FILES = ["Utils.jl",
          "Materials/HyperElasticMaterial.jl",
          # Cross-sections
          "CrossSections/CrossSections.jl",
+         "CrossSections/Circles.jl",
+         "CrossSections/Rectangles.jl",
+         "CrossSections/Squares.jl",
+         "CrossSections/GenericCrossSections.jl",
          # Elements
          "Elements/Elements.jl",
          # Boundary conditions
@@ -51,10 +55,17 @@ end
 @reexport using .SvkMaterial
 @reexport using .NeoHookeanMaterial
 @reexport using .HyperElasticMaterial
+
 ## Cross-sections
 @reexport using .CrossSections
+@reexport using .Circles
+@reexport using .Rectangles
+@reexport using .Squares
+@reexport using .GenericCrossSections
+
 ## Entities
 @reexport using .Elements
+
 ## Boundary conditions
 @reexport using .BoundaryConditions
 @reexport using .FixedDofBoundaryConditions

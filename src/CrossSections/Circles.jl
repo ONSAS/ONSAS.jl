@@ -1,14 +1,18 @@
+module Circles
+
+using Reexport
+
 using ..CrossSections: AbstractCrossSection
 
-import ..CrossSections: area, Ixx, Iyy, Izz, Ixy, Ixz, Iyz
+@reexport import ..CrossSections: area, Ixx, Iyy, Izz, Ixy, Ixz, Iyz
 
 export Circle
 
-""" Circle cross-section.
-### Fields:
-- `d` -- circle diameter.
+"""
+Circle cross-section.
 """
 struct Circle{T<:Real} <: AbstractCrossSection
+    "Circle's diameter."
     d::T
 end
 
@@ -32,3 +36,5 @@ Ixz(c::Circle) = 0.0
 
 "Return the product moment of area of a `Circle` cross-section `c` with respect to the local y and z axes."
 Iyz(c::Circle) = 0.0
+
+end # module

@@ -1,8 +1,6 @@
 using Test
-
-# Module to test
 using ONSAS.StructuralModel
-
+using ONSAS.Squares
 using ONSAS.SvkMaterial
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions

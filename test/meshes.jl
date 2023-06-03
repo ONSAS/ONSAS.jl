@@ -5,6 +5,7 @@ using Test, Suppressor, Dictionaries
 using ONSAS.Meshes
 using ONSAS.Gmsh
 using ONSAS.Elements
+using ONSAS.Circles
 
 const RTOL = 1e-5
 
