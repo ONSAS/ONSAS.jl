@@ -11,14 +11,14 @@ using Reexport: @reexport
 @reexport using ...StructuralSolvers
 using ..Solvers
 using ..Solutions
+using ..StaticStates
+using ..Assemblers
 
 @reexport import ..StructuralAnalyses: initial_time, current_time, final_time, _next!,
                                        iteration_residuals, is_done, reset!
 @reexport import ..Assemblers: _assemble!
 
 export AbstractStaticAnalysis, load_factors, current_load_factor
-
-include("StaticState.jl")
 
 """ Abstract supertype for all structural analysis.
 
@@ -140,11 +140,5 @@ function Base.push!(st_sol::StatesSolution, c_state::StaticState)
                              iter_state)
     return push!(states(st_sol), state_copy)
 end
-
-include("LinearStaticAnalyses.jl")
-@reexport using .LinearStaticAnalyses
-
-include("NonLinearStaticAnalyses.jl")
-@reexport using .NonLinearStaticAnalyses
 
 end # module

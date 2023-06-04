@@ -1,5 +1,7 @@
+module StaticStates
+
 using SparseArrays: spzeros
-using Dictionaries: Dictionary
+using Dictionaries: Dictionary, dictionary
 using Reexport
 
 using ...Meshes
@@ -113,3 +115,5 @@ function reset!(state::StaticState)
     @info "The structural state has been reset."
     return state
 end
+
+end # module

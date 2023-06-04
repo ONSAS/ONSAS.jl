@@ -49,7 +49,10 @@ FILES = ["Utils.jl",
          "StructuralSolvers/Solutions.jl",
          # Structural Analyses
          "StructuralAnalyses/StructuralAnalyses.jl",
-         "StructuralAnalyses/StaticAnalyses.jl"]
+         "StructuralAnalyses/StaticStates.jl",
+         "StructuralAnalyses/StaticAnalyses.jl",
+         "StructuralAnalyses/LinearStaticAnalyses.jl",
+         "StructuralAnalyses/NonLinearStaticAnalyses.jl"]
 
 foreach(FILES) do m
     include(m)
@@ -113,6 +116,9 @@ end
 
 # Structural analyses.
 @reexport using .StructuralAnalyses
+@reexport using .StaticStates
 @reexport using .StaticAnalyses
+@reexport using .LinearStaticAnalyses
+@reexport using .NonLinearStaticAnalyses
 
 end
