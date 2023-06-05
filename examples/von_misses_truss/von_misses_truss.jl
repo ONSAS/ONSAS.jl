@@ -31,8 +31,8 @@ function run_von_misses_truss_example()
     a = sqrt(A₀)
     s₂ = Square(a)
     ## Entities 
-    truss₁ = Truss(n₁, n₂, s₁, "left_truss") # [n₁, n₂]
-    truss₂ = Truss(n₂, n₃, s₂, "right_truss") # [n₂, n₃]
+    truss₁ = Truss(n₁, n₂, s₁, RotatedEngineeringStrain, "left_truss") # [n₁, n₂]
+    truss₂ = Truss(n₂, n₃, s₂, RotatedEngineeringStrain, "right_truss") # [n₂, n₃]
     elements = [truss₁, truss₂]
     ## Mesh
     s_mesh = Mesh(; nodes, elements)
