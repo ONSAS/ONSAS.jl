@@ -31,10 +31,11 @@ const RTOL = 1e-3
     d = sqrt(4 * A / pi)
     circle_cross_section = Circle(d)
     my_label = "my_1D_truss"
+    strain = RotatedEngineeringStrain
 
-    t = Truss(n₁, n₂, circle_cross_section, my_label)
+    t = Truss(SVector(n₁, n₂), circle_cross_section, strain, my_label)
     t_no_label = Truss(n₁, n₂, circle_cross_section)
-    t_empty_nodes = Truss(circle_cross_section, my_label)
+    t_empty_nodes = Truss(circle_cross_section, strain, my_label)
     t = create_entity(t_empty_nodes, [n₁, n₂])
 
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
@@ -46,6 +47,7 @@ const RTOL = 1e-3
     @test local_dof_symbol(t) == [:u]
     @test local_dofs(t) == [Dof(1), Dof(3)]
     @test string(label(t)) == my_label
+    @test strain_model(t) == strain
 
     fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_svk_mat, t, u_global_structure[local_dofs(t)])
     ϵ_rot_ing = (l_def^2 - l_ref^2) / (l_ref * (l_ref + l_def))
@@ -72,14 +74,21 @@ end
     l_def = norm(x₂ + u_global_structure[[Dof(1), Dof(3), Dof(5)]] -
                  (x₁ + u_global_structure[[Dof(7), Dof(9), Dof(11)]]))
 
+    strain_model_t = RotatedEngineeringStrain
     A = 1
     square_cross_section = Square(A)
     my_label = "my_3D_truss"
-    t = Truss(n₁, n₂, square_cross_section, my_label)
-    t_no_label = Truss(n₁, n₂, square_cross_section)
-    t_empty_nodes = Truss(square_cross_section, my_label)
+
+    # Constructors
+    t = Truss(SVector(n₁, n₂), square_cross_section, strain_model_t, my_label)
+    t_no_label = Truss(n₁, n₂, square_cross_section, strain_model_t)
+    t_empty_nodes = Truss(square_cross_section, strain_model_t, my_label)
     t = create_entity(t_empty_nodes, [n₁, n₂])
+
+    # Accessors
+    @test strain_model(t) == strain_model_t
     @test label(t_empty_nodes) == Symbol(my_label)
+    @test strain_model(t_empty_nodes) == strain_model_t
 
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
     @test all([n ∈ coordinates(t) for n in coordinates([n₁, n₂])])

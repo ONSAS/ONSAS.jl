@@ -28,7 +28,8 @@ function run_clamped_truss_example()
     # Mesh
     # -------------
     nodes = [Node(l) for l in LinRange(0, L, N + 1)]
-    elements = [Truss(nodes[i], nodes[i + 1], Square(sqrt(A))) for i in 1:N]
+    elements = [Truss(nodes[i], nodes[i + 1], Square(sqrt(A)), RotatedEngineeringStrain)
+                for i in 1:N]
     s_mesh = Mesh(; nodes, elements)
     # -------------------------------
     # Dofs
