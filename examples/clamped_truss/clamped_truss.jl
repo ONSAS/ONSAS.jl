@@ -87,10 +87,6 @@ function run_clamped_truss_example()
     function analytic_ϵ(::Type{RotatedEngineeringStrain}, uᵢ::Real, l₀::Real=L)
         ((l₀ + uᵢ)^2 - l₀^2) / (l₀ * (l₀ + (l₀ + uᵢ)))
     end
-    "Analytic stress value for a given strain `ϵ`."
-    analytic_σ(analytic_ϵ::Vector{<:Real}, E::Real=E) = analytic_ϵ * E
-    "Analytic force value for a given strain `ϵ`."
-    analytic_F(analytic_σ::Vector{<:Real}, A₀::Real=A) = analytic_σ * A₀
     #
     analytic_ϵ_tip = analytic_ϵ.(ϵ_model, numeric_uᵢ)
     analytic_σ_tip = analytic_σ(analytic_ϵ_tip, E)

@@ -126,11 +126,12 @@ function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,RotatedEn
     TTcl = B_dif' * e₁_def
 
     ϵ = _strain(l_ref, l_def, RotatedEngineeringStrain)
-    σ = E * ϵ
-    fᵢₙₜ_e = A * σ * TTcl
+    # cosserat stress
+    𝐒₁₁ = E * ϵ
+    fᵢₙₜ_e = A * 𝐒₁₁ * TTcl
 
     Kₘ = E * A / l_ref * (TTcl * (TTcl'))
-    K_geo = σ * A / l_def * (B_dif' * B_dif - TTcl * (TTcl'))
+    K_geo = 𝐒₁₁ * A / l_def * (B_dif' * B_dif - TTcl * (TTcl'))
     Kᵢₙₜ_e = Kₘ + K_geo
 
     σ_e = sparse(zeros(3, 3))
