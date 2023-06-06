@@ -17,6 +17,7 @@ function run_von_misses_truss_example()
     H = L * sin(deg2rad(ANG)) # horizontal distance in m
     Fₖ = -3e8                 # Vertical load in N
     RTOL = 1e-4               # Relative tolerance for tests
+    strain_model = rand((GreenStrain, RotatedEngineeringStrain))
     # -------------
     # Mesh
     # -------------
@@ -31,8 +32,8 @@ function run_von_misses_truss_example()
     a = sqrt(A₀)
     s₂ = Square(a)
     ## Entities 
-    truss₁ = Truss(n₁, n₂, s₁, RotatedEngineeringStrain, "left_truss") # [n₁, n₂]
-    truss₂ = Truss(n₂, n₃, s₂, RotatedEngineeringStrain, "right_truss") # [n₂, n₃]
+    truss₁ = Truss(n₁, n₂, s₁, strain_model, "left_truss") # [n₁, n₂]
+    truss₂ = Truss(n₂, n₃, s₂, strain_model, "right_truss") # [n₂, n₃]
     elements = [truss₁, truss₂]
     ## Mesh
     s_mesh = Mesh(; nodes, elements)
@@ -66,20 +67,20 @@ function run_von_misses_truss_example()
     # -------------------------------
     # Final load factor
     λ₁ = 1
-    NSTEPS = 10
+    NSTEPS = 1
     sa = NonLinearStaticAnalysis(s, λ₁; NSTEPS=NSTEPS)
     # -------------------------------
-    # Algorithm
+    # Solver
     # -------------------------------
-    tol_f = 1e-7
-    tol_u = 1e-7
-    max_iter = 100
+    tol_f = 1e-10
+    tol_u = 1e-10
+    max_iter = 10
     tols = ConvergenceSettings(tol_u, tol_f, max_iter)
-    alg = NewtonRaphson(tols)
+    nr = NewtonRaphson(tols)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol = solve!(sa, alg)
+    states_sol = solve!(sa, nr)
     n₂_displacements = displacements(states_sol, n₂)
     numerical_uᵢ = n₂_displacements[1]
     numerical_uⱼ = n₂_displacements[2]
@@ -90,18 +91,28 @@ function run_von_misses_truss_example()
     # Test stress and strains 
     σ_truss₂ = stress(states_sol, truss₂)
     ϵ_truss₂ = strain(states_sol, truss₂)
-    @test σ_truss₂ == E * ϵ_truss₂
+    if strain_model == RotatedEngineeringStrain
+        @test σ_truss₂ == E * ϵ_truss₂
+    end
     #-----------------------------
     # Analytic solution  
     #-----------------------------
-    "Analytic load factor solution for the displacement `uₖ` towards z axis at node `n₂`."
-    function load_factors_analytic(uₖ::Real, E::Real=E, A::Real=A₀, H::Real=H, V::Real=V, l₀=L)
-        λ = -2 * E * A *
-            ((H + uₖ)^2 + V^2 - l₀^2) /
-            (l₀ * (l₀ + sqrt((H + uₖ)^2 + V^2))) *
-            (H + uₖ) / sqrt((H + uₖ)^2 + V^2)
+    "Analytic load factor solution for the displacement `uₖ` towards z axis at node `n₂` `RotatedEngineeringStrain` ."
+    function load_factors_analytic(uₖ::Real, ::Type{RotatedEngineeringStrain},
+                                   E::Real=E, A::Real=A₀,
+                                   H::Real=H, V::Real=V, l₀=L)
+        -2 * E * A *
+        ((H + uₖ)^2 + V^2 - l₀^2) /
+        (l₀ * (l₀ + sqrt((H + uₖ)^2 + V^2))) *
+        (H + uₖ) / sqrt((H + uₖ)^2 + V^2)
     end
-    analytics_λᵥ = load_factors_analytic.(numerical_uₖ)
+    "Analytic load factor solution for the displacement `uₖ` towards z axis at node `n₂` `RotatedEngineeringStrain` ."
+    function load_factors_analytic(uₖ::Real, ::Type{GreenStrain},
+                                   E::Real=E, A::Real=A₀,
+                                   H::Real=H, V::Real=V, l₀=L)
+        -2 * E * A * ((H + uₖ) * (2 * H * uₖ + uₖ^2)) / (2.0 * L^3)
+    end
+    analytics_λᵥ = load_factors_analytic.(numerical_uₖ, strain_model)
     #-----------------------------
     # Test boolean for CI  
     #-----------------------------
