@@ -136,7 +136,7 @@ function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,RotatedEn
 
     σ_e = sparse(zeros(3, 3))
     ϵ_e = sparse(zeros(3, 3))
-    σ_e[1, 1] = σ
+    σ_e[1, 1] = 𝐒₁₁ * l_def / l_ref
     ϵ_e[1, 1] = ϵ
 
     fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e
