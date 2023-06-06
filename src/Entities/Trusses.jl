@@ -6,6 +6,7 @@ using Reexport
 using StaticArrays
 
 using ..Materials
+using ..HyperElasticMaterials
 using ..IsotropicLinearElasticMaterial
 using ..Nodes
 using ..Entities
@@ -84,7 +85,7 @@ function Truss(n₁::N, n₂::N, g::G,
 end
 
 "Constructor for a `Truss` element without nodes a `label` and `strain`. This function is used to create meshes via GMSH."
-function Truss(g::AbstractCrossSection, ::Type{E}=DEFAULT_STRAIN_MODEL,
+function Truss(g::AbstractCrossSection, ::Type{E},
                label::Label=NO_LABEL) where {E<:AbstractStrainModel}
     Truss(Node(0, 0, 0), Node(0, 0, 0), g, E, label)
 end
@@ -112,21 +113,21 @@ end
 "Return the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
 
-"Return the internal force of a `Truss` element `t` formed by an `AbstractMaterial` `m` 
-and an element displacement vector `u_e`."
-function internal_forces(m::AbstractMaterial, e::Truss{dim,EM},
-                         u_e::AbstractVector) where {dim,EM<:AbstractStrainModel}
+"Return the internal force of a `Truss` element `t` formed by an `AbstractHyperElasticMaterial` `m` 
+an element displacement vector `uₑ` and `RotatedEngineeringStrain`."
+function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,RotatedEngineeringStrain},
+                         uₑ::AbstractVector) where {dim}
     E = elasticity_modulus(m)
     A = area(cross_section(e))
-    X_ref, X_def = _X_rows(e, u_e)
+    X_ref, X_def = _X_rows(e, uₑ)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
-    B_dif, _ = _aux_matrices(dim)
+    B_dif, Ge = _aux_matrices(dim)
 
     # normalized reference and deformed co-rotational vector
     e₁_def = B_dif * X_def / l_def
     TTcl = B_dif' * e₁_def
 
-    ϵ = _strain(l_ref, l_def, EM)
+    ϵ = _strain(l_ref, l_def, RotatedEngineeringStrain)
     σ = E * ϵ
     fᵢₙₜ_e = A * σ * TTcl
 
@@ -142,6 +143,35 @@ function internal_forces(m::AbstractMaterial, e::Truss{dim,EM},
     fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e
 end
 
+"Return the internal force of a `Truss` element `t` formed by an `AbstractHyperElasticMaterial` `m` 
+an element displacement vector `uₑ` and `GreenStrain`."
+function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,GreenStrain},
+                         uₑ::AbstractVector) where {dim}
+    E = elasticity_modulus(m)
+    A = area(cross_section(e))
+    X_ref, X_def = _X_rows(e, uₑ)
+    l_ref, l_def = _lengths(X_ref, X_def, dim)
+    _, Ge = _aux_matrices(dim)
+    b_ref, b_def = _aux_b(X_ref, X_def, uₑ, G, dim)
+
+    ϵ = _strain(l_ref, l_def, GreenStrain)
+    # Cosserat stress tensor
+    𝐒₁₁ = E * ϵ
+
+    b_sum = b_ref + b_def
+    fᵢₙₜ_e = A * 𝐒₁₁ * l_ref * (b_sum)'
+
+    Kᵢₙₜ_e = 𝐒₁₁ * A / l_ref * Ge + E * A * l_ref * (b_sum' * b_sum)
+
+    # Frist Piola stress
+    σ_e = sparse(zeros(3, 3))
+    ϵ_e = sparse(zeros(3, 3))
+    σ_e[1, 1] = σ * l_def / l_ref
+    ϵ_e[1, 1] = ϵ
+
+    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e
+end
+
 "Return the `RotatedEngineeringStrain` for a given reference and deformed length `l_ini` and the deformed length `l_def`. "
 function _strain(l_ini::Real, l_def::Real, ::Type{RotatedEngineeringStrain})
     (l_def^2 - l_ini^2) / (l_ini * (l_ini + l_def))
@@ -152,15 +182,15 @@ function _strain(l_ini::Real, l_def::Real, ::Type{GreenStrain})
     (l_def^2 - l_ini^2) / (2 * l_ini^2)
 end
 
-"Return the strain of given `Truss` element `t` with a element displacement vector `u_e`. "
-function strain(t::Truss{dim,E}, u_e::AbstractVector) where {dim,E<:AbstractStrainModel}
-    X_ref, X_def = _X_rows(t, u_e)
+"Return the strain of given `Truss` element `t` with a element displacement vector `uₑ`. "
+function strain(t::Truss{dim,E}, uₑ::AbstractVector) where {dim,E<:AbstractStrainModel}
+    X_ref, X_def = _X_rows(t, uₑ)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
     _strain(l_ref, l_def, E)
 end
 
-"Return the stress of given `Truss` element `t` with a element displacement vector `u_e`. "
-stress(m::IsotropicLinearElastic, t::Truss, u_e::AbstractVector) = m.E * strain(t, u_e)
+"Return the stress of given `Truss` element `t` with a element displacement vector `uₑ`. "
+stress(m::IsotropicLinearElastic, t::Truss, uₑ::AbstractVector) = m.E * strain(t, uₑ)
 
 "Return "
 function _aux_matrices(dim::Integer)
@@ -170,19 +200,19 @@ function _aux_matrices(dim::Integer)
 end
 
 "Return auxiliar matrices with the element coordinates at the deformed and reference configurations."
-function _X_rows(e::Truss{dim}, u_e::AbstractVector) where {dim}
+function _X_rows(e::Truss{dim}, uₑ::AbstractVector) where {dim}
     X_ref_row = reduce(vcat, coordinates(e))
-    X_def_row = X_ref_row + u_e
+    X_def_row = X_ref_row + uₑ
     X_ref_row, X_def_row
 end
 
 "Return auxiliar vectors b_ref and b_def of a truss element."
-function _aux_b(X_ref_row::AbstractVector, X_def_row::AbstractVector, u_loc_dofs::AbstractVector,
+function _aux_b(X_ref_row::AbstractVector, X_def_row::AbstractVector, uₑ::AbstractVector,
                 G::AbstractMatrix, dim::Integer)
     l_ref, l_def = _lengths(X_ref_row, X_def_row, dim)
 
     b_ref = 1 / (l_ref^2) * X_ref_row' * G
-    b_def = 1 / (l_def^2) * u_loc_dofs' * G
+    b_def = 1 / (l_def^2) * uₑ' * G
 
     return b_ref, b_def
 end
