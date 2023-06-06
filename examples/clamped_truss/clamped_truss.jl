@@ -86,7 +86,6 @@ function run_clamped_truss_example()
         𝐏₁₁ = 𝐒₁₁ * (l₀ + uᵢ) / l₀
         𝐏₁₁ * A₀
     end
-    analytic_F(u) = EA * u
     #
     analytic_F_tip = analytic_F.(Ref(ϵ_model), numeric_uᵢ)
     #-----------------------------

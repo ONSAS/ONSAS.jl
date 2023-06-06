@@ -53,7 +53,7 @@ const RTOL = 1e-3
     ϵ_rot_ing = (l_def^2 - l_ref^2) / (l_ref * (l_ref + l_def))
 
     @test ϵ_e[1, 1] ≈ ϵ_rot_ing rtol = RTOL
-    @test σ_e[1, 1] ≈ E * ϵ_rot_ing rtol = RTOL
+    @test σ_e[1, 1] ≈ E * ϵ_rot_ing * l_def / l_ref rtol = RTOL
     @test fᵢₙₜ_e[1] ≈ -E * ϵ_rot_ing * A rtol = RTOL
     @test fᵢₙₜ_e[2] ≈ E * ϵ_rot_ing * A rtol = RTOL
     @test Kᵢₙₜ_e ≈ Kᵢₙₜ_e[1, 1] * [1 -1; -1 1] rtol = RTOL
