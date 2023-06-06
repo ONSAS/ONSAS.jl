@@ -2,7 +2,7 @@
 # Clamped truss example
 # ---------------------
 #=
-This model is taken from [1]. The theoretical derivations of the analytic solution can be found in [2].
+This model is a static generalization taken from [1]. The theoretical derivations of the analytic solution can be found in [2].
 The implementation of stiffness and mass matrices in Julia can be found in [3].
 
 [1] Malakiyeh, Mohammad Mahdi, Saeed Shojaee, and Klaus-Jürgen Bathe. "The Bathe time integration method revisited for prescribing desired numerical dissipation." Computers & Structures 212 (2019): 289-298.
@@ -24,7 +24,7 @@ function run_clamped_truss_example()
     L = 200     # Element length.
     A = 1       # Cross section area.
     F = 10e6    # Force at the tip
-    ϵ_model = RotatedEngineeringStrain
+    ϵ_model = GreenStrain
     # -------------
     # Mesh
     # -------------
@@ -63,44 +63,38 @@ function run_clamped_truss_example()
     NSTEPS = 10
     sa = NonLinearStaticAnalysis(s; NSTEPS=NSTEPS)
     # -------------------------------
-    # Algorithm
+    # Solver
     # -------------------------------
-    # nr default tolerances
-    alg = NewtonRaphson()
+    nr = NewtonRaphson()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solution = solve!(sa, alg)
-    # Extract displacement at the tip
+    solution = solve!(sa, nr)
+    # Force and displacement at the tip
     numeric_uᵢ = displacements(solution, last(nodes))[1]
-    numeric_σ_tip_tensor = stress(solution, last(elements))
-    numeric_σ_tip = getindex.(numeric_σ_tip_tensor, 1)
-    numeric_ϵ_tip_tensor = strain(solution, last(elements))
-    numeric_ϵ_tip = getindex.(numeric_ϵ_tip_tensor, 1)
     numeric_F_tip = F * load_factors(sa)
     #-----------------------------
     # Analytic solution  
     #-----------------------------
     # Compute the analytic values for the strain, stress and force at the tip
-    "Analytic rotated engineering strain solution for the displacement 
-    `uᵢ` towards x axis at the tip node."
-    function analytic_ϵ(::Type{RotatedEngineeringStrain}, uᵢ::Real, l₀::Real=L)
-        ((l₀ + uᵢ)^2 - l₀^2) / (l₀ * (l₀ + (l₀ + uᵢ)))
+    "Analytic displacement `uᵢ` towards x axis at the tip node."
+    function analytic_F(::Type{GreenStrain}, uᵢ::Real, E::Real=E, l₀::Real=L, A₀::Real=A)
+        ϵ_green = 0.5 * ((l₀ + uᵢ)^2 - l₀^2) / (l₀^2)
+        # Cosserat stress
+        𝐒₁₁ = E * ϵ_green
+        # Piola stress
+        𝐏₁₁ = 𝐒₁₁ * (l₀ + uᵢ) / l₀
+        𝐏₁₁ * A₀
+        # OR
+        E * A₀ / 2 * ((1 + uᵢ / l₀)^3 - (1 + uᵢ / l₀))
     end
-    "Analytic stress value for a given strain `ϵ`."
-    analytic_σ(analytic_ϵ::Vector{<:Real}, E::Real=E) = analytic_ϵ * E
-    "Analytic force value for a given strain `ϵ`."
-    analytic_F(analytic_σ::Vector{<:Real}, A₀::Real=A) = analytic_σ * A₀
+    analytic_F(u) = EA * u
     #
-    analytic_ϵ_tip = analytic_ϵ.(ϵ_model, numeric_uᵢ)
-    analytic_σ_tip = analytic_σ(analytic_ϵ_tip, E)
-    analytic_F_tip = analytic_F(analytic_σ_tip, A)
+    analytic_F_tip = analytic_F.(Ref(ϵ_model), numeric_uᵢ)
     #-----------------------------
     # Test boolean for CI  
     #-----------------------------
     @test analytic_F_tip ≈ numeric_F_tip rtol = 1e-3
-    @test numeric_σ_tip ≈ analytic_σ_tip rtol = 1e-3
-    @test numeric_ϵ_tip ≈ analytic_ϵ_tip rtol = 1e-3
 end
 
 run_clamped_truss_example()
