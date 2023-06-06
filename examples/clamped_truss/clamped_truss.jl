@@ -77,7 +77,7 @@ function run_clamped_truss_example()
     # Analytic solution  
     #-----------------------------
     # Compute the analytic values for the strain, stress and force at the tip
-    "Analytic displacement `uᵢ` towards x axis at the tip node."
+    "Analytic force given `uᵢ` towards x axis at the tip node."
     function analytic_F(::Type{GreenStrain}, uᵢ::Real, E::Real=E, l₀::Real=L, A₀::Real=A)
         ϵ_green = 0.5 * ((l₀ + uᵢ)^2 - l₀^2) / (l₀^2)
         # Cosserat stress
@@ -85,8 +85,6 @@ function run_clamped_truss_example()
         # Piola stress
         𝐏₁₁ = 𝐒₁₁ * (l₀ + uᵢ) / l₀
         𝐏₁₁ * A₀
-        # OR
-        E * A₀ / 2 * ((1 + uᵢ / l₀)^3 - (1 + uᵢ / l₀))
     end
     analytic_F(u) = EA * u
     #
