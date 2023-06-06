@@ -24,7 +24,7 @@ function run_clamped_truss_example()
     L = 200     # Element length.
     A = 1       # Cross section area.
     F = 10e6    # Force at the tip
-    ϵ_model = rand((GreenStrain, RotatedEngineeringStrain))
+    ϵ_model = RotatedEngineeringStrain
     # -------------
     # Mesh
     # -------------
@@ -86,9 +86,6 @@ function run_clamped_truss_example()
     `uᵢ` towards x axis at the tip node."
     function analytic_ϵ(::Type{RotatedEngineeringStrain}, uᵢ::Real, l₀::Real=L)
         ((l₀ + uᵢ)^2 - l₀^2) / (l₀ * (l₀ + (l₀ + uᵢ)))
-    end
-    function analytic_ϵ(::Type{GreenStrain}, uᵢ::Real, l₀::Real=L)
-        ((l₀ + uᵢ)^2 - l₀^2) / (2 * l₀^2)
     end
     "Analytic stress value for a given strain `ϵ`."
     analytic_σ(analytic_ϵ::Vector{<:Real}, E::Real=E) = analytic_ϵ * E
