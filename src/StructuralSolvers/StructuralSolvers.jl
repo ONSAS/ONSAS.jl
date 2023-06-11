@@ -151,7 +151,7 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
         @warn "Maximum number of iterations was reached."
     end
 
-    if Δr_relᵏ ≤ Δr_rel_tol && ΔU_relᵏ ≤ ΔU_rel_tol || Δr_nromᵏ < eps() || ΔU_nromᵏ < eps()
+    if Δr_relᵏ ≤ Δr_rel_tol || ΔU_relᵏ ≤ ΔU_rel_tol || Δr_nromᵏ < eps() || ΔU_nromᵏ < eps()
         _update!(ri_step, ΔU_and_ResidualForce_Criteria())
         return ΔU_and_ResidualForce_Criteria()
     end

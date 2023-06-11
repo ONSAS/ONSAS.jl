@@ -83,7 +83,7 @@ function run_clamped_truss_example()
         # Cosserat stress
         𝐒₁₁ = E * ϵ_green
         # Piola stress
-        𝐏₁₁ = 𝐒₁₁ * (l₀ + uᵢ) / l₀
+        𝐏₁₁ = (l₀ + uᵢ) / l₀ * 𝐒₁₁
         𝐏₁₁ * A₀
     end
     #
