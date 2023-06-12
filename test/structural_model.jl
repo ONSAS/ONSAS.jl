@@ -33,7 +33,7 @@ n₃ = Node(0, 0, 1,
 n₄ = Node(1, 1, 1,
           dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)],
                       :T => [Dof(28)]]))
-# Faces 
+# Faces
 face₁ = TriangularFace(n₁, n₂, n₃)
 face₂ = TriangularFace(n₃, n₄, n₃)
 # Cross section
@@ -132,7 +132,7 @@ end
     @test dofs_bc₃_to_test == dofs_bc₃
     @test f_bc₃_to_test == f_bc₃
 
-    # Push an entity to a boundary condition 
+    # Push an entity to a boundary condition
     push!(s_boundary_conditions, bc₃, n₁)
     push!(s_boundary_conditions, bc₃, face₂)
     push!(s_boundary_conditions, bc₄, truss₄)
@@ -193,7 +193,7 @@ end
 
     # Materials
     @test materials(s) == s_materials
-    # Replace material 
+    # Replace material
     label_material_to_be_replaced = "new_steel"
     replace!(s, steel, label_material_to_be_replaced)
     @test steel ∈ keys(element_materials(materials(s)))
