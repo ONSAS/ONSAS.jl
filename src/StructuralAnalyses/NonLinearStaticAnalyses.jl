@@ -1,3 +1,8 @@
+"""
+Module defining non-linear static analysis.
+This file inherits from src/StructuralAnalyses/StaticAnalyses.jl and extends the methods for
+geometric non-linear static analysis.
+"""
 module NonLinearStaticAnalyses
 
 using LinearAlgebra: norm
@@ -5,22 +10,23 @@ using IterativeSolvers: cg!
 using Reexport
 
 using ..Solvers
-using ....Utils
+using ..Utils
+using ..StructuralAnalyses
 using ..StaticAnalyses
-using ...StructuralSolvers
-using ...StructuralModel
+using ..StructuralSolvers
+using ..StructuralModel
 using ..Assemblers
 using ..Solutions
 using ..StaticStates
 
-@reexport import ...StructuralSolvers: _solve!, _step!
+@reexport import ..StructuralSolvers: _solve!, _step!
 
 export NonLinearStaticAnalysis
 
 """
-A `NonLinearStaticAnalysis` is a collection of parameters for defining the static analysis of the structure. 
+A non linear static analysis is a collection of parameters for defining the static analysis of the structure.
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
-As this analysis is nonlinear the stiffness of the structure is updated at each iteration. 
+As this analysis is nonlinear the stiffness of the structure is updated at each iteration.
 """
 struct NonLinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <:
        AbstractStaticAnalysis
@@ -39,7 +45,7 @@ struct NonLinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}}
     end
 end
 
-"Constructor for `NonLinearStaticAnalysis` given a final time (or load factor) `t₁` and the number of steps `NSTEPS`."
+"Constructor for non linear static analysis given a final time (or load factor) and the number of steps."
 function NonLinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1)
     t₀ = t₁ / NSTEPS
     λᵥ = collect(LinRange(t₀, t₁, NSTEPS))
@@ -53,7 +59,7 @@ function Base.show(io::IO, sa::NonLinearStaticAnalysis)
     show(io, sa.state)
 end
 
-"Solves an `NonLinearStaticAnalysis` problem with a given solver."
+"Solves an non linear static analysis problem with a given solver."
 function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
     s = structure(sa)
     # Initialize solution.
@@ -62,7 +68,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
     # Load factors iteration.
     while !is_done(sa)
 
-        # Sets Δu, ΔR and relatives norms to zero 
+        # Sets Δu, ΔR and relatives norms to zero
         _reset!(current_iteration(sa))
 
         # Computes external forces
@@ -82,10 +88,10 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
         # Increment the time or load factor step.
         @debugtime "Next step" _next!(sa)
     end
-    return sol
+    sol
 end
 
-"Computes ΔU for solving the `NonLinearStaticAnalysis` `sa` with a `NewtonRaphson` method."
+"Computes ΔU for solving the non linear static analysis with a Newton Raphson method."
 function _step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson)
     # Extract state info
     state = current_state(sa)
@@ -106,8 +112,8 @@ function _step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson)
     # Update displacements into the state.
     state.Uᵏ[free_dofs_idx] .+= ΔU
 
-    # Update iteration 
-    return _update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)
+    # Update iteration
+    _update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)
 end
 
 end # module

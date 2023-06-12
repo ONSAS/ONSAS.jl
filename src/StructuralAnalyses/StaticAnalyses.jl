@@ -1,14 +1,20 @@
+"""
+Module defining static analyses.
+Each static state analysis is defined by an structure and a load factors vector. During
+the analysis the static state of the structure is mutated through the load factors vector.
+"""
 module StaticAnalyses
 
 using Dictionaries: dictionary
-using Reexport: @reexport
+using Reexport
 
-@reexport using ..Materials
-@reexport using ...Entities
-@reexport using ...Meshes
-@reexport using ...StructuralModel: AbstractStructure, load_bcs
-@reexport using ..StructuralAnalyses
-@reexport using ...StructuralSolvers
+using ..Materials
+using ..Entities
+using ..Meshes
+using ..Structures
+using ..StructuralModel
+using ..StructuralAnalyses
+using ..StructuralSolvers
 using ..Solvers
 using ..Solutions
 using ..StaticStates
@@ -23,8 +29,8 @@ export AbstractStaticAnalysis, load_factors, current_load_factor
 """ Abstract supertype for all structural analysis.
 
 An `AbstractStaticAnalysis` object facilitates the process of defining an static analysis
-to be solved. Time variable for static analysis is used to obtain a load factor value.  
-Of course this abstract type inherits from `AbstractStructuralAnalysis` type, 
+to be solved. Time variable for static analysis is used to obtain a load factor value.
+Of course this abstract type inherits from `AbstractStructuralAnalysis` type,
 and extends the following methods:
 
 **Common methods:**
@@ -45,22 +51,21 @@ and extends the following methods:
 - `current_step` -- stores the current step of the analysis.
 - `state`        -- stores the current state of the analysis.
 
-
 """
 abstract type AbstractStaticAnalysis <: AbstractStructuralAnalysis end
 
-"Return the initial load factor of an `AbstractStaticAnalysis` `sa`."
+"Return the initial load factor of an structural analysis."
 initial_time(sa::AbstractStaticAnalysis) = first(load_factors(sa))
 
-"Return the current load factor of an `AbstractStaticAnalysis` `sa`."
+"Return the current load factor of an structural analysis."
 current_time(sa::AbstractStaticAnalysis) = load_factors(sa)[sa.current_step[]]
 
-"Return the final load factor of an `AbstractStaticAnalysis` `sa`."
+"Return the final load factor of an structural analysis."
 final_time(sa::AbstractStaticAnalysis) = last(load_factors(sa))
 
-"Return `true` if the `AbstractStaticAnalysis` `sa` is completed."
+"Return true if the structural analysis is completed."
 function is_done(sa::AbstractStaticAnalysis)
-    return is_done_bool = if sa.current_step[] > length(load_factors(sa))
+    is_done_bool = if sa.current_step[] > length(load_factors(sa))
         sa.current_step[] -= 1
         true
     else
@@ -68,22 +73,22 @@ function is_done(sa::AbstractStaticAnalysis)
     end
 end
 
-"Return the final load factor vector of an `AbstractStaticAnalysis` `sa`."
+"Return the final load factor vector of an structural analysis."
 load_factors(sa::AbstractStaticAnalysis) = sa.λᵥ
 
-"Return the current load factor of an `AbstractStaticAnalysis` `sa`."
+"Return the current load factor of an structural analysis."
 current_load_factor(sa::AbstractStaticAnalysis) = current_time(sa)
 
-"Jumps to the next current load factor defined in the `AbstractStaticAnalysis` `sa`."
+"Jumps to the next current load factor defined in the structural analysis."
 _next!(sa::AbstractStaticAnalysis) = sa.current_step[] += 1
 
-"Sets the current load factor of the `AbstractStaticAnalysis` `sa` to the initial load factor.
+"Sets the current load factor of the structural analysis to the initial load factor.
 Also resets! the iteration and `AbstractStructuralState`."
 function reset!(sa::AbstractStaticAnalysis)
     sa.current_step[] = 1
     reset!(current_state(sa))
     @info "The current time of analysis have been reset."
-    return sa
+    sa
 end
 
 "Assembles the Structure `s` (internal forces) during the `StaticAnalysis` `sa`."
@@ -100,7 +105,7 @@ function _assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
             u_e = view(displacements(state), local_dofs(e))
             fᵢₙₜ_e, kₛ_e, σ_e, ϵ_e = internal_forces(mat, e, u_e)
 
-            # Assembles the element internal magnitudes 
+            # Assembles the element internal magnitudes
             _assemble!(state, fᵢₙₜ_e, e)
             _assemble!(state, kₛ_e, e)
             _assemble!(state, σ_e, ϵ_e, e)
@@ -108,7 +113,7 @@ function _assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
     end
 
     # Insert values in the assembler objet into the sysyem tangent stiffness matrix
-    return _end_assemble!(state)
+    _end_assemble!(state)
 end
 
 "Resets the assembled magnitudes of the `AbstractStructuralState` `state`."
@@ -117,7 +122,7 @@ function _reset_assemble!(state::AbstractStructuralState)
     internal_forces(state) .= 0.0
     tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
     # FIXME: Zero out stress and strain
-    return nothing
+    nothing
 end
 
 "Pushes the current state `c_state` into the `StatesSolution` `st_sol`."
@@ -138,7 +143,7 @@ function Base.push!(st_sol::StatesSolution, c_state::StaticState)
 
     state_copy = StaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
                              iter_state)
-    return push!(states(st_sol), state_copy)
+    push!(states(st_sol), state_copy)
 end
 
 end # module

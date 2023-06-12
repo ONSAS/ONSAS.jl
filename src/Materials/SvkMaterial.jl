@@ -4,7 +4,7 @@ module SvkMaterial
 using LinearAlgebra, SparseArrays, Reexport
 
 using ..HyperElasticMaterials
-using ...Utils
+using ..Utils
 
 @reexport import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus,
                                            bulk_modulus, poisson_ratio
@@ -12,13 +12,13 @@ using ...Utils
 
 export Svk
 
-""" 
+"""
 Material with Saint-Venant-Kirchhoff properties.
 The strain energy `Ψ` is: `Ψ(𝔼)` = `λ`/2 tr(`𝔼`)^2 + `G` tr(`𝔼`^2).
 
 For context see the [Hyperelastic material](https://en.wikipedia.org/wiki/Hyperelastic_material) wikipedia article.
 
-It is also possible to construct an `Svk` material given its elasticity and shear modulus `E`, `ν` respectively and its density `ρ`. 
+It is also possible to construct an `Svk` material given its elasticity and shear modulus `E`, `ν` respectively and its density `ρ`.
 For context see the [Lamé parameters](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters) wikipedia article.
 """
 struct Svk{T<:Real} <: AbstractHyperElasticMaterial
@@ -82,8 +82,8 @@ function bulk_modulus(m::Svk)
     λ + 2 * G / 3
 end
 
-"Return the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
-considering a `Svk` material `m` and the Lagrangian Green 
+"Return the Cosserat or Second-Piola Kirchoff stress tensor `𝕊`
+considering a `Svk` material `m` and the Lagrangian Green
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
 function cosserat_stress(m::Svk, 𝔼::AbstractMatrix)
     λ, G = lame_parameters(m)
