@@ -1,16 +1,21 @@
+"""
+Module defining static states.
+Each static state defines the structural state of an structure into a StaticAnalysis. This
+state contains external and internal forces, displacements, stresses and strains.
+"""
 module StaticStates
 
 using SparseArrays: spzeros
 using Dictionaries: Dictionary, dictionary
 using Reexport
 
-using ...Meshes
-using ...StructuralModel
-using ...StructuralAnalyses
-using ...StructuralSolvers
+using ..Meshes
+using ..StructuralModel
+using ..StructuralAnalyses
+using ..StructuralSolvers
 using ..Assemblers
-using ...Utils
-using ...Nodes
+using ..Utils
+using ..Nodes
 
 @reexport import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
 
@@ -57,7 +62,7 @@ struct StaticState{DU<:AbstractVector,U<:AbstractVector,
     end
 end
 
-"Constructor for `StaticState` given an `AbstractStructure` `s`."
+"Default constructor for static state given an structure and iteration state."
 function StaticState(s::AbstractStructure,
                      iter_state::ResidualsIterationStep=ResidualsIterationStep())
     n_dofs = num_dofs(s)
@@ -68,7 +73,7 @@ function StaticState(s::AbstractStructure,
     Fᵢₙₜᵏ = zeros(n_dofs)
     Kₛᵏ = spzeros(n_dofs, n_dofs)
     res_forces = zeros(n_fdofs)
-    # Initialize pairs strains 
+    # Initialize pairs strains
     ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     assemblerᵏ = Assembler(s)
@@ -85,16 +90,16 @@ function Base.show(io::IO, sc::StaticState)
             "and $(s[1]) × $(s[2]) tangent matrix Kₛᵏ with $(length(K.nzval)) stored entries.")
 end
 
-"Update and return the current residual forces of the `StaticState` `sc`."
+"Update and return the current residual forces of the static state."
 function residual_forces!(sc::StaticState)
     return sc.res_forces .= view(external_forces(sc), free_dofs(sc)) -
                             view(internal_forces(sc), free_dofs(sc))
 end
 
-"Return the current system tangent matrix of the `StaticState` `sc`."
+"Return the current system tangent matrix form the static state ."
 tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
-"Resets the `StaticState` assembled magnitudes and the iteration state."
+"Resets the static state assembled magnitudes and the iteration state."
 function reset!(state::StaticState)
     # Reset assembled magnitudes
     internal_forces(state) .= 0.0
@@ -113,7 +118,7 @@ function reset!(state::StaticState)
     _reset!(iteration_residuals(state))
     # Return state
     @info "The structural state has been reset."
-    return state
+    state
 end
 
 end # module

@@ -103,9 +103,9 @@ end
 
 # Structural models.
 @reexport using .StructuralModel
+@reexport using .StructuralMaterials
 @reexport using .StructuralEntities
 @reexport using .StructuralBoundaryConditions
-@reexport using .StructuralMaterials
 @reexport using .Structures
 
 # Finite element solvers.
