@@ -55,7 +55,7 @@ end
 
 "Return a `TriangularFace` given an empty `TriangularFace` `tf` and a `Vector` of `Node`s `vn`."
 function create_entity(tf::TriangularFace, vn::AbstractVector{<:AbstractNode})
-    TriangularFace(vn[1], vn[2], vn[3], label(tf))
+    TriangularFace(vn, label(tf))
 end
 
 "Return the normal direction `n` of a `TriangularFace` element `tf`."

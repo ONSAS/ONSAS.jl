@@ -101,11 +101,13 @@ end
 @reexport using .Gmsh
 @reexport using .VTK
 
-# Structural models.
-@reexport using .StructuralModel
+# Structural properties.
 @reexport using .StructuralMaterials
 @reexport using .StructuralEntities
 @reexport using .StructuralBoundaryConditions
+
+# Structures.
+@reexport using .StructuralModel
 @reexport using .Structures
 
 # Finite element solvers.

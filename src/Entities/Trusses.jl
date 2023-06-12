@@ -67,7 +67,7 @@ struct Truss{dim,E<:AbstractStrainModel,T<:Real,N<:AbstractNode{dim,T},VN<:Abstr
     end
 end
 
-"Constructor for a `Truss` element considering the nodes `n₁` and `n₂` and the cross-section `g` and 
+"Constructor for a `Truss` element considering the nodes `n₁` and `n₂` and the cross-section `g` and
 strain model."
 function Truss(n₁::N, n₂::N, g::G, strain::Type{E},
                label::Label=NO_LABEL) where
@@ -105,13 +105,13 @@ strain_model(::Truss{dim,E}) where {dim,E<:AbstractStrainModel} = E
 
 "Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
 function create_entity(t::Truss, vn::AbstractVector{<:AbstractNode})
-    Truss(vn[1], vn[2], cross_section(t), strain_model(t), label(t))
+    Truss(vn, cross_section(t), strain_model(t), label(t))
 end
 
 "Return the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
 
-"Return the internal force of a `Truss` element `t` formed by an `AbstractHyperElasticMaterial` `m` 
+"Return the internal force of a `Truss` element `t` formed by an `AbstractHyperElasticMaterial` `m`
 an element displacement vector `u_e` and `RotatedEngineeringStrain`."
 function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,RotatedEngineeringStrain},
                          u_e::AbstractVector) where {dim}
@@ -143,7 +143,7 @@ function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,RotatedEn
     fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e
 end
 
-"Return the internal force of a `Truss` element `t` formed by an `AbstractHyperElasticMaterial` `m` 
+"Return the internal force of a `Truss` element `t` formed by an `AbstractHyperElasticMaterial` `m`
 an element displacement vector `u_e` and `GreenStrain`."
 function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,GreenStrain},
                          u_e::AbstractVector) where {dim}
