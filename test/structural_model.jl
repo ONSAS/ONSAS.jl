@@ -1,6 +1,6 @@
 using Test
 using Dictionaries: dictionary
-using ONSAS.StructuralModel
+using ONSAS.Structures
 using ONSAS.Squares
 using ONSAS.SvkMaterial
 using ONSAS.FixedDofBoundaryConditions
@@ -68,7 +68,7 @@ s_boundary_conditions_only_faces = StructuralBoundaryCondition(; face_bcs=face_b
 s_boundary_conditions_only_elements = StructuralBoundaryCondition(; element_bcs=elem_bc)
 s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
 
-@testset "ONSAS.StructuralModel.StructuralMaterial" begin
+@testset "ONSAS.StructuralMaterial" begin
     @test s_materials[truss₁] == steel
     @test s_materials["steel"] == steel
     @test truss₁ ∈ s_materials[steel] && truss₃ ∈ s_materials[steel]
@@ -83,7 +83,7 @@ s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
     @test s_materials[truss₁] == new_steel
 end
 
-@testset "ONSAS.StructuralModel.StructuralBoundaryCondition" begin
+@testset "ONSAS.StructuralBoundaryCondition" begin
 
     # Access and filter boundary conditions
     @test node_bcs(s_boundary_conditions) == node_bc
@@ -142,7 +142,7 @@ end
           truss₄ ∈ s_boundary_conditions[bc₄]
 end
 
-@testset "ONSAS.StructuralModel.StructuralEntity" begin
+@testset "ONSAS.StructuralEntity" begin
     sec = Square(1)
 
     tetra_label = "tetra_label"
@@ -163,7 +163,7 @@ end
     @test s_entities[truss_label] == velems[2]
 end
 
-@testset "ONSAS.StructuralModel.Structure" begin
+@testset "ONSAS.Structure" begin
     n₁ = Node(0, 0, 0)
     n₂ = Node(0, 1, 0)
     n₃ = Node(0, 0, 1)

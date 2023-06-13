@@ -20,7 +20,7 @@ makedocs(;
                               "Entities" => "lib/Entities.md",
                               "CrossSections" => "lib/CrossSections.md",
                               "Meshes" => "lib/Meshes.md",
-                              "StructuralModel" => "lib/StructuralModel.md",
+                              "Structures" => "lib/Structures.md",
                               "StructuralSolvers" => "lib/StructuralSolvers.md",
                               "StructuralAnalyses" => ["AbstractStructuralAnalyses" => "lib/StructuralAnalyses.md",
                                                        "AbstractStaticAnalysis" => ["AbstractStaticAnalysis" => "lib/StaticAnalyses.md",
