@@ -217,9 +217,9 @@ function elements(m::Mesh, name::String)
 end
 
 function Base.show(io::IO, m::Mesh)
-    nnodes = length(m.nodes)
-    nelems = length(m.elements)
-    nfaces = length(m.faces)
+    nnodes = num_nodes(m)
+    nelems = num_elements(m)
+    nfaces = num_faces(m)
     println("• Mesh with $nnodes nodes, $nelems elements and $nfaces faces.")
 end
 

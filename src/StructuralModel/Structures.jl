@@ -188,7 +188,7 @@ function Structure(msh_file::MshFile,
 end
 
 function Base.show(io::IO, s::Structure)
-    ndofs = length(s.free_dofs)
+    ndofs = num_free_dofs(s)
     println("• Structure with $ndofs free dofs.")
     show(io, s.mesh)
 end
