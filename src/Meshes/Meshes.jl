@@ -27,10 +27,7 @@ export AbstractMesh, Mesh, EntitySet, faces, face_set, element, elements, elemen
 """
 Abstract mesh of dimension `dim`.
 
-### Methods
-
-The following methods are provided by the interface:
-
+**Common methods**
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 * [`num_dofs`](@ref)

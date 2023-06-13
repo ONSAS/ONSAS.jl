@@ -10,21 +10,21 @@ export AbstractHyperElasticMaterial, cosserat_stress, strain_energy
 An `AbstractHyperElasticMaterial` object facilitates the process of using hyper elastic materials.
 These materials are characterized by a strain energy function ψ  that depends only on the deformation gradient tensor `∇u`.
 
-**Common methods:**
+**Abstract Methods**
 * [`strain_energy`](@ref)
 * [`cosserat_stress`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * label
 * ρ(density)
 """
 abstract type AbstractHyperElasticMaterial <: AbstractMaterial end
 
-"Return the strain energy value for an `AbstractMaterial` `m`, and the Green-Lagrange 
+"Return the strain energy value for an `AbstractMaterial` `m`, and the Green-Lagrange
 strain tensor `𝔼`."
 function strain_energy(m::AbstractHyperElasticMaterial, 𝔼) end
 
-"Return the Cosserat or Second-Piola Kirchhoff stress tensor `𝕊` given an `AbstractMaterial` `m` and the 
+"Return the Cosserat or Second-Piola Kirchhoff stress tensor `𝕊` given an `AbstractMaterial` `m` and the
 Green-Lagrange strain tensor `𝔼`."
 function cosserat_stress(m::AbstractMaterial, 𝔼::AbstractMatrix) end
 

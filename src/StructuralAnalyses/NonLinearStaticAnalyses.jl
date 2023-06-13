@@ -14,7 +14,7 @@ using ..Utils
 using ..StructuralAnalyses
 using ..StaticAnalyses
 using ..StructuralSolvers
-using ..StructuralModel
+using ..Structures
 using ..Assemblers
 using ..Solutions
 using ..StaticStates
