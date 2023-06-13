@@ -201,8 +201,6 @@ end
 
     # Boundary conditions
     @test boundary_conditions(s) == s_boundary_conditions
-    @test displacement_bcs(s) == displacement_bcs(s_boundary_conditions)
-    @test load_bcs(s) == load_bcs(s_boundary_conditions)
 
     @test Dof(4) ∈ free_dofs(s) && Dof(6) ∈ free_dofs(s) && length(free_dofs(s)) == 2
 end

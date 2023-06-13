@@ -9,14 +9,15 @@ using IterativeSolvers
 using Reexport
 
 using ..Utils
+using ..StructuralBoundaryConditions
+using ..Structures
+using ..Assemblers
+using ..StaticStates
 using ..StructuralAnalyses
 using ..StaticAnalyses
 using ..StructuralSolvers
 using ..Solvers
-using ..StaticStates
-using ..Structures
 using ..Solutions
-using ..Assemblers
 
 @reexport import ..StructuralSolvers: _solve!, _step!
 
@@ -73,7 +74,7 @@ function _solve!(sa::LinearStaticAnalysis)
         displacements(current_state(sa)) .= 0.0
 
         # Compute external force
-        apply!(sa, load_bcs(s)) # Compute Fext
+        apply!(sa, load_bcs(boundary_conditions(s))) # Compute Fext
 
         # Assemble K
         _assemble!(s, sa)

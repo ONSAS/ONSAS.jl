@@ -9,15 +9,16 @@ using LinearAlgebra: norm
 using IterativeSolvers: cg!
 using Reexport
 
-using ..Solvers
 using ..Utils
+using ..StructuralBoundaryConditions
+using ..Structures
+using ..Assemblers
+using ..StaticStates
 using ..StructuralAnalyses
 using ..StaticAnalyses
 using ..StructuralSolvers
-using ..Structures
-using ..Assemblers
+using ..Solvers
 using ..Solutions
-using ..StaticStates
 
 @reexport import ..StructuralSolvers: _solve!, _step!
 
@@ -72,7 +73,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
         _reset!(current_iteration(sa))
 
         # Computes external forces
-        apply!(sa, load_bcs(s))
+        apply!(sa, load_bcs(boundary_conditions(s)))
 
         # Displacements iteration.
         while isconverged!(current_iteration(sa), tolerances(alg)) isa NotConvergedYet
