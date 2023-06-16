@@ -56,7 +56,7 @@ function run_cylinder_internal_pressure_example()
         # Entities types without assigned nodes, faces and elements
         vfaces = [TriangularFace(faces_label)]
         velems = [Tetrahedron(elements_label)]
-        entities = StructuralEntities(velems, vfaces)
+        entities = StructuralEntity(velems, vfaces)
         # -------------------------------
         # Mesh
         # -------------------------------
@@ -82,13 +82,13 @@ function run_cylinder_internal_pressure_example()
         bc₃ = FixedDof(; components=[3], name=bc₃_label)
         # Neumann boundary conditions 
         bc₄ = Pressure(; values=pressure, name=bc₄_label)
-        boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
+        boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
         # Assign boundary conditions to the ones defined in the mesh
         apply!(boundary_conditions, mesh)
         # -------------------------------
         # Materials
         # -------------------------------
-        materials = StructuralMaterials(material)
+        materials = StructuralMaterial(material)
         apply!(materials, mesh)
         # -------------------------------
         # Structure

@@ -3,8 +3,12 @@
 #######################
 using Test, Suppressor, Dictionaries
 using ONSAS.Meshes
+using ONSAS.StructuralEntities
 using ONSAS.Gmsh
-using ONSAS.Elements
+using ONSAS.Entities
+using ONSAS.Nodes
+using ONSAS.Circles
+using ONSAS.Trusses
 
 const RTOL = 1e-5
 
@@ -19,7 +23,7 @@ const RTOL = 1e-5
     n₄ = Node(2L, 0, 5L)
     vec_nodes = [n₁, n₂, n₃, n₄]
 
-    ## Elements
+    ## Entities
     d = 0.2
     s₁ = Circle(d)
     t₁ = Truss(n₁, n₂, s₁)
@@ -58,7 +62,7 @@ uniaxial_mesh_path = joinpath(@__DIR__, "..", "examples", "uniaxial_extension", 
 include(uniaxial_mesh_path)
 
 @testset "ONSAS.Meshes.GMSH.MshFile " begin
-    Lᵢ = 2.0  # Dimension in x of the box in m 
+    Lᵢ = 2.0  # Dimension in x of the box in m
     Lⱼ = 1.0  # Dimension in y of the box in m
     Lₖ = 1.0  # Dimension in z of the box in m
 
@@ -91,11 +95,12 @@ include(uniaxial_mesh_path)
     @test length(physical_index(msh_file)) == length(connectivity(msh_file))
     @test dimension(msh_file) == dimension(first(nodes(msh_file)))
     @test material_label(msh_file) == ["", "", "", "", "svkHyper"]
-    @test entity_label(msh_file) == ["triangle", "triangle", "triangle", "triangle", "tetrahedron"]
-    @test bc_label(msh_file) == ["fixed-ux", "fixed-uj", "fixed-uk", "tension", ""]
+    @test entity_label(msh_file) ==
+          [faces_label, faces_label, faces_label, faces_label, elems_label]
+    @test bc_label(msh_file) == [bc₁_label, bc₂_label, bc₃_label, bc₄_label, ""]
 
     entity_index = 100
-    @test entity_label(msh_file, entity_index) == "tetrahedron"
+    @test entity_label(msh_file, entity_index) == elems_label
     @test material_label(msh_file, entity_index) == "svkHyper"
     @test bc_label(msh_file, entity_index) == ""
     @test physical_index(msh_file, entity_index) == 5

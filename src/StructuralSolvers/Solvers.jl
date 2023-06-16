@@ -1,3 +1,5 @@
+module Solvers
+
 using Reexport
 
 using ..StructuralSolvers
@@ -6,11 +8,11 @@ using ..StructuralSolvers
 
 export NewtonRaphson
 
-""" Newton-Raphson solver struct.
-### Fields:
-- `tols` -- Numerical tolerances
+"""
+Newton-Raphson solver struct.
 """
 struct NewtonRaphson <: AbstractSolver
+    "Numerical tolerances."
     tol::ConvergenceSettings
 end
 
@@ -19,3 +21,5 @@ NewtonRaphson() = NewtonRaphson(ConvergenceSettings())
 
 "Return `NewtonRaphson` solver tolerances."
 tolerances(sol::NewtonRaphson) = sol.tol
+
+end # module

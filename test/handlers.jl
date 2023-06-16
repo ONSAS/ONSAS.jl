@@ -1,6 +1,7 @@
 using Test
 using ONSAS.Handlers
-using ONSAS.Elements
+using ONSAS.Entities
+using ONSAS.Nodes
 using ONSAS.Meshes
 using ONSAS.Interpolators
 
@@ -34,7 +35,7 @@ const RTOL = 1e-5
     f₈ = TriangularFace(n₄, n₈, n₅)
     vec_faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
     append!(faces(mesh), vec_faces)
-    ## Elements 
+    ## Entities 
     t₁ = Tetrahedron(n₁, n₄, n₂, n₆)
     t₂ = Tetrahedron(n₆, n₂, n₃, n₄)
     t₃ = Tetrahedron(n₄, n₃, n₆, n₇)

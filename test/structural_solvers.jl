@@ -3,8 +3,11 @@
 ##########################
 using Test, LinearAlgebra, SparseArrays
 using ONSAS.StructuralSolvers
+using ONSAS.Solvers
+using ONSAS.Assemblers
 using ONSAS.Utils
-using ONSAS.Elements
+using ONSAS.Entities
+using ONSAS.Nodes
 
 @testset "ONSAS.StructuralSolvers.Criteria" begin
     @test ResidualForceCriterion <: AbstractConvergenceCriterion

@@ -1,99 +1,26 @@
 """
-Module defining element formulations implemented.
-Each element consists of a data type with the geometric properties such as nodes, cross-sections and a label into its fields.
+Module defining an interface, `AbstractEntity`.
+
+Each entity consists of an object with material and nodes. The following entities are defined:
+
+- Entities.
+- Faces.
 """
-module Elements
+module Entities
 
-using AutoHashEquals: @auto_hash_equals
-using Reexport: @reexport
-@reexport using Dictionaries: Dictionary, dictionary
-using StaticArrays: Size, SVector, StaticArray
-using ..Utils
+using Reexport, Dictionaries, StaticArrays
 
-@reexport using ..Materials
-@reexport using ..CrossSections
+using ..Nodes
+using ..Materials
+
 @reexport import ..Utils: label, apply!, dofs
-@reexport import Dictionaries: index
+@reexport import ..Nodes: coordinates, dimension
+@reexport import ..CrossSections: area
 
-import ..CrossSections: area
-
-export Dof, Point
-export AbstractNode, dimension, coordinates
-export AbstractEntity, nodes, coordinates, create_entity
-export AbstractFace, normal_direction
+export AbstractEntity, nodes, create_entity
+export AbstractFace, normal_direction, volume
 export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
        local_dofs, nodes, strain, stress, weights, num_nodes
-
-"""
-Construct a point given its coordinates.
-
-It is a type alias for a statically sized array of dimension `dim` and element type `T`.
-Use either as a vararg function, `Point(1, 2, 3)`, or by splatting `Point(x...)` if `x` is an (abstract) vector.
-"""
-const Point{dim,T} = SVector{dim,T} where {dim,T<:Real}
-
-# ========================
-# Degree of freedom (Dof)
-# ========================
-
-"""
-Scalar degree of freedom of the structure.
-"""
-const Dof = Int
-
-"Return the dof index of the `Dof` `d` "
-index(d::Dof) = d
-
-# =================
-# Abstract Node
-# =================
-
-"""
-An `AbstractNode` object is a point in space.
-
-**Common methods:**
-
-* [`coordinates`](@ref)
-* [`dimension`](@ref)
-* [`dofs`](@ref)
-"""
-abstract type AbstractNode{dim,T} <: StaticArray{Tuple{dim},T,1} end
-
-"Return the `AbstractNode` `n` coordinates."
-coordinates(n::AbstractNode) = n.x
-
-"Return each `AbstractNode` coordinates in a `Vector` of `Node`s vn."
-coordinates(vn::AbstractVector{<:AbstractNode}) = coordinates.(vn)
-
-"Return the `AbstractNode` `n` dimension (1D, 2D or 3D)."
-dimension(::AbstractNode{dim}) where {dim} = dim
-
-"Return a tuple containing the dimensions of the `AbstractNode` `n`."
-Base.size(n::AbstractNode) = size(n.x)
-
-"Return the coordinate at component `i` from the `AbstractNode` `n`."
-Base.getindex(n::AbstractNode, i::Int) = n.x[i]
-
-"Return `AbstractNode` `n` degrees of freedom."
-dofs(n::AbstractNode) = n.dofs
-
-"Return degrees of freedom for each `AbstractNode` in a vector of nodes `vn`."
-dofs(vn::Vector{<:AbstractNode}) = vcat(dofs.(vn)...)
-
-"Return `AbstractNode` `n` degrees of freedom with symbol `s`."
-dofs(n::AbstractNode, s::Field) = n.dofs[s]
-
-"Sets a `Vector`s of dofs `vd` to the `AbstractNode` `n` assigned to the field `s`."
-function apply!(n::AbstractNode, s::Field, vd::Vector{Dof})
-    if s ∉ keys(dofs(n))
-        insert!(dofs(n), s, vd)
-    else
-        [push!(dofs(n)[s], d) for d in vd if d ∉ dofs(n)[s]]
-    end
-    return dofs(n)
-end
-
-include("./Node.jl")
 
 # =================
 # Abstract Entity
@@ -102,14 +29,14 @@ include("./Node.jl")
 
 An `AbstractEntity` object is an entity defined by dofs and node/s with certain coordinates and dimension.
 
-**Common methods:**
+**Abstract Methods**
 
 * [`create_entity`](@ref)
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * nodes
 * label
 """
@@ -150,9 +77,9 @@ label(e::AbstractEntity) = e.label
 
 """ Abstract supertype for all elements.
 
-An `AbstractFace` object facilitates the process of adding boundary conditions on a surface. 
+An `AbstractFace` object facilitates the process of adding boundary conditions on a surface.
 
-**Common methods:**
+**Abstract Methods**
 
 * [`area`](@ref)
 * [`create_entity`](@ref)
@@ -162,7 +89,7 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 * [`nodes`](@ref)
 * [`normal_direction`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * nodes
 * label
 """
@@ -174,12 +101,6 @@ function area(f::AbstractFace) end
 "Return the `AbstractFace` `f` normal."
 function normal_direction(f::AbstractFace) end
 
-#==============================#
-# AbstractFace implementations #
-#==============================#
-
-include("./TriangularFace.jl")
-
 ## =================
 # Abstract Element
 # =================
@@ -190,11 +111,11 @@ An `AbstractElement` object facilitates the process of evaluating:
     - The inertial forces vector and its tangent matrices.
     - The mechanical stresses and strains.
 
-**Common methods:**
+**Abstract Methods**
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
-* [`local_dofs`](@ref) 
+* [`local_dofs`](@ref)
 
 These methods is a hard contract and must be implemented to define a new element.
 * [`local_dof_symbol`](@ref)
@@ -209,7 +130,7 @@ This method is a hard contract and for static analysis must be implemented to de
 This method is a hard contract and for dynamic analysis must be implemented to define a new element.
 * [`inertial_forces`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * nodes
 * label
 """
@@ -222,7 +143,7 @@ function Base.:∈(p::AbstractVector, ::AbstractElement) end
 cross_section(e::AbstractElement) = e.cross_section
 
 "Return local dofs symbols of the `AbstractElement` `e` (for linear displacements `:u` is used) in a vector.
-Since global degrees of freedom are for the assemble process this function is used to compute the global dofs of the element by 
+Since global degrees of freedom are for the assemble process this function is used to compute the global dofs of the element by
 extracting the node dofs with the symbol defined by the `AbstractElement` `e`."
 function local_dof_symbol(e::AbstractElement) end
 
@@ -254,7 +175,7 @@ function strain(e::AbstractElement, args...; kwargs...) end
 "Return the `AbstractElement` `e` stress."
 function stress(e::AbstractElement, args...; kwargs...) end
 
-"Return the weights to interpolate a scalar field at the `Node`s `Dof` corresponding 
+"Return the weights to interpolate a scalar field at the `Node`s `Dof` corresponding
 to the `AbstractElement` `e`."
 function weights(e::AbstractElement, p::AbstractVector) end
 
@@ -263,11 +184,7 @@ function num_nodes(e::AbstractElement)
     length(nodes(e))
 end
 
-#=================================#
-# AbstractElement implementations #
-#=================================#
-
-include("./Truss.jl")
-include("./Tetrahedron.jl")
+"Return the volume of the element."
+function volume(e::AbstractElement) end
 
 end # module

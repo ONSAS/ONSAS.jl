@@ -1,33 +1,36 @@
 """
-Module defining structural analyses that can be solved. 
-Each structural analysis consists of a data type with an structure to be analyzed, analysis parameters and 
-an specific state which describes the current state of structure in the analysis.
+Module defining structural analyses that can be solved.
+Each structural analysis consists of a data type with an structure to be analyzed,
+analysis parameters and an specific state which describes the current state of structure
+in the analysis.
 """
 module StructuralAnalyses
 
 using LinearAlgebra, Reexport
 
-@reexport using ..Materials
-@reexport using ..Elements
-@reexport using ..BoundaryConditions
-@reexport using ..Meshes
-@reexport using ..StructuralModel
-@reexport using ..StructuralSolvers
-@reexport using ..Utils
+using ..Materials
+using ..Entities
+using ..BoundaryConditions
+using ..Meshes
+using ..Structures
+using ..StructuralSolvers
+using ..Utils
 
 @reexport import ..Utils: apply!
-@reexport import ..Elements: internal_forces, inertial_forces, strain, stress
-@reexport import ..StructuralModel: free_dofs
-@reexport import ..StructuralSolvers: _assemble!, _update!, _end_assemble!
-@reexport import ..StructuralSolvers: displacements, external_forces, iteration_residuals, reset!
+@reexport import ..Entities: internal_forces, inertial_forces, strain, stress
+@reexport import ..Structures: free_dofs
+@reexport import ..StructuralSolvers: _update!
+@reexport import ..Assemblers: _assemble!, _end_assemble!
+@reexport import ..StructuralSolvers: reset!
+@reexport import ..Solutions: displacements, external_forces, iteration_residuals
 
-export AbstractStructuralState, _assemble!, Δ_displacements, tangent_matrix,
-       residual_forces!, tangent_matrix, structure, assembler, residual_forces_norms,
-       residual_displacements_norms, AbstractStructuralAnalysis, initial_time, current_time,
-       final_time, _next!, is_done, current_state, current_iteration
+export AbstractStructuralState, Δ_displacements, tangent_matrix, residual_forces!, tangent_matrix,
+       structure, assembler, residual_forces_norms, residual_displacements_norms,
+       AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done,
+       current_state, current_iteration
 
 """ Abstract supertype to define a new structural state.
-**Common methods:**
+**Abstract Methods**
 ### Accessors:
 * [`displacements`](@ref)
 * [`Δ_displacements`](@ref)
@@ -83,19 +86,19 @@ free_dofs(st::AbstractStructuralState) = st.free_dofs
 # Assemble
 "Assembles the element `e` internal forces `fᵢₙₜ_e` into the `AbstractState` `st`"
 function _assemble!(st::AbstractStructuralState, fᵢₙₜ_e::AbstractVector, e::AbstractElement)
-    return view(internal_forces(st), local_dofs(e)) .+= fᵢₙₜ_e
+    view(internal_forces(st), local_dofs(e)) .+= fᵢₙₜ_e
 end
 
 "Assembles the element `e` stiffness matrix matrix `K_e` into the `AbstractState` `st`"
 function _assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::AbstractElement)
-    return _assemble!(assembler(st), local_dofs(e), kₛ_e)
+    _assemble!(assembler(st), local_dofs(e), kₛ_e)
 end
 
 "Assembles the element `e` stress σₑ and strain ϵₑ into the `AbstractState` `st`"
 function _assemble!(st::AbstractStructuralState, σₑ::E, ϵₑ::E,
                     e::AbstractElement) where {E<:Union{Real,AbstractMatrix}}
     stress(st)[e] .= σₑ
-    return strain(st)[e] .= ϵₑ
+    strain(st)[e] .= ϵₑ
 end
 
 "Fill the system tangent matrix in the `AbstractStructuralState` `st` once the `Assembler` object is built."
@@ -108,14 +111,14 @@ function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
 function residual_forces_norms(st::AbstractStructuralState)
     rᵏ_norm = norm(residual_forces!(st))
     fₑₓₜ_norm = norm(external_forces(st))
-    return rᵏ_norm, rᵏ_norm / fₑₓₜ_norm
+    rᵏ_norm, rᵏ_norm / fₑₓₜ_norm
 end
 
 "Return relative residual displacements for the current `AbstractStructuralState` `st`."
 function residual_displacements_norms(st::AbstractStructuralState)
     ΔU_norm = norm(Δ_displacements(st))
     U_norm = norm(displacements(st))
-    return ΔU_norm, ΔU_norm / U_norm
+    ΔU_norm, ΔU_norm / U_norm
 end
 
 "Updates the `AbstractStructuralState` `st` during the displacements iteration."
@@ -126,10 +129,10 @@ function reset!(st::AbstractStructuralState, args...; kwargs...) end
 
 """ Abstract supertype for all structural analysis.
 
-An `AbstractStructuralAnalysis` object facilitates the process of defining an structural analysis
+An structural analysis object facilitates the process of defining an structural analysis
 to be solved.
 
-**Common methods:**
+**Abstract Methods**
 
 * [`structure`](@ref)
 * [`free_dofs`](@ref)
@@ -148,48 +151,49 @@ to be solved.
 """
 abstract type AbstractStructuralAnalysis end
 
-"Return analyzed structure in the `AbstractStructuralAnalysis` `a`."
+"Return analyzed structure in the structural analysis."
 structure(a::AbstractStructuralAnalysis) = a.s
 
-"Return the initial time of `AbstractStructuralAnalysis` `a`."
+"Return the initial time of structural analysis."
 initial_time(a::AbstractStructuralAnalysis) = a.t₁
 
-"Return the current time of `AbstractStructuralAnalysis` `a`."
+"Return the current time of structural analysis."
 current_time(a::AbstractStructuralAnalysis) = a.t
 
-"Return the final time of `AbstractStructuralAnalysis` `a`."
+"Return the final time of structural analysis."
 final_time(a::AbstractStructuralAnalysis) = a.t₁
 
-"Increments the time step given the `AbstractStructuralAnalysis` `a` and the `AbstractStructuralSolver` `alg`."
-_next!(a::AbstractStructuralAnalysis, alg::AbstractSolver) = a.t += time_step(a)
+"Increment the time step given of a structural analysis. Dispatch is done for different
+solvers."
+_next!(a::AbstractStructuralAnalysis, solver::AbstractSolver) = a.t += time_step(a)
 
-"Return `true` if the `AbstractStructuralAnalysis` `a` is completed."
+"Return true if the structural analysis is completed."
 is_done(a::AbstractStructuralAnalysis) = current_time(a) > final_time(a)
 
-"Return the current state of the `AbstractStructuralAnalysis` `a`."
+"Return the current state of the structural analysis."
 current_state(a::AbstractStructuralAnalysis) = a.state
 
-"Return the current displacements iteration state of the `AbstractStructuralAnalysis` `a`."
+"Return the current displacements iteration state of the structural analysis."
 current_iteration(a::AbstractStructuralAnalysis) = iteration_residuals(a.state)
 
-"Rests the `AbstractStructuralAnalysis` `sa` (sets the current time to the initial time)."
+"Rests the structural analysis (sets the current time to the initial time)."
 function reset!(a::AbstractStructuralState) end
 
 # ================
 # Common methods
 # ================
 
-"Apply an `AbstractNeumannBoundaryCondition` lbc into the structural analysis `sa` at the current analysis time `t`"
+"Apply a boundary condition to the structural analysis at the current analysis time."
 function apply!(sa::AbstractStructuralAnalysis, lbc::AbstractNeumannBoundaryCondition)
     t = current_time(sa)
     bcs = boundary_conditions(structure(sa))
     dofs_lbc, dofs_values = apply(bcs, lbc, t)
-    return external_forces(current_state(sa))[dofs_lbc] = dofs_values
+    external_forces(current_state(sa))[dofs_lbc] = dofs_values
 end
 
-"Apply a vector of load boundary conditions to the structure `s` "
+"Apply a vector of load boundary conditions to the structure."
 function apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractNeumannBoundaryCondition})
-    return [apply!(sa, lbc) for lbc in l_bcs]
+    [apply!(sa, lbc) for lbc in l_bcs]
 end
 
 # ================
@@ -200,4 +204,4 @@ end
 # Modal analysis
 # ================
 
-end #module 
+end #module

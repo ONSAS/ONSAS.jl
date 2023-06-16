@@ -11,9 +11,11 @@ export Rectangle, Square, Circle, GenericCrossSection
 # Abstract Cross Section
 # ======================
 
-""" Abstract supertype for all elements corss-section.
+"""
+Abstract supertype for all elements corss-section.
 
-**Common methods:**
+## Common methods
+
 The following functions must be implemented for a new cross-section:
 - * [`area`](@ref)         -- Return the cross-section area.
 - * [`Ixx`](@ref)          -- Return the moment of inertia with respect to `x` axis.
@@ -24,7 +26,6 @@ The following functions must be implemented for a new cross-section:
 - * [`Iyz`](@ref)          -- Return the product moment of area respect to the `y-z` axes.
 - * [`I_tensor_xyz`](@ref) -- Return the inertia tensor in the system of coordinates `x-y-z`.
 """
-
 abstract type AbstractCrossSection end
 
 "Return the cross-section area of the `AbstractCrossSection` `cs`"
@@ -54,14 +55,5 @@ function I_tensor_xyz(cs::AbstractCrossSection)
             -Ixy(cs) Iyy(cs) -Iyz(cs)
             -Ixz(cs) -Iyz(cs) Izz(cs)]
 end
-
-#======================================#
-# AbstractCrossSection implementations #
-#======================================#
-
-include("./Circle.jl")
-include("./Rectangle.jl")
-include("./Square.jl")
-include("./GenericCrossSection.jl")
 
 end # module

@@ -5,10 +5,9 @@ module Handlers
 
 using Reexport, Dictionaries, StaticArrays, LazySets
 
-using ..Elements
 using ..Meshes
-using ..Interpolators
-using ..Searches
+using ..Entities
+using ..Nodes
 
 @reexport import ..Utils: mesh
 
@@ -108,7 +107,7 @@ function PointEvalHandler(mesh::AbstractMesh, points::Vector{P};
                   enumerate(zip(in_mesh_elements_idx, in_mesh_points_idx))
         w = Elements.weights(Meshes.element(mesh, elem_idx), points[point_idx])
         weights[i] = w
-    end
+   end
     PointEvalHandler(mesh, points, in_mesh_points_idx, in_mesh_elements_idx, weights)
 end
 

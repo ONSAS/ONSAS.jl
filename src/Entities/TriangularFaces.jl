@@ -1,12 +1,15 @@
-using LinearAlgebra
-using Reexport
+"Module defining triangular faces."
+module TriangularFaces
 
-using ..Elements
+using LinearAlgebra, Reexport, StaticArrays
+
 using ..Utils
+using ..Nodes
+using ..Entities
 
-@reexport import ..Elements: area, create_entity, normal_direction
+@reexport import ..Entities: area, create_entity, normal_direction
 
-export TriangularFace, normal_direction
+export TriangularFace
 
 """
 A `TriangularFace` represents an element composed by three `Node`s.
@@ -47,16 +50,18 @@ end
 function area(tf::TriangularFace)
     A = norm(_area_vec(tf))
     iszero(A) && error("Area of TriangularFace is zero. Check that nodes are not aligned.")
-    return A
+    A
 end
 
 "Return a `TriangularFace` given an empty `TriangularFace` `tf` and a `Vector` of `Node`s `vn`."
 function create_entity(tf::TriangularFace, vn::AbstractVector{<:AbstractNode})
-    return TriangularFace(vn[1], vn[2], vn[3], label(tf))
+    TriangularFace(vn, label(tf))
 end
 
 "Return the normal direction `n` of a `TriangularFace` element `tf`."
 function normal_direction(tf::TriangularFace)
     Atf = _area_vec(tf)
-    return Atf / norm(Atf)
+    Atf / norm(Atf)
+end
+
 end

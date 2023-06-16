@@ -26,7 +26,7 @@ function uniaxial_extension_structure(; ms=0.5)
     p = 3
 
     # Material types without assigned elements.
-    materials = StructuralMaterials(svk)
+    materials = StructuralMaterial(svk)
 
     # Dirichlet boundary conditions 
     bc₁_label = "fixed-ux"
@@ -42,14 +42,14 @@ function uniaxial_extension_structure(; ms=0.5)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
 
     # BoundaryConditions types without assigned node, feces and elements.
-    boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
+    boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
 
     # Entities types without assigned nodes, faces and elements.
     faces_label = "triangle"
     elems_label = "tetrahedron"
     vfaces = [TriangularFace(faces_label)]
     velems = [Tetrahedron(elems_label)]
-    entities = StructuralEntities(velems, vfaces)
+    entities = StructuralEntity(velems, vfaces)
 
     # Create mesh and retrieve the Structure
     entities_labels = [faces_label, elems_label]

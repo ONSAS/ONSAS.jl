@@ -1,13 +1,13 @@
 """
 Module defining the boundary conditions implemented.
-Two types of boundary conditions are defined Load (Neumann), and Displacements (Dirichlet). 
+Two types of boundary conditions are defined Load (Neumann), and Displacements (Dirichlet).
 Overall, each boundary condition consists of a data type with a label, dofs and values into its fields.
 """
 module BoundaryConditions
 
 using Reexport
 
-using ..Elements, ..Utils
+using ..Entities, ..Utils
 
 @reexport import ..Utils: dofs, label
 
@@ -21,7 +21,7 @@ An `AbstractBoundaryCondition` object facilitates the process of defining:
     - Dirichlet or displacements boundary conditions.
     - Neumann or load boundary conditions.
 
-**Common methods:**
+**Abstract Methods**
 
 * [`apply`](@ref)
 * [`Base.values`](@ref)

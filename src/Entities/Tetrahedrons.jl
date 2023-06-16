@@ -1,17 +1,18 @@
-using StaticArrays: SVector, MMatrix
-using LinearAlgebra: Symmetric, det, diagm
-import LazySets
-using Reexport
+"Module defining tetrahedron elements."
+module Tetrahedrons
 
-using ..HyperElasticMaterials
-using ..Elements
-using ..CrossSections
+using StaticArrays, LinearAlgebra, LazySets, Reexport
+
 using ..Utils
+using ..Nodes
+using ..Entities
+using ..IsotropicLinearElasticMaterial
+using ..HyperElasticMaterials
 
-@reexport import ..Elements: create_entity, internal_forces, local_dof_symbol, strain, stress,
-                             weights
+@reexport import ..Entities: create_entity, internal_forces, local_dof_symbol, strain, stress,
+                             weights, volume
 
-export Tetrahedron, volume, reference_coordinates
+export Tetrahedron, reference_coordinates
 
 """
 A `Tetrahedron` represents a 3D volume element with four nodes.
@@ -44,7 +45,7 @@ end
 
 "Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
 function create_entity(t::Tetrahedron, vn::AbstractVector{<:AbstractNode})
-    Tetrahedron(vn[1], vn[2], vn[3], vn[4], label(t))
+    Tetrahedron(vn, label(t))
 end
 
 "Return the `Tetrahedron` `t` volume in the reference configuration."
@@ -102,16 +103,16 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
     vol = _volume(J)
 
     # OkaThe deformation gradient F can be obtained by integrating
-    # funder over time ∂F/∂t. 
+    # funder over time ∂F/∂t.
     funder = inv(J)' * ∂X∂ζ
 
-    # ∇u in global coordinats 
+    # ∇u in global coordinats
     ℍ = U * funder'
 
-    # Deformation gradient 
+    # Deformation gradient
     𝔽 = ℍ + eye(3)
 
-    # Green-Lagrange strain  
+    # Green-Lagrange strain
     𝔼 = Symmetric(0.5 * (ℍ + ℍ' + ℍ' * ℍ))
 
     𝕊, ∂𝕊∂𝔼 = cosserat_stress(m, 𝔼)
@@ -128,7 +129,7 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
     # Geometric stiffness
     aux = funder' * 𝕊 * funder * vol
 
-    Kᵧ = zeros(12, 12) #TODO: Use Symmetriy and avoid indexes 
+    Kᵧ = zeros(12, 12) #TODO: Use Symmetriy and avoid indexes
 
     for i in 1:4
         for j in 1:4
@@ -176,7 +177,7 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
 
     funder = inv(J)' * ∂X∂ζ
 
-    # ∇u = ℍ in global coordinats 
+    # ∇u = ℍ in global coordinats
     U = reshape(u_e, 3, 4)
     ℍ = U * funder'
 
@@ -248,3 +249,5 @@ end
 
 "Checks if a point `p` is inside a `Tetrahedron` element `t`."
 Base.:∈(p::Point, t::Tetrahedron) = p ∈ convert(LazySets.Tetrahedron, t)
+
+end

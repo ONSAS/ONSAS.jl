@@ -7,7 +7,8 @@ using Reexport
 
 using ..Utils
 using ..BoundaryConditions
-using ..Elements
+using ..Entities
+using ..Nodes
 
 @reexport import ..BoundaryConditions: apply
 

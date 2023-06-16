@@ -5,8 +5,8 @@ module Utils
 
 using LinearAlgebra
 
-export ScalarWrapper, label, mesh, unwrap, eye, row_vector,
-       @debugtime, voigt, Label, NO_LABEL, Density, Field
+export ScalarWrapper, label, unwrap, eye, row_vector, @debugtime, voigt, Label, NO_LABEL,
+       Density, Field, index
 
 #================================#
 # Generic functions to overload  #

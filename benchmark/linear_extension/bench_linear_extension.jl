@@ -23,7 +23,7 @@ function linear_extension_structure(; ms=0.5)
     p = 3
 
     # Material types without assigned elements.
-    materials = StructuralMaterials(mat)
+    materials = StructuralMaterial(mat)
 
     # Dirichlet boundary conditions 
     bc₁_label = "fixed-ux"
@@ -37,7 +37,7 @@ function linear_extension_structure(; ms=0.5)
     # Neumann boundary conditions 
     bc₄ = GlobalLoad([:u], t -> [p * t, 0, 0], bc₄_label)
 
-    boundary_conditions = StructuralBoundaryConditions(bc₁, bc₂, bc₃, bc₄)
+    boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
 
     # Entities types without assigned nodes, faces and elements
@@ -46,7 +46,7 @@ function linear_extension_structure(; ms=0.5)
     vfaces = [TriangularFace(faces_label)]
     velems = [Tetrahedron(elems_label)]
     entities_labels = [faces_label, elems_label]
-    entities = StructuralEntities(velems, vfaces)
+    entities = StructuralEntity(velems, vfaces)
 
     # Create mesh and retrieve the Structure
 

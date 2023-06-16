@@ -3,7 +3,10 @@ using SafeTestsets: @safetestset
 
 MODULES = ["materials.jl",
            "cross_sections.jl",
-           "elements.jl",
+           "nodes.jl",
+           "triangular_faces.jl",
+           "tetrahedrons.jl",
+           "trusses.jl",
            "boundary_conditions.jl",
            "meshes.jl",
            "interfaces/gmsh.jl",

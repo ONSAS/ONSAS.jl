@@ -1,11 +1,18 @@
 using Test
-
-# Module to test
-using ONSAS.StructuralModel
-
+using Dictionaries: dictionary
+using ONSAS.Structures
+using ONSAS.Squares
 using ONSAS.SvkMaterial
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
+using ONSAS.Structures
+using ONSAS.StructuralEntities
+using ONSAS.StructuralMaterials
+using ONSAS.StructuralBoundaryConditions
+using ONSAS.Nodes
+using ONSAS.TriangularFaces
+using ONSAS.Trusses
+using ONSAS.Tetrahedrons
 
 # Scalar parameters
 d = 0.1
@@ -26,12 +33,12 @@ n₃ = Node(0, 0, 1,
 n₄ = Node(1, 1, 1,
           dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)],
                       :T => [Dof(28)]]))
-# Faces 
+# Faces
 face₁ = TriangularFace(n₁, n₂, n₃)
 face₂ = TriangularFace(n₃, n₄, n₃)
 # Cross section
 s = Square(d)
-# Elements
+# Entities
 truss₁ = Truss(n₁, n₂, s)
 truss₂ = Truss(n₂, n₃, s)
 truss₃ = Truss(n₁, n₃, s)
@@ -42,7 +49,7 @@ steel = Svk(E, ν, "steel")
 new_steel = Svk(2E, ν, "new_steel")
 aluminum = Svk(E / 3, ν, "aluminium")
 mat_dict = dictionary([steel => [truss₁, truss₃], aluminum => [truss₂]])
-s_materials = StructuralMaterials(mat_dict)
+s_materials = StructuralMaterial(mat_dict)
 # Boundary conditions
 Fⱼ = 20.0
 Fᵢ = 10.0
@@ -56,12 +63,12 @@ node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂, n�
 face_bc = dictionary([bc₃ => [face₁], bc₅ => [face₁]])
 elem_bc = dictionary([bc₄ => [truss₁, truss₂]])
 
-s_boundary_conditions_only_nodes = StructuralBoundaryConditions(; node_bcs=node_bc)
-s_boundary_conditions_only_faces = StructuralBoundaryConditions(; face_bcs=face_bc)
-s_boundary_conditions_only_elements = StructuralBoundaryConditions(; element_bcs=elem_bc)
-s_boundary_conditions = StructuralBoundaryConditions(node_bc, face_bc, elem_bc)
+s_boundary_conditions_only_nodes = StructuralBoundaryCondition(; node_bcs=node_bc)
+s_boundary_conditions_only_faces = StructuralBoundaryCondition(; face_bcs=face_bc)
+s_boundary_conditions_only_elements = StructuralBoundaryCondition(; element_bcs=elem_bc)
+s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
 
-@testset "ONSAS.StructuralModel.StructuralMaterials" begin
+@testset "ONSAS.StructuralMaterial" begin
     @test s_materials[truss₁] == steel
     @test s_materials["steel"] == steel
     @test truss₁ ∈ s_materials[steel] && truss₃ ∈ s_materials[steel]
@@ -76,7 +83,7 @@ s_boundary_conditions = StructuralBoundaryConditions(node_bc, face_bc, elem_bc)
     @test s_materials[truss₁] == new_steel
 end
 
-@testset "ONSAS.StructuralModel.StructuralBoundaryConditions" begin
+@testset "ONSAS.StructuralBoundaryCondition" begin
 
     # Access and filter boundary conditions
     @test node_bcs(s_boundary_conditions) == node_bc
@@ -125,7 +132,7 @@ end
     @test dofs_bc₃_to_test == dofs_bc₃
     @test f_bc₃_to_test == f_bc₃
 
-    # Push an entity to a boundary condition 
+    # Push an entity to a boundary condition
     push!(s_boundary_conditions, bc₃, n₁)
     push!(s_boundary_conditions, bc₃, face₂)
     push!(s_boundary_conditions, bc₄, truss₄)
@@ -135,7 +142,7 @@ end
           truss₄ ∈ s_boundary_conditions[bc₄]
 end
 
-@testset "ONSAS.StructuralModel.StructuralEntities" begin
+@testset "ONSAS.StructuralEntity" begin
     sec = Square(1)
 
     tetra_label = "tetra_label"
@@ -145,7 +152,7 @@ end
     velems = [Tetrahedron(tetra_label), Truss(sec, truss_label)]
     vfaces = [TriangularFace(face_label)]
 
-    s_entities = StructuralEntities(velems, vfaces)
+    s_entities = StructuralEntity(velems, vfaces)
 
     @test elem_types_to_elements(s_entities) == s_entities.elem_types_to_elements
     @test face_types_to_faces(s_entities) == s_entities.face_types_to_faces
@@ -156,7 +163,7 @@ end
     @test s_entities[truss_label] == velems[2]
 end
 
-@testset "ONSAS.StructuralModel.Structure" begin
+@testset "ONSAS.Structure" begin
     n₁ = Node(0, 0, 0)
     n₂ = Node(0, 1, 0)
     n₃ = Node(0, 0, 1)
@@ -177,7 +184,7 @@ end
     @test faces(s) == faces(mesh(s))
     @test num_faces(s) == length(faces(mesh(s)))
 
-    # Elements
+    # Entities
     @test elements(s) == elements(mesh(s))
     @test num_elements(s) == length(elements(mesh(s)))
 
@@ -186,7 +193,7 @@ end
 
     # Materials
     @test materials(s) == s_materials
-    # Replace material 
+    # Replace material
     label_material_to_be_replaced = "new_steel"
     replace!(s, steel, label_material_to_be_replaced)
     @test steel ∈ keys(element_materials(materials(s)))
@@ -194,8 +201,6 @@ end
 
     # Boundary conditions
     @test boundary_conditions(s) == s_boundary_conditions
-    @test displacement_bcs(s) == displacement_bcs(s_boundary_conditions)
-    @test load_bcs(s) == load_bcs(s_boundary_conditions)
 
     @test Dof(4) ∈ free_dofs(s) && Dof(6) ∈ free_dofs(s) && length(free_dofs(s)) == 2
 end

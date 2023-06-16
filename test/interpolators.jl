@@ -1,6 +1,7 @@
 using Test, Dictionaries
 using ONSAS.Interpolators
-using ONSAS.Elements
+using ONSAS.Entities
+using ONSAS.Nodes
 using ONSAS.Meshes
 
 @testset "ONSAS.Interpolators.FEMInterpolator" begin
@@ -29,7 +30,7 @@ using ONSAS.Meshes
     f₇ = TriangularFace(n₁, n₄, n₅)
     f₈ = TriangularFace(n₄, n₈, n₅)
     faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
-    ## Elements 
+    ## Entities 
     t₁ = Tetrahedron(n₁, n₄, n₂, n₆)
     t₂ = Tetrahedron(n₆, n₂, n₃, n₄)
     t₃ = Tetrahedron(n₄, n₃, n₆, n₇)
@@ -50,7 +51,7 @@ using ONSAS.Meshes
     node_to_w = [dictionary([n₁ => 1.0, n₄ => 0.0, n₂ => 0.0, n₆ => 0.0]),
                  dictionary([n₆ => 0.0, n₂ => 0.0, n₃ => 1.0, n₄ => 0.0])]
 
-    ## Elements where each point is located
+    ## Entities where each point is located
     point_to_elem = [t₁, t₂]
 
     ## Constructor tests

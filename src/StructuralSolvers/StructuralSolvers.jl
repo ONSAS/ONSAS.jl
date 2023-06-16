@@ -7,7 +7,7 @@ module StructuralSolvers
 
 using LinearAlgebra: norm
 
-using ..Elements
+using ..Entities
 
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet
@@ -151,7 +151,7 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
         @warn "Maximum number of iterations was reached."
     end
 
-    if Δr_relᵏ ≤ Δr_rel_tol && ΔU_relᵏ ≤ ΔU_rel_tol || Δr_nromᵏ < eps() || ΔU_nromᵏ < eps()
+    if Δr_relᵏ ≤ Δr_rel_tol || ΔU_relᵏ ≤ ΔU_rel_tol || Δr_nromᵏ < eps() || ΔU_nromᵏ < eps()
         _update!(ri_step, ΔU_and_ResidualForce_Criteria())
         return ΔU_and_ResidualForce_Criteria()
     end
@@ -176,8 +176,6 @@ tolerances(solver::AbstractSolver) = solver.tol
 
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
 function _step!(solver::AbstractSolver, analysis::A) where {A} end
-
-include("./NewtonRaphson.jl")
 
 # ===============
 # Solve function
@@ -219,29 +217,5 @@ _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
 
 "Resets the analysis to the state before starting a new assembly."
 function reset! end
-
-include("./Assembler.jl")
-
-#=================#
-# AbstractSolution
-#=================#
-
-"""
-Abstract supertype for all structural analysis solutions.
-
-**Common methods:**
-* [`displacements`](@ref)
-* [`external_forces`](@ref)
-* [`internal_forces`](@ref)
-* [`stress`](@ref)
-* [`strain`](@ref)
-
-**Common fields:**
-* analysis
-* solver
-"""
-abstract type AbstractSolution end
-
-include("StatesSolution.jl")
 
 end # module
