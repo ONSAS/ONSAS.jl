@@ -1,3 +1,7 @@
+"""
+"Module defining structural material. This used to assign materials to elements when creating
+the mesh to the corresponding material type."
+"""
 module StructuralMaterials
 
 using Reexport
@@ -12,7 +16,7 @@ using ..Meshes
 
 export StructuralMaterial, element_materials
 
-""" 
+"""
 A `StructuralMaterial` is a collection of `Material`s and `Element`s assigning materials to a vector of elements.
 """
 struct StructuralMaterial{M<:AbstractMaterial,E<:AbstractElement}
@@ -21,7 +25,7 @@ struct StructuralMaterial{M<:AbstractMaterial,E<:AbstractElement}
     function StructuralMaterial(mats_to_elems::Dictionary{M,Vector{E}}) where
              {M<:AbstractMaterial,E<:AbstractElement}
         @assert _element_material_is_unique(mats_to_elems) error("Each element must have a single material")
-        # Abstract is used to replace materials 
+        # Abstract is used to replace materials
         new{AbstractMaterial,E}(mats_to_elems)
     end
 end
@@ -57,7 +61,7 @@ Base.pairs(sm::StructuralMaterial) = pairs(element_materials(sm))
 "Checks that each `Element` has a single `Material` in the dictionary `mat_dict`."
 _element_material_is_unique(mat_dict) = length(unique(values(mat_dict))) == length(values(mat_dict))
 
-"Apply the `StructuralBoundaryCondition` to the `AbstractMesh` `m`. For this is required sets 
+"Apply the `StructuralBoundaryCondition` to the `AbstractMesh` `m`. For this is required sets
 into the `Mesh` and the corresponding boundary condition labels declared in `bcs`."
 function apply!(sm::StructuralMaterial, m::AbstractMesh)
     vec_elements = elements(m)

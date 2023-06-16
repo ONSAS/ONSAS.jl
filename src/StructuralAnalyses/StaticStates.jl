@@ -10,7 +10,7 @@ using Dictionaries: Dictionary, dictionary
 using Reexport
 
 using ..Meshes
-using ..StructuralModel
+using ..Structures
 using ..StructuralAnalyses
 using ..StructuralSolvers
 using ..Assemblers

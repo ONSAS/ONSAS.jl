@@ -12,13 +12,13 @@ using ..Materials
 using ..Entities
 using ..BoundaryConditions
 using ..Meshes
-using ..StructuralModel
+using ..Structures
 using ..StructuralSolvers
 using ..Utils
 
 @reexport import ..Utils: apply!
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
-@reexport import ..StructuralModel: free_dofs
+@reexport import ..Structures: free_dofs
 @reexport import ..StructuralSolvers: _update!
 @reexport import ..Assemblers: _assemble!, _end_assemble!
 @reexport import ..StructuralSolvers: reset!
@@ -30,7 +30,7 @@ export AbstractStructuralState, Δ_displacements, tangent_matrix, residual_force
        current_state, current_iteration
 
 """ Abstract supertype to define a new structural state.
-**Common methods:**
+**Abstract Methods**
 ### Accessors:
 * [`displacements`](@ref)
 * [`Δ_displacements`](@ref)
@@ -132,7 +132,7 @@ function reset!(st::AbstractStructuralState, args...; kwargs...) end
 An structural analysis object facilitates the process of defining an structural analysis
 to be solved.
 
-**Common methods:**
+**Abstract Methods**
 
 * [`structure`](@ref)
 * [`free_dofs`](@ref)

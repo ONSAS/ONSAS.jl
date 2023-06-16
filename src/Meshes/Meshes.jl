@@ -27,10 +27,7 @@ export AbstractMesh, Mesh, EntitySet, faces, face_set, element, elements, elemen
 """
 Abstract mesh of dimension `dim`.
 
-### Methods
-
-The following methods are provided by the interface:
-
+**Common methods**
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 * [`num_dofs`](@ref)
@@ -220,9 +217,9 @@ function elements(m::Mesh, name::String)
 end
 
 function Base.show(io::IO, m::Mesh)
-    nnodes = length(m.nodes)
-    nelems = length(m.elements)
-    nfaces = length(m.faces)
+    nnodes = num_nodes(m)
+    nelems = num_elements(m)
+    nfaces = num_faces(m)
     println("• Mesh with $nnodes nodes, $nelems elements and $nfaces faces.")
 end
 

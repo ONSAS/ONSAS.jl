@@ -29,14 +29,14 @@ export AbstractElement, cross_section, internal_forces, inertial_forces, local_d
 
 An `AbstractEntity` object is an entity defined by dofs and node/s with certain coordinates and dimension.
 
-**Common methods:**
+**Abstract Methods**
 
 * [`create_entity`](@ref)
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * nodes
 * label
 """
@@ -79,7 +79,7 @@ label(e::AbstractEntity) = e.label
 
 An `AbstractFace` object facilitates the process of adding boundary conditions on a surface.
 
-**Common methods:**
+**Abstract Methods**
 
 * [`area`](@ref)
 * [`create_entity`](@ref)
@@ -89,7 +89,7 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 * [`nodes`](@ref)
 * [`normal_direction`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * nodes
 * label
 """
@@ -111,7 +111,7 @@ An `AbstractElement` object facilitates the process of evaluating:
     - The inertial forces vector and its tangent matrices.
     - The mechanical stresses and strains.
 
-**Common methods:**
+**Abstract Methods**
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
@@ -130,7 +130,7 @@ This method is a hard contract and for static analysis must be implemented to de
 This method is a hard contract and for dynamic analysis must be implemented to define a new element.
 * [`inertial_forces`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * nodes
 * label
 """

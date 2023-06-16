@@ -34,15 +34,12 @@ const Point{dim,T} = SVector{dim,T} where {dim,T<:Real}
 """
 An `AbstractNode` object is a point in space with degrees of freedom.
 
-**Common methods:**
-
-The following methods are provided by the interface:
-
+**Abstract Methods**
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * `x`: coordinates of the node
 * `dofs`: mapping from field labels to degrees of freedom
 

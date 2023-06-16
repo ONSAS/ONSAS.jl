@@ -17,14 +17,14 @@ export AbstractSolution, StatesSolution, stresses, strains, states, analysis, so
 """
 Abstract supertype for all structural analysis solutions.
 
-**Common methods:**
+**Abstract Methods**
 * [`displacements`](@ref)
 * [`external_forces`](@ref)
 * [`internal_forces`](@ref)
 * [`stress`](@ref)
 * [`strain`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * analysis
 * solver
 """

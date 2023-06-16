@@ -12,7 +12,7 @@ using ..Materials
 using ..Entities
 using ..Meshes
 using ..Structures
-using ..StructuralModel
+using ..Structures
 using ..StructuralAnalyses
 using ..StructuralSolvers
 using ..Solvers
@@ -33,7 +33,7 @@ to be solved. Time variable for static analysis is used to obtain a load factor 
 Of course this abstract type inherits from `AbstractStructuralAnalysis` type,
 and extends the following methods:
 
-**Common methods:**
+**Abstract Methods**
 
 * [`initial_time`](@ref)
 * [`current_time`](@ref)

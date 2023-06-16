@@ -77,7 +77,7 @@ Note that the use of `..` and `...` depends on the number of levels you need to 
     * Use `"""` to start and end a docstring for a module, struct, type, etc.
     * Start with `Return`, `Set`, `Add` ... depending on the function.
     * Include docstrings before the `struct` field definition.
-    * Abstract types should include **Common methods:** and **Common fields:** sections. 
+    * Abstract types should include **Abstract Methods** and **Abstract fields** sections. 
 
 ## Authors 
 
