@@ -1,5 +1,5 @@
 """
-Module defining methods and types to handle with mesh operations.
+Module defining methods and types to handle mesh operations.
 """
 module Handlers
 
