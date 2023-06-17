@@ -31,6 +31,7 @@ FILES = ["Utils.jl",
          "BoundaryConditions/LocalLoadBoundaryConditions.jl",
          # Meshes
          "Meshes/Meshes.jl",
+         "Meshes/Searches.jl",
          "Meshes/Interpolators.jl",
          "Meshes/Handlers.jl",
          # Interfaces
@@ -93,6 +94,7 @@ end
 
 # Geometric entities and interpolation
 @reexport using .Meshes
+@reexport using .Searches
 @reexport using .Interpolators
 @reexport using .Handlers
 
