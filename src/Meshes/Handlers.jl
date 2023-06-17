@@ -1,16 +1,19 @@
+"""
+Module defining methods and types to handle with mesh operations.
+"""
 module Handlers
 
-using Reexport, Dictionaries, StaticArrays
-using LazySets: UnionSetArray, box_approximation, Singleton, split, is_intersection_empty
+using Reexport
+using Dictionaries
+using StaticArrays
 
-using ..Meshes
 using ..Entities
 using ..Nodes
+using ..Meshes
+using ..Searches
 
-import LazySets
-
-export AbstractInterpolator, PointEvalHandler, points, not_in_mesh_points, interpolator, mesh,
-       PointsInterpolator, node_to_weights, points_to_element
+export AbstractInterpolator, PointsInterpolator, node_to_weights, points_to_element
+export PointEvalHandler, points, not_in_mesh_points, interpolator, mesh
 
 abstract type AbstractInterpolator end
 
@@ -34,7 +37,7 @@ node_to_weights(points_interpolator::PointsInterpolator) = points_interpolator.n
 points_to_element(points_interpolator::PointsInterpolator) = points_interpolator.points_to_element
 
 """
-A `PointEvalHandler` facilitates the process of evaluating a solution at a given vector of points 
+A `PointEvalHandler` facilitates the process of evaluating a solution at a given vector of points
 obtained at the `Node`s `Dof`s in a `Mesh`.
 """
 struct PointEvalHandler{dim,T,PT<:Point{dim,T},VPT<:AbstractVector{PT},
@@ -79,25 +82,9 @@ mesh(peh::PointEvalHandler) = peh.mesh
 "Return the `Interpolator` used to evaluate the solution."
 interpolator(peh::PointEvalHandler) = peh.interpolator
 
-abstract type SearchAlgorithm end
-
-struct Serial <: SearchAlgorithm end
-struct Threaded <: SearchAlgorithm end
-Base.@kwdef struct Partition <: SearchAlgorithm
-    Nx::Int64 = 5
-    Ny::Int64 = 5
-    Nz::Int64 = 5
-end
-
-Base.@kwdef struct PartitionThreaded <: SearchAlgorithm
-    Nx::Int64 = 5
-    Ny::Int64 = 5
-    Nz::Int64 = 5
-end
-
 "Constructor of a `PointEvalHandler` given a mesh and an array of points."
 function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT};
-                          alg::SearchAlgorithm=Serial()) where {dim,T,PT<:Point{dim,T}}
+                          alg::AbstractSearchAlgorithm=Serial()) where {dim,T,PT<:Point{dim,T}}
     @assert dim ≤ 3 "Points must be 1D, 2D or 3D"
 
     # For each point, obtain the element(s) that it belongs to.
@@ -143,137 +130,6 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT},
 
     PointEvalHandler(mesh, vec_points, in_mesh_points_idx, not_in_mesh_points_idx, in_mesh_points,
                      not_in_mesh_points, in_mesh_elements_idx, weights, interpolator)
-end
-
-function evaluate_points_in_mesh(mesh::AbstractMesh, vec_points::Vector{PT},
-                                 ::Serial) where {dim,T,PT<:Point{dim,T}}
-    in_mesh_points_idx = Vector{Int64}()
-    in_mesh_elements_idx = Vector{Int64}()
-    for (point_idx, point) in enumerate(vec_points)
-        for (elem_idx, elem) in enumerate(elements(mesh))
-            if point ∈ elem
-                push!(in_mesh_points_idx, point_idx)
-                push!(in_mesh_elements_idx, elem_idx)
-                # Continue with next point, without checking the following elements.
-                break
-            end
-        end
-    end
-    in_mesh_points_idx, in_mesh_elements_idx
-end
-
-function evaluate_points_in_mesh(mesh::AbstractMesh, vec_points::Vector{PT},
-                                 ::Threaded) where {dim,T,PT<:Point{dim,T}}
-    numthreads = Threads.nthreads()
-    in_mesh_points_idx = [Vector{Int64}() for _ in 1:numthreads]
-    in_mesh_elements_idx = [Vector{Int64}() for _ in 1:numthreads]
-    Threads.@threads for point_idx in 1:length(vec_points)
-        id = Threads.threadid()
-        point = vec_points[point_idx]
-        for (elem_idx, elem) in enumerate(elements(mesh))
-            if point ∈ elem
-                push!(in_mesh_points_idx[id], point_idx)
-                push!(in_mesh_elements_idx[id], elem_idx)
-                # Continue with next point, without checking the following elements.
-                break
-            end
-        end
-    end
-    return reduce(vcat, in_mesh_points_idx), reduce(vcat, in_mesh_elements_idx)
-end
-
-function bounding_box(mesh::AbstractMesh)
-    # Allocates, but sufficiently fast for now.
-    box_approximation(UnionSetArray([Singleton(n) for n in nodes(mesh)]))
-end
-
-function evaluate_points_in_mesh(mesh::AbstractMesh, vec_points::Vector{PT},
-                                 alg::Partition) where {dim,T,PT<:Point{dim,T}}
-    # Array of hyperrectangles inside the bounding box.
-    H = bounding_box(mesh)
-    (; Nx, Ny, Nz) = alg
-    Hpart = split(H, [Nx, Ny, Nz])
-    Tboxes = [box_approximation(convert(LazySets.Tetrahedron, elem)) for elem in elements(mesh)]
-
-    # Mapping of elements with non-empty intersection with each hyperrectangle.
-    elems_idx_in_box = [Vector{Int64}() for _ in 1:length(Hpart)]
-    for (elem_idx, Tb) in enumerate(Tboxes)
-        for (box_idx, Hi) in enumerate(Hpart)
-            if !is_intersection_empty(Tb, Hi)
-                push!(elems_idx_in_box[box_idx], elem_idx)
-            end
-        end
-    end
-
-    in_mesh_points_idx = Vector{Int64}()
-    in_mesh_elements_idx = Vector{Int64}()
-    for (point_idx, point) in enumerate(vec_points)
-        for (box_idx, Hi) in enumerate(Hpart)
-            if point ∈ Hi
-                # Loop over admissible tetrahedra inside the box.
-                found = false
-                for elem_idx in elems_idx_in_box[box_idx]
-                    if point ∈ element(mesh, elem_idx)
-                        push!(in_mesh_points_idx, point_idx)
-                        push!(in_mesh_elements_idx, elem_idx)
-                        found = true
-                        break
-                    end
-                end
-                if found
-                    # Continue with next point.
-                    break
-                end
-            end
-        end
-    end
-    in_mesh_points_idx, in_mesh_elements_idx
-end
-
-function evaluate_points_in_mesh(mesh::AbstractMesh, vec_points::Vector{PT},
-                                 alg::PartitionThreaded) where {dim,T,PT<:Point{dim,T}}
-    # Array of hyperrectangles inside the bounding box.
-    H = bounding_box(mesh)
-    (; Nx, Ny, Nz) = alg
-    Hpart = split(H, [Nx, Ny, Nz])
-    Tboxes = [box_approximation(convert(LazySets.Tetrahedron, elem)) for elem in elements(mesh)]
-
-    # Mapping of elements with non-empty intersection with each hyperrectangle.
-    elems_idx_in_box = [Vector{Int64}() for _ in 1:length(Hpart)]
-    for (elem_idx, Tb) in enumerate(Tboxes)
-        for (box_idx, Hi) in enumerate(Hpart)
-            if !is_intersection_empty(Tb, Hi)
-                push!(elems_idx_in_box[box_idx], elem_idx)
-            end
-        end
-    end
-
-    numthreads = Threads.nthreads()
-    in_mesh_points_idx = [Vector{Int64}() for _ in 1:numthreads]
-    in_mesh_elements_idx = [Vector{Int64}() for _ in 1:numthreads]
-    Threads.@threads for point_idx in 1:length(vec_points)
-        id = Threads.threadid()
-        point = vec_points[point_idx]
-        for (box_idx, Hi) in enumerate(Hpart)
-            if point ∈ Hi
-                # Loop over admissible tetrahedra inside the box.
-                found = false
-                for elem_idx in elems_idx_in_box[box_idx]
-                    if point ∈ element(mesh, elem_idx)
-                        push!(in_mesh_points_idx[id], point_idx)
-                        push!(in_mesh_elements_idx[id], elem_idx)
-                        found = true
-                        break
-                    end
-                end
-                if found
-                    # Continue with next point.
-                    break
-                end
-            end
-        end
-    end
-    reduce(vcat, in_mesh_points_idx), reduce(vcat, in_mesh_elements_idx)
 end
 
 end # module
