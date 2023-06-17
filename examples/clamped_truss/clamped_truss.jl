@@ -41,7 +41,7 @@ function run_clamped_truss_example()
     # Boundary conditions
     # -------------------------------
     # Fixed dofs
-    bc₁ = FixedDof(; components=[1], name="fixed_uₓ")
+    bc₁ = FixedDof(:u, [1], "fixed_uₓ")
     # Load
     bc₂ = GlobalLoad(; values=t -> [F * t], name="load in j")
     # Apply bcs to the nodes

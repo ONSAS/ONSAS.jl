@@ -11,7 +11,7 @@ using ONSAS.Nodes
 using ONSAS.TriangularFaces
 using ONSAS.Tetrahedrons
 
-# Entities 
+# Entities
 n₁ = Node(0, 0, 0,
           dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)],
                       :T => [Dof(25)]]))
@@ -29,29 +29,38 @@ t_face = TriangularFace(n₁, n₂, n₃)
 tetra = Tetrahedron(n₁, n₂, n₃, n₄)
 
 @testset "ONSAS.BoundaryConditions.FixedDof" begin
-
-    # Generic labeled boundary condition
-    generic_fixed_dofs = [:u, :θ]
-    fixed_components = [1, 3] # Fixes first, second and third component of the corresponding dofs
+    # Generic labeled boundary condition.
+    generic_fixed_dofs = :u
+    fixed_components = [1, 3]
     generic_bc_label = :fixed_bc_generic
     fixed_bc = FixedDof(generic_fixed_dofs, fixed_components, generic_bc_label)
 
-    @test dofs(fixed_bc) == generic_fixed_dofs
     @test components(fixed_bc) == fixed_components
     @test label(fixed_bc) == generic_bc_label
 
-    @test apply(fixed_bc, n₃) == [Dof(7), Dof(9), Dof(19), Dof(21)]
-    @test apply(fixed_bc, t_face) == [Dof(1), Dof(3), Dof(13), Dof(15), Dof(4),
-                                      Dof(6), Dof(16), Dof(18), Dof(7), Dof(9), Dof(19), Dof(21)]
-    @test apply(fixed_bc, tetra) == [Dof(1), Dof(3), Dof(13), Dof(15), Dof(4), Dof(6), Dof(16),
-                                     Dof(18), Dof(7), Dof(9), Dof(19), Dof(21), Dof(10), Dof(12), Dof(22), Dof(24)]
+    @test apply(fixed_bc, n₃) == [Dof(7), Dof(9)]
+    @test apply(fixed_bc, t_face) == [Dof(1), Dof(3), Dof(4), Dof(6), Dof(7), Dof(9)]
+    @test apply(fixed_bc, tetra) ==
+          [Dof(1), Dof(3), Dof(4), Dof(6), Dof(7), Dof(9), Dof(10), Dof(12)]
+
+    generic_fixed_dofs = :θ
+    fixed_components = [1, 3]
+    generic_bc_label = :fixed_bc_generic
+    fixed_bc = FixedDof(generic_fixed_dofs, fixed_components, generic_bc_label)
+
+    @test components(fixed_bc) == fixed_components
+    @test label(fixed_bc) == generic_bc_label
+
+    @test apply(fixed_bc, n₃) == [Dof(19), Dof(21)]
+    @test apply(fixed_bc, t_face) == [Dof(13), Dof(15), Dof(16), Dof(18), Dof(19), Dof(21)]
+    @test apply(fixed_bc, tetra) ==
+          [Dof(13), Dof(15), Dof(16), Dof(18), Dof(19), Dof(21), Dof(22), Dof(24)]
 end
 
 t_to_test = 2.0
 
 @testset "ONSAS.BoundaryConditions.GlobalLoad" begin
-
-    # Generic labeled global load boundary condition
+    # Generic labeled global load boundary condition.
     dofs_toapply_bc = [:u, :θ]
     load_fact_generic(t) = [sin(t), t, t^2]
     generic_values = t -> load_fact_generic(t) .* [1, 1, 1]
@@ -63,17 +72,17 @@ t_to_test = 2.0
     @test label(generic_bc) == generic_bc_label
     @test generic_bc(t_to_test) == values(generic_bc)(t_to_test)
 
-    # Node force computation 
+    # Node force computation
     loaded_dofs, f_vec = apply(generic_bc, n₁, t_to_test)
     @test loaded_dofs == [Dof(1), Dof(2), Dof(3), Dof(13), Dof(14), Dof(15)]
     @test f_vec == repeat(generic_bc(t_to_test), 2)
 
-    # Face tension computation 
+    # Face tension computation
     loaded_dofs, p_vec = apply(generic_bc, t_face, t_to_test)
     @test loaded_dofs == vcat(Dof.(1:9), Dof.(13:21))
     @test p_vec == repeat(generic_bc(t_to_test) * area(t_face) / 3, 6)
 
-    # Volume tension computation 
+    # Volume tension computation
     loaded_dofs, b_vec = apply(generic_bc, tetra, t_to_test)
     @test loaded_dofs == vcat(Dof.(1:24))
 
@@ -94,7 +103,7 @@ end
     @test generic_bc(t_to_test) == values(generic_bc)(t_to_test)
     @test label(generic_bc) == generic_bc_label
 
-    # Face tension computation 
+    # Face tension computation
     loaded_dofs, p_vec = apply(generic_bc, t_face, t_to_test)
     @test loaded_dofs == vcat(Dof.(1:9))
     @test p_vec == -repeat([generic_values(t_to_test) * area(t_face) / 3, 0, 0], 3)
