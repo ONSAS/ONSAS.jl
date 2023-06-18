@@ -38,7 +38,7 @@ function uniaxial_extension_structure(; ms=0.5)
     bc₃ = FixedDof(:u, [3], bc₃_label)
 
     # Neumann boundary conditions the tension is apliad in the negative direction of the z local axis.
-    bc₄ = Pressure(; values=t -> -p * t, name=bc₄_label)
+    bc₄ = Pressure(:u, t -> -p * t, bc₄_label)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
 
     # BoundaryConditions types without assigned node, feces and elements.

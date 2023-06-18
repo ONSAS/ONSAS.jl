@@ -21,14 +21,14 @@ Fixed boundary condition.
 Considers null dof values at specific component(s) of the given field.
 """
 struct FixedDof <: AbstractDirichletBoundaryCondition
-    "Field where the boundary condition is subscribed."
+    "Field where the boundary condition applies to."
     field::Field
     "Components of the field which are fixed."
     components::Vector{Int64}
-    "Label of the boundary condition."
+    "Boundary condition label."
     name::Label
-    function FixedDof(dofs::Field, components::Vector{Int64}, name::Label=NO_LABEL)
-        new(dofs, components, name)
+    function FixedDof(field::Field, components::Vector{Int64}, name::Label=NO_LABEL)
+        new(field, components, name)
     end
 end
 

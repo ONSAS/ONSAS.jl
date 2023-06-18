@@ -81,7 +81,7 @@ function run_cylinder_internal_pressure_example()
         bc₂ = FixedDof(:u, [2], bc₂_label)
         bc₃ = FixedDof(:u, [3], bc₃_label)
         # Neumann boundary conditions
-        bc₄ = Pressure(; values=pressure, name=bc₄_label)
+        bc₄ = Pressure(:u, pressure, bc₄_label)
         boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
         # Assign boundary conditions to the ones defined in the mesh
         apply!(boundary_conditions, mesh)
