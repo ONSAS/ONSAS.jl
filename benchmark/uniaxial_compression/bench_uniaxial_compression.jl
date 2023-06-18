@@ -8,7 +8,7 @@ function strain_energy_neo(𝔼::AbstractMatrix, K::Real, μ::Real)
     # First invariant
     I₁ = tr(ℂ)
     # Strain energy function
-    return Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
+    Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
 end
 
 # Include `create_mesh` function.
