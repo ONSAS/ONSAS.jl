@@ -9,7 +9,7 @@ Linear extension  GMSH mesh and `IsotropicLinearElastic` material.
 function linear_extension_structure(; ms=0.5)
 
     # x, y and z dimensions of the box in the mesh respectively.
-    Lᵢ = 2.0                         # Dimension in x of the box in m 
+    Lᵢ = 2.0                         # Dimension in x of the box in m
     Lⱼ = 1.0                         # Dimension in y of the box in m
     Lₖ = 1.0                         # Dimension in z of the box in m
 
@@ -25,16 +25,16 @@ function linear_extension_structure(; ms=0.5)
     # Material types without assigned elements.
     materials = StructuralMaterial(mat)
 
-    # Dirichlet boundary conditions 
+    # Dirichlet boundary conditions
     bc₁_label = "fixed-ux"
     bc₂_label = "fixed-uj"
     bc₃_label = "fixed-uk"
     bc₄_label = "tension"
-    bc₁ = FixedDof([:u], [1], bc₁_label)
-    bc₂ = FixedDof([:u], [2], bc₂_label)
-    bc₃ = FixedDof([:u], [3], bc₃_label)
+    bc₁ = FixedDof(:u, [1], bc₁_label)
+    bc₂ = FixedDof(:u, [2], bc₂_label)
+    bc₃ = FixedDof(:u, [3], bc₃_label)
 
-    # Neumann boundary conditions 
+    # Neumann boundary conditions
     bc₄ = GlobalLoad([:u], t -> [p * t, 0, 0], bc₄_label)
 
     boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)

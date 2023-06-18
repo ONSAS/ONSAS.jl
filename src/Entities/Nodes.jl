@@ -61,7 +61,7 @@ Base.getindex(n::AbstractNode, i::Int) = n.x[i]
 
 "Return node degrees of freedom."
 dofs(n::AbstractNode) = n.dofs
-dofs(vn::Vector{<:AbstractNode}) = vcat(dofs.(vn)...)
+dofs(vn::Vector{<:AbstractNode}) = vcat(dofs.(vn)...) # mapreduce(dofs, vcat, vn)
 dofs(n::AbstractNode, s::Field) = n.dofs[s]
 
 "Sets a vector of dofs `vd` to the node assigned to the field `s`."

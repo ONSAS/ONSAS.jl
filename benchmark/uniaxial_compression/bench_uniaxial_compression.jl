@@ -7,8 +7,8 @@ function strain_energy_neo(𝔼::AbstractMatrix, K::Real, μ::Real)
     J = sqrt(det(ℂ))
     # First invariant
     I₁ = tr(ℂ)
-    # Strain energy function 
-    return Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
+    # Strain energy function
+    Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
 end
 
 # Include `create_mesh` function.
@@ -39,16 +39,16 @@ function uniaxial_compression_structure(; ms=0.5)
     # Material types without assigned elements.
     materials = StructuralMaterial(neo_hookean_hyper)
 
-    # Dirichlet boundary conditions 
+    # Dirichlet boundary conditions
     bc₁_label = "fixed-ux"
     bc₂_label = "fixed-uj"
     bc₃_label = "fixed-uk"
     bc₄_label = "tension"
-    bc₁ = FixedDof([:u], [1], bc₁_label)
-    bc₂ = FixedDof([:u], [2], bc₂_label)
-    bc₃ = FixedDof([:u], [3], bc₃_label)
+    bc₁ = FixedDof(:u, [1], bc₁_label)
+    bc₂ = FixedDof(:u, [2], bc₂_label)
+    bc₃ = FixedDof(:u, [3], bc₃_label)
 
-    # Neumann boundary conditions 
+    # Neumann boundary conditions
     bc₄ = Pressure([:u], t -> p * t, bc₄_label)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
 

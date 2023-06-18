@@ -31,6 +31,7 @@ L = 2 # Length in m
 d = L * cos(deg2rad(65))   # vertical distance in m
 h = L * sin(deg2rad(65))
 Fₖ = -3e8  # vertical   load in N
+
 # -------------------------------
 # Materials
 # -------------------------------
@@ -69,8 +70,8 @@ s_materials = StructuralMaterial(mat_dict)
 # Boundary conditions
 # -------------------------------
 # Fixed dofs
-bc₁ = FixedDof([:u], [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
-bc₂ = FixedDof([:u], [2], "fixed_uⱼ")
+bc₁ = FixedDof(:u, [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
+bc₂ = FixedDof(:u, [2], "fixed_uⱼ")
 # Load
 bc₃ = GlobalLoad([:u], t -> [0, 0, Fₖ * t], "load in j")
 node_bcs = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])

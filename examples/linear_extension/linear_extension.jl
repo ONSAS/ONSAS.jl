@@ -1,4 +1,4 @@
-# ---------------------------------------------------------------- 
+# ----------------------------------------------------------------
 # Uniaxial Extension Example 1  from (Zerpa et. Al., 2019, CMAME).
 # ----------------------------------------------------------------
 using Test, LinearAlgebra, Suppressor
@@ -17,7 +17,7 @@ function run_linear_extension_example()
     ν = 0.4             # Poisson's ratio
     p = 3               # Tension load in Pa
     tension(t) = p * t  # Tension load function
-    Lᵢ = 2.0            # Dimension in x of the box in m 
+    Lᵢ = 2.0            # Dimension in x of the box in m
     Lⱼ = 1.0            # Dimension in y of the box in m
     Lₖ = 1.0            # Dimension in z of the box in m
     RTOL = 1e-4         # Relative tolerance for tests
@@ -34,11 +34,11 @@ function run_linear_extension_example()
     # -------------------------------
     # Fixed dofs
     bc₁_label = "fixed-ux"
-    bc₁ = FixedDof([:u], [1], bc₁_label)
+    bc₁ = FixedDof(:u, [1], bc₁_label)
     bc₂_label = "fixed-uj"
-    bc₂ = FixedDof([:u], [2], bc₂_label)
+    bc₂ = FixedDof(:u, [2], bc₂_label)
     bc₃_label = "fixed-uk"
-    bc₃ = FixedDof([:u], [3], bc₃_label)
+    bc₃ = FixedDof(:u, [3], bc₃_label)
     # Load
     bc₄_label = "tension"
     bc₄ = GlobalLoad([:u], t -> [tension(t), 0, 0], bc₄_label)
@@ -172,7 +172,7 @@ function run_linear_extension_example()
     σⱼ_analytic_p_rand_e = σ_analytic_p_rand_e[2]
     σₖ_analytic_p_rand_e = σ_analytic_p_rand_e[3]
     #-----------------------------
-    # Test boolean for CI  
+    # Test boolean for CI
     #-----------------------------
     @testset "Linear Extension example" begin
         # Displacements
@@ -186,7 +186,7 @@ function run_linear_extension_example()
         @test ϵᵢ_numeric_e_rand ≈ ϵᵢ_analytic_p_rand_e rtol = RTOL
         @test norm(ϵⱼ_numeric_e_rand) ≈ 0 atol = RTOL
         @test norm(ϵₖ_numeric_e_rand) ≈ 0 atol = RTOL
-        # Stresses 
+        # Stresses
         @test σᵢ_analytic_p_rand_e ≈ σᵢ_analytic_p_rand_e rtol = RTOL
         @test σⱼ_analytic_p_rand_e ≈ σⱼ_analytic_p_rand_e atol = RTOL
         @test σₖ_analytic_p_rand_e ≈ σₖ_analytic_p_rand_e atol = RTOL

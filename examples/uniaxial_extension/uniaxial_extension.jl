@@ -71,11 +71,11 @@ function run_uniaxial_extension()
     # -------------------------------
     # Fixed dofs
     bc₁_label = "fixed-ux"
-    bc₁ = FixedDof([:u], [1], bc₁_label)
+    bc₁ = FixedDof(:u, [1], bc₁_label)
     bc₂_label = "fixed-uj"
-    bc₂ = FixedDof([:u], [2], bc₂_label)
+    bc₂ = FixedDof(:u, [2], bc₂_label)
     bc₃_label = "fixed-uk"
-    bc₃ = FixedDof([:u], [3], bc₃_label)
+    bc₃ = FixedDof(:u, [3], bc₃_label)
     # Load
     bc₄_label = "tension"
     bc₄ = GlobalLoad([:u], t -> [p * t, 0, 0], bc₄_label)
