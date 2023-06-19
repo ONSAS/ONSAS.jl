@@ -4,37 +4,18 @@ Module defining methods and types to handle mesh operations.
 module Handlers
 
 using Reexport
-using Dictionaries
+using Dictionaries: Dictionary, dictionary
 using StaticArrays
 
 using ..Entities
 using ..Nodes
 using ..Meshes
+using ..Interpolators
 using ..Searches
 
-export AbstractInterpolator, PointsInterpolator, node_to_weights, points_to_element
-export PointEvalHandler, points, not_in_mesh_points, interpolator, mesh
+@reexport import ..Interpolators: points
 
-abstract type AbstractInterpolator end
-
-"""
-A `PointsInterpolator` struct stores the weights nodes and elements needed
-to interpolate the solution at a given point.The index of each `Vector`
-is the index in the `Vector` of `Point`s.
-"""
-struct PointsInterpolator{N<:AbstractNode,T<:Real,E<:AbstractElement,VE<:AbstractVector{E}} <:
-       AbstractInterpolator
-    "`Dictionary` with `Node`s as keys and the corresponding weights as values."
-    node_to_weights::Vector{Dictionary{N,T}}
-    "`Element` where the point is located."
-    points_to_element::VE
-end
-
-"Return a `Vector` that maps the weight corresponding to each `Node`."
-node_to_weights(points_interpolator::PointsInterpolator) = points_interpolator.node_to_weights
-
-"Return a `Vector` that maps the `Element` where each `Point` is located."
-points_to_element(points_interpolator::PointsInterpolator) = points_interpolator.points_to_element
+export PointEvalHandler, not_in_mesh_points, interpolator, mesh
 
 """
 A `PointEvalHandler` facilitates the process of evaluating a solution at a given vector of points
@@ -120,13 +101,14 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT},
 
     # Dictionary with nodes as keys and corresponding weights as values.
     num_in_mesh_points = length(in_mesh_elements_idx)
-    node_to_weights = Vector{Dictionary{AbstractNode,T}}(undef, num_in_mesh_points)
+    node_to_weights = Vector{Dictionary{Node,T}}(undef, num_in_mesh_points)
     @inbounds for (i, elem_idx) in enumerate(in_mesh_elements_idx)
         elem = element(mesh, elem_idx)
         dict = dictionary([n => weights[i][j] for (j, n) in enumerate(nodes(elem))])
         node_to_weights[i] = dict
     end
-    interpolator = PointsInterpolator(node_to_weights, points_to_element)
+    interpolator = FEMInterpolator(view(vec_points, in_mesh_points_idx), node_to_weights,
+                                   points_to_element)
 
     PointEvalHandler(mesh, vec_points, in_mesh_points_idx, not_in_mesh_points_idx, in_mesh_points,
                      not_in_mesh_points, in_mesh_elements_idx, weights, interpolator)

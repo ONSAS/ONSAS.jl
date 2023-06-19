@@ -20,32 +20,36 @@ abstract type AbstractInterpolator end
 
 """
 A `FEMInterpolator` struct stores the weights nodes and elements needed
-to interpolate the solution at a given set of points. The weight are given 
-by the element's shape functions. The index of each `Vector` is the index 
+to interpolate the solution at a given set of points. The weight are given
+by the element's shape functions. The index of each `Vector` is the index
 in the `Vector` of `Point`s where the magnitude is evaluated.
 """
 struct FEMInterpolator{dim,
                        P<:Point{dim},
-                       N<:AbstractNode{dim},
+                       VP<:AbstractVector{P},
+                       N<:AbstractNode,
                        TW<:Real,
-                       E<:AbstractElement{dim},
+                       E<:AbstractElement,
                        VE<:AbstractVector{E}} <: AbstractInterpolator
     "`Vector` of `Point`s where the solution is interpolated."
-    points_interpolated::Vector{P}
+    points_interpolated::VP
     "`Dictionary` with `Node`s as keys and the corresponding weights as values."
     node_to_weights::Vector{Dictionary{N,TW}}
     "`Element` where the point is located."
     points_to_element::VE
     # Check the lengths
-    function FEMInterpolator(points_interpolated::Vector{P},
+    function FEMInterpolator(points_interpolated::VP,
                              node_to_weights::Vector{Dictionary{N,TW}},
                              points_to_element::VE) where {dim,
                                                            P<:Point{dim},
-                                                           N<:AbstractNode{dim},
-                                                           TW<:Real,E<:AbstractElement{dim},
+                                                           VP<:AbstractVector{P},
+                                                           N<:AbstractNode,
+                                                           TW<:Real,
+                                                           E<:AbstractElement,
                                                            VE<:AbstractVector{E}}
         @assert length(points_interpolated) == length(node_to_weights) == length(points_to_element) "All FEMInterpolator inputs must have the same length"
-        new{dim,P,N,TW,E,VE}(points_interpolated, node_to_weights, points_to_element)
+        # Main.@infiltrate
+        new{dim,P,VP,N,TW,E,VE}(points_interpolated, node_to_weights, points_to_element)
     end
 end
 
