@@ -1,6 +1,6 @@
 """
-Module defining structural solvers that can be used to solved different analyses. 
-Each solver consists of a data type with a convergence criterion and a the iteration status. 
+Module defining structural solvers that can be used to solved different analyses.
+Each solver consists of a data type with a convergence criterion and a the iteration status.
 A _step! method is used to perform a single iteration step.
 """
 module StructuralSolvers
@@ -17,7 +17,7 @@ export AbstractSolver, step_size, tolerances, _step!, solve!, _solve!, solve, re
 export AbstractSolution
 
 """
-Facilitates the process of defining and checking numerical convergence. 
+Facilitates the process of defining and checking numerical convergence.
 """
 Base.@kwdef struct ConvergenceSettings
     "Relative displacement tolerance."
@@ -26,6 +26,13 @@ Base.@kwdef struct ConvergenceSettings
     rel_res_force_tol::Float64 = 1e-6
     "Maximum number of iterations."
     max_iter::Int = 20
+end
+
+"Show convergence settings."
+function Base.show(io::IO, cs::ConvergenceSettings)
+    println("• ||ΔU||/||U||| ≤ : $(residual_forces_tol(cs))")
+    println("• ||ΔR||/||R||| $(displacement_tol(cs))")
+    println("• iter k ≤: $(max_iter_tol(cs))")
 end
 
 "Return residual forces tolerance set in the `ConvergenceSettings` `tol`."
@@ -136,12 +143,12 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
     Δr_rel_tol = residual_forces_tol(cs)
     max_iter = max_iter_tol(cs)
 
-    # Check displacements convergence  
+    # Check displacements convergence
     if ΔU_relᵏ ≤ ΔU_rel_tol && ΔU_relᵏ > 0
         _update!(ri_step, ΔUCriterion())
     end
 
-    # Check residual forces convergence 
+    # Check residual forces convergence
     if Δr_relᵏ ≤ Δr_rel_tol && Δr_relᵏ > 0
         _update!(ri_step, ResidualForceCriterion())
     end

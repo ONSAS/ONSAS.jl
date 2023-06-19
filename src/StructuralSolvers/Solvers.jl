@@ -16,10 +16,16 @@ struct NewtonRaphson <: AbstractSolver
     tol::ConvergenceSettings
 end
 
+"Show a `NewtonRaphson` solver."
+function Base.show(io::IO, nr::NewtonRaphson)
+    println("Newton-Raphson solver with tolerances:")
+    show(io, tolerances(nr))
+end
+
 "Constructor for `NewtonRaphson` solver with default tolerances."
 NewtonRaphson() = NewtonRaphson(ConvergenceSettings())
 
 "Return `NewtonRaphson` solver tolerances."
-tolerances(sol::NewtonRaphson) = sol.tol
+tolerances(nr::NewtonRaphson) = nr.tol
 
 end # module
