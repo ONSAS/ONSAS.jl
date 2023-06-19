@@ -41,7 +41,7 @@ function run_linear_extension_example()
     bc₃ = FixedDof(:u, [3], bc₃_label)
     # Load
     bc₄_label = "tension"
-    bc₄ = GlobalLoad([:u], t -> [tension(t), 0, 0], bc₄_label)
+    bc₄ = GlobalLoad(:u, t -> [tension(t), 0, 0], bc₄_label)
     # Get bc labels for the mesh
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     s_boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)

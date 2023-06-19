@@ -78,7 +78,7 @@ function run_uniaxial_extension()
     bc₃ = FixedDof(:u, [3], bc₃_label)
     # Load
     bc₄_label = "tension"
-    bc₄ = GlobalLoad([:u], t -> [p * t, 0, 0], bc₄_label)
+    bc₄ = GlobalLoad(:u, t -> [p * t, 0, 0], bc₄_label)
     # Assign this to faces
     face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
     # Crete boundary conditions struct
@@ -149,7 +149,7 @@ function run_uniaxial_extension()
     # Boundary Conditions
     # -------------------------------
     # Redefine the load boundary condition
-    bc₄ = Pressure([:u], t -> -p * t, bc₄_label)
+    bc₄ = Pressure(:u, t -> -p * t, bc₄_label)
     # BoundaryConditions types without assigned node, feces and elements
     s_boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
     # -------------------------------

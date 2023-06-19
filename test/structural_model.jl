@@ -56,8 +56,8 @@ Fᵢ = 10.0
 dof_dim = 3
 bc₁ = FixedDof(:u, collect(1:dof_dim), "fixed_uₓ_uⱼ_uₖ")
 bc₂ = FixedDof(:u, [2], "fixed_uⱼ")
-bc₃ = GlobalLoad([:u], t -> [0, Fⱼ * t, 0], "load in j")
-bc₄ = GlobalLoad([:u], t -> [Fᵢ * sin(t), 0, 0], "load in i")
+bc₃ = GlobalLoad(:u, t -> [0, Fⱼ * t, 0], "load in j")
+bc₄ = GlobalLoad(:u, t -> [Fᵢ * sin(t), 0, 0], "load in i")
 bc₅ = FixedDof(:T, [1], "fixed_T")
 node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂, n₁]])
 face_bc = dictionary([bc₃ => [face₁], bc₅ => [face₁]])

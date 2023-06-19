@@ -61,44 +61,39 @@ t_to_test = 2.0
 
 @testset "ONSAS.BoundaryConditions.GlobalLoad" begin
     # Generic labeled global load boundary condition.
-    dofs_toapply_bc = [:u, :θ]
+    dofs_toapply_bc = :u
     load_fact_generic(t) = [sin(t), t, t^2]
     generic_values = t -> load_fact_generic(t) .* [1, 1, 1]
     generic_bc_label = :bc_generic
     generic_bc = GlobalLoad(dofs_toapply_bc, generic_values, generic_bc_label)
 
-    @test dofs(generic_bc) == dofs_toapply_bc
     @test values(generic_bc) == generic_values
     @test label(generic_bc) == generic_bc_label
     @test generic_bc(t_to_test) == values(generic_bc)(t_to_test)
 
     # Node force computation
     loaded_dofs, f_vec = apply(generic_bc, n₁, t_to_test)
-    @test loaded_dofs == [Dof(1), Dof(2), Dof(3), Dof(13), Dof(14), Dof(15)]
-    @test f_vec == repeat(generic_bc(t_to_test), 2)
+    @test loaded_dofs == [Dof(1), Dof(2), Dof(3)]
+    @test f_vec == generic_bc(t_to_test)
 
     # Face tension computation
     loaded_dofs, p_vec = apply(generic_bc, t_face, t_to_test)
-    @test loaded_dofs == vcat(Dof.(1:9), Dof.(13:21))
-    @test p_vec == repeat(generic_bc(t_to_test) * area(t_face) / 3, 6)
+    @test loaded_dofs == Dof.(1:9)
+    @test p_vec == repeat(generic_bc(t_to_test) * area(t_face) / 3, 3)
 
     # Volume tension computation
     loaded_dofs, b_vec = apply(generic_bc, tetra, t_to_test)
-    @test loaded_dofs == vcat(Dof.(1:24))
-
-    @test b_vec == repeat(generic_bc(t_to_test) * volume(tetra) / 4, 8)
+    @test loaded_dofs == Dof.(1:12)
+    @test b_vec == repeat(generic_bc(t_to_test) * volume(tetra) / 4, 4)
 end
 
 @testset "ONSAS.BoundaryConditions.Pressure" begin
-
     # Generic labeled global load boundary condition
-    dofs_toapply_bc = [:u]
     load_fact_generic(t) = t^2
     generic_values = t -> load_fact_generic(t)
     generic_bc_label = :normal_pressure
-    generic_bc = Pressure(; dofs=dofs_toapply_bc, values=generic_values, name=generic_bc_label)
+    generic_bc = Pressure(:u, generic_values, generic_bc_label)
 
-    @test dofs(generic_bc) == dofs_toapply_bc
     @test values(generic_bc) == generic_values
     @test generic_bc(t_to_test) == values(generic_bc)(t_to_test)
     @test label(generic_bc) == generic_bc_label

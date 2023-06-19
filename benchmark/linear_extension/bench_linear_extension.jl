@@ -35,7 +35,7 @@ function linear_extension_structure(; ms=0.5)
     bc₃ = FixedDof(:u, [3], bc₃_label)
 
     # Neumann boundary conditions
-    bc₄ = GlobalLoad([:u], t -> [p * t, 0, 0], bc₄_label)
+    bc₄ = GlobalLoad(:u, t -> [p * t, 0, 0], bc₄_label)
 
     boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]

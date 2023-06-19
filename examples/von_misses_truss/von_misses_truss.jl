@@ -55,7 +55,7 @@ function run_von_misses_truss_example()
     bc₁ = FixedDof(:u, [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
     bc₂ = FixedDof(:u, [2], "fixed_uⱼ")
     # Load
-    bc₃ = GlobalLoad([:u], t -> [0, 0, Fₖ * t], "load in j")
+    bc₃ = GlobalLoad(:u, t -> [0, 0, Fₖ * t], "load in j")
     node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
     s_boundary_conditions = StructuralBoundaryCondition(; node_bcs=node_bc)
     # -------------------------------
