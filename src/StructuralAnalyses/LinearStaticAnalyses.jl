@@ -57,6 +57,7 @@ end
 
 function Base.show(io::IO, sa::LinearStaticAnalysis)
     println("LinearStaticAnalysis for:")
+    println("• Current load factor $(unwrap(sa.current_step))/$(length(load_factors(sa))).")
     show(io, sa.s)
     show(io, sa.state)
 end

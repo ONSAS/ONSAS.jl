@@ -1,19 +1,23 @@
 using Test
 using SafeTestsets: @safetestset
 
-MODULES = ["materials.jl",
-           "cross_sections.jl",
-           "nodes.jl",
-           "triangular_faces.jl",
-           "tetrahedrons.jl",
-           "trusses.jl",
-           "boundary_conditions.jl",
-           "meshes.jl",
-           "interfaces/gmsh.jl",
+MODULES = ["interfaces/gmsh.jl",
            "interfaces/vtk.jl",
+           "boundary_conditions.jl",
+           "cross_sections.jl",
+           "handlers.jl",
+           "interpolators.jl",
+           "materials.jl",
+           "meshes.jl",
+           "nodes.jl",
+           "searches.jl",
+           "static_analyses.jl",
            "structural_model.jl",
            "structural_solvers.jl",
-           "static_analyses.jl"]
+           "tetrahedrons.jl",
+           "triangular_faces.jl",
+           "trusses.jl",
+           "utils.jl"]
 
 EXAMPLES_FOLDER = joinpath("..", "examples")
 
