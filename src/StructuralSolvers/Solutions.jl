@@ -10,18 +10,20 @@ module Solutions
 
 using Reexport
 
+using ..Utils
 using ..Entities
+using ..Nodes
 using ..Meshes
 using ..Interpolators
 using ..Handlers
-using ..Utils
+using ..Meshes
+using ..Structures
 using ..StructuralSolvers
-using ..Nodes
 
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 
 export AbstractSolution, StatesSolution, stresses, strains, states, analysis, solver,
-       displacements, external_forces, iteration_residuals
+       displacements, external_forces, iteration_residuals, deformed_node_positions
 
 """
 Abstract supertype for all structural analysis solutions.
@@ -178,6 +180,25 @@ function strain(st_sol::StatesSolution, peh::PointEvalHandler)
         sol_points[index_p] = strain(st_sol, element_p)
     end
     sol_points
+end
+
+"Return deformed nodes of the mesh at time index."
+function deformed_node_positions(st_sol::StatesSolution, t_i::Int)
+    mesh_nodes = nodes(mesh(analysis(st_sol).s))
+    # Get nodes coordinates type
+    CT = typeof(coordinates(rand(mesh_nodes)))
+
+    deformed_points = Vector{CT}(undef, length(mesh_nodes))
+    u_node = Vector{Float64}(undef, dimension(first(mesh_nodes)))
+
+    for (i, node) in enumerate(mesh_nodes)
+        displacements_node = displacements(st_sol, node)
+        for dim in 1:dimension(node)
+            u_node[dim] = displacements_node[dim][t_i]
+        end
+        deformed_points[i] = coordinates(node) + u_node
+    end
+    deformed_points
 end
 
 end # module

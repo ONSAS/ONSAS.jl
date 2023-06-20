@@ -118,6 +118,8 @@ function run_von_misses_truss_example()
     # Test boolean for CI
     #-----------------------------
     @test analytics_λᵥ ≈ numerical_λᵥ rtol = RTOL
+
+    return states_sol
 end
 
 run_von_misses_truss_example()
