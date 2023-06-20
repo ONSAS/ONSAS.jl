@@ -1,8 +1,14 @@
 using Test, Suppressor, Dictionaries
+using Test
+using Suppressor
+using Dictionaries
+
 using ONSAS.Meshes
 using ONSAS.StructuralEntities
 using ONSAS.Gmsh
 using ONSAS.Entities
+using ONSAS.Tetrahedrons
+using ONSAS.TriangularFaces
 using ONSAS.Nodes
 using ONSAS.Circles
 using ONSAS.Trusses
@@ -35,8 +41,10 @@ const RTOL = 1e-5
 
     @test dimension(mesh) == dimension(n₁)
     @test all(isempty.(dofs(mesh)))
-    @test elements(mesh) == vec_elements
+    @test node(mesh, 1) == n₁
     @test nodes(mesh) == vec_nodes
+    @test elements(mesh) == vec_elements
+    @test element(mesh, 1) == t₁
 
     # Add new nodes and elements.
     new_node₁ = Node(3L, 0, 5L)
@@ -103,8 +111,19 @@ include(uniaxial_mesh_path)
     @test material_label(msh_file, entity_index) == "svkHyper"
     @test bc_label(msh_file, entity_index) == ""
     @test physical_index(msh_file, entity_index) == 5
-end
 
+    # Create the mesh
+    tetra_type = [Tetrahedron(elems_label)]
+    triangle_face_type = [TriangularFace(faces_label)]
+    entities = StructuralEntity(tetra_type, triangle_face_type)
+    gmsh_mesh = Mesh(msh_file, entities)
+
+    # Replace first node
+    new_coordinates = Point(1.0, 1.0, 1.0)
+    node_index_to_replace = 1
+    replace!(gmsh_mesh, node_index_to_replace, new_coordinates)
+    @test coordinates(node(gmsh_mesh, node_index_to_replace)) == new_coordinates
+end
 
 @testset "ONSAS.Meshes Sets" begin
     Lᵢ = rand() * 20

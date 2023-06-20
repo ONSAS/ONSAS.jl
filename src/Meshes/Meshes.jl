@@ -20,8 +20,8 @@ using ..Utils
 
 @reexport import ..Entities: apply!, dimension, dofs, nodes, num_nodes
 
-export AbstractMesh, Mesh, EntitySet, faces, face_set, element, elements, element_set, num_dofs,
-       num_elements, node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!,
+export AbstractMesh, Mesh, EntitySet, faces, face_set, node, element, elements, element_set,
+       num_dofs, num_elements, node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!,
        add_entity_to_set!
 
 """
@@ -89,6 +89,9 @@ function apply!(m::AbstractMesh, dof_symbol::Field, dofs_per_node::Int)
     end
 end
 
+"Return the element at index `i`."
+node(m::AbstractMesh, i::Int) = nodes(m)[i]
+
 "Return the array of nodes."
 nodes(m::AbstractMesh) = m.nodes
 
@@ -105,7 +108,7 @@ num_faces(m::AbstractMesh) = length(faces(m))
 elements(m::AbstractMesh) = m.elements
 
 "Return the element at index `i`."
-element(m::AbstractMesh, i::Int) = m.elements[i]
+element(m::AbstractMesh, i::Int) = elements(m)[i]
 
 "Return the number of elements."
 num_elements(m::AbstractMesh) = length(elements(m))
@@ -287,6 +290,25 @@ function add_entity_to_set!(mesh::AbstractMesh, entity_type_label::AbstractStrin
                             entity_position::Int,
                             ::AbstractElement)
     add_element_to_set!(mesh, entity_type_label, entity_position)
+end
+
+"Replace a node in the mesh."
+function Base.replace!(mesh::AbstractMesh{dim},
+                       node_idx::Int,
+                       node_coordinates::Point{dim}) where {dim}
+    mesh_nodes = nodes(mesh)
+    old_node = mesh_nodes[node_idx]
+    new_node = Node(node_coordinates, dofs(old_node))
+    mesh_nodes[node_idx] = new_node
+    # Check faces and elements nodes are views from the mesh nodes.
+    if !isempty(faces(mesh))
+        @assert nodes(rand(faces(mesh))) isa SubArray
+    end
+
+    if !isempty(elements(mesh))
+        @assert nodes(rand(elements(mesh))) isa SubArray
+    end
+    new_node
 end
 
 end # module
