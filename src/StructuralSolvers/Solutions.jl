@@ -1,9 +1,18 @@
+"""
+Module defining solutions interface, `AbstractSolution`.
+
+Each solution can at least access to displacements and external forces. More complete solutions
+can include different forces vector, stresses and strains.
+
+Of course the solution contains on the analysis and solver used to solve the problem.
+"""
 module Solutions
 
 using Reexport
 
 using ..Entities
 using ..Meshes
+using ..Interpolators
 using ..Handlers
 using ..Utils
 using ..StructuralSolvers
@@ -30,27 +39,30 @@ Abstract supertype for all structural analysis solutions.
 """
 abstract type AbstractSolution end
 
+"Return the analysis solved."
+analysis(sol::AbstractSolution) = sol.analysis
+
+"Return the solver used to solve the analysis."
+solver(sol::AbstractSolution) = sol.solver
+
 """
 Solution that stores all intermediate arrays during the analysis.
 """
 struct StatesSolution{ST<:Vector,A,SS<:AbstractSolver} <: AbstractSolution
+    "Vector containing the converged structural states at each step."
     states::ST
+    "Analysis solved."
     analysis::A
+    "Solver employed."
     solver::SS
     "Constructor with empty `AbstractStructuralState`s `Vector` and type `S`."
     function StatesSolution(analysis::A, solver::SS) where {A,SS<:AbstractSolver}
-        return new{Vector{Any},A,SS}([], analysis, solver)
+        new{Vector{Any},A,SS}([], analysis, solver)
     end
 end
 
-"Return the solved `AbstractStrcturalState`s. "
+"Return the solved states."
 states(sol::StatesSolution) = sol.states
-
-"Return the `AbstractAnalysis` solved. "
-analysis(sol::StatesSolution) = sol.analysis
-
-"Return the `AbstractSolver` solved. "
-solver(sol::StatesSolution) = sol.solver
 
 for f in [:displacements, :internal_forces, :external_forces]
     "Return the $f vector Uᵏ at every time step."
@@ -103,6 +115,8 @@ function displacements(st_sol::StatesSolution, peh::PointEvalHandler)
     num_points = length(vec_points)
 
     sol_points = Vector{Vector{Vector{Float64}}}(undef, num_points)
+
+    interpolate(st_sol, displacements, points_interpolators)
 
     for index_p in 1:num_points
         interpolator_p = node_to_weights(points_interpolators)[index_p]

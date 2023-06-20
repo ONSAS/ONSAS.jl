@@ -1,11 +1,13 @@
 using Test, Dictionaries
 using ONSAS.Interpolators
 using ONSAS.Entities
+using ONSAS.TriangularFaces
+using ONSAS.Tetrahedrons
 using ONSAS.Nodes
 using ONSAS.Meshes
 
 @testset "ONSAS.Interpolators.FEMInterpolator" begin
-    Lᵢ = 2.0  # Dimension in x of the box in m 
+    Lᵢ = 2.0  # Dimension in x of the box in m
     Lⱼ = 1.0  # Dimension in y of the box in m
     Lₖ = 1.0  # Dimension in z of the box in m
 
@@ -20,29 +22,29 @@ using ONSAS.Meshes
     n₇ = Node(Lᵢ, Lⱼ, Lₖ)
     n₈ = Node(Lᵢ, Lⱼ, 0.0)
     nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
-    ## Faces 
-    f₁ = TriangularFace(n₅, n₈, n₆)
-    f₂ = TriangularFace(n₆, n₈, n₇)
-    f₃ = TriangularFace(n₄, n₁, n₂)
-    f₄ = TriangularFace(n₄, n₂, n₃)
-    f₅ = TriangularFace(n₆, n₂, n₁)
-    f₆ = TriangularFace(n₆, n₁, n₅)
-    f₇ = TriangularFace(n₁, n₄, n₅)
-    f₈ = TriangularFace(n₄, n₈, n₅)
+    ## Faces
+    f₁ = TriangularFace(view(nodes,[5,8,6]))
+    f₂ = TriangularFace(view(nodes,[6,8,7]))
+    f₃ = TriangularFace(view(nodes,[4,1,2]))
+    f₄ = TriangularFace(view(nodes,[4,2,3]))
+    f₅ = TriangularFace(view(nodes,[6,2,1]))
+    f₆ = TriangularFace(view(nodes,[6,1,5]))
+    f₇ = TriangularFace(view(nodes,[1,4,5]))
+    f₈ = TriangularFace(view(nodes,[4,8,5]))
     faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
-    ## Entities 
-    t₁ = Tetrahedron(n₁, n₄, n₂, n₆)
-    t₂ = Tetrahedron(n₆, n₂, n₃, n₄)
-    t₃ = Tetrahedron(n₄, n₃, n₆, n₇)
-    t₄ = Tetrahedron(n₄, n₁, n₅, n₆)
-    t₅ = Tetrahedron(n₄, n₆, n₅, n₈)
-    t₆ = Tetrahedron(n₄, n₇, n₆, n₈)
+    ## Entities
+    t₁ = Tetrahedron(view(nodes,[1,4,2,6]))
+    t₂ = Tetrahedron(view(nodes,[6,2,3,4]))
+    t₃ = Tetrahedron(view(nodes,[4,3,6,7]))
+    t₄ = Tetrahedron(view(nodes,[4,1,5,6]))
+    t₅ = Tetrahedron(view(nodes,[4,6,5,8]))
+    t₆ = Tetrahedron(view(nodes,[4,7,6,8]))
     elements = [t₁, t₂, t₃, t₄, t₅, t₆]
 
     ## Mesh
     mesh = Mesh(; nodes, elements, faces)
 
-    ## points to interpolate 
+    ## points to interpolate
     p₁ = Point(coordinates(n₁)...)
     p₂ = Point(coordinates(n₃)...)
     vec_points = [p₁, p₂]

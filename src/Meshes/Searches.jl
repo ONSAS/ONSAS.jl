@@ -10,7 +10,7 @@ using ..Nodes
 using ..Meshes
 
 export AbstractSearchAlgorithm, Serial, Threaded, Partition, PartitionThreaded,
-       evaluate_points_in_mesh
+       evaluate_points_in_mesh, evaluate_points_in_elements
 
 """An `AbstractSearchAlgorithm ` is a functor to use different searching algorithms.
 
@@ -45,24 +45,24 @@ Base.@kwdef struct PartitionThreaded <: AbstractSearchAlgorithm
     Nz::Int64 = 5
 end
 
-"Return true if a `Point``p` is inside the `AbstractMesh` `mesh`."
+"Return true if a point is inside a mesh."
 function Base.:∈(p::Point{dim}, mesh::AbstractMesh{dim}) where {dim}
-    !isempty(evaluate_points_in_mesh(mesh, [p])[1])
+    !isempty(first(evaluate_points_in_mesh(mesh, [p])))
 end
 
-"Return indexes checking if  a `Vector` of `Point`s is inside a `Mesh`."
+"Return indexes checking if points are inside the mesh."
 function evaluate_points_in_mesh(mesh::AbstractMesh{dim}, vec_points::Vector{P},
                                  alg::A=Serial()) where {dim,P<:Point{dim},
                                                          A<:Union{Serial,Threaded}}
-    _evaluate_points_in_elements(elements(mesh), vec_points, alg)
+    evaluate_points_in_elements(elements(mesh), vec_points, alg)
 end
 
 "Return indexes checking if  a vector of points is inside a vector of
 elements with a serial searching algorithm. Two integer vectors are returned,
 the first one contains the indexes of the points inside the mesh, the second one
 contains the indexes of the elements containing the points."
-function _evaluate_points_in_elements(elements::Vector{E}, vec_points::Vector{P},
-                                      ::Serial) where {dim,T,E<:AbstractElement,P<:Point{dim,T}}
+function evaluate_points_in_elements(elements::Vector{E}, vec_points::Vector{P},
+                                     ::Serial) where {dim,T,E<:AbstractElement,P<:Point{dim,T}}
     in_mesh_points_idx = Vector{Int64}()
     in_mesh_elements_idx = Vector{Int64}()
     @inbounds for (point_idx, point) in enumerate(vec_points)
@@ -82,9 +82,9 @@ end
 elements with a serial searching algorithm. Two vector of integers are returned,
 the first one contains the indexes of the points inside the mesh, the second one
 contains the indexes of the elements containing the points."
-function _evaluate_points_in_elements(elements::Vector{E}, vec_points::Vector{P},
-                                      ::Threaded) where {dim,E<:AbstractElement{dim},
-                                                         P<:Point{dim}}
+function evaluate_points_in_elements(elements::Vector{E}, vec_points::Vector{P},
+                                     ::Threaded) where {dim,E<:AbstractElement{dim},
+                                                        P<:Point{dim}}
     numthreads = Threads.nthreads()
     in_mesh_points_idx = [Vector{Int64}() for _ in 1:numthreads]
     in_mesh_elements_idx = [Vector{Int64}() for _ in 1:numthreads]
