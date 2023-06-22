@@ -271,8 +271,8 @@ function apply_element_bcs!(bcs::StructuralBoundaryCondition, m::AbstractMesh)
     end
 end
 
-"Replace the `AbstractMaterial` with the label `l` for the new material `new_m` in the `StructuralMaterial` `sm`.
-The previous material `Element`s are assigned to the new."
+"Replace the bc with the a label for a bc in the structural boundary conditions.
+The previous boundary conditions entities are assigned to the new."
 function Base.replace!(sb::StructuralBoundaryCondition,
                        new_bc::AbstractBoundaryCondition,
                        label::Label=label(new_bc))
