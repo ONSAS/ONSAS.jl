@@ -140,6 +140,20 @@ end
     @test n₁ ∈ s_boundary_conditions[bc₃] &&
           face₂ ∈ s_boundary_conditions[bc₃] &&
           truss₄ ∈ s_boundary_conditions[bc₄]
+
+    scale_factor = 10
+    old_label_to_replace = label(bc₃)
+    old_nodes_bc = node_bcs(s_boundary_conditions)[bc₃]
+    old_faces_bc = face_bcs(s_boundary_conditions)[bc₃]
+
+    new_bc = GlobalLoad(:u, t -> scale_factor * [0, Fⱼ * t, 0], old_label_to_replace)
+
+    replace!(s_boundary_conditions, new_bc)
+    t_to_test = rand()
+    @test values(s_boundary_conditions[old_label_to_replace])(t_to_test) ==
+          scale_factor * [0, Fⱼ * t_to_test, 0]
+    @test node_bcs(s_boundary_conditions)[new_bc] == old_nodes_bc
+    @test face_bcs(s_boundary_conditions)[new_bc] == old_faces_bc
 end
 
 @testset "ONSAS.StructuralEntity" begin

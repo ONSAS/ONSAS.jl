@@ -1,3 +1,10 @@
+"Module defining the structural boundary conditions assigned to each entitiy. This data type
+includes:
+
+- `AbstractBoundaryCondition`s assigned to `Node`s
+- `AbstractBoundaryCondition`s assigned to `Face`s
+- `AbstractBoundaryCondition`s assigned to `Element`s
+"
 module StructuralBoundaryConditions
 
 using Reexport
@@ -138,14 +145,18 @@ function apply(bcs::StructuralBoundaryCondition, fbc::FixedDof)
     # Extract nodes, faces and elements
     entities = bcs[fbc]
     dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, apply(fbc, e)...) for e in entities]
+    for e in entities
+        push!(dofs_to_delete, apply(fbc, e)...)
+    end
     unique!(dofs_to_delete)
 end
 
 "Return a `Vector` of `FixedDof` `f_bcs` and a set of `StructuralBoundaryCondition` `bcs`."
 function apply(bcs::StructuralBoundaryCondition, f_bcs::Vector{<:FixedDof})
     dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, apply(bcs, fbc)...) for fbc in f_bcs]
+    for fbc in f_bcs
+        push!(dofs_to_delete, apply(bcs, fbc)...)
+    end
     unique!(dofs_to_delete)
 end
 
@@ -178,7 +189,9 @@ function apply(bcs::StructuralBoundaryCondition, lbc::AbstractLoadBoundaryCondit
         dofs_to_load, load_vec
     else
         dofs_load_dict = dictionary(zip(unique_dofs_to_load, zeros(num_dofs_to_load)))
-        [dofs_load_dict[dof] += val for (dof, val) in zip(dofs_to_load, load_vec)]
+        for (dof, val) in zip(dofs_to_load, load_vec)
+            dofs_load_dict[dof] += val
+        end
         collect(keys(dofs_load_dict)), collect(values(dofs_load_dict))
     end
 end
@@ -189,7 +202,6 @@ function apply!(bcs::StructuralBoundaryCondition, m::AbstractMesh)
     apply_node_bcs!(bcs, m)
     apply_face_bcs!(bcs, m)
     apply_element_bcs!(bcs, m)
-    _delete_empty_bcs!(bcs)
     bcs
 end
 
@@ -205,8 +217,13 @@ function apply_node_bcs!(bcs::StructuralBoundaryCondition, m::AbstractMesh)
         # Check if the boundary conditions label is the mesh node set
         # if not, the boundary condition is not applied
         if haskey(node_sets, dbc_label)
-            [push!(entities, vec_nodes[node_index]) for node_index in node_set(m, dbc_label)]
+            for node_index in node_set(m, dbc_label)
+                push!(entities, vec_nodes[node_index])
+            end
         end
+    end
+    for empty_bc in findall(isempty, node_boundary_conditions)
+        delete!(node_boundary_conditions, empty_bc)
     end
 end
 
@@ -222,8 +239,13 @@ function apply_face_bcs!(bcs::StructuralBoundaryCondition, m::AbstractMesh)
         # Check if the boundary conditions label is the mesh face set
         # if not, the boundary condition is not applied
         if haskey(face_sets, dbc_label)
-            [push!(entities, vec_faces[face_index]) for face_index in face_set(m, dbc_label)]
+            for face_index in face_set(m, dbc_label)
+                push!(entities, vec_faces[face_index])
+            end
         end
+    end
+    for empty_bc in findall(isempty, face_boundary_conditions)
+        delete!(face_boundary_conditions, empty_bc)
     end
 end
 
@@ -239,21 +261,46 @@ function apply_element_bcs!(bcs::StructuralBoundaryCondition, m::AbstractMesh)
         # Check if the boundary conditions label is the mesh element set
         # if not, the boundary condition is not applied
         if haskey(element_sets, dbc_label)
-            [push!(entities, vec_elements[element_index])
-             for element_index in element_set(m, dbc_label)]
+            for element_index in element_set(m, dbc_label)
+                push!(entities, vec_elements[element_index])
+            end
         end
+    end
+    for empty_bc in findall(isempty, element_boundary_conditions)
+        delete!(element_boundary_conditions, empty_bc)
     end
 end
 
-"Delete empty boundary conditions from the `StructuralBoundaryCondition` `bcs`."
-function _delete_empty_bcs!(bcs::StructuralBoundaryCondition)
-    bcs_dicts = [node_bcs(bcs), face_bcs(bcs), element_bcs(bcs)]
-    for bc_dict in bcs_dicts
-        for (dbc, entities) in pairs(bc_dict)
-            isempty(entities) && delete!(bc_dict, dbc)
-        end
+"Replace the `AbstractMaterial` with the label `l` for the new material `new_m` in the `StructuralMaterial` `sm`.
+The previous material `Element`s are assigned to the new."
+function Base.replace!(sb::StructuralBoundaryCondition,
+                       new_bc::AbstractBoundaryCondition,
+                       label::Label=label(new_bc))
+    old_bc = sb[label]
+
+    # node boundary conditions replacement
+    node_boundary_conditions = node_bcs(sb)
+    if haskey(node_boundary_conditions, old_bc)
+        old_nodes = node_boundary_conditions[old_bc]
+        delete!(node_boundary_conditions, old_bc)
+        insert!(node_boundary_conditions, new_bc, old_nodes)
     end
-    bcs
+
+    # face boundary conditions replacement
+    face_boundary_conditions = face_bcs(sb)
+    if haskey(face_boundary_conditions, old_bc)
+        old_faces = face_boundary_conditions[old_bc]
+        delete!(face_boundary_conditions, old_bc)
+        insert!(face_boundary_conditions, new_bc, old_faces)
+    end
+
+    # element boundary conditions replacement
+    element_boundary_conditions = element_bcs(sb)
+    if haskey(element_boundary_conditions, old_bc)
+        old_elements = element_boundary_conditions[old_bc]
+        delete!(element_boundary_conditions, old_bc)
+        insert!(element_boundary_conditions, new_bc, old_elements)
+    end
 end
 
 end # module
