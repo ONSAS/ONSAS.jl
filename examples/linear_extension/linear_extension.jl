@@ -69,6 +69,9 @@ function run_linear_extension_example()
     # -------------------------------
     # Structure
     # -------------------------------
+    mesh = Mesh(msh_file, s_entities)
+    apply!(s_materials, mesh)
+    apply!(s_boundary_conditions, mesh)
     s = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
     # -------------------------------
     # Structural Analysis
@@ -86,7 +89,7 @@ function run_linear_extension_example()
     p₁ = Point(x₀_rand[1], y₀_rand[1], z₀_rand[1])
     p₂ = Point(x₀_rand[2], y₀_rand[2], z₀_rand[2])
     # Evaluate the solution at p₁, p₂
-    eval_handler_rand = PointEvalHandler(mesh(s), [p₁, p₂])
+    eval_handler_rand = PointEvalHandler(ONSAS.mesh(s), [p₁, p₂])
     # rand points displacements
     # point 1
     uᵢ_numeric_p₁ = displacements(states_sol, eval_handler_rand, 1)[1]
