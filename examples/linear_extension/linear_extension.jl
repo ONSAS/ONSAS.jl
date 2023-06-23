@@ -60,7 +60,6 @@ function run_linear_extension_example()
     # -------------------------------
     filename = "linear_extension"
     labels = [mat_label, entities_labels, bc_labels]
-    dir = joinpath(pkgdir(ONSAS), "examples", "linear_extension")
     output = @capture_out begin
         global mesh_path = create_linear_extension_mesh(Lx, Ly, Lz, labels, filename, ms)
     end

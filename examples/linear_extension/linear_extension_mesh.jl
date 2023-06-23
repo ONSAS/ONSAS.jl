@@ -14,8 +14,8 @@ function create_linear_extension_mesh(Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
     element_label = entities_labels[2]
     bc_labels = labels[3]
     ux_bc_label = bc_labels[1]
-    uj_bc_label = bc_labels[2]
-    uk_bc_label = bc_labels[3]
+    uy_bc_label = bc_labels[2]
+    uz_bc_label = bc_labels[3]
     load_label = bc_labels[4]
 
     gmsh.initialize()
@@ -100,9 +100,9 @@ function create_linear_extension_mesh(Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
     gmsh.model.setPhysicalName(dim_surface, fixed_ux_surfaces_index,
                                "_$(face_label)_$(ux_bc_label)")
     gmsh.model.setPhysicalName(dim_surface, fixed_uy_surfaces_index,
-                               "_$(face_label)_$(uj_bc_label)")
+                               "_$(face_label)_$(uy_bc_label)")
     gmsh.model.setPhysicalName(dim_surface, fixed_uz_surfaces_index,
-                               "_$(face_label)_$(uk_bc_label)")
+                               "_$(face_label)_$(uz_bc_label)")
     gmsh.model.setPhysicalName(dim_surface, load_surfaces_index, "_$(face_label)_$(load_label)")
     gmsh.model.setPhysicalName(dim_vol, 5, "$(mat_label)_$(element_label)_")
 
