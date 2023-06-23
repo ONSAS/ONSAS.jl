@@ -1,4 +1,4 @@
-# ------------------------------------------------------------- 
+# -------------------------------------------------------------
 # Von Misses Truss Example from (Zerpa, Bazzano 2017 ) - 2.5.4
 # -------------------------------------------------------------
 using Test, LinearAlgebra
@@ -12,8 +12,8 @@ function run_von_misses_truss_example()
     ν = 0.0                   # Poisson's modulus
     A₀ = 2.5e-3                # Cross-section area in m²
     ANG = 65                  # truss angle in degrees
-    L = 2                     # Length in m 
-    V = L * cos(deg2rad(ANG)) # vertical distance in m 
+    L = 2                     # Length in m
+    V = L * cos(deg2rad(ANG)) # vertical distance in m
     H = L * sin(deg2rad(ANG)) # horizontal distance in m
     Fₖ = -3e8                 # Vertical load in N
     RTOL = 1e-4               # Relative tolerance for tests
@@ -31,7 +31,7 @@ function run_von_misses_truss_example()
     s₁ = Circle(d)
     a = sqrt(A₀)
     s₂ = Square(a)
-    ## Entities 
+    ## Entities
     truss₁ = Truss(n₁, n₂, s₁, strain_model, "left_truss") # [n₁, n₂]
     truss₂ = Truss(n₂, n₃, s₂, strain_model, "right_truss") # [n₂, n₃]
     elements = [truss₁, truss₂]
@@ -52,10 +52,10 @@ function run_von_misses_truss_example()
     # Boundary conditions
     # -------------------------------
     # Fixed dofs
-    bc₁ = FixedDof([:u], [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
-    bc₂ = FixedDof([:u], [2], "fixed_uⱼ")
-    # Load 
-    bc₃ = GlobalLoad([:u], t -> [0, 0, Fₖ * t], "load in j")
+    bc₁ = FixedDof(:u, [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
+    bc₂ = FixedDof(:u, [2], "fixed_uⱼ")
+    # Load
+    bc₃ = GlobalLoad(:u, t -> [0, 0, Fₖ * t], "load in j")
     node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
     s_boundary_conditions = StructuralBoundaryCondition(; node_bcs=node_bc)
     # -------------------------------
@@ -89,14 +89,14 @@ function run_von_misses_truss_example()
     @test norm(numerical_uⱼ) ≤ RTOL
     numerical_λᵥ = -load_factors(sa) * Fₖ
     # TODO: fix me
-    # Test stress and strains 
+    # Test stress and strains
     σ_truss₂ = stress(states_sol, truss₂)
     ϵ_truss₂ = strain(states_sol, truss₂)
     # if strain_model == RotatedEngineeringStrain
     #     @test σ_truss₂ == E * ϵ_truss₂
     # end
     #-----------------------------
-    # Analytic solution  
+    # Analytic solution
     #-----------------------------
     "Analytic load factor solution for the displacement `uₖ` towards z axis at node `n₂` `RotatedEngineeringStrain` ."
     function load_factors_analytic(uₖ::Real, ::Type{RotatedEngineeringStrain},
@@ -115,9 +115,11 @@ function run_von_misses_truss_example()
     end
     analytics_λᵥ = load_factors_analytic.(numerical_uₖ, strain_model)
     #-----------------------------
-    # Test boolean for CI  
+    # Test boolean for CI
     #-----------------------------
     @test analytics_λᵥ ≈ numerical_λᵥ rtol = RTOL
+
+    return states_sol
 end
 
 run_von_misses_truss_example()

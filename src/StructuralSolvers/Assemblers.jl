@@ -5,7 +5,7 @@ using Reexport
 
 using ..Entities
 using ..Nodes
-using ..StructuralModel
+using ..Structures
 
 @reexport import ..StructuralSolvers: _reset!
 

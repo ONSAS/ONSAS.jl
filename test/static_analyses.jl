@@ -1,6 +1,6 @@
-
 using Test, LinearAlgebra, SparseArrays
 using Dictionaries: dictionary
+
 using ONSAS.StaticAnalyses
 using ONSAS.Circles
 using ONSAS.SvkMaterial
@@ -15,6 +15,8 @@ using ONSAS.StructuralBoundaryConditions
 using ONSAS.StructuralMaterials
 using ONSAS.Nodes
 using ONSAS.Trusses
+using ONSAS.StructuralSolvers
+using ONSAS.Meshes
 using ONSAS.StaticStates
 using ONSAS.NonLinearStaticAnalyses
 
@@ -25,10 +27,11 @@ E = 210e9  # Young modulus in Pa
 ν = 0.0  # Poisson's modulus
 A = 2.5e-3   # Cross-section area in m^2
 ang = 65 # truss angle in degrees
-L = 2 # Length in m 
+L = 2 # Length in m
 d = L * cos(deg2rad(65))   # vertical distance in m
 h = L * sin(deg2rad(65))
 Fₖ = -3e8  # vertical   load in N
+
 # -------------------------------
 # Materials
 # -------------------------------
@@ -47,7 +50,7 @@ n₁ = Node(0.0, 0.0, 0.0)
 n₂ = Node(d, 0.0, h)
 n₃ = Node(2d, 0.0, 0.0)
 nodes = [n₁, n₂, n₃]
-## Entities 
+## Entities
 truss₁ = Truss(n₁, n₂, s, "left_truss") # [n₁, n₂]
 truss₂ = Truss(n₂, n₃, s, "right_truss") # [n₂, n₃]
 elements = [truss₁, truss₂]
@@ -67,10 +70,10 @@ s_materials = StructuralMaterial(mat_dict)
 # Boundary conditions
 # -------------------------------
 # Fixed dofs
-bc₁ = FixedDof([:u], [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
-bc₂ = FixedDof([:u], [2], "fixed_uⱼ")
-# Load 
-bc₃ = GlobalLoad([:u], t -> [0, 0, Fₖ * t], "load in j")
+bc₁ = FixedDof(:u, [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
+bc₂ = FixedDof(:u, [2], "fixed_uⱼ")
+# Load
+bc₃ = GlobalLoad(:u, t -> [0, 0, Fₖ * t], "load in j")
 node_bcs = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
 s_boundary_conditions = StructuralBoundaryCondition(; node_bcs)
 # -------------------------------
@@ -113,7 +116,7 @@ sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ,
     @test stress(sst_rand) == σᵏ
     @test free_dofs(sst_rand) == free_dofs(s)
 
-    # Iteration 
+    # Iteration
     @test assembler(sst_rand) == s_assembler
     @test iteration_residuals(sst_rand) == iter_residuals
     norm_r = norm(residual_forces!(sst_rand))
@@ -141,7 +144,7 @@ sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ,
     @test all([iszero(strain(sst_rand)[e]) for e in Meshes.elements(s)])
     @test all([iszero(stress(sst_rand)[e]) for e in Meshes.elements(s)])
 
-    # Default static analysis of the structure 
+    # Default static analysis of the structure
     default_s = StaticState(s)
 
     # Assemble process
@@ -163,10 +166,10 @@ sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ,
     _assemble!(default_s, fᵢₙₜ_e_2, truss₂)
     _assemble!(default_s, k_e_2, truss₂)
     _assemble!(default_s, σ_e_2, ϵ_e_2, truss₂)
-    # End assemble 
+    # End assemble
     _end_assemble!(default_s)
 
-    # Manufactured assemble 
+    # Manufactured assemble
     Fᵢₙₜ = zeros(9)
     Fᵢₙₜ[1:6] += fᵢₙₜ_e_1
     Fᵢₙₜ[4:9] += fᵢₙₜ_e_2
@@ -200,7 +203,7 @@ sa_init = NonLinearStaticAnalysis(s, λ₁; NSTEPS=NSTEPS, initial_step=init_ste
     @test current_load_factor(sa_init) == init_step * λ₁ / NSTEPS
     @test load_factors(sa_init) == λᵥ
 
-    # Next step 
+    # Next step
     _next!(sa_init)
     @test current_time(sa_init) == λᵥ[init_step + 1]
     @test current_load_factor(sa_init) == (init_step + 1) * λ₁ / NSTEPS

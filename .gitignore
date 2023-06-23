@@ -23,9 +23,6 @@ docs/site/
 # environment.
 Manifest.toml
 
-# IDEs
-.vscode/
-
 # Msh files
 *.msh
 

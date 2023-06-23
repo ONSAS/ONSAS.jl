@@ -10,13 +10,13 @@ export AbstractLinearElasticMaterial, lame_parameters, elasticity_modulus, shear
 
 An `AbstractLinearElasticMaterial` object facilitates the process of using elastic materials.
 
-**Common methods:**
+**Abstract Methods**
 * [`elastic_modulus`](@ref)
 * [`poisson_ratio`](@ref)
 * [`shear_modulus`](@ref)
 * [`lamé_parameters`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * label
 * ρ(density)
 """
@@ -37,7 +37,7 @@ function elasticity_modulus(m::AbstractLinearElasticMaterial) end
 "Return the bulk modulus `K` for an `AbstractLinearElasticMaterial` material `m`."
 function bulk_modulus(m::AbstractLinearElasticMaterial) end
 
-"Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ` 
+"Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ`
 considering a `IsotropicLinearElastic` material `m`."
 function cauchy_stress(m::AbstractLinearElasticMaterial, ϵ::AbstractMatrix) end
 

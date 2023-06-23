@@ -1,6 +1,6 @@
 using Test
 using Dictionaries: dictionary
-using ONSAS.StructuralModel
+using ONSAS.Structures
 using ONSAS.Squares
 using ONSAS.SvkMaterial
 using ONSAS.FixedDofBoundaryConditions
@@ -33,7 +33,7 @@ n₃ = Node(0, 0, 1,
 n₄ = Node(1, 1, 1,
           dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)],
                       :T => [Dof(28)]]))
-# Faces 
+# Faces
 face₁ = TriangularFace(n₁, n₂, n₃)
 face₂ = TriangularFace(n₃, n₄, n₃)
 # Cross section
@@ -54,11 +54,11 @@ s_materials = StructuralMaterial(mat_dict)
 Fⱼ = 20.0
 Fᵢ = 10.0
 dof_dim = 3
-bc₁ = FixedDof([:u], collect(1:dof_dim), "fixed_uₓ_uⱼ_uₖ")
-bc₂ = FixedDof([:u], [2], "fixed_uⱼ")
-bc₃ = GlobalLoad([:u], t -> [0, Fⱼ * t, 0], "load in j")
-bc₄ = GlobalLoad([:u], t -> [Fᵢ * sin(t), 0, 0], "load in i")
-bc₅ = FixedDof([:T], [1], "fixed_T")
+bc₁ = FixedDof(:u, collect(1:dof_dim), "fixed_uₓ_uⱼ_uₖ")
+bc₂ = FixedDof(:u, [2], "fixed_uⱼ")
+bc₃ = GlobalLoad(:u, t -> [0, Fⱼ * t, 0], "load in j")
+bc₄ = GlobalLoad(:u, t -> [Fᵢ * sin(t), 0, 0], "load in i")
+bc₅ = FixedDof(:T, [1], "fixed_T")
 node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂, n₁]])
 face_bc = dictionary([bc₃ => [face₁], bc₅ => [face₁]])
 elem_bc = dictionary([bc₄ => [truss₁, truss₂]])
@@ -68,7 +68,7 @@ s_boundary_conditions_only_faces = StructuralBoundaryCondition(; face_bcs=face_b
 s_boundary_conditions_only_elements = StructuralBoundaryCondition(; element_bcs=elem_bc)
 s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
 
-@testset "ONSAS.StructuralModel.StructuralMaterial" begin
+@testset "ONSAS.StructuralMaterial" begin
     @test s_materials[truss₁] == steel
     @test s_materials["steel"] == steel
     @test truss₁ ∈ s_materials[steel] && truss₃ ∈ s_materials[steel]
@@ -83,7 +83,7 @@ s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
     @test s_materials[truss₁] == new_steel
 end
 
-@testset "ONSAS.StructuralModel.StructuralBoundaryCondition" begin
+@testset "ONSAS.StructuralBoundaryCondition" begin
 
     # Access and filter boundary conditions
     @test node_bcs(s_boundary_conditions) == node_bc
@@ -132,7 +132,7 @@ end
     @test dofs_bc₃_to_test == dofs_bc₃
     @test f_bc₃_to_test == f_bc₃
 
-    # Push an entity to a boundary condition 
+    # Push an entity to a boundary condition
     push!(s_boundary_conditions, bc₃, n₁)
     push!(s_boundary_conditions, bc₃, face₂)
     push!(s_boundary_conditions, bc₄, truss₄)
@@ -140,9 +140,23 @@ end
     @test n₁ ∈ s_boundary_conditions[bc₃] &&
           face₂ ∈ s_boundary_conditions[bc₃] &&
           truss₄ ∈ s_boundary_conditions[bc₄]
+
+    scale_factor = 10
+    old_label_to_replace = label(bc₃)
+    old_nodes_bc = node_bcs(s_boundary_conditions)[bc₃]
+    old_faces_bc = face_bcs(s_boundary_conditions)[bc₃]
+
+    new_bc = GlobalLoad(:u, t -> scale_factor * [0, Fⱼ * t, 0], old_label_to_replace)
+
+    replace!(s_boundary_conditions, new_bc)
+    t_to_test = rand()
+    @test values(s_boundary_conditions[old_label_to_replace])(t_to_test) ==
+          scale_factor * [0, Fⱼ * t_to_test, 0]
+    @test node_bcs(s_boundary_conditions)[new_bc] == old_nodes_bc
+    @test face_bcs(s_boundary_conditions)[new_bc] == old_faces_bc
 end
 
-@testset "ONSAS.StructuralModel.StructuralEntity" begin
+@testset "ONSAS.StructuralEntity" begin
     sec = Square(1)
 
     tetra_label = "tetra_label"
@@ -163,7 +177,7 @@ end
     @test s_entities[truss_label] == velems[2]
 end
 
-@testset "ONSAS.StructuralModel.Structure" begin
+@testset "ONSAS.Structure" begin
     n₁ = Node(0, 0, 0)
     n₂ = Node(0, 1, 0)
     n₃ = Node(0, 0, 1)
@@ -193,7 +207,7 @@ end
 
     # Materials
     @test materials(s) == s_materials
-    # Replace material 
+    # Replace material
     label_material_to_be_replaced = "new_steel"
     replace!(s, steel, label_material_to_be_replaced)
     @test steel ∈ keys(element_materials(materials(s)))
@@ -201,8 +215,6 @@ end
 
     # Boundary conditions
     @test boundary_conditions(s) == s_boundary_conditions
-    @test displacement_bcs(s) == displacement_bcs(s_boundary_conditions)
-    @test load_bcs(s) == load_bcs(s_boundary_conditions)
 
     @test Dof(4) ∈ free_dofs(s) && Dof(6) ∈ free_dofs(s) && length(free_dofs(s)) == 2
 end

@@ -1,5 +1,5 @@
 # --------------------------------------------------
-# Cylinder submitted to an Internal Pressure Example  
+# Cylinder submitted to an Internal Pressure Example
 #----------------------------------------------------
 using LinearAlgebra, Test, Suppressor
 using ONSAS
@@ -17,7 +17,7 @@ function run_cylinder_internal_pressure_example()
     E = 210.0  # Young modulus in MPa
     ν = 0.3  # Poisson ratio
     pressure(t::Real) = p * t
-    ## number of steps 
+    ## number of steps
     NSTEPS = 9
     ## tolerances for testing
     ATOL = 1e-2 * (Rₑ - Rᵢ)
@@ -76,12 +76,12 @@ function run_cylinder_internal_pressure_example()
         # -------------------------------
         # Boundary conditions
         # -------------------------------
-        # Dirichlet boundary conditions 
-        bc₁ = FixedDof(; components=[1], name=bc₁_label)
-        bc₂ = FixedDof(; components=[2], name=bc₂_label)
-        bc₃ = FixedDof(; components=[3], name=bc₃_label)
-        # Neumann boundary conditions 
-        bc₄ = Pressure(; values=pressure, name=bc₄_label)
+        # Dirichlet boundary conditions
+        bc₁ = FixedDof(:u, [1], bc₁_label)
+        bc₂ = FixedDof(:u, [2], bc₂_label)
+        bc₃ = FixedDof(:u, [3], bc₃_label)
+        # Neumann boundary conditions
+        bc₄ = Pressure(:u, pressure, bc₄_label)
         boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
         # Assign boundary conditions to the ones defined in the mesh
         apply!(boundary_conditions, mesh)
@@ -118,9 +118,9 @@ function run_cylinder_internal_pressure_example()
     # Numerical solution
     # -------------------------------
     states_lin_sol = solve!(linear_analysis)
-    # get time vector or load factors  
+    # get time vector or load factors
     λᵥ = load_factors(linear_analysis)
-    # Get the solution at a random point 
+    # Get the solution at a random point
     "Return a rand point in the cylinder (R, θ, L)."
     function rand_point_cylinder(Rᵢ::Real=Rᵢ, Rₑ::Real=Rₑ, Lₖ::Real=Lₖ)
         [rand() * (Rₑ - Rᵢ) + Rᵢ, rand() * 2 * π, rand() * Lₖ]
@@ -142,7 +142,7 @@ function run_cylinder_internal_pressure_example()
     uᵢ_numeric_p_rand = displacements(states_lin_sol, point_evaluator, 1)
     uⱼ_numeric_p_rand = displacements(states_lin_sol, point_evaluator, 2)
     uₖ_numeric_p_rand = displacements(states_lin_sol, point_evaluator, 3)
-    # 
+    #
     uᵣ_numeric_p_rand = sqrt.(@. uᵢ_numeric_p_rand^2 + uⱼ_numeric_p_rand^2)
     # -------------------------------
     # Analytic solution
@@ -173,7 +173,7 @@ function run_cylinder_internal_pressure_example()
                                     atol::Real=ATOL, atolr=ATOLR,
                                     Rᵢ::Real=Rᵢ, Rₑ::Real=Rₑ, Lₖ::Real=Lₖ)
         structure = ONSAS.structure(analysis(sol))
-        # Generic surface s at z = Lₖ 
+        # Generic surface s at z = Lₖ
         rand_R, rand_θ₁, Lₖ = rand_point_cylinder(Rᵢ, Rₑ, Lₖ)
         # Set by force Lₖ
         rand_θ₂ = rand() * 2 * π
@@ -250,7 +250,7 @@ function run_cylinder_internal_pressure_example()
         @test zero_uⱼ_axis_x_nonlinear
     end
     #-----------------------------
-    # Plot & plots 
+    # Plot & plots
     #-----------------------------
     PLOT_RESULTS && plot_results(λᵥ, nonlinear_analysis, uᵣ_numeric_nᵢ, uᵣ_numeric_nₑ,
                                  uᵣ_analytic_nᵢ, uᵣ_analytic_nₑ)
@@ -272,7 +272,7 @@ function plot_results(λᵥ, nonlinear_analysis, uᵣ_numeric_nᵢ, uᵣ_numeric
     plot!(fig,
           vec_p, uᵣ_analytic_nₑ; label="analytic linear uᵣ(Rₑ)",
           legend=:topleft, color=:black, lw=2, ls=:solid)
-    # Plot comparing linear and non linear solutions 
+    # Plot comparing linear and non linear solutions
     plot!(fig,
           vec_p_non_in, uᵣ_numeric_nonlinear_nᵢ; label="non-linear uᵣ(0, Rᵢ, 0)",
           color=:red, lw=2, marker=:circle, markersize=3)

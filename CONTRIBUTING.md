@@ -57,7 +57,7 @@ The code style is based on the [Julia style guide](https://docs.julialang.org/en
 
 * How to import packages and overload methods: 
     * First, external packages are included via `using` (e.g. `using LinearAlgebra`) without specifying the method `:`. Also a `,` should be used to separate packages instead of an enter.
-    * Then , internal packages are included (e.g. `using ...Module`) without `:` followed by an enter.
+    * Then , internal packages are included (e.g. `using ..Module`) without `:` followed by an enter.
     * Finally, if a method is overloaded the module should export that method too. For that, use `@reexport import ONSAS.Module: method` with `:`. If the method lives in `Base` just use `Base.method(...)` in-place to overload.
 
 Here is an example:
@@ -75,10 +75,9 @@ Note that the use of `..` and `...` depends on the number of levels you need to 
 * How to use docstrings: 
     * Use `"` to start and end a docstring for a function.
     * Use `"""` to start and end a docstring for a module, struct, type, etc.
-    * Use backtick when you want to refer to a data Structure in the text. Eg. "The function return a `Vector` of `Node`s".
-    * Use backtick to refer to the variable in the signature. "Add a `Dof` `d` to the `Mesh` `m`. 
     * Start with `Return`, `Set`, `Add` ... depending on the function.
     * Include docstrings before the `struct` field definition.
+    * Abstract types should include **Abstract Methods** and **Abstract fields** sections. 
 
 ## Authors 
 

@@ -12,16 +12,16 @@ export AbstractMaterial, density, parameters
 
 """ Abstract supertype for all material models.
 
-An `AbstractMaterial` object facilitates the process of defining new material models. 
+An `AbstractMaterial` object facilitates the process of defining new material models.
 Different material models leads to different constitutive laws, internal forces and stiffness matrices.
 
-**Common methods:**
+**Abstract Methods**
 
 * [`parameters`](@ref)
 * [`density`](@ref)
 * [`label`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * label
 * ρ(density)
 """

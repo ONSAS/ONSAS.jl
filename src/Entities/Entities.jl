@@ -29,14 +29,14 @@ export AbstractElement, cross_section, internal_forces, inertial_forces, local_d
 
 An `AbstractEntity` object is an entity defined by dofs and node/s with certain coordinates and dimension.
 
-**Common methods:**
+**Abstract Methods**
 
 * [`create_entity`](@ref)
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * nodes
 * label
 """
@@ -77,9 +77,9 @@ label(e::AbstractEntity) = e.label
 
 """ Abstract supertype for all elements.
 
-An `AbstractFace` object facilitates the process of adding boundary conditions on a surface. 
+An `AbstractFace` object facilitates the process of adding boundary conditions on a surface.
 
-**Common methods:**
+**Abstract Methods**
 
 * [`area`](@ref)
 * [`create_entity`](@ref)
@@ -89,7 +89,7 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 * [`nodes`](@ref)
 * [`normal_direction`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * nodes
 * label
 """
@@ -111,11 +111,11 @@ An `AbstractElement` object facilitates the process of evaluating:
     - The inertial forces vector and its tangent matrices.
     - The mechanical stresses and strains.
 
-**Common methods:**
+**Abstract Methods**
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
-* [`local_dofs`](@ref) 
+* [`local_dofs`](@ref)
 
 These methods is a hard contract and must be implemented to define a new element.
 * [`local_dof_symbol`](@ref)
@@ -130,7 +130,7 @@ This method is a hard contract and for static analysis must be implemented to de
 This method is a hard contract and for dynamic analysis must be implemented to define a new element.
 * [`inertial_forces`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * nodes
 * label
 """
@@ -143,7 +143,7 @@ function Base.:∈(p::AbstractVector, ::AbstractElement) end
 cross_section(e::AbstractElement) = e.cross_section
 
 "Return local dofs symbols of the `AbstractElement` `e` (for linear displacements `:u` is used) in a vector.
-Since global degrees of freedom are for the assemble process this function is used to compute the global dofs of the element by 
+Since global degrees of freedom are for the assemble process this function is used to compute the global dofs of the element by
 extracting the node dofs with the symbol defined by the `AbstractElement` `e`."
 function local_dof_symbol(e::AbstractElement) end
 
@@ -175,7 +175,7 @@ function strain(e::AbstractElement, args...; kwargs...) end
 "Return the `AbstractElement` `e` stress."
 function stress(e::AbstractElement, args...; kwargs...) end
 
-"Return the weights to interpolate a scalar field at the `Node`s `Dof` corresponding 
+"Return the weights to interpolate a scalar field at the `Node`s `Dof` corresponding
 to the `AbstractElement` `e`."
 function weights(e::AbstractElement, p::AbstractVector) end
 

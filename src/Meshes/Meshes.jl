@@ -20,16 +20,14 @@ using ..Utils
 
 @reexport import ..Entities: apply!, dimension, dofs, nodes, num_nodes
 
-export AbstractMesh, Mesh, faces, face_set, element, elements, element_set, num_dofs, num_elements,
-       node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!, add_entity_to_set!
+export AbstractMesh, Mesh, EntitySet, faces, face_set, node, element, elements, element_set,
+       num_dofs, num_elements, node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!,
+       add_entity_to_set!
 
 """
 Abstract mesh of dimension `dim`.
 
-### Methods
-
-The following methods are provided by the interface:
-
+**Common methods**
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 * [`num_dofs`](@ref)
@@ -91,6 +89,9 @@ function apply!(m::AbstractMesh, dof_symbol::Field, dofs_per_node::Int)
     end
 end
 
+"Return the element at index `i`."
+node(m::AbstractMesh, i::Int) = nodes(m)[i]
+
 "Return the array of nodes."
 nodes(m::AbstractMesh) = m.nodes
 
@@ -107,7 +108,7 @@ num_faces(m::AbstractMesh) = length(faces(m))
 elements(m::AbstractMesh) = m.elements
 
 "Return the element at index `i`."
-element(m::AbstractMesh, i::Int) = m.elements[i]
+element(m::AbstractMesh, i::Int) = elements(m)[i]
 
 "Return the number of elements."
 num_elements(m::AbstractMesh) = length(elements(m))
@@ -133,9 +134,9 @@ Base.length(m::AbstractMesh, ::AbstractFace) = length(faces(m))
 "Used to designate node, element and face sets mapping an entity string to a set of indices."
 const EntitySet = Dictionary{String,Set{Int}}
 
-""" 
-A `Mesh` is a collection of `Element`s, `Face`s and `Node`s that cover the discretized domain, 
-together with Sets of elements and nodes. 
+"""
+A `Mesh` is a collection of `Element`s, `Face`s and `Node`s that cover the discretized domain,
+together with Sets of elements and nodes.
 
 ### Methods
 
@@ -196,7 +197,7 @@ end
 function add_node_to_set!(m::Mesh, name::String, idx::Int)
     add_node_to_set!(node_set(m), name, idx)
 end
-function add_node_to_set!(node_sets::EntitySet, name::String, idx::Int)
+function add_node_to_set!(node_sets::EntitySet, name::AbstractString, idx::Int)
     if haskey(node_sets, name)
         push!(node_sets[name], idx)
     else
@@ -219,22 +220,22 @@ function elements(m::Mesh, name::String)
 end
 
 function Base.show(io::IO, m::Mesh)
-    nnodes = length(m.nodes)
-    nelems = length(m.elements)
-    nfaces = length(m.faces)
+    nnodes = num_nodes(m)
+    nelems = num_elements(m)
+    nfaces = num_faces(m)
     println("• Mesh with $nnodes nodes, $nelems elements and $nfaces faces.")
 end
 
 "Register an element's name in the mesh."
-function add_element_to_set!(m::Mesh, name::String, e::AbstractElement)
+function add_element_to_set!(m::Mesh, name::AbstractString, e::AbstractElement)
     idx = findfirst(==(e), elements(m))
     isnothing(idx) && error("Element $e not found in the mesh.")
     add_element_to_set!(element_set(m), name, idx)
 end
-function add_element_to_set!(m::Mesh, name::String, idx::Int)
+function add_element_to_set!(m::Mesh, name::AbstractString, idx::Int)
     add_element_to_set!(element_set(m), name, idx)
 end
-function add_element_to_set!(element_sets::EntitySet, name::String, idx::Int)
+function add_element_to_set!(element_sets::EntitySet, name::AbstractString, idx::Int)
     if haskey(element_sets, name)
         push!(element_sets[name], idx)
     else
@@ -257,15 +258,15 @@ function faces(m::Mesh, name::String)
 end
 
 "Register a face's name in the mesh."
-function add_face_to_set!(m::Mesh, name::String, f::AbstractFace)
+function add_face_to_set!(m::Mesh, name::AbstractString, f::AbstractFace)
     idx = findfirst(==(f), faces(m))
     isnothing(idx) && error("Face $f not found in mesh.")
     add_face_to_set!(face_set(m), name, idx)
 end
-function add_face_to_set!(m::Mesh, name::String, idx::Int)
+function add_face_to_set!(m::Mesh, name::AbstractString, idx::Int)
     add_face_to_set!(face_set(m), name, idx)
 end
-function add_face_to_set!(face_sets::EntitySet, name::String, idx::Int)
+function add_face_to_set!(face_sets::EntitySet, name::AbstractString, idx::Int)
     if haskey(face_sets, name)
         push!(face_sets[name], idx)
     else
@@ -275,17 +276,39 @@ function add_face_to_set!(face_sets::EntitySet, name::String, idx::Int)
 end
 
 "Add an entity to a set, dispatching on the entity type."
-function add_entity_to_set!(mesh::AbstractMesh, entity_type_label::String, entity_position::Int,
+function add_entity_to_set!(mesh::AbstractMesh, entity_type_label::AbstractString,
+                            entity_position::Int,
                             ::AbstractNode)
     add_node_to_set!(mesh, entity_type_label, entity_position)
 end
-function add_entity_to_set!(mesh::AbstractMesh, entity_type_label::String, entity_position::Int,
+function add_entity_to_set!(mesh::AbstractMesh, entity_type_label::AbstractString,
+                            entity_position::Int,
                             ::AbstractFace)
     add_face_to_set!(mesh, entity_type_label, entity_position)
 end
-function add_entity_to_set!(mesh::AbstractMesh, entity_type_label::String, entity_position::Int,
+function add_entity_to_set!(mesh::AbstractMesh, entity_type_label::AbstractString,
+                            entity_position::Int,
                             ::AbstractElement)
     add_element_to_set!(mesh, entity_type_label, entity_position)
+end
+
+"Replace a node in the mesh."
+function Base.replace!(mesh::AbstractMesh{dim},
+                       node_idx::Int,
+                       node_coordinates::Point{dim}) where {dim}
+    mesh_nodes = nodes(mesh)
+    old_node = mesh_nodes[node_idx]
+    new_node = Node(node_coordinates, dofs(old_node))
+    mesh_nodes[node_idx] = new_node
+    # Check faces and elements nodes are views from the mesh nodes.
+    if !isempty(faces(mesh))
+        @assert nodes(rand(faces(mesh))) isa SubArray
+    end
+
+    if !isempty(elements(mesh))
+        @assert nodes(rand(elements(mesh))) isa SubArray
+    end
+    new_node
 end
 
 end # module

@@ -31,13 +31,13 @@ FILES = ["Utils.jl",
          "BoundaryConditions/LocalLoadBoundaryConditions.jl",
          # Meshes
          "Meshes/Meshes.jl",
+         "Meshes/Searches.jl",
          "Meshes/Interpolators.jl",
          "Meshes/Handlers.jl",
          # Interfaces
          "Interfaces/Gmsh.jl",
          "Interfaces/VTK.jl",
          #Structural Model
-         "StructuralModel/StructuralModel.jl",
          "StructuralModel/StructuralEntities.jl",
          "StructuralModel/StructuralBoundaryConditions.jl",
          "StructuralModel/StructuralMaterials.jl",
@@ -58,10 +58,10 @@ foreach(FILES) do m
     include(m)
 end
 
-# Utility methods.
+# Utility methods
 @reexport using .Utils
 
-# Physical models.
+# Physical models
 ## Materials
 @reexport using .Materials
 @reexport using .LinearElasticMaterials
@@ -92,29 +92,29 @@ end
 @reexport using .LocalLoadBoundaryConditions
 @reexport using .GlobalLoadBoundaryConditions
 
-# Geometric entities and interpolation.
+# Geometric entities and interpolation
 @reexport using .Meshes
+@reexport using .Searches
 @reexport using .Interpolators
 @reexport using .Handlers
 
-# Interfaces with external programs.
+# Interfaces with external programs
 @reexport using .Gmsh
 @reexport using .VTK
 
-# Structural models.
-@reexport using .StructuralModel
+# Structural model
+@reexport using .StructuralMaterials
 @reexport using .StructuralEntities
 @reexport using .StructuralBoundaryConditions
-@reexport using .StructuralMaterials
 @reexport using .Structures
 
-# Finite element solvers.
+# Finite element solvers
 @reexport using .StructuralSolvers
 @reexport using .Solvers
 @reexport using .Assemblers
 @reexport using .Solutions
 
-# Structural analyses.
+# Structural analyses
 @reexport using .StructuralAnalyses
 @reexport using .StaticStates
 @reexport using .StaticAnalyses

@@ -1,4 +1,4 @@
-# ---------------------------------------------------------------- 
+# ----------------------------------------------------------------
 # Uniaxial Extension Example 1  from (Zerpa et. Al., 2019, CMAME).
 # ----------------------------------------------------------------
 using Test, LinearAlgebra, Suppressor
@@ -41,7 +41,7 @@ function run_linear_extension_example()
     bc₃ = FixedDof([:u], [3], bc₃_label)
     # Load
     bc₄_label = "tension"
-    bc₄ = GlobalLoad([:u], t -> [tension(t), 0, 0], bc₄_label)
+    bc₄ = GlobalLoad(:u, t -> [tension(t), 0, 0], bc₄_label)
     # Get bc labels for the mesh
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     s_boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
@@ -69,6 +69,9 @@ function run_linear_extension_example()
     # -------------------------------
     # Structure
     # -------------------------------
+    mesh = Mesh(msh_file, s_entities)
+    apply!(s_materials, mesh)
+    apply!(s_boundary_conditions, mesh)
     s = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
     # -------------------------------
     # Structural Analysis
@@ -86,7 +89,7 @@ function run_linear_extension_example()
     p₁ = Point(x₀_rand[1], y₀_rand[1], z₀_rand[1])
     p₂ = Point(x₀_rand[2], y₀_rand[2], z₀_rand[2])
     # Evaluate the solution at p₁, p₂
-    eval_handler_rand = PointEvalHandler(mesh(s), [p₁, p₂])
+    eval_handler_rand = PointEvalHandler(ONSAS.mesh(s), [p₁, p₂])
     # rand points displacements
     # point 1
     uᵢ_numeric_p₁ = displacements(states_sol, eval_handler_rand, 1)[1]
@@ -124,13 +127,9 @@ function run_linear_extension_example()
     # point 1
     u_analytic_p₁ = u_ijk_analytic(load_factors(sa), p₁[1], p₁[2], p₁[3])
     uᵢ_analytic_p₁ = u_analytic_p₁[1]
-    uⱼ_analytic_p₁ = u_analytic_p₁[2]
-    uₖ_analytic_p₁ = u_analytic_p₁[3]
     # point 2
     u_analytic_p₂ = u_ijk_analytic(load_factors(sa), p₂[1], p₂[2], p₂[3])
     uᵢ_analytic_p₂ = u_analytic_p₂[1]
-    uⱼ_analytic_p₂ = u_analytic_p₂[2]
-    uₖ_analytic_p₂ = u_analytic_p₂[3]
     ## Strains
     "Computes strains numeric solution ϵᵢ, ϵⱼ and ϵₖ for analytic validation."
     function ϵ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, nu::Real=nu, E::Real=E)
@@ -164,15 +163,13 @@ function run_linear_extension_example()
     λᵥ = load_factors(sa)
     ϵ_analytic_p_rand_e = ϵ_ijk_analytic(λᵥ, p_rand_e[1], p_rand_e[2], p_rand_e[3])
     ϵᵢ_analytic_p_rand_e = ϵ_analytic_p_rand_e[1]
-    ϵⱼ_analytic_p_rand_e = ϵ_analytic_p_rand_e[2]
-    ϵₖ_analytic_p_rand_e = ϵ_analytic_p_rand_e[3]
     # stress
     σ_analytic_p_rand_e = σ_ijk_analytic(λᵥ, p_rand_e[1], p_rand_e[2], p_rand_e[3], mat)
     σᵢ_analytic_p_rand_e = σ_analytic_p_rand_e[1]
     σⱼ_analytic_p_rand_e = σ_analytic_p_rand_e[2]
     σₖ_analytic_p_rand_e = σ_analytic_p_rand_e[3]
     #-----------------------------
-    # Test boolean for CI  
+    # Test boolean for CI
     #-----------------------------
     @testset "Linear Extension example" begin
         # Displacements
@@ -186,7 +183,7 @@ function run_linear_extension_example()
         @test ϵᵢ_numeric_e_rand ≈ ϵᵢ_analytic_p_rand_e rtol = RTOL
         @test norm(ϵⱼ_numeric_e_rand) ≈ 0 atol = RTOL
         @test norm(ϵₖ_numeric_e_rand) ≈ 0 atol = RTOL
-        # Stresses 
+        # Stresses
         @test σᵢ_analytic_p_rand_e ≈ σᵢ_analytic_p_rand_e rtol = RTOL
         @test σⱼ_analytic_p_rand_e ≈ σⱼ_analytic_p_rand_e atol = RTOL
         @test σₖ_analytic_p_rand_e ≈ σₖ_analytic_p_rand_e atol = RTOL

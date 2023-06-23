@@ -45,7 +45,7 @@ end
 
 "Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
 function create_entity(t::Tetrahedron, vn::AbstractVector{<:AbstractNode})
-    Tetrahedron(vn[1], vn[2], vn[3], vn[4], label(t))
+    Tetrahedron(vn, label(t))
 end
 
 "Return the `Tetrahedron` `t` volume in the reference configuration."
@@ -103,16 +103,16 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
     vol = _volume(J)
 
     # OkaThe deformation gradient F can be obtained by integrating
-    # funder over time ∂F/∂t. 
+    # funder over time ∂F/∂t.
     funder = inv(J)' * ∂X∂ζ
 
-    # ∇u in global coordinats 
+    # ∇u in global coordinats
     ℍ = U * funder'
 
-    # Deformation gradient 
+    # Deformation gradient
     𝔽 = ℍ + eye(3)
 
-    # Green-Lagrange strain  
+    # Green-Lagrange strain
     𝔼 = Symmetric(0.5 * (ℍ + ℍ' + ℍ' * ℍ))
 
     𝕊, ∂𝕊∂𝔼 = cosserat_stress(m, 𝔼)
@@ -129,7 +129,7 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
     # Geometric stiffness
     aux = funder' * 𝕊 * funder * vol
 
-    Kᵧ = zeros(12, 12) #TODO: Use Symmetriy and avoid indexes 
+    Kᵧ = zeros(12, 12) #TODO: Use Symmetriy and avoid indexes
 
     for i in 1:4
         for j in 1:4
@@ -177,7 +177,7 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
 
     funder = inv(J)' * ∂X∂ζ
 
-    # ∇u = ℍ in global coordinats 
+    # ∇u = ℍ in global coordinats
     U = reshape(u_e, 3, 4)
     ℍ = U * funder'
 

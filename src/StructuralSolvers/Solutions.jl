@@ -1,172 +1,158 @@
+"""
+Module defining solutions interface, `AbstractSolution`.
+
+Each solution can at least access to displacements and external forces. More complete solutions
+can include different forces vector, stresses and strains.
+
+Of course the solution contains on the analysis and solver used to solve the problem.
+"""
 module Solutions
 
 using Reexport
 
-using ..Entities
-using ..Meshes
-using ..Handlers
 using ..Utils
-using ..StructuralSolvers
+using ..Entities
 using ..Nodes
+using ..Meshes
+using ..Interpolators
+using ..Handlers
+using ..Meshes
+using ..Structures
+using ..StructuralSolvers
 
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 
 export AbstractSolution, StatesSolution, stresses, strains, states, analysis, solver,
-       displacements, external_forces, iteration_residuals
+       displacements, external_forces, iteration_residuals, deformed_node_positions
 
 """
 Abstract supertype for all structural analysis solutions.
 
-**Common methods:**
+**Abstract Methods**
 * [`displacements`](@ref)
 * [`external_forces`](@ref)
 * [`internal_forces`](@ref)
 * [`stress`](@ref)
 * [`strain`](@ref)
 
-**Common fields:**
+**Abstract fields**
 * analysis
 * solver
 """
 abstract type AbstractSolution end
 
+"Return the analysis solved."
+analysis(sol::AbstractSolution) = sol.analysis
+
+"Return the solver used to solve the analysis."
+solver(sol::AbstractSolution) = sol.solver
+
 """
 Solution that stores all intermediate arrays during the analysis.
 """
 struct StatesSolution{ST<:Vector,A,SS<:AbstractSolver} <: AbstractSolution
+    "Vector containing the converged structural states at each step."
     states::ST
+    "Analysis solved."
     analysis::A
+    "Solver employed."
     solver::SS
     "Constructor with empty `AbstractStructuralState`s `Vector` and type `S`."
     function StatesSolution(analysis::A, solver::SS) where {A,SS<:AbstractSolver}
-        return new{Vector{Any},A,SS}([], analysis, solver)
+        new{Vector{Any},A,SS}([], analysis, solver)
     end
 end
 
-"Return the solved `AbstractStrcturalState`s. "
+"Show the states solution."
+function Base.show(io::IO, ::MIME"text/plain", sol::StatesSolution)
+    println("Analysis solved:")
+    println("----------------\n")
+    show(io, analysis(sol))
+
+    println("\nSolver employed:")
+    println("----------------\n")
+    show(io, solver(sol))
+
+    println("\nAccessors:")
+    println("----------\n")
+    println("• `displacements`")
+    println("• `strain`")
+    println("• `stress`")
+    println("• `internal_forces`")
+    println("• `external_forces`")
+end
+"Return the solved states."
 states(sol::StatesSolution) = sol.states
 
-"Return the `AbstractAnalysis` solved. "
-analysis(sol::StatesSolution) = sol.analysis
-
-"Return the `AbstractSolver` solved. "
-solver(sol::StatesSolution) = sol.solver
-
 for f in [:displacements, :internal_forces, :external_forces]
-    "Return the $f vector Uᵏ at every time step."
+    "Return the $f vector Uᵏ at every time steps."
     @eval $f(st_sol::StatesSolution) = $f.(states(st_sol))
 
-    "Return the $f of the `Dof` at every time step."
+    "Return the $f at a certain dof for every time step."
     @eval $f(st_sol::StatesSolution, dof::Dof) = getindex.($f(st_sol), index(dof))
 
-    "Return the a $f `Vector` at a `Vector` of `Dof`s at every time step."
+    "Return the $f at a certain dof's vector for every time step."
     @eval $f(st_sol::StatesSolution, vdof::Vector{Dof}) = [$f(st_sol, dof) for dof in vdof]
 
-    "Return the $f of a `Node` `n` every time step."
+    "Return the $f at a certain node for every time step."
     @eval $f(st_sol::StatesSolution, n::AbstractNode) = $f(st_sol, reduce(vcat, collect(dofs(n))))
 
-    "Return the $f a `Node` `n`  of at component `i` every time step."
+    "Return the $f component at a certain node for every time step."
     @eval $f(st_sol::StatesSolution, n::AbstractNode, component::Int) = $f(st_sol, n)[component]
 
-    "Return the $f of a `Element` `e` at every time step."
+    "Return the $f of an element for every time step."
     @eval $f(st_sol::StatesSolution, e::AbstractElement) = [$f(st_sol, n) for n in nodes(e)]
 end
 
-"Return the `IterationResidual`s object at every time step."
+"Return the residuals iteration object at every time step."
 iteration_residuals(st_sol::StatesSolution) = iteration_residuals.(states(st_sol))
 
 for f in [:stress, :strain]
-    "Return the $f at every time step."
+    "Return the $f for every time step."
     @eval $f(st_sol::StatesSolution) = $f.(states(st_sol))
 
-    "Return the $f of an `Element` `e` every time step."
+    "Return the $f at a certain element for every time step."
     @eval function $f(st_sol::StatesSolution, e::AbstractElement)
-        return [getindex($f.(states(st_sol))[step], e) for step in 1:length(states(st_sol))]
+        [getindex($f.(states(st_sol))[step], e) for step in 1:length(states(st_sol))]
     end
 end
 
-"Return the displacements component `i` solution at the `PointEvalHandler` `peh`."
+"Return the displacements solution at the points in the point evaluator handler."
+function displacements(st_sol::StatesSolution, peh::PointEvalHandler)
+    interpolate(st_sol, displacements, interpolator(peh))
+end
+
+"Return the displacements component in the point evaluator handler."
 function displacements(st_sol::StatesSolution, peh::PointEvalHandler, i::Int)
     sol_points = getindex.(displacements(st_sol, peh), i)
     if length(sol_points) == 1
-        sol_points[1]
+        getindex(sol_points)
     else
         sol_points
     end
 end
 
-# TODO use @eval
-"Return the displacements solution at the `PointEvalHandler` `peh`."
-function displacements(st_sol::StatesSolution, peh::PointEvalHandler)
-    points_interpolators = interpolator(peh)
-    vec_points = points(peh)
-    num_points = length(vec_points)
-
-    sol_points = Vector{Vector{Vector{Float64}}}(undef, num_points)
-
-    for index_p in 1:num_points
-        interpolator_p = node_to_weights(points_interpolators)[index_p]
-
-        # Compute the first node contribution and the sum up
-        node_values = [weight * displacements(st_sol, node)
-                       for (node, weight) in pairs(interpolator_p)]
-        p_values = reduce(+, node_values)
-        sol_points[index_p] = p_values
-    end
-    return sol_points
-end
-
-"Return the internal forces solution  at the `PointEvalHandler` `peh`."
+"Return the internal forces solution at the points in the point eval handler."
 function internal_forces(st_sol::StatesSolution, peh::PointEvalHandler)
-    interpolators = interpolator(peh)
-    vec_points = points(peh)
-    num_points = length(vec_points)
-
-    sol_points = Vector{Vector{Vector{Float64}}}(undef, num_points)
-
-    for index_p in 1:num_points
-        interpolator_p = node_to_weights(points_interpolators)[index_p]
-
-        # Compute the first node contribution and the sum up
-        node_values = [weight * internal_forces(st_sol, node)
-                       for (node, weight) in pairs(node_to_weights(interpolator_p))]
-        p_values = reduce(+, node_values)
-        sol_points[index_p] = p_values
-    end
-    return sol_points
+    interpolate(st_sol, internal_forces, interpolator(peh))
 end
 
-"Return the internal ftorce component `i` solution at the `PointEvalHandler` `peh`."
+"Return the internal force component at the points in the point eval handler."
 function internal_forces(st_sol::StatesSolution, peh::PointEvalHandler, i::Int)
-    return getindex.(internal_forces(st_sol, peh), i)
+    getindex.(internal_forces(st_sol, peh), i)
 end
 
-"Return the external forces solution  at the `PointEvalHandler` `peh`."
+"Return the external forces at the points in the point eval handler."
 function external_forces(st_sol::StatesSolution, peh::PointEvalHandler)
-    interpolators = interpolator(peh)
-    vec_points = points(peh)
-    num_points = length(vec_points)
-
-    sol_points = Vector{Vector{Vector{Float64}}}(undef, num_points)
-
-    for index_p in 1:num_points
-        interpolator_p = node_to_weights(points_interpolators)[index_p]
-
-        # Compute the first node contribution and the sum up
-        node_values = [weight * external_forces(st_sol, node)
-                       for (node, weight) in pairs(interpolator_p)]
-        p_values = reduce(+, node_values)
-        sol_points[index_p] = p_values
-    end
-    return sol_points
+    interpolate(st_sol, external_forces, interpolator(peh))
 end
 
-"Return the internal force component `i` solution at the `PointEvalHandler` `peh`."
+"Return the external force component at the points in the point eval handler."
 function external_forces(st_sol::StatesSolution, peh::PointEvalHandler, i::Int)
-    return getindex.(external_forces(st_sol, peh), i)
+    getindex.(external_forces(st_sol, peh), i)
 end
 
-"Return the stresses solution  at the `PointEvalHandler` `peh`."
+"Return the stress at the elements where the points are located in the point eval handler."
 function stress(st_sol::StatesSolution, peh::PointEvalHandler)
     point_to_element_vec = points_to_element(interpolator(peh))
     vec_points = points(peh)
@@ -178,7 +164,41 @@ function stress(st_sol::StatesSolution, peh::PointEvalHandler)
         element_p = point_to_element_vec[index_p]
         sol_points[index_p] = stress(st_sol, element_p)
     end
-    return sol_points
+    sol_points
+end
+
+"Return the strains at the elements where the points are located in the point eval handler."
+function strain(st_sol::StatesSolution, peh::PointEvalHandler)
+    point_to_element_vec = points_to_element(interpolator(peh))
+    vec_points = points(peh)
+    num_points = length(vec_points)
+
+    sol_points = Vector{Vector{<:AbstractMatrix{Float64}}}(undef, num_points)
+
+    for index_p in 1:num_points
+        element_p = point_to_element_vec[index_p]
+        sol_points[index_p] = strain(st_sol, element_p)
+    end
+    sol_points
+end
+
+"Return deformed nodes of the mesh at time index."
+function deformed_node_positions(st_sol::StatesSolution, t_i::Int)
+    mesh_nodes = nodes(mesh(analysis(st_sol).s))
+    # Get nodes coordinates type
+    CT = typeof(coordinates(rand(mesh_nodes)))
+
+    deformed_points = Vector{CT}(undef, length(mesh_nodes))
+    u_node = Vector{Float64}(undef, dimension(first(mesh_nodes)))
+
+    for (i, node) in enumerate(mesh_nodes)
+        displacements_node = displacements(st_sol, node)
+        for dim in 1:dimension(node)
+            u_node[dim] = displacements_node[dim][t_i]
+        end
+        deformed_points[i] = coordinates(node) + u_node
+    end
+    deformed_points
 end
 
 end # module

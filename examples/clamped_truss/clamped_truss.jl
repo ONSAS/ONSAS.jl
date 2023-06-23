@@ -1,14 +1,8 @@
-# --------------------- 
+# ---------------------
 # Clamped truss example
 # ---------------------
 #=
-This model is a static generalization taken from [1]. The theoretical derivations of the analytic solution can be found in [2].
-The implementation of stiffness and mass matrices in Julia can be found in [3].
-
-[1] Malakiyeh, Mohammad Mahdi, Saeed Shojaee, and Klaus-Jürgen Bathe. "The Bathe time integration method revisited for prescribing desired numerical dissipation." Computers & Structures 212 (2019): 289-298.
-
-[2] Mechanical Vibrations, Gerardin et al, page 250-251.
-
+This model is a static generalization taken from [3].
 [3] https://github.com/JuliaReach/SetPropagation-FEM-Examples/blob/main/examples/Clamped/Clamped_Model.jl
 =#
 using Test, LinearAlgebra, Dictionaries
@@ -19,7 +13,7 @@ function run_clamped_truss_example()
     # Parameters
     N = 100     # Number of elements.
     E = 30e6    # Young's modulus.
-    ν = 0.3     # Poisson's ratio. 
+    ν = 0.3     # Poisson's ratio.
     ρ = 7.3e-4  # Density.
     L = 200     # Element length.
     A = 1       # Cross section area.
@@ -47,9 +41,9 @@ function run_clamped_truss_example()
     # Boundary conditions
     # -------------------------------
     # Fixed dofs
-    bc₁ = FixedDof(; components=[1], name="fixed_uₓ")
-    # Load 
-    bc₂ = GlobalLoad(; values=t -> [F * t], name="load in j")
+    bc₁ = FixedDof(:u, [1], "fixed_uₓ")
+    # Load
+    bc₂ = GlobalLoad(:u, t -> [F * t], "load in j")
     # Apply bcs to the nodes
     node_bc = dictionary([bc₁ => [first(nodes)], bc₂ => [last(nodes)]])
     boundary_conditions = StructuralBoundaryCondition(; node_bcs=node_bc)
@@ -74,7 +68,7 @@ function run_clamped_truss_example()
     numeric_uᵢ = displacements(solution, last(nodes))[1]
     numeric_F_tip = F * load_factors(sa)
     #-----------------------------
-    # Analytic solution  
+    # Analytic solution
     #-----------------------------
     # Compute the analytic values for the strain, stress and force at the tip
     "Analytic force given `uᵢ` towards x axis at the tip node."
@@ -83,13 +77,13 @@ function run_clamped_truss_example()
         # Cosserat stress
         𝐒₁₁ = E * ϵ_green
         # Piola stress
-        𝐏₁₁ = 𝐒₁₁ * (l₀ + uᵢ) / l₀
+        𝐏₁₁ = (l₀ + uᵢ) / l₀ * 𝐒₁₁
         𝐏₁₁ * A₀
     end
     #
     analytic_F_tip = analytic_F.(Ref(ϵ_model), numeric_uᵢ)
     #-----------------------------
-    # Test boolean for CI  
+    # Test boolean for CI
     #-----------------------------
     @test analytic_F_tip ≈ numeric_F_tip rtol = 1e-3
 end

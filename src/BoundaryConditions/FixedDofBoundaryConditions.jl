@@ -16,38 +16,35 @@ using ..Utils
 export FixedDof, components
 
 """
-Fixed displacement boundary condition.
+Fixed boundary condition.
 
-This is a particular instance of the struct `DisplacementBoundaryCondition`
-considering null dof value at an specific component of the dof displacements.
+Considers null dof values at specific component(s) of the given field.
 """
-Base.@kwdef struct FixedDof <: AbstractDirichletBoundaryCondition
-    "Symbols where the where the boundary condition is subscribed."
-    dofs::Vector{Field} = [:u]
-    "Vectors of integer indicating the fixed degree of freedom component."
-    components::Vector{Dof}
-    "Label of the boundary condition."
-    name::Label = NO_LABEL
+struct FixedDof <: AbstractDirichletBoundaryCondition
+    "Field where the boundary condition applies to."
+    field::Field
+    "Components of the field which are fixed."
+    components::Vector{Int64}
+    "Boundary condition label."
+    name::Label
+    function FixedDof(field::Field, components::Vector{Int64}, name::Label=NO_LABEL)
+        new(field, components, name)
+    end
 end
 
 "Return the fixed components of the `Dof`s defined in the boundary condition `bc`."
 components(bc::FixedDof) = bc.components
 
 "Return fixed `Dof`s of an `AbstractNode` imposed in the `FixedDof` `fbc`."
-function apply(fbc::FixedDof, n::AbstractNode)
-    fbc_dofs_symbols = dofs(fbc)
-    dofs_to_delete = Dof[]
-    for dof_symbol in fbc_dofs_symbols
-        push!(dofs_to_delete, getindex(dofs(n), dof_symbol)[components(fbc)]...)
-    end
-    dofs_to_delete
+function apply(bc::FixedDof, n::AbstractNode)
+    # TODO Rename method to fixed_dofs ?
+    dofs(n, bc.field)[bc.components]
 end
 
 "Return fixed `Dof`s of an `AbstractFace` or `AbstractElement` imposed in the `FixedDof` `fbc`."
-function apply(fbc::FixedDof, e::E) where {E<:Union{AbstractFace,AbstractElement}}
-    dofs_to_delete = Dof[]
-    [push!(dofs_to_delete, apply(fbc, n)...) for n in nodes(e)]
-    dofs_to_delete
+function apply(bc::FixedDof, e::E) where {E<:Union{AbstractFace,AbstractElement}}
+    # TODO Rename method to fixed_dofs ?
+    reduce(vcat, apply(bc, n) for n in nodes(e))
 end
 
 end

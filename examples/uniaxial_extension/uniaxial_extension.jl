@@ -1,4 +1,4 @@
-# -------------------------------------------------------------------------- 
+# --------------------------------------------------------------------------
 # Uniaxial Extension ExampleExercise 4 from section 6.5 in (Holzapfel,2000).
 # For notation see: https://onsas.github.io/ONSAS.m/dev/examples/uniaxialExtension/
 # --------------------------------------------------------------------------
@@ -13,7 +13,7 @@ function run_uniaxial_extension()
     E = 1.0                    # Young modulus in Pa
     ν = 0.3                    # Poisson's ratio
     p = 3                      # Tension load in Pa
-    Lᵢ = 2.0                   # Dimension in x of the box in m 
+    Lᵢ = 2.0                   # Dimension in x of the box in m
     Lⱼ = 1.0                   # Dimension in y of the box in m
     Lₖ = 1.0                   # Dimension in z of the box in m
     ms = 0.5                   # Refinement factor for the mesh
@@ -34,7 +34,7 @@ function run_uniaxial_extension()
     n₈ = Node(Lᵢ, Lⱼ, 0.0)
     vec_nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
     s₁_mesh = Mesh(; nodes=vec_nodes)
-    ## Faces 
+    ## Faces
     f₁ = TriangularFace(n₅, n₈, n₆, "loaded_face_1")
     f₂ = TriangularFace(n₆, n₈, n₇, "loaded_face_2")
     f₃ = TriangularFace(n₄, n₁, n₂, "x=0_face_1")
@@ -45,7 +45,7 @@ function run_uniaxial_extension()
     f₈ = TriangularFace(n₄, n₈, n₅, "z=0_face_2")
     vec_faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
     append!(faces(s₁_mesh), vec_faces)
-    ## Entities 
+    ## Entities
     t₁ = Tetrahedron(n₁, n₄, n₂, n₆, "tetra_1")
     t₂ = Tetrahedron(n₆, n₂, n₃, n₄, "tetra_2")
     t₃ = Tetrahedron(n₄, n₃, n₆, n₇, "tetra_3")
@@ -71,15 +71,15 @@ function run_uniaxial_extension()
     # -------------------------------
     # Fixed dofs
     bc₁_label = "fixed-ux"
-    bc₁ = FixedDof([:u], [1], bc₁_label)
+    bc₁ = FixedDof(:u, [1], bc₁_label)
     bc₂_label = "fixed-uj"
-    bc₂ = FixedDof([:u], [2], bc₂_label)
+    bc₂ = FixedDof(:u, [2], bc₂_label)
     bc₃_label = "fixed-uk"
-    bc₃ = FixedDof([:u], [3], bc₃_label)
+    bc₃ = FixedDof(:u, [3], bc₃_label)
     # Load
     bc₄_label = "tension"
-    bc₄ = GlobalLoad([:u], t -> [p * t, 0, 0], bc₄_label)
-    # Assign this to faces 
+    bc₄ = GlobalLoad(:u, t -> [p * t, 0, 0], bc₄_label)
+    # Assign this to faces
     face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
     # Crete boundary conditions struct
     s₁_boundary_conditions = StructuralBoundaryCondition(; face_bcs=face_bc)
@@ -127,9 +127,9 @@ function run_uniaxial_extension()
     e = rand(elements(s₁))
     # Cosserat or second Piola-Kirchhoff stress tensor
     ℙ_numeric_case₁ = last(stress(states_sol_case₁, e))
-    # Right hand Cauchy strain tensor 
+    # Right hand Cauchy strain tensor
     ℂ_numeric_case₁ = last(strain(states_sol_case₁, e))
-    # Load factors 
+    # Load factors
     numeric_λᵥ_case₁ = load_factors(sa₁)
     # -----------------------------------------------
     # Case 2 - GMSH mesh and `HyperElastic` material
@@ -148,8 +148,8 @@ function run_uniaxial_extension()
     # -------------------------------
     # Boundary Conditions
     # -------------------------------
-    # Redefine the load boundary condition 
-    bc₄ = Pressure([:u], t -> -p * t, bc₄_label)
+    # Redefine the load boundary condition
+    bc₄ = Pressure(:u, t -> -p * t, bc₄_label)
     # BoundaryConditions types without assigned node, feces and elements
     s_boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
     # -------------------------------
@@ -189,12 +189,12 @@ function run_uniaxial_extension()
     e = rand(elements(s₂))
     # Cosserat or second Piola-Kirchhoff stress tensor
     ℙ_numeric_case₂ = last(stress(states_sol_case₂, e))
-    # Right hand Cauchy strain tensor 
+    # Right hand Cauchy strain tensor
     ℂ_numeric_case₂ = last(strain(states_sol_case₂, e))
-    # Load factors 
+    # Load factors
     numeric_λᵥ_case₂ = load_factors(sa₂)
     #-----------------------------
-    # Analytic solution  
+    # Analytic solution
     #-----------------------------
     "Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
     function u_ijk_numeric(numerical_α::Vector{<:Real}, numerical_β::Vector{<:Real},
@@ -219,7 +219,7 @@ function run_uniaxial_extension()
     𝔽_analytic = [α_analytic 0 0
                   0 β_analytic 0
                   0 0 β_analytic]
-    # Right hand Cauchy tensor 
+    # Right hand Cauchy tensor
     ℂ_analytic = 𝔽_analytic' * 𝔽_analytic
     𝕁 = det(ℂ_analytic)
     # Green-Lagrange strain tensor
@@ -237,7 +237,7 @@ function run_uniaxial_extension()
     #--------------------------------
     rand_point = [[rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ]]
     eval_handler_rand = PointEvalHandler(mesh(s₂), rand_point)
-    # Compute analytic solution at a random point 
+    # Compute analytic solution at a random point
     uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂,
                                                  rand_point[]...)
     rand_point_uᵢ = displacements(states_sol_case₂, eval_handler_rand, 1)

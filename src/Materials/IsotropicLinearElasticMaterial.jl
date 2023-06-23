@@ -4,7 +4,7 @@ module IsotropicLinearElasticMaterial
 using LinearAlgebra, Reexport
 
 using ..LinearElasticMaterials
-using ...Utils
+using ..Utils
 
 @reexport import ..LinearElasticMaterials: lame_parameters, shear_modulus, poisson_ratio,
                                            elasticity_modulus, bulk_modulus, cauchy_stress
@@ -16,7 +16,7 @@ Material with linear elastic properties.
 
 For context see the wikipedia article on [Linear elasticity](https://en.wikipedia.org/wiki/Linear_elasticity).
 
-It is also possible to construct an `IsotropicLinearElastic` material given its Lamé parameters `λ`, `G` and density `ρ`. 
+It is also possible to construct an `IsotropicLinearElastic` material given its Lamé parameters `λ`, `G` and density `ρ`.
 For context see the wikipedia article on [Lamé parameters](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters).
 """
 struct IsotropicLinearElastic{ET<:Real,NT<:Real} <: AbstractLinearElasticMaterial
@@ -67,7 +67,7 @@ function lame_parameters(m::IsotropicLinearElastic)
     λ, G
 end
 
-"Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ` 
+"Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ`
 considering a `IsotropicLinearElastic` material `m`."
 function cauchy_stress(m::IsotropicLinearElastic, ϵ::AbstractMatrix)
     λ, G = lame_parameters(m)

@@ -66,12 +66,12 @@ function linear_cylinder_structure(; ms::Real=0.5)
     # -------------------------------
     # Boundary conditions
     # -------------------------------
-    # Dirichlet boundary conditions 
-    bc₁ = FixedDof(; components=[1], name=bc₁_label)
-    bc₂ = FixedDof(; components=[2], name=bc₂_label)
-    bc₃ = FixedDof(; components=[3], name=bc₃_label)
-    # Neumann boundary conditions 
-    bc₄ = Pressure(; values=pressure, name=bc₄_label)
+    # Dirichlet boundary conditions
+    bc₁ = FixedDof(:u, [1], bc₁_label)
+    bc₂ = FixedDof(:u, [2], bc₂_label)
+    bc₃ = FixedDof(:u, [3], bc₃_label)
+    # Neumann boundary conditions
+    bc₄ = Pressure(:u, pressure, bc₄_label)
     boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
     # Assign boundary conditions to the ones defined in the mesh
     apply!(boundary_conditions, mesh)
@@ -98,7 +98,7 @@ function point_eval_handler(structure::Structure;
     ## scalar parameters (dimensions in mm an MPa)
     Lₖ = 30.0                         # cylinder length in 𝐞ₖ mm
     Rₑ = 200.0                       # outer radius in mm
-    Lᵢ = Lⱼ = 2.25Rₑ                # hyper rectangle origin in 𝐞ᵢ,𝐞ⱼ and  𝐞ₖ in mm    
+    Lᵢ = Lⱼ = 2.25Rₑ                # hyper rectangle origin in 𝐞ᵢ,𝐞ⱼ and  𝐞ₖ in mm
     O = (x=-Lᵢ / 2, y=-Lⱼ / 2, z=0.0)    # hyper rectangle origin in 𝐞ᵢ,𝐞ⱼ and  𝐞ₖ in mm
 
     # Create an hyper rectangle Lᵢ x Lⱼ x Lₖ
