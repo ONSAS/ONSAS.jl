@@ -19,7 +19,7 @@ export Frame, Consistent, Lumped
 
 struct Frame{dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N},G<:AbstractCrossSection} <:
        AbstractElement{dim,T}
-    "Node array (should be 2)."
+    "Nodes of the frame."
     nodes::VN
     "Cross section properties."
     cross_section::G
@@ -30,6 +30,8 @@ struct Frame{dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N},G<:Abstrac
     function Frame(nodes::VN, cross_section::G, mass_matrix::MassMatrix=Consistent,
                    label::Label=NO_LABEL) where {dim,T<:Real,N<:AbstractNode{dim,T},
                                                  VN<:AbstractVector{N},G<:AbstractCrossSection}
+        @assert length(nodes) == 2 ||
+                throw(ArgumentError("Expected two nodes, got $(length(nodes))"))
         new{dim,T,N,VN,G}(nodes, cross_section, mass_matrix, Symbol(label))
     end
 end

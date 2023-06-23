@@ -17,6 +17,7 @@ MODULES = ["interfaces/gmsh.jl",
            "tetrahedrons.jl",
            "triangular_faces.jl",
            "trusses.jl",
+           "frames.jl",
            "utils.jl"]
 
 EXAMPLES_FOLDER = joinpath("..", "examples")
