@@ -23,6 +23,7 @@ FILES = ["Utils.jl",
          "Entities/Trusses.jl",
          "Entities/Tetrahedrons.jl",
          "Entities/TriangularFaces.jl",
+         "Entities/Frames.jl",
          # Boundary conditions
          "BoundaryConditions/BoundaryConditions.jl",
          "BoundaryConditions/FixedDofBoundaryConditions.jl",
@@ -37,7 +38,7 @@ FILES = ["Utils.jl",
          # Interfaces
          "Interfaces/Gmsh.jl",
          "Interfaces/VTK.jl",
-         #Structural Model
+         # Structural Model
          "StructuralModel/StructuralEntities.jl",
          "StructuralModel/StructuralBoundaryConditions.jl",
          "StructuralModel/StructuralMaterials.jl",
@@ -84,6 +85,7 @@ end
 @reexport using .Trusses
 @reexport using .Tetrahedrons
 @reexport using .TriangularFaces
+@reexport using .Frames
 
 ## Boundary conditions
 @reexport using .BoundaryConditions
