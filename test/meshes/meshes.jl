@@ -65,7 +65,8 @@ const RTOL = 1e-5
     @test num_nodes(mesh) * (u_dim + θ_dim) == num_dofs(mesh)
 end
 
-uniaxial_mesh_path = joinpath(@__DIR__, "..", "examples", "uniaxial_extension", "uniaxial_mesh.jl")
+uniaxial_mesh_path = joinpath(@__DIR__, "..", "..", "examples", "uniaxial_extension",
+                              "uniaxial_mesh.jl")
 include(uniaxial_mesh_path)
 
 @testset "ONSAS.Meshes.GMSH.MshFile " begin
