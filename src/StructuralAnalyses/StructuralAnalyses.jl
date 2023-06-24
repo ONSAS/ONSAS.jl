@@ -136,7 +136,6 @@ to be solved.
 
 * [`structure`](@ref)
 * [`free_dofs`](@ref)
-* [`structural_state`](@ref)
 
 * [`initial_time`](@ref)
 * [`current_time`](@ref)
