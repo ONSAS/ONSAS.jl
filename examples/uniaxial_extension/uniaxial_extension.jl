@@ -59,7 +59,7 @@ function run_uniaxial_extension()
     #--------------------------------
     dof_dim = 3
     dof_u_symbol = :u
-    apply!(s₁_mesh, dof_u_symbol, dof_dim)
+    set_dofs!(s₁_mesh, dof_u_symbol, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------

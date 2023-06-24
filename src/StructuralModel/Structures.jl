@@ -181,7 +181,7 @@ function Structure(msh_file::MshFile,
     end
 
     for (dof_symbol, dof_dim) in pairs(dofs_to_dim)
-        apply!(mesh, dof_symbol, dof_dim)
+        set_dofs!(mesh, dof_symbol, dof_dim)
     end
 
     Structure(mesh, materials, bcs)

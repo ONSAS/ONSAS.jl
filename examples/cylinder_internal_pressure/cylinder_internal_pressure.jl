@@ -72,7 +72,7 @@ function run_cylinder_internal_pressure_example()
         #--------------------------------
         dof_dim = 3
         dof_u_symbol = :u
-        apply!(mesh, dof_u_symbol, dof_dim)
+        set_dofs!(mesh, dof_u_symbol, dof_dim)
         # -------------------------------
         # Boundary conditions
         # -------------------------------

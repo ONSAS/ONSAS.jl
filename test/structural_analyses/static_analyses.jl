@@ -60,7 +60,7 @@ s_mesh = Mesh(; nodes, elements)
 # Dofs
 #--------------------------------
 dof_dim = 3
-apply!(s_mesh, :u, dof_dim)
+set_dofs!(s_mesh, :u, dof_dim)
 # -------------------------------
 # Materials
 # -------------------------------

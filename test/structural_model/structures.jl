@@ -183,7 +183,7 @@ end
     n₃ = Node(0, 0, 1)
 
     s_mesh = Mesh(; nodes=[n₁, n₂, n₃], elements=[truss₁, truss₂, truss₃])
-    apply!(s_mesh, :u, dof_dim)
+    set_dofs!(s_mesh, :u, dof_dim)
     s = Structure(s_mesh, s_materials, s_boundary_conditions)
 
     # Dofs
