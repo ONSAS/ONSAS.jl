@@ -128,15 +128,15 @@ end
 function Structure(mesh::AbstractMesh{dim},
                    materials::StructuralMaterial{M,E},
                    bcs::StructuralBoundaryCondition{NB,LB}) where {dim,M,E,NB,LB}
+    # Retrieve all (free) dofs in the mesh.
     default_free_dofs = Vector{Dof}()
-    for node_dofs in dofs(mesh)
-        [push!(default_free_dofs, vec_dof...) for vec_dof in collect(values(node_dofs))]
+    for n in nodes(mesh)
+        append!(default_free_dofs, reduce(vcat, dofs(n)))
     end
-
+    # Obtain the dofs that shall be fixed according to the given boundary condition.
     fixed_dofs = apply(bcs, fixed_dof_bcs(bcs))
-
-    deleteat!(default_free_dofs, findall(x -> x in fixed_dofs, default_free_dofs))
-
+    # Remove the fixed dofs form the free dofs array.
+    setdiff!(default_free_dofs, fixed_dofs)
     Structure(mesh, materials, bcs, default_free_dofs)
 end
 
