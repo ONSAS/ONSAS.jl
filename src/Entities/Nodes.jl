@@ -11,9 +11,9 @@ using Dictionaries: Dictionary
 
 using ..Utils
 
-@reexport import ..Utils: label, apply!, dofs, index
+@reexport import ..Utils: label, dofs, index
 
-export Dof, Point, AbstractNode, Node, dimension, coordinates, create_node
+export Dof, Point, AbstractNode, Node, dimension, coordinates, create_node, set_dofs!
 
 """
 Scalar degree of freedom of the structure.
@@ -65,17 +65,8 @@ dofs(vn::Vector{<:AbstractNode}) = vcat(dofs.(vn)...) # mapreduce(dofs, vcat, vn
 dofs(n::AbstractNode, s::Field) = n.dofs[s]
 
 "Sets a vector of dofs `vd` to the node assigned to the field `s`."
-function apply!(n::AbstractNode, s::Field, vd::Vector{Dof})
-    if s ∉ keys(dofs(n))
-        insert!(dofs(n), s, vd)
-    else
-        for d in vd
-            if d ∉ dofs(n)[s]
-                push!(dofs(n)[s], d)
-            end
-        end
-    end
-    dofs(n)
+function set_dofs!(n::AbstractNode, s::Field, vd::Vector{Dof})
+    unique!(append!(get!(dofs(n), s, Dof[]), vd))
 end
 
 """

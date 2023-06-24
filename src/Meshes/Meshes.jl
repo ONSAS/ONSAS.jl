@@ -18,7 +18,8 @@ using ..Entities
 using ..Nodes
 using ..Utils
 
-@reexport import ..Entities: apply!, dimension, dofs, nodes, num_nodes
+@reexport import ..Entities: dimension, dofs, nodes, num_nodes
+@reexport import ..Nodes: set_dofs!
 
 export AbstractMesh, Mesh, EntitySet, faces, face_set, node, element, elements, element_set,
        num_dofs, num_elements, node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!,
@@ -67,8 +68,8 @@ function num_dofs(m::AbstractMesh)::Int
     max_dof
 end
 
-"Adds n `dofs_per_node` `Dof`s with `dof_symbol` to the `AbstractMesh` `m`."
-function apply!(m::AbstractMesh, dof_symbol::Field, dofs_per_node::Int)
+"Set `dofs_per_node` degrees of freedom per node with the given symbol to all nodes of the mesh."
+function set_dofs!(m::AbstractMesh, dof_symbol::Field, dofs_per_node::Int)
     mesh_dofs = dofs(m)
     dof_not_added_yet = dof_symbol ∉ keys.(mesh_dofs)
     @assert dof_not_added_yet throw(ArgumentError("Dof symbol $dof_symbol already exists."))
@@ -76,7 +77,7 @@ function apply!(m::AbstractMesh, dof_symbol::Field, dofs_per_node::Int)
     if !_isempty_dofs(m) && dof_not_added_yet  # any dof has been added
         for (i, n) in enumerate(nodes(m))
             node_dofs_int = (1 + (i - 1) * dofs_per_node):(i * dofs_per_node)
-            apply!(n, dof_symbol, Dof.(node_dofs_int))
+            set_dofs!(n, dof_symbol, Dof.(node_dofs_int))
         end
     else # other dof has been added
         # Maximum dof index among all dofs
@@ -84,7 +85,7 @@ function apply!(m::AbstractMesh, dof_symbol::Field, dofs_per_node::Int)
         # Push new dofs
         for (i, n) in enumerate(nodes(m))
             node_dofs_int = (1 + max_dof_index + (i - 1) * dofs_per_node):(max_dof_index + i * dofs_per_node)
-            apply!(n, dof_symbol, Dof.(node_dofs_int))
+            set_dofs!(n, dof_symbol, Dof.(node_dofs_int))
         end
     end
 end
