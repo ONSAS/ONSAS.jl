@@ -24,6 +24,7 @@ makedocs(;
                                                   "Rectangles" => "lib/CrossSections/Rectangles.md",
                                                   "Squares" => "lib/CrossSections/Squares.md"],
                               "Entities" => ["Entities" => "lib/Entities/Entities.md",
+                                             "Frames" => "lib/Entities/Frames.md",
                                              "Nodes" => "lib/Entities/Nodes.md",
                                              "Tetrahedrons" => "lib/Entities/Tetrahedrons.md",
                                              "TriangularFaces" => "lib/Entities/TriangularFaces.md",
