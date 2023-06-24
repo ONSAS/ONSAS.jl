@@ -43,7 +43,7 @@ and extends the following methods:
 * [`_next!`](@ref)
 * [`is_done`](@ref)
 * [`reset!`](@ref)
-* [`_solve`](@ref)
+* [`_solve!`](@ref)
 * [`_step!`](@ref)
 
 **Common fields**
