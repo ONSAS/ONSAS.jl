@@ -58,10 +58,10 @@ const RTOL = 1e-5
 
     # Add dofs
     u_dim = 3
-    apply!(mesh, :u, u_dim)
+    set_dofs!(mesh, :u, u_dim)
     @test num_nodes(mesh) * u_dim == num_dofs(mesh)
     θ_dim = 3
-    apply!(mesh, :θ, θ_dim)
+    set_dofs!(mesh, :θ, θ_dim)
     @test num_nodes(mesh) * (u_dim + θ_dim) == num_dofs(mesh)
 end
 

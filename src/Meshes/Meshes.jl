@@ -18,7 +18,8 @@ using ..Entities
 using ..Nodes
 using ..Utils
 
-@reexport import ..Entities: apply!, dimension, dofs, nodes, num_nodes
+@reexport import ..Entities: dimension, dofs, nodes, num_nodes
+@reexport import ..Nodes: set_dofs!
 
 export AbstractMesh, Mesh, EntitySet, faces, face_set, node, element, elements, element_set,
        num_dofs, num_elements, node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!,
@@ -43,49 +44,38 @@ abstract type AbstractMesh{dim} end
 dimension(::AbstractMesh{dim}) where {dim} = dim
 
 """
-Return the array of degrees of freedom.
+Return an iterator over the degrees of freedom for each node.
 The `i`-th entry contains the `Dof`s of node with index `i` in the mesh.
 """
-dofs(m::AbstractMesh) = dofs.(nodes(m)) # TODO This allocates, maybe cache on construction?
+dofs(m::AbstractMesh) = Iterators.map(dofs, nodes(m))
 
-"Return true if the `AbstractMesh` m has `Dof`s defined."
-_isempty_dofs(m::AbstractMesh) = !all(isempty.(dofs(m))) # TODO Logic correct?
-
-"Return the number of `Dof`s defined in the `AbstractMesh` `m`.
-This function assumes that `Dof`s indexes start from `Dof(1)`"
+"""
+Return the number of dofs defined in the mesh.
+This function assumes that `Dof`s indexes start from `Dof(1)`.
+"""
 function num_dofs(m::AbstractMesh)::Int
-    mesh_dofs = dofs(m)
     max_dof = 0
-    !_isempty_dofs(m) && return max_dof # mesh has no dofs
-
-    # TODO Simplify?
-    for node_dof in mesh_dofs
-        for dofs in values(node_dof)
-            max_dof = maximum([max_dof, maximum(dofs)])
-        end
+    for n in nodes(m)
+        # For each node, obtain the maximum dof over each field, then reduce over all fields.
+        max_n = mapreduce(maximum, max, dofs(n); init=0)
+        max_dof = max(max_dof, max_n)
     end
     max_dof
 end
 
-"Adds n `dofs_per_node` `Dof`s with `dof_symbol` to the `AbstractMesh` `m`."
-function apply!(m::AbstractMesh, dof_symbol::Field, dofs_per_node::Int)
-    mesh_dofs = dofs(m)
-    dof_not_added_yet = dof_symbol ∉ keys.(mesh_dofs)
-    @assert dof_not_added_yet throw(ArgumentError("Dof symbol $dof_symbol already exists."))
+"Set `dofs_per_node` degrees of freedom per node with the given symbol to all nodes of the mesh."
+function set_dofs!(m::AbstractMesh, dof_symbol::Field, dofs_per_node::Int)
+    # Check that there are no nodes with a dof associated to the given symbol.
+    dof_exists = any(n -> dof_symbol ∈ keys(dofs(n)), nodes(m))
+    if dof_exists
+        throw(ArgumentError("Dof symbol $dof_symbol already exists."))
+    end
 
-    if !_isempty_dofs(m) && dof_not_added_yet  # any dof has been added
-        for (i, n) in enumerate(nodes(m))
-            node_dofs_int = (1 + (i - 1) * dofs_per_node):(i * dofs_per_node)
-            apply!(n, dof_symbol, Dof.(node_dofs_int))
-        end
-    else # other dof has been added
-        # Maximum dof index among all dofs
-        max_dof_index = num_dofs(m)
-        # Push new dofs
-        for (i, n) in enumerate(nodes(m))
-            node_dofs_int = (1 + max_dof_index + (i - 1) * dofs_per_node):(max_dof_index + i * dofs_per_node)
-            apply!(n, dof_symbol, Dof.(node_dofs_int))
-        end
+    max_dof = num_dofs(m)
+    for (i, n) in enumerate(nodes(m))
+        h = max_dof + i * dofs_per_node
+        node_dofs = [Dof(k) for k in (1 + h - dofs_per_node):h]
+        set_dofs!(n, dof_symbol, node_dofs)
     end
 end
 

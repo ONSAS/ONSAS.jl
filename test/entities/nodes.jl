@@ -47,10 +47,10 @@ x_test_3D = rand(x_test_vec_3D)
     # Add dofs
     field = :u
     dofs_indexes = [1, 2, 3, 4]
-    apply!(n, field, dofs_indexes)
+    set_dofs!(n, field, dofs_indexes)
     @test dofs(n, field) == dofs_indexes
 
-    # Constructor with dofs 
+    # Constructor with dofs
     dofs_dict = dictionary([field => dofs_indexes])
     n_dofs = Node((L, L, L), dofs_dict)
     @test dofs(n_dofs, field) == dofs_indexes
@@ -65,9 +65,9 @@ end
     first_dof = 1
     last_dof = 4
     new_dofs = Dof.(first_dof:(last_dof - 1))
-    apply!(node, :u, new_dofs)
+    set_dofs!(node, :u, new_dofs)
     more_new_dofs = Dof.((first_dof + 1):last_dof)
-    apply!(node, :u, more_new_dofs)
+    set_dofs!(node, :u, more_new_dofs)
     new_dofs_node = Dof.(first_dof:last_dof)
     @test length(dofs(node)[:u]) == length(new_dofs_node)
 end

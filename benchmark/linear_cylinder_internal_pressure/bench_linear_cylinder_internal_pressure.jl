@@ -62,7 +62,7 @@ function linear_cylinder_structure(; ms::Real=0.5)
     #--------------------------------
     dof_dim = 3
     dof_u_symbol = :u
-    apply!(mesh, dof_u_symbol, dof_dim)
+    set_dofs!(mesh, dof_u_symbol, dof_dim)
     # -------------------------------
     # Boundary conditions
     # -------------------------------

@@ -52,7 +52,7 @@ const RTOL = 1e-5
 
     # Dofs
     dof_dim = 3
-    apply!(mesh, :u, dof_dim)
+    set_dofs!(mesh, :u, dof_dim)
 
     # Interpolator
     #--------------------------------
