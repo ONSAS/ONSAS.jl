@@ -134,8 +134,8 @@ function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,RotatedEn
     K_geo = 𝐒₁₁ * A / l_def * (B_dif' * B_dif - TTcl * (TTcl'))
     Kᵢₙₜ_e = Kₘ + K_geo
 
-    σ_e = sparse(zeros(3, 3))
-    ϵ_e = sparse(zeros(3, 3))
+    σ_e = spzeros(3, 3)
+    ϵ_e = spzeros(3, 3)
     # Piola stress
     σ_e[1, 1] = 𝐒₁₁ * l_def / l_ref
     ϵ_e[1, 1] = ϵ
@@ -164,8 +164,8 @@ function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,GreenStra
     Kᵢₙₜ_e = 𝐒₁₁ * A / l_ref * Ge + E * A * l_ref * (b_sum' * b_sum)
 
     # Frist Piola stress
-    σ_e = sparse(zeros(3, 3))
-    ϵ_e = sparse(zeros(3, 3))
+    σ_e = spzeros(3, 3)
+    ϵ_e = spzeros(3, 3)
     σ_e[1, 1] = 𝐒₁₁ * l_def / l_ref
     ϵ_e[1, 1] = ϵ
 
