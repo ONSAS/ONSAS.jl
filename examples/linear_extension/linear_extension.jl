@@ -14,12 +14,12 @@ function run_linear_extension_example()
     # -------------------------------
     ## scalar parameters
     E = 2.0             # Young modulus in Pa
-    ν = 0.4             # Poisson's ratio
+    nu = 0.4             # Poisson's ratio
     p = 3               # Tension load in Pa
     tension(t) = p * t  # Tension load function
-    Lᵢ = 2.0            # Dimension in x of the box in m
-    Lⱼ = 1.0            # Dimension in y of the box in m
-    Lₖ = 1.0            # Dimension in z of the box in m
+    Lx = 2.0            # Dimension in x of the box in m
+    Ly = 1.0            # Dimension in y of the box in m
+    Lz = 1.0            # Dimension in z of the box in m
     RTOL = 1e-4         # Relative tolerance for tests
     NSTEPS = 9          # Number of steps for the test
     ms = 0.5            # Refinement factor
@@ -27,7 +27,7 @@ function run_linear_extension_example()
     # Materials
     # -------------------------------
     mat_label = "mat"
-    mat = IsotropicLinearElastic(E, ν, mat_label)
+    mat = IsotropicLinearElastic(E, nu, mat_label)
     s_materials = StructuralMaterial(mat)
     # -------------------------------
     # Boundary conditions
@@ -35,9 +35,9 @@ function run_linear_extension_example()
     # Fixed dofs
     bc₁_label = "fixed-ux"
     bc₁ = FixedDof(:u, [1], bc₁_label)
-    bc₂_label = "fixed-uj"
+    bc₂_label = "fixed-uy"
     bc₂ = FixedDof(:u, [2], bc₂_label)
-    bc₃_label = "fixed-uk"
+    bc₃_label = "fixed-uz"
     bc₃ = FixedDof(:u, [3], bc₃_label)
     # Load
     bc₄_label = "tension"
@@ -60,9 +60,8 @@ function run_linear_extension_example()
     # -------------------------------
     filename = "linear_extension"
     labels = [mat_label, entities_labels, bc_labels]
-    dir = joinpath(pkgdir(ONSAS), "examples", "linear_extension")
     output = @capture_out begin
-        global mesh_path = create_linear_extension_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms)
+        global mesh_path = create_linear_extension_mesh(Lx, Ly, Lz, labels, filename, ms)
     end
     gmsh_println(output)
     msh_file = MshFile(mesh_path)
@@ -83,9 +82,9 @@ function run_linear_extension_example()
     states_sol = solve!(sa)
     # Select random points to test the solution
     ## Displacements
-    x₀_rand = Lᵢ * rand(2)
-    y₀_rand = Lⱼ * rand(2)
-    z₀_rand = Lₖ * rand(2)
+    x₀_rand = Lx * rand(2)
+    y₀_rand = Ly * rand(2)
+    z₀_rand = Lz * rand(2)
     p₁ = Point(x₀_rand[1], y₀_rand[1], z₀_rand[1])
     p₂ = Point(x₀_rand[2], y₀_rand[2], z₀_rand[2])
     # Evaluate the solution at p₁, p₂
@@ -115,10 +114,11 @@ function run_linear_extension_example()
     # -------------------------------
     ## Displacements
     "Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
-    function u_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, ν::Real=ν, E::Real=E)
-        𝐶(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
+    function u_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, nu::Real=nu,
+                            E::Real=E)
+        C(t) = tension(t) * (1 - nu - 2nu^2) / (1 - nu)
 
-        uᵢ(t) = 𝐶(t) / E * x₀
+        uᵢ(t) = C(t) / E * x₀
         uⱼ(t) = 0.0
         uₖ(t) = 0.0
 
@@ -127,19 +127,16 @@ function run_linear_extension_example()
     # point 1
     u_analytic_p₁ = u_ijk_analytic(load_factors(sa), p₁[1], p₁[2], p₁[3])
     uᵢ_analytic_p₁ = u_analytic_p₁[1]
-    uⱼ_analytic_p₁ = u_analytic_p₁[2]
-    uₖ_analytic_p₁ = u_analytic_p₁[3]
     # point 2
     u_analytic_p₂ = u_ijk_analytic(load_factors(sa), p₂[1], p₂[2], p₂[3])
     uᵢ_analytic_p₂ = u_analytic_p₂[1]
-    uⱼ_analytic_p₂ = u_analytic_p₂[2]
-    uₖ_analytic_p₂ = u_analytic_p₂[3]
     ## Strains
     "Computes strains numeric solution ϵᵢ, ϵⱼ and ϵₖ for analytic validation."
-    function ϵ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, ν::Real=ν, E::Real=E)
-        𝐶(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
+    function ϵ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, nu::Real=nu,
+                            E::Real=E)
+        C(t) = tension(t) * (1 - nu - 2nu^2) / (1 - nu)
 
-        ϵᵢ(t) = 𝐶(t) / E
+        ϵᵢ(t) = C(t) / E
         ϵⱼ(t) = 0.0
         ϵₖ(t) = 0.0
 
@@ -149,9 +146,9 @@ function run_linear_extension_example()
     "Computes strains numeric solution ϵᵢ, ϵⱼ and ϵₖ for analytic validation."
     function σ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, mat::AbstractMaterial)
         λ, G = lame_parameters(mat)
-        𝐶(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
+        C(t) = tension(t) * (1 - nu - 2nu^2) / (1 - nu)
 
-        ϵᵢ(t) = 𝐶(t) / E
+        ϵᵢ(t) = C(t) / E
         ϵⱼ(t) = 0.0
         ϵₖ(t) = 0.0
 
@@ -167,8 +164,6 @@ function run_linear_extension_example()
     λᵥ = load_factors(sa)
     ϵ_analytic_p_rand_e = ϵ_ijk_analytic(λᵥ, p_rand_e[1], p_rand_e[2], p_rand_e[3])
     ϵᵢ_analytic_p_rand_e = ϵ_analytic_p_rand_e[1]
-    ϵⱼ_analytic_p_rand_e = ϵ_analytic_p_rand_e[2]
-    ϵₖ_analytic_p_rand_e = ϵ_analytic_p_rand_e[3]
     # stress
     σ_analytic_p_rand_e = σ_ijk_analytic(λᵥ, p_rand_e[1], p_rand_e[2], p_rand_e[3], mat)
     σᵢ_analytic_p_rand_e = σ_analytic_p_rand_e[1]
