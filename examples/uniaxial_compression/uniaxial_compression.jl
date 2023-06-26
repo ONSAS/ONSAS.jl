@@ -85,9 +85,9 @@ function run_uniaxial_compression()
     bc₄_label = "compression"
     bc₄ = GlobalLoad(:u, t -> [-p * t, 0, 0], bc₄_label)
     # Assign this to faces
-    face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
+    face_bc = [bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]]
     # Crete boundary conditions struct
-    s₁_boundary_conditions = StructuralBoundaryCondition(; face_bcs=face_bc)
+    s₁_boundary_conditions = StructuralBoundaryCondition(face_bc)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     # -------------------------------
     # Structure
