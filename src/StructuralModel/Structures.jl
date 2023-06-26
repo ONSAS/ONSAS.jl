@@ -168,7 +168,7 @@ function Structure(msh_file::MshFile,
         material_type_label = material_label(msh_file, entity_index)
         # If has material defined is an element not a surface
         if ~isempty(material_type_label)
-            material_type = materials[material_type_label]
+            material_type = materials[Symbol(material_type_label)]
             push!(materials[material_type], entity)
         end
 
