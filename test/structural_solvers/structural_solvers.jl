@@ -111,7 +111,7 @@ end
 
     K_glob_assembler = end_assemble(a)
 
-    K_to_fill_assembler = SparseMatrixCSC(zeros(3, 3))
+    K_to_fill_assembler = spzeros(3, 3)
 
     _end_assemble!(K_to_fill_assembler, a)
 

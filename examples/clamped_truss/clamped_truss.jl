@@ -35,8 +35,7 @@ function run_clamped_truss_example()
     # Materials
     # -------------------------------
     steel = Svk(; E=E, ν=ν, ρ=ρ, label="steel")
-    mat_dict = dictionary([steel => elements])
-    materials = StructuralMaterial(mat_dict)
+    materials = StructuralMaterial(steel => elements)
     # -------------------------------
     # Boundary conditions
     # -------------------------------

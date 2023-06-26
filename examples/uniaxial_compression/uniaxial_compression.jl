@@ -69,8 +69,7 @@ function run_uniaxial_compression()
     # -------------------------------
     # Built neo hookian material with E and ν
     neo_hookean = NeoHookean(K, μ, "NeoBuiltIn")
-    mat_dict = dictionary([neo_hookean => [t₁, t₂, t₃, t₄, t₅, t₆]])
-    s₁_materials = StructuralMaterial(mat_dict)
+    s₁_materials = StructuralMaterial(neo_hookean => [t₁, t₂, t₃, t₄, t₅, t₆])
     # -------------------------------
     # Boundary conditions
     # -------------------------------
