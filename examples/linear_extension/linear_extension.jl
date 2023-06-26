@@ -17,7 +17,7 @@ function run_linear_extension_example()
     nu = 0.4             # Poisson's ratio
     p = 3               # Tension load in Pa
     tension(t) = p * t  # Tension load function
-    Lx = 2.0            # Dimension in x of the box in m 
+    Lx = 2.0            # Dimension in x of the box in m
     Ly = 1.0            # Dimension in y of the box in m
     Lz = 1.0            # Dimension in z of the box in m
     RTOL = 1e-4         # Relative tolerance for tests
@@ -34,11 +34,11 @@ function run_linear_extension_example()
     # -------------------------------
     # Fixed dofs
     bc₁_label = "fixed-ux"
-    bc₁ = FixedDof([:u], [1], bc₁_label)
+    bc₁ = FixedDof(:u, [1], bc₁_label)
     bc₂_label = "fixed-uy"
-    bc₂ = FixedDof([:u], [2], bc₂_label)
+    bc₂ = FixedDof(:u, [2], bc₂_label)
     bc₃_label = "fixed-uz"
-    bc₃ = FixedDof([:u], [3], bc₃_label)
+    bc₃ = FixedDof(:u, [3], bc₃_label)
     # Load
     bc₄_label = "tension"
     bc₄ = GlobalLoad(:u, t -> [tension(t), 0, 0], bc₄_label)
@@ -114,7 +114,8 @@ function run_linear_extension_example()
     # -------------------------------
     ## Displacements
     "Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
-    function u_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, nu::Real=nu, E::Real=E)
+    function u_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, nu::Real=nu,
+                            E::Real=E)
         C(t) = tension(t) * (1 - nu - 2nu^2) / (1 - nu)
 
         uᵢ(t) = C(t) / E * x₀
@@ -131,7 +132,8 @@ function run_linear_extension_example()
     uᵢ_analytic_p₂ = u_analytic_p₂[1]
     ## Strains
     "Computes strains numeric solution ϵᵢ, ϵⱼ and ϵₖ for analytic validation."
-    function ϵ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, nu::Real=nu, E::Real=E)
+    function ϵ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, nu::Real=nu,
+                            E::Real=E)
         C(t) = tension(t) * (1 - nu - 2nu^2) / (1 - nu)
 
         ϵᵢ(t) = C(t) / E
