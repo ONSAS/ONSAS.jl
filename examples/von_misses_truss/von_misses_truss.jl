@@ -41,13 +41,12 @@ function run_von_misses_truss_example()
     # Dofs
     #--------------------------------
     dof_dim = 3
-    apply!(s_mesh, :u, dof_dim)
+    set_dofs!(s_mesh, :u, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------
     steel = Svk(; E=E, ν=ν, label="steel")
-    mat_dict = dictionary([steel => [truss₁, truss₂]])
-    s_materials = StructuralMaterial(mat_dict)
+    s_materials = StructuralMaterial(steel => [truss₁, truss₂])
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -56,8 +55,7 @@ function run_von_misses_truss_example()
     bc₂ = FixedDof(:u, [2], "fixed_uⱼ")
     # Load
     bc₃ = GlobalLoad(:u, t -> [0, 0, Fₖ * t], "load in j")
-    node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
-    s_boundary_conditions = StructuralBoundaryCondition(; node_bcs=node_bc)
+    s_boundary_conditions = StructuralBoundaryCondition(bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂])
     # -------------------------------
     # Structure
     # -------------------------------

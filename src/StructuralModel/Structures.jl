@@ -128,15 +128,15 @@ end
 function Structure(mesh::AbstractMesh{dim},
                    materials::StructuralMaterial{M,E},
                    bcs::StructuralBoundaryCondition{NB,LB}) where {dim,M,E,NB,LB}
+    # Retrieve all (free) dofs in the mesh.
     default_free_dofs = Vector{Dof}()
-    for node_dofs in dofs(mesh)
-        [push!(default_free_dofs, vec_dof...) for vec_dof in collect(values(node_dofs))]
+    for n in nodes(mesh)
+        append!(default_free_dofs, reduce(vcat, dofs(n)))
     end
-
+    # Obtain the dofs that shall be fixed according to the given boundary condition.
     fixed_dofs = apply(bcs, fixed_dof_bcs(bcs))
-
-    deleteat!(default_free_dofs, findall(x -> x in fixed_dofs, default_free_dofs))
-
+    # Remove the fixed dofs form the free dofs array.
+    setdiff!(default_free_dofs, fixed_dofs)
     Structure(mesh, materials, bcs, default_free_dofs)
 end
 
@@ -168,7 +168,7 @@ function Structure(msh_file::MshFile,
         material_type_label = material_label(msh_file, entity_index)
         # If has material defined is an element not a surface
         if ~isempty(material_type_label)
-            material_type = materials[material_type_label]
+            material_type = materials[Symbol(material_type_label)]
             push!(materials[material_type], entity)
         end
 
@@ -181,7 +181,7 @@ function Structure(msh_file::MshFile,
     end
 
     for (dof_symbol, dof_dim) in pairs(dofs_to_dim)
-        apply!(mesh, dof_symbol, dof_dim)
+        set_dofs!(mesh, dof_symbol, dof_dim)
     end
 
     Structure(mesh, materials, bcs)

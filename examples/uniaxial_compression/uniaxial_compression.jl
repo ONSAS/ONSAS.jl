@@ -63,14 +63,13 @@ function run_uniaxial_compression()
     # Dofs
     #--------------------------------
     dof_dim = 3
-    apply!(s₁_mesh, :u, dof_dim)
+    set_dofs!(s₁_mesh, :u, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------
     # Built neo hookian material with E and ν
     neo_hookean = NeoHookean(K, μ, "NeoBuiltIn")
-    mat_dict = dictionary([neo_hookean => [t₁, t₂, t₃, t₄, t₅, t₆]])
-    s₁_materials = StructuralMaterial(mat_dict)
+    s₁_materials = StructuralMaterial(neo_hookean => [t₁, t₂, t₃, t₄, t₅, t₆])
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -85,9 +84,9 @@ function run_uniaxial_compression()
     bc₄_label = "compression"
     bc₄ = GlobalLoad(:u, t -> [-p * t, 0, 0], bc₄_label)
     # Assign this to faces
-    face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
+    face_bc = [bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]]
     # Crete boundary conditions struct
-    s₁_boundary_conditions = StructuralBoundaryCondition(; face_bcs=face_bc)
+    s₁_boundary_conditions = StructuralBoundaryCondition(face_bc)
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     # -------------------------------
     # Structure
@@ -204,7 +203,7 @@ function run_uniaxial_compression()
     # Dofs
     #--------------------------------
     dof_dim = 3
-    apply!(s₂_mesh, :u, dof_dim)
+    set_dofs!(s₂_mesh, :u, dof_dim)
     # -------------------------------
     # Structure
     # -------------------------------

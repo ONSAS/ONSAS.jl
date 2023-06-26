@@ -16,6 +16,9 @@ using ..Meshes
 
 export StructuralMaterial, element_materials
 
+"Material associated to an array of elements."
+const MEPair = Pair{<:AbstractMaterial,<:Vector{<:AbstractElement}}
+
 """
 A `StructuralMaterial` is a collection of `Material`s and `Element`s assigning materials to a vector of elements.
 """
@@ -29,6 +32,8 @@ struct StructuralMaterial{M<:AbstractMaterial,E<:AbstractElement}
         new{AbstractMaterial,E}(mats_to_elems)
     end
 end
+StructuralMaterial(vec::Vector{<:MEPair}) = StructuralMaterial(dictionary(vec))
+StructuralMaterial(p::MEPair...) = StructuralMaterial(collect(p))
 
 "Return a `Dictionary` with `Material`s as keys and the corresponding `Element`s as values."
 element_materials(sm::StructuralMaterial) = sm.mats_to_elems
@@ -41,7 +46,7 @@ end
 StructuralMaterial(vmats::AbstractMaterial...) = StructuralMaterial(collect(vmats))
 
 "Return the `Material` mapped with the label `l`."
-function Base.getindex(sm::StructuralMaterial, l::L) where {L<:Union{Symbol,AbstractString}}
+function Base.getindex(sm::StructuralMaterial, l::Label)
     materials_label_l = collect(filter(m -> label(m) == Symbol(l), keys(element_materials(sm))))
     @assert length(materials_label_l) == 1 throw(ArgumentError("The label $l is not found."))
     first(materials_label_l)

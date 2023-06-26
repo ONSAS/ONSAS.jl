@@ -11,10 +11,11 @@ export AbstractLinearElasticMaterial, lame_parameters, elasticity_modulus, shear
 An `AbstractLinearElasticMaterial` object facilitates the process of using elastic materials.
 
 **Abstract Methods**
-* [`elastic_modulus`](@ref)
-* [`poisson_ratio`](@ref)
+
+* [`lame_parameters`](@ref)
 * [`shear_modulus`](@ref)
-* [`lamé_parameters`](@ref)
+* [`poisson_ratio`](@ref)
+* [`elasticity_modulus`](@ref)
 
 **Abstract fields**
 * label

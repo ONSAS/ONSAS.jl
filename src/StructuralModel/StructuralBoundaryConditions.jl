@@ -22,7 +22,8 @@ using ..Meshes
 export StructuralBoundaryCondition, all_bcs, fixed_dof_bcs, load_bcs,
        displacement_bcs, element_bcs, face_bcs, node_bcs
 
-""" Structural boundary conditions.
+"""
+Structural boundary conditions.
 A `StructuralBoundaryCondition` is a collection of `BoundaryConditions` defining the boundary conditions of the structure.
 """
 Base.@kwdef struct StructuralBoundaryCondition{NB<:AbstractBoundaryCondition,
@@ -36,6 +37,29 @@ Base.@kwdef struct StructuralBoundaryCondition{NB<:AbstractBoundaryCondition,
     "Maps each boundary conditions for a vector of elements. "
     element_bcs::Dictionary{EB,Vector{E}} = Dictionary{AbstractBoundaryCondition,
                                                        Vector{AbstractElement}}()
+end
+function StructuralBoundaryCondition(pairs::Pair...)
+    # Lenient constructor allowing to handle different concrete subtypes.
+    StructuralBoundaryCondition([pairs...])
+end
+function StructuralBoundaryCondition(pairs::Vector{Pair{B,Vector{E}}}) where {B<:AbstractBoundaryCondition,
+                                                                              E<:Union{AbstractEntity,
+                                                                                       AbstractNode}}
+    node_bcs = Dictionary{AbstractBoundaryCondition,Vector{AbstractNode}}()
+    face_bcs = Dictionary{AbstractBoundaryCondition,Vector{AbstractFace}}()
+    element_bcs = Dictionary{AbstractBoundaryCondition,Vector{AbstractElement}}()
+    for (k, v) in pairs
+        for vi in v
+            if vi isa AbstractNode
+                push!(get!(node_bcs, k, AbstractNode[]), vi)
+            elseif vi isa AbstractFace
+                push!(get!(face_bcs, k, AbstractFace[]), vi)
+            elseif vi isa AbstractElement
+                push!(get!(element_bcs, k, AbstractElement[]), vi)
+            end
+        end
+    end
+    StructuralBoundaryCondition(; node_bcs, face_bcs, element_bcs)
 end
 
 "Constructor for empty `StructuralBoundaryCondition` with a `Vector` of `AbstractBoundaryCondition`s `vbc`."

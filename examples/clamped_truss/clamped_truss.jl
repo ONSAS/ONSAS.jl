@@ -30,13 +30,12 @@ function run_clamped_truss_example()
     # Dofs
     #--------------------------------
     dof_dim = 1
-    apply!(mesh, :u, dof_dim)
+    set_dofs!(mesh, :u, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------
     steel = Svk(; E=E, ν=ν, ρ=ρ, label="steel")
-    mat_dict = dictionary([steel => elements])
-    materials = StructuralMaterial(mat_dict)
+    materials = StructuralMaterial(steel => elements)
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -45,8 +44,7 @@ function run_clamped_truss_example()
     # Load
     bc₂ = GlobalLoad(:u, t -> [F * t], "load in j")
     # Apply bcs to the nodes
-    node_bc = dictionary([bc₁ => [first(nodes)], bc₂ => [last(nodes)]])
-    boundary_conditions = StructuralBoundaryCondition(; node_bcs=node_bc)
+    boundary_conditions = StructuralBoundaryCondition(bc₁ => [first(nodes)], bc₂ => [last(nodes)])
     # -------------------------------
     # Structure
     # -------------------------------

@@ -59,13 +59,12 @@ function run_uniaxial_extension()
     #--------------------------------
     dof_dim = 3
     dof_u_symbol = :u
-    apply!(s₁_mesh, dof_u_symbol, dof_dim)
+    set_dofs!(s₁_mesh, dof_u_symbol, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------
     svk = Svk(; E=E, ν=ν, label="svk")
-    mat_dict = dictionary([svk => [t₁, t₂, t₃, t₄, t₅, t₆]])
-    s₁_materials = StructuralMaterial(mat_dict)
+    s₁_materials = StructuralMaterial(svk => [t₁, t₂, t₃, t₄, t₅, t₆])
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -79,10 +78,9 @@ function run_uniaxial_extension()
     # Load
     bc₄_label = "tension"
     bc₄ = GlobalLoad(:u, t -> [p * t, 0, 0], bc₄_label)
-    # Assign this to faces
-    face_bc = dictionary([bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]])
     # Crete boundary conditions struct
-    s₁_boundary_conditions = StructuralBoundaryCondition(; face_bcs=face_bc)
+    s₁_boundary_conditions = StructuralBoundaryCondition(bc₁ => [f₃, f₄], bc₂ => [f₅, f₆],
+                                                         bc₃ => [f₇, f₈], bc₄ => [f₁, f₂])
     bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
     # -------------------------------
     # Structure
