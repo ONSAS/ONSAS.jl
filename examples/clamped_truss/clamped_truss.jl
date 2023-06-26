@@ -44,8 +44,7 @@ function run_clamped_truss_example()
     # Load
     bc₂ = GlobalLoad(:u, t -> [F * t], "load in j")
     # Apply bcs to the nodes
-    node_bc = dictionary([bc₁ => [first(nodes)], bc₂ => [last(nodes)]])
-    boundary_conditions = StructuralBoundaryCondition(; node_bcs=node_bc)
+    boundary_conditions = StructuralBoundaryCondition(bc₁ => [first(nodes)], bc₂ => [last(nodes)])
     # -------------------------------
     # Structure
     # -------------------------------
