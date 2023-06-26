@@ -25,7 +25,8 @@ EXAMPLE_NAMES = ["von_misses_truss",
                  "linear_extension",
                  "uniaxial_extension",
                  "uniaxial_compression",
-                 "cylinder_internal_pressure"]
+                 "cylinder_internal_pressure",
+                 "clamped_truss"]
 
 EXAMPLES = [joinpath(EXAMPLES_FOLDER, name, name * ".jl") for name in EXAMPLE_NAMES]
 
