@@ -64,8 +64,7 @@ function run_uniaxial_extension()
     # Materials
     # -------------------------------
     svk = Svk(; E=E, ν=ν, label="svk")
-    mat_dict = dictionary([svk => [t₁, t₂, t₃, t₄, t₅, t₆]])
-    s₁_materials = StructuralMaterial(mat_dict)
+    s₁_materials = StructuralMaterial(svk => [t₁, t₂, t₃, t₄, t₅, t₆])
     # -------------------------------
     # Boundary conditions
     # -------------------------------
