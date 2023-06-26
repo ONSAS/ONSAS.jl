@@ -1,5 +1,5 @@
-# SvkMaterial
+# SVKMaterial
 
 ```@autodocs
-Modules = [ONSAS.SvkMaterial]
+Modules = [ONSAS.SVKMaterial]
 ```

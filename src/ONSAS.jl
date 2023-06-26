@@ -8,7 +8,7 @@ FILES = ["Utils.jl",
          "Materials/LinearElasticMaterials.jl",
          "Materials/HyperElasticMaterials.jl",
          "Materials/IsotropicLinearElasticMaterial.jl",
-         "Materials/SvkMaterial.jl",
+         "Materials/SVKMaterial.jl",
          "Materials/NeoHookeanMaterial.jl",
          "Materials/HyperElasticMaterial.jl",
          # Cross-sections
@@ -68,7 +68,7 @@ end
 @reexport using .LinearElasticMaterials
 @reexport using .IsotropicLinearElasticMaterial
 @reexport using .HyperElasticMaterials
-@reexport using .SvkMaterial
+@reexport using .SVKMaterial
 @reexport using .NeoHookeanMaterial
 @reexport using .HyperElasticMaterial
 

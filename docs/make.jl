@@ -37,7 +37,7 @@ makedocs(;
                                               "LinearElasticMaterials" => "lib/Materials/LinearElasticMaterials.md",
                                               "Materials" => "lib/Materials/Materials.md",
                                               "NeoHookeanMaterial" => "lib/Materials/NeoHookeanMaterial.md",
-                                              "SvkMaterial" => "lib/Materials/SvkMaterial.md"],
+                                              "SVKMaterial" => "lib/Materials/SVKMaterial.md"],
                               "Meshes" => ["Handlers" => "lib/Meshes/Handlers.md",
                                            "Interpolators" => "lib/Meshes/Interpolators.md",
                                            "Meshes" => "lib/Meshes/Meshes.md",

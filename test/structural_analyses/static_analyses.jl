@@ -3,7 +3,7 @@ using Dictionaries: dictionary
 
 using ONSAS.StaticAnalyses
 using ONSAS.Circles
-using ONSAS.SvkMaterial
+using ONSAS.SVKMaterial
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.StructuralAnalyses
@@ -35,7 +35,7 @@ Fₖ = -3e8  # vertical   load in N
 # -------------------------------
 # Materials
 # -------------------------------
-steel = Svk(; E=E, ν=ν, label="steel")
+steel = SVK(; E=E, ν=ν, label="steel")
 # -------------------------------
 # Geometries
 # -------------------------------

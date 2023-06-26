@@ -2,7 +2,7 @@ using Test, Dictionaries, StaticArrays, LinearAlgebra
 
 using ONSAS.Tetrahedrons
 using ONSAS.IsotropicLinearElasticMaterial
-using ONSAS.SvkMaterial
+using ONSAS.SVKMaterial
 using ONSAS.Nodes
 using ONSAS.Entities
 
@@ -16,12 +16,12 @@ n₄ = Node(2, 0, 1,
 
 λ = 0.5769
 G = 0.3846
-my_svk_mat = Svk(λ, G)
+my_svk_mat = SVK(λ, G)
 
 tetra_label = "my_tetrahedron"
 tetra = Tetrahedron(n₁, n₂, n₃, n₄, tetra_label)
 
-# Global displacements vector of the nodes 
+# Global displacements vector of the nodes
 u_global₁_u = [0.1, 0.2, 0.3]
 u_global₁_θ = rand(3)
 u_global₂_u = [0.4, 0.5, 0.6]
@@ -106,7 +106,7 @@ n₄ = Node(2.0, 0.0, 1.0,
     @test w₁ ≈ [1.0, 0.0, 0.0, 0.0] rtol = RTOL
     @test w₄ ≈ [0.0, 0.0, 0.0, 1.0] rtol = RTOL
 
-    # The interpolation for a linear scalar field shloud be exact 
+    # The interpolation for a linear scalar field shloud be exact
     scalar_linear_field(x, y, z) = 10x + 20y + 30z + 40
     sol_at_tetra_nodes = [scalar_linear_field(coordinates(n)...) for n in nodes(tetra)]
     p = Point(0.5, 0.5, 0.5)
@@ -122,7 +122,7 @@ end
                                                u_global_structure[local_dofs(tetra)])
 
     # Test internal forces with an HyperElastic material model and zero 𝑢
-    equivalent_svk = Svk(lame_parameters(my_lin_mat)...)
+    equivalent_svk = SVK(lame_parameters(my_lin_mat)...)
     _, Kᵢₙₜ_e_svk, A_, B = internal_forces(equivalent_svk, tetra, zeros(12))
 
     fᵢₙₜ_e_svk = Kᵢₙₜ_e_svk * u_global_structure[local_dofs(tetra)]

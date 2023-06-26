@@ -1,6 +1,6 @@
 using Test, Dictionaries, StaticArrays, LinearAlgebra
 
-using ONSAS.SvkMaterial
+using ONSAS.SVKMaterial
 using ONSAS.Trusses
 using ONSAS.Circles
 using ONSAS.Squares
@@ -9,18 +9,18 @@ using ONSAS.Entities
 
 E = 1.0
 ν = 0.3
-my_svk_mat = Svk(; E=E, ν=ν)
+my_svk_mat = SVK(; E=E, ν=ν)
 
 const RTOL = 1e-3
 
 @testset "ONSAS.Entities.Truss 1D" begin
 
-    # General case considering a mesh with rotations 
+    # General case considering a mesh with rotations
     x₁ = [-1]
     x₂ = [1]
     n₁ = Node(x₁, dictionary([:u => [Dof(1)], :T => [Dof(2)]]))
     n₂ = Node(x₂, dictionary([:u => [Dof(3)], :T => [Dof(4)]]))
-    # global displacements 
+    # global displacements
     u_gobal_₁ = [0.1, 273] # uᵢ, Tᵢ (node 1)
     u_gobal_₂ = [0.25, 273] # uᵢ, Tᵢ (node 2)
     u_global_structure = vcat(u_gobal_₁, u_gobal_₂)
@@ -61,12 +61,12 @@ end
 
 @testset "ONSAS.Entities.Truss 3D" begin
 
-    # General case considering a mesh with rotations 
+    # General case considering a mesh with rotations
     x₁ = [-1, 0, 0]
     x₂ = [1, 0, 0]
     n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(3), Dof(5)], :θ => [Dof(2), Dof(4), Dof(6)]]))
     n₂ = Node(x₂, dictionary([:u => [Dof(7), Dof(9), Dof(11)], :θ => [Dof(8), Dof(10), Dof(12)]]))
-    # global displacements 
+    # global displacements
     u_gobal_₁ = [0, 0, 0, 0, 0, 0]# uᵢ, θᵢ :uⱼ, θⱼ uₖ, θₖ (node 1)
     u_gobal_₂ = [0, 0, 0, 0, 0, 0]# uᵢ, θᵢ :uⱼ, θⱼ uₖ, θₖ (node 2)
     u_global_structure = vcat(u_gobal_₁, u_gobal_₂)

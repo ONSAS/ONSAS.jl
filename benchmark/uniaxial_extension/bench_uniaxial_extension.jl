@@ -21,7 +21,7 @@ function uniaxial_extension_structure(; ms=0.5)
     # Poisson's ratio.
     ν = 0.3
     mat_label = "svkHyper"
-    svk = Svk(E, ν, mat_label)
+    svk = SVK(E, ν, mat_label)
     # Tension load in Pa.
     p = 3
 

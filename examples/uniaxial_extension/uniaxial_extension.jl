@@ -63,7 +63,7 @@ function run_uniaxial_extension()
     # -------------------------------
     # Materials
     # -------------------------------
-    svk = Svk(; E=E, ν=ν, label="svk")
+    svk = SVK(; E=E, ν=ν, label="svk")
     s₁_materials = StructuralMaterial(svk => [t₁, t₂, t₃, t₄, t₅, t₆])
     # -------------------------------
     # Boundary conditions
