@@ -51,24 +51,24 @@ end
 local_dof_symbol(::Frame) = [:u, :θ]
 
 function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVector)
-    # [u1_1, u2_1, u3_1, u1_2, u2_2, u3_2, t1_1, t2_1, t3_1, t1_2, t2_2, t3_2]
+    @assert f.mass_matrix == Consistent
 
-    # Temporalmente cero.
+    # Reference:
+    # (ux1, uy1, uz1, ux2, uy2, uz2, θx1, θy1, θz1, θx2, θy2, θz2) = u_e
+
+    # TODO Generalize.
     σ = 0.0
     ε = 0.0
 
     E = elasticity_modulus(m)
-    nu = poisson_ratio(m)
     G = shear_modulus(m)
     S = cross_section(f)
     A = area(S)
     J = CrossSections.Ixx(S)
     Iyy = CrossSections.Iyy(S)
     Izz = CrossSections.Izz(S)
-
     l = norm(f.nodes[2] - f.nodes[1])
 
-    (ux1, uy1, uz1, ux2, uy2, uz2, titax1, titay1, titaz1, titax2, titay2, titaz2) = u_e
     ind_bend_xy = [2, 9, 5, 12]
     ind_bend_xz = [3, 8, 6, 11]
     inds_axial = [1, 4]
@@ -77,17 +77,17 @@ function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVecto
     Ks = zeros(12, 12)
     fint = zeros(12)
 
-    Kbend = [   12     6*l    -12     6*l
-               6*l   4*l^2   -6*l   2*l^2
+    Kbend = [12     6*l    -12     6*l
+             6*l   4*l^2   -6*l   2*l^2
              -12    -6*l     12    -6*l
-               6*l   2*l^2   -6*l   4*l^2]
+             6*l   2*l^2   -6*l   4*l^2]
 
     # Bending along x-y.
     Ks[ind_bend_xy, ind_bend_xy] .+= E * Izz / l^3 * Kbend
 
     # Bending along x-z.
-    RXYXZ = diagm([1, -1, 1, -1])
-    Ks[ind_bend_xz, ind_bend_xz] .+= E * Iyy / l^3 * RXYXZ * Kbend * RXYXZ
+    Rxyxz = diagm([1, -1, 1, -1])
+    Ks[ind_bend_xz, ind_bend_xz] .+= E * Iyy / l^3 * Rxyxz * Kbend * Rxyxz
 
     # Axial stiffness along x.
     Ks[inds_axial, inds_axial] .+= E * A / l * [1 -1; -1 1]
@@ -95,10 +95,9 @@ function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVecto
     # Torsion stiffness along x.
     Ks[inds_axial, inds_torsion] .+= G * J / l * [1 -1; -1 1]
 
-    # internal forces
+    # Internal forces.
     fint .= Ks * u_e
 
-    # fxx = Kloc * [uy1, titaz1, uy2, titaz2]
     return fint, Ks, σ, ε
 end
 
