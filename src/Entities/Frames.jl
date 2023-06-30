@@ -64,7 +64,7 @@ function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVecto
     A = area(S)
     J = CrossSections.Ixx(S)
     Iyy = CrossSections.Iyy(S)
-    @show Izz = CrossSections.Izz(S)
+    Izz = CrossSections.Izz(S)
 
     l = norm(f.nodes[2] - f.nodes[1])
 

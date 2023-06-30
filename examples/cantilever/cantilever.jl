@@ -7,9 +7,10 @@ pp = 2400
 # carga distribuida
 q = b * h * pp * 9.81
 Py = 1e3
+E = 210e9 # elastic modulus
+RTOL = 1e-4                # Relative tolerance for tests
 
 # -----------------------------------------
-E = 210e9
 # importacion de malla
 L = 3
 num_elems = 1
@@ -44,10 +45,14 @@ anali = LinearStaticAnalysis(s; NSTEPS=10)
 
 # =================
 # verification
-@show Izz = b * h^3 / 12
+Izz = b * h^3 / 12
 
-@show numer_sol_delta = displacements(sol, 5)[1]
-@show anali_sol_delta = Py * L^3 / (3 * E * Izz)
+numer_sol_delta = displacements(sol, 5)[1]
+anali_sol_delta = -Py * L^3 / (3 * E * Izz)
 
 @show numer_sol_angle = displacements(sol, 12)[1]
-@show anali_sol_angle = Py * L^2 / (2 * E * Izz)
+@show anali_sol_angle = -Py * L^2 / (2 * E * Izz)
+
+using Test
+@test anali_sol_delta ≈ numer_sol_delta rtol = RTOL
+@test anali_sol_angle ≈ numer_sol_angle rtol = RTOL
