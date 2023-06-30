@@ -2,7 +2,6 @@
 # Von Misses Truss Example from (Zerpa, Bazzano 2017 ) - 2.5.4
 # -------------------------------------------------------------
 using Test, LinearAlgebra
-using Dictionaries: dictionary
 using ONSAS
 
 "Runs the Von Misses Truss example."

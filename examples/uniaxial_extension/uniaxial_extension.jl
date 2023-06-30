@@ -3,7 +3,6 @@
 # For notation see: https://onsas.github.io/ONSAS.m/dev/examples/uniaxialExtension/
 # --------------------------------------------------------------------------
 using Test, LinearAlgebra, Suppressor, Roots
-using Dictionaries: dictionary
 using ONSAS
 
 include("uniaxial_mesh.jl") # Mesh Cube with Gmsh.jl
