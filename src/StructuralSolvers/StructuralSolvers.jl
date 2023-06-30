@@ -151,13 +151,13 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
     if (Δr_relᵏ ≤ Δr_rel_tol || ΔU_relᵏ ≤ ΔU_rel_tol) || Δr_nromᵏ < eps() || ΔU_nromᵏ < eps()
 
         # Check residual forces convergence
-        if Δr_relᵏ ≤ Δr_rel_tol && Δr_relᵏ > 0
+        if Δr_relᵏ ≤ Δr_rel_tol
             _update!(ri_step, ResidualForceCriterion())
             return ResidualForceCriterion()
         end
 
         # Check displacements convergence
-        if ΔU_relᵏ ≤ ΔU_rel_tol && ΔU_relᵏ > 0
+        if ΔU_relᵏ ≤ ΔU_rel_tol
             _update!(ri_step, ΔUCriterion())
             return ΔUCriterion()
         end
