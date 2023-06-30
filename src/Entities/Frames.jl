@@ -69,18 +69,32 @@ function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVecto
     l = norm(f.nodes[2] - f.nodes[1])
 
     (ux1, uy1, uz1, ux2, uy2, uz2, titax1, titay1, titaz1, titax2, titay2, titaz2) = u_e
-
-    Kloc = E * Izz / l^3 * [  12     6*l    -12     6*l
-                              6*l   4*l^2   -6*l   2*l^2
-                            -12    -6*l     12    -6*l
-                              6*l   2*l^2   -6*l   4*l^2]
+    ind_bend_xy = [2, 9, 5, 12]
+    ind_bend_xz = [3, 8, 6, 11]
+    inds_axial = [1, 4]
+    inds_torsion = [7, 10]
 
     Ks = zeros(12, 12)
     fint = zeros(12)
 
+    Kbend = [   12     6*l    -12     6*l
+               6*l   4*l^2   -6*l   2*l^2
+             -12    -6*l     12    -6*l
+               6*l   2*l^2   -6*l   4*l^2]
+
     # Bending along x-y.
-    ind = [2, 9, 5, 12]
-    Ks[ind, ind] .= Kloc
+    Ks[ind_bend_xy, ind_bend_xy] .+= E * Izz / l^3 * Kbend
+
+    # Bending along x-z.
+    Ks[ind_bend_xz, ind_bend_xz] .+= E * Iyy / l^3 * Kbend  # TODO ADD PERMUTATION
+
+    # Axial stiffness along x.
+    Ks[inds_axial, inds_axial] .+= [1 -1; -1 1]  # TODO ADD PERMUTATION
+
+    # Torsion stiffness along x.
+    Ks[inds_axial, inds_torsion] .+= [1 -1; -1 1]  # TODO ADD PERMUTATION
+
+    # internal forces
     fint .= Ks * u_e
 
     # fxx = Kloc * [uy1, titaz1, uy2, titaz2]

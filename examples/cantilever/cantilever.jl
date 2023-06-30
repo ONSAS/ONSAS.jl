@@ -32,10 +32,8 @@ mat = StructuralMaterial(i => frames)
 bc1 = FixedDof(:u, [1, 2, 3])
 bc2 = FixedDof(:θ, [1, 2, 3])
 bc3 = GlobalLoad(:u, t -> [0, -Py, 0])
-bc4 = FixedDof(:θ, [1, 2])
-bc5 = FixedDof(:u, [1, 3])
-bc = StructuralBoundaryCondition(bc1 => [nodes[1]], bc2 => [nodes[1]], bc3 => [nodes[end]],
-                                 bc4 => [nodes[end]], bc5 => [nodes[end]])
+
+bc = StructuralBoundaryCondition(bc1 => [nodes[1]], bc2 => [nodes[1]], bc3 => [nodes[end]])
 
 # Structure
 s = Structure(msh, mat, bc)
