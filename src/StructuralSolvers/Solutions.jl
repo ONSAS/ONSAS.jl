@@ -8,7 +8,7 @@ Of course the solution contains on the analysis and solver used to solve the pro
 """
 module Solutions
 
-using Reexport
+using Reexport, PrettyTables
 
 using ..Utils
 using ..Entities
@@ -20,6 +20,7 @@ using ..Meshes
 using ..Structures
 using ..StructuralSolvers
 
+@reexport import ..StructuralSolvers: residual_forces_tol, displacement_tol, criterion, iterations
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 
 export AbstractSolution, StatesSolution, stresses, strains, states, analysis, solver,
@@ -64,23 +65,59 @@ struct StatesSolution{ST<:Vector,A,SS<:AbstractSolver} <: AbstractSolution
 end
 
 "Show the states solution."
-function Base.show(io::IO, ::MIME"text/plain", sol::StatesSolution)
+function Base.show(io::IO, ::MIME"text/plain", solution::StatesSolution)
     println("Analysis solved:")
     println("----------------\n")
-    show(io, analysis(sol))
+    show(io, analysis(solution))
 
     println("\nSolver employed:")
     println("----------------\n")
-    show(io, solver(sol))
+    show(io, solver(solution))
 
-    println("\nAccessors:")
-    println("----------\n")
-    println("• `displacements`")
-    println("• `strain`")
-    println("• `stress`")
-    println("• `internal_forces`")
-    println("• `external_forces`")
+    println("\nStats:")
+    println("----------")
+    # Check convergence
+    is_any_step_not_converged = any([criterion_step isa Union{NotConvergedYet,MaxIterCriterion}
+                                     for criterion_step in criterion(solution)])
+
+    num_iterations = reduce(+, iterations(solution))
+    avg_iterations = round(num_iterations / length(states(solution)); digits=1)
+    println("• Number of linear systems solved: $num_iterations")
+    println("• Average of iterations per step : $avg_iterations")
+    println("• Convergence success            : $(!is_any_step_not_converged)")
+    _print_table(solution)
 end
+
+"Print the solution table"
+function _print_table(solution::AbstractSolution)
+    header = ["iter", "time", "||Uᵏ||", "||ΔUᵏ||/||Uᵏ||", "||ΔRᵏ||", "||ΔRᵏ||/||Fₑₓₜ||",
+              "convergence criterion", "iterations"]
+
+    ΔU_rel = getindex.(displacement_tol(solution), 1)
+    ΔU = getindex.(displacement_tol(solution), 2)
+    ΔR_rel = getindex.(residual_forces_tol(solution), 1)
+    ΔR = getindex.(residual_forces_tol(solution), 2)
+    t = analysis(solution).λᵥ
+    criterions = [string(criterion_step)[1:(end - 2)] for criterion_step in criterion(solution)]
+    iters = iterations(solution)
+    num_times = length(t)
+    data = hcat(collect(1:num_times), t, ΔU, ΔU_rel, ΔR, ΔR_rel, criterions, iters)
+
+    hl = Highlighter(;
+                     f=(data, i, j) -> i % 2 == 0,
+                     crayon=Crayon(; foreground=:white, background=:black, bold=:true))
+
+    pretty_table(data;
+                 highlighters=hl,
+                 header=header,
+                 display_size=(20, 1000),
+                 vcrop_mode=:middle,
+                 formatters=(ft_printf("%i", [1]),
+                             ft_printf("%.2f", [2]),
+                             ft_printf("%e", [3, 4, 5, 6])),
+                 alignment=:c)
+end
+
 "Return the solved states."
 states(sol::StatesSolution) = sol.states
 
@@ -104,9 +141,6 @@ for f in [:displacements, :internal_forces, :external_forces]
     @eval $f(st_sol::StatesSolution, e::AbstractElement) = [$f(st_sol, n) for n in nodes(e)]
 end
 
-"Return the residuals iteration object at every time step."
-iteration_residuals(st_sol::StatesSolution) = iteration_residuals.(states(st_sol))
-
 for f in [:stress, :strain]
     "Return the $f for every time step."
     @eval $f(st_sol::StatesSolution) = $f.(states(st_sol))
@@ -116,6 +150,21 @@ for f in [:stress, :strain]
         [getindex($f.(states(st_sol))[step], e) for step in 1:length(states(st_sol))]
     end
 end
+
+"Return the residuals iteration object at every time step."
+iteration_residuals(st_sol::StatesSolution) = iteration_residuals.(states(st_sol))
+
+"Return the final residuals forces at each time step."
+residual_forces_tol(st_sol::StatesSolution) = residual_forces_tol.(iteration_residuals(st_sol))
+
+"Return the final residual displacement at each time step."
+displacement_tol(st_sol::StatesSolution) = displacement_tol.(iteration_residuals(st_sol))
+
+"Return the convergence criterion at each time step."
+criterion(st_sol::StatesSolution) = criterion.(iteration_residuals(st_sol))
+
+"Return the number of iterations at each time step."
+iterations(st_sol::StatesSolution) = iterations.(iteration_residuals(st_sol))
 
 "Return the displacements solution at the points in the point evaluator handler."
 function displacements(st_sol::StatesSolution, peh::PointEvalHandler)

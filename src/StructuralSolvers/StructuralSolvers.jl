@@ -12,9 +12,11 @@ using ..Entities
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet
 export ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol
-export ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!
+export ResidualsIterationStep, iterations, criterion, _reset!, isconverged!, _update!
 export AbstractSolver, step_size, tolerances, _step!, solve!, _solve!, solve, reset!
 export AbstractSolution
+
+const INITIAL_Δ = 1e12
 
 """
 Facilitates the process of defining and checking numerical convergence.
@@ -30,21 +32,19 @@ end
 
 "Show convergence settings."
 function Base.show(io::IO, cs::ConvergenceSettings)
-    println("• ||ΔU||/||U||| ≤ : $(residual_forces_tol(cs))")
-    println("• ||ΔR||/||R||| $(displacement_tol(cs))")
+    println("• ||ΔUᵏ||/||Uᵏ||| ≤ : $(residual_forces_tol(cs))")
+    println("• ||ΔRᵏ||/||Fₑₓₜ||| $(displacement_tol(cs))")
     println("• iter k ≤: $(max_iter_tol(cs))")
 end
 
-"Return residual forces tolerance set in the `ConvergenceSettings` `tol`."
+"Return residual forces tolerance set."
 residual_forces_tol(tols::ConvergenceSettings) = tols.rel_res_force_tol
 
-"Return displacements tolerance set in the `ConvergenceSettings` `tol`."
+"Return displacements tolerance set."
 displacement_tol(tols::ConvergenceSettings) = tols.rel_U_tol
 
-"Return the maximum number of iterations set in the `ConvergenceSettings` `tol`."
+"Return the maximum number of iterations set."
 max_iter_tol(tols::ConvergenceSettings) = tols.max_iter
-
-""" Abstract supertype for all structural solvers."""
 
 """ Abstract supertype for all convergence criterion."""
 abstract type AbstractConvergenceCriterion end
@@ -70,55 +70,54 @@ Stores the convergence information of at the current iteration step.
 """
 Base.@kwdef mutable struct ResidualsIterationStep{T}
     "Norm of the displacement increment."
-    ΔU_norm::T = 1e12
+    ΔU_norm::T = INITIAL_Δ
     "Norm of the residual force increment."
-    Δr_norm::T = 1e12
+    Δr_norm::T = INITIAL_Δ
     "Relative norm of the displacement increment."
-    ΔU_rel::T = 1e12
+    ΔU_rel::T = INITIAL_Δ
     "Relative norm of the residual force increment."
-    Δr_rel::T = 1e12
+    Δr_rel::T = INITIAL_Δ
     "Current iteration number."
     iter::Int = 0
     criterion::AbstractConvergenceCriterion = NotConvergedYet()
 end
 
-"Increments a `ResidualsIterationStep` `i_step` by 1."
+"Increments a the iteration step."
 _step!(i_step::ResidualsIterationStep) = i_step.iter += 1
 
-"Return the current iteration number of the `ResidualsIterationStep` `i_step`."
-iter(i_step::ResidualsIterationStep) = i_step.iter
+"Return the iterations done so far."
+iterations(i_step::ResidualsIterationStep) = i_step.iter
 
-"Return the current criterion of the `ResidualsIterationStep` `i_step`."
+"Return the current convergence criterion."
 criterion(ri_step::ResidualsIterationStep) = ri_step.criterion
 
-"Return the current absolute and relative residual forces norm of the `ResidualsIterationStep` `i_step`."
+"Return the current absolute and relative residual forces norm."
 residual_forces_tol(ri_step::ResidualsIterationStep) = (ri_step.Δr_rel, ri_step.Δr_norm)
 
-"Return the current absolute and relative residual forces norm of the `ResidualsIterationStep` `i_step`."
+"Return the current absolute and relative residual forces norm."
 displacement_tol(ri_step::ResidualsIterationStep) = (ri_step.ΔU_rel, ri_step.ΔU_norm)
 
-"Sets the `ResidualsIterationStep` `i_step` iteration step to 0."
+"Sets the iteration step to 0."
 function _reset!(ri_step::ResidualsIterationStep{T}) where {T<:Real}
-    ri_step.ΔU_norm = ri_step.Δr_norm = ri_step.ΔU_rel = ri_step.Δr_rel = 1e14 * ones(T)[1]
+    ri_step.ΔU_norm = ri_step.Δr_norm = ri_step.ΔU_rel = ri_step.Δr_rel = INITIAL_Δ * ones(T)[1]
     ri_step.iter = 0
     ri_step.criterion = NotConvergedYet()
-    return ri_step
+    ri_step
 end
 
-"Sets the `ResidualsIterationStep` `i_step` iteration step with nothing."
+"Sets the iteration step with nothing."
 function _reset!(ri_step::ResidualsIterationStep{<:Nothing})
     ri_step.iter = 0
     ri_step.criterion = ResidualForceCriterion()
-    return ri_step
+    ri_step
 end
 
-"Updates the `ResidualsIterationStep` `i_step` current convergence criterion."
+"Updates the current convergence criterion."
 function _update!(ri_step::ResidualsIterationStep, criterion::AbstractConvergenceCriterion)
-    return ri_step.criterion = criterion
+    ri_step.criterion = criterion
 end
 
-"Updates the `ResidualsIterationStep` `i_step` iteration step with the current values of the displacement residuals
-`ΔU_norm` and `ΔU_rel`, the norm of the residual forces increment `Δr_norm`, and the relative `Δr_rel`."
+"Updates the iteration step with the current values of the displacement and forces residuals."
 function _update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real, Δr_norm::Real,
                   Δr_rel::Real)
     ri_step.ΔU_norm = ΔU_norm
@@ -128,42 +127,46 @@ function _update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real
 
     _step!(ri_step)
 
-    return ri_step
+    ri_step
 end
 
-"Updates the `ResidualsIterationStep` `i_step` given a `ConvergenceSettings` `cs`."
+"Updates the convergence criteria."
 function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
     ΔU_relᵏ, ΔU_nromᵏ = displacement_tol(ri_step)
     Δr_relᵏ, Δr_nromᵏ = residual_forces_tol(ri_step)
 
-    @assert ΔU_relᵏ > 0 "Rsidual displacements must be greater than 0."
-    @assert Δr_relᵏ > 0 "Residual forces must be greater than 0."
+    @assert ΔU_relᵏ > 0 "Residual displacements norm must be greater than 0."
+    @assert Δr_relᵏ > 0 "Residual forces norm must be greater than 0."
 
     ΔU_rel_tol = displacement_tol(cs)
     Δr_rel_tol = residual_forces_tol(cs)
     max_iter = max_iter_tol(cs)
 
-    # Check displacements convergence
-    if ΔU_relᵏ ≤ ΔU_rel_tol && ΔU_relᵏ > 0
-        _update!(ri_step, ΔUCriterion())
-    end
-
-    # Check residual forces convergence
-    if Δr_relᵏ ≤ Δr_rel_tol && Δr_relᵏ > 0
-        _update!(ri_step, ResidualForceCriterion())
-    end
-
-    if iter(ri_step) > max_iter
+    if iterations(ri_step) > max_iter
         _update!(ri_step, MaxIterCriterion())
+        return MaxIterCriterion()
         @warn "Maximum number of iterations was reached."
     end
 
-    if Δr_relᵏ ≤ Δr_rel_tol || ΔU_relᵏ ≤ ΔU_rel_tol || Δr_nromᵏ < eps() || ΔU_nromᵏ < eps()
+    if (Δr_relᵏ ≤ Δr_rel_tol || ΔU_relᵏ ≤ ΔU_rel_tol) || Δr_nromᵏ < eps() || ΔU_nromᵏ < eps()
+
+        # Check residual forces convergence
+        if Δr_relᵏ ≤ Δr_rel_tol && Δr_relᵏ > 0
+            _update!(ri_step, ResidualForceCriterion())
+            return ResidualForceCriterion()
+        end
+
+        # Check displacements convergence
+        if ΔU_relᵏ ≤ ΔU_rel_tol && ΔU_relᵏ > 0
+            _update!(ri_step, ΔUCriterion())
+            return ΔUCriterion()
+        end
+
         _update!(ri_step, ΔU_and_ResidualForce_Criteria())
         return ΔU_and_ResidualForce_Criteria()
     end
 
-    return NotConvergedYet()
+    NotConvergedYet()
 end
 
 #==========#
@@ -175,13 +178,13 @@ Abstract supertype for all direct integration methods.
 """
 abstract type AbstractSolver end
 
-"Return the step size set to the `AbstractSolver` `solver` ."
+"Return the step size."
 step_size(solver::AbstractSolver) = solver.Δt
 
-"Return the numerical tolerances set to the `AbstractSolver` `solver`."
+"Return the numerical tolerances."
 tolerances(solver::AbstractSolver) = solver.tol
 
-"Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
+"Computes a step in time on the analysis with the solver employed."
 function _step!(solver::AbstractSolver, analysis::A) where {A} end
 
 # ===============
@@ -200,10 +203,10 @@ end
 
 """
 Solve a structural analysis problem with the given solver.
-This function mutates the state defined in the `analysis` problem; use [`solve`](@ref) to avoid mutation.
-For linear analysis problems, `alg` doesn't need to be provided.
+This function mutates the state defined in the analysis problem; use [`solve`](@ref) to avoid mutation.
+For linear analysis problems, the algorithm doesn't need to be provided.
 
-Returns a solution structure holding the result and the algorithm used to obtain it.
+Return a solution structure holding the result and the algorithm used to obtain it.
 """
 function solve!(analysis::A, alg::Union{AbstractSolver,Nothing}=nothing, args...;
                 kwargs...) where {A}
@@ -219,7 +222,7 @@ end
 "Internal solve function to be overloaded by each analysis."
 function _solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} end
 
-"Return the initialized `analysis`. By default, it Return the same analysis."
+"Return the initialized analysis. By default, it Return the same analysis."
 _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
 
 "Resets the analysis to the state before starting a new assembly."
