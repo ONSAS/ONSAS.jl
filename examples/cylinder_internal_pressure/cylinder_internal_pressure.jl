@@ -216,7 +216,7 @@ function run_cylinder_internal_pressure_example()
     # -----------------------------------------------
     # Case 2 - Static non-linear elastic case
     #----------------------------------------------
-    svk_material = Svk(; E=E, ν=ν, label=mat_label)
+    svk_material = SVK(; E=E, ν=ν, label=mat_label)
     replace!(cylinder, svk_material)
     nonlinear_analysis = static_analysis(cylinder, NonLinearStaticAnalysis; NSTEPS=NSTEPS)
     #  Non-linear analysis

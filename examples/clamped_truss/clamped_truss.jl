@@ -5,7 +5,7 @@
 This model is a static generalization taken from [3].
 [3] https://github.com/JuliaReach/SetPropagation-FEM-Examples/blob/main/examples/Clamped/Clamped_Model.jl
 =#
-using Test, LinearAlgebra, Dictionaries
+using Test, LinearAlgebra
 using ONSAS
 
 "Runs the clamped truss example."
@@ -34,7 +34,7 @@ function run_clamped_truss_example()
     # -------------------------------
     # Materials
     # -------------------------------
-    steel = Svk(; E=E, ν=ν, ρ=ρ, label="steel")
+    steel = SVK(; E=E, ν=ν, ρ=ρ, label="steel")
     materials = StructuralMaterial(steel => elements)
     # -------------------------------
     # Boundary conditions
