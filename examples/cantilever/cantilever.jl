@@ -13,7 +13,7 @@ RTOL = 1e-4                # Relative tolerance for tests
 # -----------------------------------------
 # importacion de malla
 L = 3
-num_elems = 1
+num_elems = 5
 x_coords = range(0, L, num_elems + 1)
 # -----------------------------------------
 
@@ -45,10 +45,10 @@ anali = LinearStaticAnalysis(s; NSTEPS=10)
 # verification
 Izz = b * h^3 / 12
 
-numer_sol_delta = displacements(sol, 5)[1]
-anali_sol_delta = -Py * L^3 / (3 * E * Izz)
+@show numer_sol_delta = displacements(sol, nodes[end], 2)[1]
+@show anali_sol_delta = -Py * L^3 / (3 * E * Izz)
 
-@show numer_sol_angle = displacements(sol, 12)[1]
+@show numer_sol_angle = displacements(sol, nodes[end], 6)[1]
 @show anali_sol_angle = -Py * L^2 / (2 * E * Izz)
 
 using Test

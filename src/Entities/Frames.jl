@@ -89,10 +89,10 @@ function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVecto
     Ks[ind_bend_xz, ind_bend_xz] .+= E * Iyy / l^3 * Kbend  # TODO ADD PERMUTATION
 
     # Axial stiffness along x.
-    Ks[inds_axial, inds_axial] .+= [1 -1; -1 1]  # TODO ADD PERMUTATION
+    Ks[inds_axial, inds_axial] .+= E * A / l * [1 -1; -1 1]
 
     # Torsion stiffness along x.
-    Ks[inds_axial, inds_torsion] .+= [1 -1; -1 1]  # TODO ADD PERMUTATION
+    Ks[inds_axial, inds_torsion] .+= G * J / l * [1 -1; -1 1]  # TODO check
 
     # internal forces
     fint .= Ks * u_e
