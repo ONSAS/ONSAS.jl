@@ -106,10 +106,7 @@ function _step!(sa::LinearStaticAnalysis)
     fₑₓₜ_red = view(external_forces(state), free_dofs_idx)
     K = tangent_matrix(state)[free_dofs_idx, free_dofs_idx]
     ΔU = Δ_displacements(state)
-    # Main.@infiltrate
-    #@show K
-    # @show fₑₓₜ_red
-    # ΔU .= Matrix(K) \ fₑₓₜ_red
+    # NOTE: May not warn if K is singular!
     cg!(ΔU, K, fₑₓₜ_red)
 
     # Update displacements into the state.
