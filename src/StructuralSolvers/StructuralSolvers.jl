@@ -132,8 +132,8 @@ end
 
 "Updates the convergence criteria."
 function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
-    ΔU_relᵏ, ΔU_nromᵏ = displacement_tol(ri_step)
-    Δr_relᵏ, Δr_nromᵏ = residual_forces_tol(ri_step)
+    ΔU_relᵏ, ΔU_normᵏ = displacement_tol(ri_step)
+    Δr_relᵏ, Δr_normᵏ = residual_forces_tol(ri_step)
 
     @assert ΔU_relᵏ > 0 "Residual displacements norm must be greater than 0."
     @assert Δr_relᵏ > 0 "Residual forces norm must be greater than 0."
