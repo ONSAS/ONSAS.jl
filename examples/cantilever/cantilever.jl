@@ -9,6 +9,7 @@ q = b * h * pp * 9.81
 Py = 1e3
 
 # -----------------------------------------
+E = 210e9
 # importacion de malla
 L = 3
 num_elems = 1
@@ -17,14 +18,14 @@ x_coords = range(0, L, num_elems + 1)
 
 # Mesh
 nodes = [Node(xi, 0.0, 0.0) for xi in x_coords]
-S = Rectangle(b, h) # cm^2
+S = Rectangle(h, b) # cm^2
 frames = [Frame(nodes[j], nodes[j + 1], S) for j in 1:(length(nodes) - 1)]
 msh = Mesh(; nodes=nodes, elements=frames)
 # -----------------------------------------
 set_dofs!(msh, :u, 3)
 set_dofs!(msh, :θ, 3)
 # Materials
-i = IsotropicLinearElastic(210e9, 0.3)
+i = IsotropicLinearElastic(E, 0.3)
 mat = StructuralMaterial(i => frames)
 # Boundary conditions
 bc1 = FixedDof(:u, [1, 2, 3])
@@ -40,3 +41,13 @@ s = Structure(msh, mat, bc)
 # Analysis
 anali = LinearStaticAnalysis(s; NSTEPS=10)
 @time sol = solve!(anali)
+
+# =================
+# verification
+@show Izz = b * h^3 / 12
+
+@show numer_sol_delta = displacements(sol, 5)[1]
+@show anali_sol_delta = Py * L^3 / (3 * E * Izz)
+
+@show numer_sol_angle = displacements(sol, 12)[1]
+@show anali_sol_angle = Py * L^2 / (2 * E * Izz)
