@@ -142,31 +142,20 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
     Δr_rel_tol = residual_forces_tol(cs)
     max_iter = max_iter_tol(cs)
 
-    if iterations(ri_step) > max_iter
-        _update!(ri_step, MaxIterCriterion())
-        return MaxIterCriterion()
-        @warn "Maximum number of iterations was reached."
-    end
-
-    if (Δr_relᵏ ≤ Δr_rel_tol || ΔU_relᵏ ≤ ΔU_rel_tol) || Δr_nromᵏ < eps() || ΔU_nromᵏ < eps()
-
+    if Δr_relᵏ ≤ Δr_rel_tol
+        _update!(ri_step, ResidualForceCriterion())
+        ResidualForceCriterion()
         # Check residual forces convergence
-        if Δr_relᵏ ≤ Δr_rel_tol
-            _update!(ri_step, ResidualForceCriterion())
-            return ResidualForceCriterion()
-        end
-
-        # Check displacements convergence
-        if ΔU_relᵏ ≤ ΔU_rel_tol
-            _update!(ri_step, ΔUCriterion())
-            return ΔUCriterion()
-        end
-
-        _update!(ri_step, ΔU_and_ResidualForce_Criteria())
-        return ΔU_and_ResidualForce_Criteria()
+    elseif ΔU_relᵏ ≤ ΔU_rel_tol
+        _update!(ri_step, ΔUCriterion())
+        ΔUCriterion()
+    elseif iterations(ri_step) > max_iter
+        _update!(ri_step, MaxIterCriterion())
+        @warn "Maximum number of iterations was reached."
+        MaxIterCriterion()
+    else
+        NotConvergedYet()
     end
-
-    NotConvergedYet()
 end
 
 #==========#
