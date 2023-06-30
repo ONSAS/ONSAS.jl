@@ -49,6 +49,7 @@ end
 
 local_dof_symbol(::Frame) = [:u, :θ]
 
+#=
 function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVector)
     @show m
     @show f
@@ -138,5 +139,6 @@ function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVecto
     #   finteLocalCoor =  R' * Finte ;
     return 1, 1, 1, 1
 end
+=#
 
 end # module
