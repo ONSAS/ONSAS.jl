@@ -42,7 +42,7 @@ struct LinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <:
                                   initial_step::Int=1) where {S<:AbstractStructure,
                                                               LFV<:AbstractVector{<:Real}}
         # Since linear analysis is not iterating
-        iter_state = ResidualsIterationStep(nothing, nothing, nothing, nothing, 0,
+        iter_state = ResidualsIterationStep(nothing, nothing, nothing, nothing, 1,
                                             ΔU_and_ResidualForce_Criteria())
         new{S,LFV}(s, StaticState(s, iter_state), λᵥ, ScalarWrapper(initial_step))
     end
