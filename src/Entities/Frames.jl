@@ -3,6 +3,7 @@ module Frames
 
 using Reexport
 using StaticArrays
+using LinearAlgebra
 
 using ..CrossSections
 using ..Entities
@@ -49,96 +50,40 @@ end
 
 local_dof_symbol(::Frame) = [:u, :θ]
 
-#=
 function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVector)
-    @show m
-    @show f
-    @show u_e
+    # [u1_1, u2_1, u3_1, u1_2, u2_2, u3_2, t1_1, t2_1, t3_1, t1_2, t2_2, t3_2]
 
-    # material constit params
-    E  = elasticity_modulus(m)
+    # Temporalmente cero.
+    σ = 0.0
+    ε = 0.0
+
+    E = elasticity_modulus(m)
     nu = poisson_ratio(m)
-    G  = shear_modulus(m)
-
+    G = shear_modulus(m)
     S = cross_section(f)
     A = area(S)
     J = CrossSections.Ixx(S)
     Iyy = CrossSections.Iyy(S)
     Izz = CrossSections.Izz(S)
+    l = norm(f.nodes[2] - f.nodes[1])
 
-    #     # --- elem lengths and rotation matrix
-    # 	[ local2globalMats, l ] = beamParameters( elemCoords ) ;
-    # 	R = RotationMatrix(ndofpnode, local2globalMats) ;
+    (ux1, uy1, uz1, ux2, uy2, uz2, titax1, titay1, titaz1, titax2, titay2, titaz2) = u_e
 
-    #   % temporary
-    #   %~ ------------------------
-    #   elemReleases = [0 0 0 0] ;
-    #   %~ ------------------------
+    Kloc = E * Izz / l^3 * [  12     6*l    -12     6*l
+                              6*l   4*l^2   -6*l   2*l^2
+                            -12    -6*l     12    -6*l
+                              6*l   2*l^2   -6*l   4*l^2]
 
-    #   % --- set the local degrees of freedom corresponding to each behavior
-    #   LocAxialdofs  = [ 1 7 ] ;
-    #   LocTorsndofs  = [ 2 8 ] ;
-    #   LocBendXYdofs = [ 3 6 9 12 ] ;
-    #   LocBendXZdofs = [ 5 4 11 10 ] ;
+    Ks = zeros(12, 12)
+    fint = zeros(12)
 
-    #   KL = zeros ( 2*ndofpnode, 2*ndofpnode ) ;
+    # Bending along x-y.
+    ind = [2, 9, 5, 12]
+    Ks[ind, ind] .= Kloc
+    fint .= Ks * u_e
 
-    #   Kaxial = E*A/l * [ 1 -1 ; ...
-    #                     -1  1 ] ;
-    #   KL( LocAxialdofs , LocAxialdofs ) = Kaxial ;
-
-    #   kBendReleaseRig = [ 3    3*l   -3   0 ; ...
-    #                       3*l  3*l^2 -3*l 0 ; ...
-    #                      -3   -3*l    3   0 ; ...
-    #                       0    0      0   0 ] ;
-
-    #   kBendReleaseLef = [  3   0 -3   3*l   ; ...
-    #                        0   0  0   0     ; ...
-    #                       -3   0  3  -3*l   ; ...
-    #                        3*l 0 -3*l 3*l^2 ] ;
-
-    #   % K bending in local coordinates
-    #   kBendNoRelease = [  12     6*l    -12     6*l   ; ...
-    #                        6*l   4*l^2   -6*l   2*l^2 ; ...
-    #                      -12    -6*l     12    -6*l   ; ...
-    #                        6*l   2*l^2   -6*l   4*l^2 ] ;
-
-    #   % bending XY
-    #   if     elemReleases(3) == 0 && elemReleases(4) == 0
-    #     KbendXY = E * Iz / l^3 * kBendNoRelease ;
-    #   elseif elemReleases(3) == 1 && elemReleases(4) == 0
-    #     KbendXY = E * Iz / l^3 * kBendReleaseLef ;
-    #   elseif elemReleases(3) == 0 && elemReleases(4) == 1
-    #     KbendXY = E * Iz / l^3 * kBendReleaseRig ;
-    #   else
-    #     KbendXY = zeros(4,4) ;
-    #   end
-
-    # 	% bending XZ
-    # 	RXYXZ = eye(4) ; RXYXZ(2,2) = -1; RXYXZ(4,4) = -1;
-    # 	if     elemReleases(1) == 0 && elemReleases(2) == 0
-    # 		KbendXZ = E * Iy / l^3 * RXYXZ * kBendNoRelease * RXYXZ ;
-    # 	elseif elemReleases(1) == 1 && elemReleases(2) == 0
-    # 		KbendXZ = E * Iy / l^3 * RXYXZ * kBendReleaseLef * RXYXZ ;
-    # 	elseif elemReleases(1) == 0 && elemReleases(2) == 1
-    # 		KbendXZ = E * Iy / l^3 * RXYXZ * kBendReleaseRig * RXYXZ ;
-    # 	else
-    # 		KbendXZ = zeros(4,4) ;
-    # 	end
-
-    #   Ktorsn = G*J/l * [  1 -1  ; ...
-    #                      -1  1  ] ;
-
-    #   KL( LocBendXYdofs , LocBendXYdofs ) = KbendXY ;
-    #   KL( LocBendXZdofs , LocBendXZdofs ) = KbendXZ ;
-    #   KL( LocTorsndofs  , LocTorsndofs  ) = Ktorsn ;
-
-    #   KGelem = R * KL * R' ;
-    #   Finte = KGelem * Ut ;
-
-    #   finteLocalCoor =  R' * Finte ;
-    return 1, 1, 1, 1
+    # fxx = Kloc * [uy1, titaz1, uy2, titaz2]
+    return fint, Ks, σ, ε
 end
-=#
 
 end # module

@@ -1,4 +1,5 @@
 using ONSAS
+using LinearAlgebra
 
 #
 # Idea: implementar internal_forces de Frame.jl
