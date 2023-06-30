@@ -25,8 +25,8 @@ frames = [Frame(nodes[j], nodes[j + 1], S) for j in 1:(length(nodes) - 1)]
 msh = Mesh(; nodes=nodes, elements=frames)
 # -----------------------------------------
 
-set_dofs!(msh, :u, 3) # rename create_dof
-set_dofs!(msh, :θ, 3) # rename create_dof
+set_dofs!(msh, :u, 3)
+set_dofs!(msh, :θ, 3)
 
 # Materials
 i = IsotropicLinearElastic(210e9, 0.3)
@@ -34,12 +34,12 @@ mat = StructuralMaterial(i => frames)
 
 # Boundary conditions
 bc1 = FixedDof(:u, [1, 2, 3])
-bc2 = FixedDof(:θ, [1])
+bc2 = FixedDof(:θ, [1, 2, 3])
 
 # bc3 = GlobalLoad(:u, t -> [0, 0, Py])
 # bc4 = GlobalLoad(:θ, t -> [0, -Pz, 0])
 
-bc = StructuralBoundaryCondition(bc1 => [nodes[1], nodes[end]], bc2 => [nodes[1], nodes[end]])
+bc = StructuralBoundaryCondition(bc1 => [nodes[1]], bc2 => [nodes[1]])
 
 # Structure
 s = Structure(msh, mat, bc)
@@ -47,4 +47,4 @@ s = Structure(msh, mat, bc)
 # Analysis
 anali = LinearStaticAnalysis(s; NSTEPS=10)
 
-solve!(anali)
+@time sol = solve!(anali)
