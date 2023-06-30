@@ -2,7 +2,7 @@ using Test
 using Dictionaries: dictionary
 using ONSAS.Structures
 using ONSAS.Squares
-using ONSAS.SvkMaterial
+using ONSAS.SVKMaterial
 using ONSAS.FixedDofBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.Structures
@@ -45,9 +45,9 @@ truss₃ = Truss(n₁, n₃, s)
 truss₄ = Truss(n₄, n₃, s)
 # Mesh
 # Materials
-steel = Svk(E, ν, "steel")
-new_steel = Svk(2E, ν, "new_steel")
-aluminum = Svk(E / 3, ν, "aluminium")
+steel = SVK(E, ν, "steel")
+new_steel = SVK(2E, ν, "new_steel")
+aluminum = SVK(E / 3, ν, "aluminium")
 mat_dict = dictionary([steel => [truss₁, truss₃], aluminum => [truss₂]])
 s_materials = StructuralMaterial(mat_dict)
 # Boundary conditions

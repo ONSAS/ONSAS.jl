@@ -34,7 +34,7 @@ function run_clamped_truss_example()
     # -------------------------------
     # Materials
     # -------------------------------
-    steel = Svk(; E=E, ν=ν, ρ=ρ, label="steel")
+    steel = SVK(; E=E, ν=ν, ρ=ρ, label="steel")
     materials = StructuralMaterial(steel => elements)
     # -------------------------------
     # Boundary conditions
