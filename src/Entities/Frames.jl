@@ -56,7 +56,7 @@ function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVecto
     # Reference:
     # (ux1, uy1, uz1, ux2, uy2, uz2, θx1, θy1, θz1, θx2, θy2, θz2) = u_e
 
-    # TODO Generalize.
+    # TODO Generalize, see ONSAS#393 .
     σ = 0.0
     ε = 0.0
 
@@ -67,7 +67,7 @@ function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVecto
     J = CrossSections.Ixx(S)
     Iyy = CrossSections.Iyy(S)
     Izz = CrossSections.Izz(S)
-    l = norm(f.nodes[2] - f.nodes[1])
+    l = norm(nodes(f)[2] - nodes(f)[1])
 
     ind_bend_xy = [2, 9, 5, 12]
     ind_bend_xz = [3, 8, 6, 11]
