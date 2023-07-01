@@ -44,7 +44,7 @@ and extends the following methods:
 * [`is_done`](@ref)
 * [`reset!`](@ref)
 * [`_solve!`](@ref)
-* [`_step!`](@ref)
+* [`step!`](@ref)
 
 **Common fields**
 - `λᵥ`           -- stores the load factors vector.

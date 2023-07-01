@@ -1,7 +1,7 @@
 """
 Module defining structural solvers that can be used to solved different analyses.
 Each solver consists of a data type with a convergence criterion and a the iteration status.
-A _step! method is used to perform a single iteration step.
+A step! method is used to perform a single iteration step.
 """
 module StructuralSolvers
 
@@ -13,7 +13,7 @@ export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet
 export ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol
 export ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!
-export AbstractSolver, step_size, tolerances, _step!, solve!, _solve!, solve, reset!
+export AbstractSolver, step_size, tolerances, step!, solve!, _solve!, solve, reset!
 export AbstractSolution
 
 """
@@ -83,7 +83,7 @@ Base.@kwdef mutable struct ResidualsIterationStep{T}
 end
 
 "Increments a `ResidualsIterationStep` `i_step` by 1."
-_step!(i_step::ResidualsIterationStep) = i_step.iter += 1
+step!(i_step::ResidualsIterationStep) = i_step.iter += 1
 
 "Return the current iteration number of the `ResidualsIterationStep` `i_step`."
 iter(i_step::ResidualsIterationStep) = i_step.iter
@@ -126,7 +126,7 @@ function _update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real
     ri_step.Δr_norm = Δr_norm
     ri_step.Δr_rel = Δr_rel
 
-    _step!(ri_step)
+    step!(ri_step)
 
     return ri_step
 end
@@ -182,7 +182,7 @@ step_size(solver::AbstractSolver) = solver.Δt
 tolerances(solver::AbstractSolver) = solver.tol
 
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
-function _step!(solver::AbstractSolver, analysis::A) where {A} end
+function step!(solver::AbstractSolver, analysis::A) where {A} end
 
 # ===============
 # Solve function

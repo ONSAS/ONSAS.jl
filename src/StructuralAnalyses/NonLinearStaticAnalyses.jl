@@ -20,7 +20,7 @@ using ..StructuralSolvers
 using ..Solvers
 using ..Solutions
 
-@reexport import ..StructuralSolvers: _solve!, _step!
+@reexport import ..StructuralSolvers: _solve!, step!
 
 export NonLinearStaticAnalysis
 
@@ -81,7 +81,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
             @debugtime "Assemble" assemble!(s, sa)
 
             # Increment structure displacements `U = U + ΔU`.
-            @debugtime "Step" _step!(sa, alg)
+            @debugtime "Step" step!(sa, alg)
         end
         # Save current state.
         @debugtime "Save current state" push!(sol, current_state(sa))
@@ -93,7 +93,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
 end
 
 "Computes ΔU for solving the non linear static analysis with a Newton Raphson method."
-function _step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson)
+function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson)
     # Extract state info
     state = current_state(sa)
     free_dofs_idx = free_dofs(state)
