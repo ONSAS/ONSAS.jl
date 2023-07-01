@@ -70,7 +70,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
     while !is_done(sa)
 
         # Sets Δu, ΔR and relatives norms to zero
-        _reset!(current_iteration(sa))
+        reset!(current_iteration(sa))
 
         # Computes external forces
         apply!(sa, load_bcs(boundary_conditions(s)))

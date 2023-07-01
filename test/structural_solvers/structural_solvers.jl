@@ -34,7 +34,7 @@ tols = ConvergenceSettings(tol_u, tol_f, max_iter)
     @test iterations(residuals_current_step) == 0
     @test criterion(residuals_current_step) isa NotConvergedYet
 
-    _reset!(residuals_current_step)
+    reset!(residuals_current_step)
     @test iterations(residuals_current_step) == 0
     @test criterion(residuals_current_step) isa NotConvergedYet
     @test all(map(x -> x ≥ 1e3, displacement_tol(residuals_current_step)))
@@ -63,7 +63,7 @@ tols = ConvergenceSettings(tol_u, tol_f, max_iter)
     @test !(isconverged!(residuals_current_step, tols) isa NotConvergedYet)
 
     # Reset again
-    _reset!(residuals_current_step)
+    reset!(residuals_current_step)
     @test iterations(residuals_current_step) == 0
     @test criterion(residuals_current_step) isa NotConvergedYet
     @test isconverged!(residuals_current_step, tols) isa NotConvergedYet
@@ -118,7 +118,7 @@ end
     @test all([K_glob_assembler[ind] == val for (ind, val) in enumerate(K_glob_assembler)])
     @test all([K_glob_assembler[ind] == val for (ind, val) in enumerate(K_to_fill_assembler)])
 
-    _reset!(a)
+    reset!(a)
     @test isempty(a.I)
     @test isempty(a.J)
     @test isempty(a.V)
