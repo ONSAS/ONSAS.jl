@@ -22,11 +22,10 @@ area(r::Rectangle) = r.width_y * r.width_z
 "Return the moment of inertia of a `Rectangle` cross-section `r`  with respect to the local x axis."
 function Ixx(r::Rectangle)
     #  torsional constant from table 10.1 from Roark's Formulas for Stress and Strain 7th ed.
-    a = 0.5 * maximum([r.width_y, r.width_z])
-    b = 0.5 * minimum([r.width_y, r.width_z])
+    a = 0.5 * max(r.width_y, r.width_z)
+    b = 0.5 * min(r.width_y, r.width_z)
 
-    Ixx = a * b^3 * (16 / 3 - 3.36 * b / a * (1 - b^4 / (12 * a^4)))
-    return Ixx
+    a * b^3 * (16 / 3 - 3.36 * b / a * (1 - b^4 / (12 * a^4)))
 end
 
 "Return the moment of inertia of a `Rectangle` cross-section `r`  with respect to the local y axis."

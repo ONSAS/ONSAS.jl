@@ -59,6 +59,8 @@ function dofs(e::AbstractEntity)
     vecdfs = dofs.(nodes(e))
     dfs = mergewith(vcat, vecdfs[1], vecdfs[2])
     [mergewith!(vcat, dfs, vecdfs[i]) for i in 3:length(vecdfs)]
+    # TODO Simplify?
+    # mapreduce(vcat, dofs, nodes(e))
     return dfs
 end
 

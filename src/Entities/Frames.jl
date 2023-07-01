@@ -3,12 +3,13 @@ module Frames
 
 using Reexport
 using StaticArrays
+using LinearAlgebra
 
 using ..CrossSections
 using ..Entities
-using ..HyperElasticMaterials
 using ..Nodes
 using ..Utils
+using ..IsotropicLinearElasticMaterial
 
 @reexport import ..Entities: nodes, cross_section, create_entity, local_dof_symbol, internal_forces
 
@@ -49,8 +50,55 @@ end
 
 local_dof_symbol(::Frame) = [:u, :θ]
 
-function internal_forces(m::AbstractHyperElasticMaterial, f::Frame, u_e::AbstractVector)
-    error("Not implemented.")
+function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVector)
+    @assert f.mass_matrix == Consistent
+
+    # Reference:
+    # (ux1, uy1, uz1, ux2, uy2, uz2, θx1, θy1, θz1, θx2, θy2, θz2) = u_e
+
+    # TODO Generalize, see ONSAS#393 .
+    σ = 0.0
+    ε = 0.0
+
+    E = elasticity_modulus(m)
+    G = shear_modulus(m)
+    S = cross_section(f)
+    A = area(S)
+    J = CrossSections.Ixx(S)
+    Iyy = CrossSections.Iyy(S)
+    Izz = CrossSections.Izz(S)
+    l = norm(nodes(f)[2] - nodes(f)[1])
+
+    ind_bend_xy = [2, 9, 5, 12]
+    ind_bend_xz = [3, 8, 6, 11]
+    inds_axial = [1, 4]
+    inds_torsion = [7, 10]
+
+    Ks = zeros(12, 12)
+    fint = zeros(12)
+
+    Kbend = [12     6*l    -12     6*l
+             6*l   4*l^2   -6*l   2*l^2
+             -12    -6*l     12    -6*l
+             6*l   2*l^2   -6*l   4*l^2]
+
+    # Bending along x-y.
+    Ks[ind_bend_xy, ind_bend_xy] .+= E * Izz / l^3 * Kbend
+
+    # Bending along x-z.
+    Rxyxz = diagm([1, -1, 1, -1])
+    Ks[ind_bend_xz, ind_bend_xz] .+= E * Iyy / l^3 * Rxyxz * Kbend * Rxyxz
+
+    # Axial stiffness along x.
+    Ks[inds_axial, inds_axial] .+= E * A / l * [1 -1; -1 1]
+
+    # Torsion stiffness along x.
+    Ks[inds_axial, inds_torsion] .+= G * J / l * [1 -1; -1 1]
+
+    # Internal forces.
+    fint .= Ks * u_e
+
+    return fint, Ks, σ, ε
 end
 
-end
+end # module

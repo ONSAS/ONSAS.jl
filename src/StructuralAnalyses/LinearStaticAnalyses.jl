@@ -106,6 +106,7 @@ function _step!(sa::LinearStaticAnalysis)
     fₑₓₜ_red = view(external_forces(state), free_dofs_idx)
     K = tangent_matrix(state)[free_dofs_idx, free_dofs_idx]
     ΔU = Δ_displacements(state)
+# NOTE: May not warn if K is singular, see ONSAS#392.
     cg!(ΔU, K, fₑₓₜ_red)
 
     # Update displacements into the state.
