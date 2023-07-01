@@ -12,7 +12,7 @@ using ..Entities
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet,
        ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol,
-       ResidualsIterationStep, iter, criterion, isconverged!, _update!,
+       ResidualsIterationStep, iter, criterion, isconverged!, update!,
        AbstractSolver, step_size, tolerances, step!, solve!, _solve!, solve, reset!,
        AbstractSolution, iterations
 
@@ -113,13 +113,13 @@ function reset!(ri_step::ResidualsIterationStep{<:Nothing})
 end
 
 "Updates the current convergence criterion."
-function _update!(ri_step::ResidualsIterationStep, criterion::AbstractConvergenceCriterion)
+function update!(ri_step::ResidualsIterationStep, criterion::AbstractConvergenceCriterion)
     ri_step.criterion = criterion
 end
 
 "Updates the iteration step with the current values of the displacement and forces residuals."
-function _update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real, Δr_norm::Real,
-                  Δr_rel::Real)
+function update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real, Δr_norm::Real,
+                 Δr_rel::Real)
     ri_step.ΔU_norm = ΔU_norm
     ri_step.ΔU_rel = ΔU_rel
     ri_step.Δr_norm = Δr_norm
@@ -143,14 +143,14 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
     max_iter = max_iter_tol(cs)
 
     if Δr_relᵏ ≤ Δr_rel_tol
-        _update!(ri_step, ResidualForceCriterion())
+        update!(ri_step, ResidualForceCriterion())
         ResidualForceCriterion()
         # Check residual forces convergence
     elseif ΔU_relᵏ ≤ ΔU_rel_tol
-        _update!(ri_step, ΔUCriterion())
+        update!(ri_step, ΔUCriterion())
         ΔUCriterion()
     elseif iterations(ri_step) > max_iter
-        _update!(ri_step, MaxIterCriterion())
+        update!(ri_step, MaxIterCriterion())
         @warn "Maximum number of iterations was reached."
         MaxIterCriterion()
     else

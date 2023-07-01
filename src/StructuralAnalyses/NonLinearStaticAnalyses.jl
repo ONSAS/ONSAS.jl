@@ -114,7 +114,7 @@ function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson)
     state.Uᵏ[free_dofs_idx] .+= ΔU
 
     # Update iteration
-    _update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)
+    update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)
 end
 
 end # module
