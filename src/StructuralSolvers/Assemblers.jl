@@ -9,7 +9,7 @@ using ..Structures
 
 @reexport import ..StructuralSolvers: _reset!
 
-export Assembler, _assemble!, _reset_assembler!, end_assemble, _end_assemble!
+export Assembler, assemble!, _reset_assembler!, end_assemble, _end_assemble!
 
 """"
 Struct that stores column indexes, row indexes and values for the assemble process.
@@ -38,15 +38,15 @@ end
 Assembler(s::AbstractStructure) = Assembler(num_free_dofs(s))
 
 """Assembles the element matrix `Ke` into the `Assembler` struct `a`."""
-function _assemble!(a::Assembler{T}, dofs::AbstractVector{Dof}, Ke::AbstractMatrix{T}) where {T}
-    return _assemble!(a, dofs, dofs, Ke)
+function assemble!(a::Assembler{T}, dofs::AbstractVector{Dof}, Ke::AbstractMatrix{T}) where {T}
+    return assemble!(a, dofs, dofs, Ke)
 end
 
 "Assembles the matrix `Ke` into `Assembler` `a` according to the dofs specified by `row_dof_indexes` and `col_dof_indexes`."
-function _assemble!(a::Assembler{T},
-                    row_dof_indexes::AbstractVector{Int},
-                    col_dof_indexes::AbstractVector{Int},
-                    Ke::AbstractMatrix{T}) where {T}
+function assemble!(a::Assembler{T},
+                   row_dof_indexes::AbstractVector{Int},
+                   col_dof_indexes::AbstractVector{Int},
+                   Ke::AbstractMatrix{T}) where {T}
     nrows = length(row_dof_indexes)
     ncols = length(col_dof_indexes)
     @assert size(Ke) == (nrows, ncols) "The size of the element matrix Ke does not match the number of dofs."

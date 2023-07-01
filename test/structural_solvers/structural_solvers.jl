@@ -92,7 +92,7 @@ end
 
     a = Assembler(length(Ke))
     for n_e in 1:2
-        _assemble!(a, dofs_elements[n_e], Ke)
+        assemble!(a, dofs_elements[n_e], Ke)
     end
 
     @test a.I == [1, 2, 1, 2, 2, 3, 2, 3]

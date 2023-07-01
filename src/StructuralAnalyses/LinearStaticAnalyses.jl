@@ -78,13 +78,13 @@ function _solve!(sa::LinearStaticAnalysis)
         apply!(sa, load_bcs(boundary_conditions(s))) # Compute Fext
 
         # Assemble K
-        _assemble!(s, sa)
+        assemble!(s, sa)
 
         # Increment structure displacements U = U + ΔU
         _step!(sa)
 
         # Recompute σ and ε for the assembler
-        _assemble!(s, sa)
+        assemble!(s, sa)
 
         # Save current state
         push!(solution, current_state(sa))

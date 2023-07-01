@@ -78,7 +78,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
         # Displacements iteration.
         while isconverged!(current_iteration(sa), tolerances(alg)) isa NotConvergedYet
             # Compute residual forces and tangent matrix.
-            @debugtime "Assemble" _assemble!(s, sa)
+            @debugtime "Assemble" assemble!(s, sa)
 
             # Increment structure displacements `U = U + ΔU`.
             @debugtime "Step" _step!(sa, alg)

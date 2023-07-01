@@ -22,7 +22,7 @@ using ..Assemblers
 
 @reexport import ..StructuralAnalyses: initial_time, current_time, final_time, _next!,
                                        iteration_residuals, is_done, reset!
-@reexport import ..Assemblers: _assemble!
+@reexport import ..Assemblers: assemble!
 
 export AbstractStaticAnalysis, load_factors, current_load_factor
 
@@ -92,7 +92,7 @@ function reset!(sa::AbstractStaticAnalysis)
 end
 
 "Assembles the Structure `s` (internal forces) during the `StaticAnalysis` `sa`."
-function _assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
+function assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
     state = current_state(sa)
 
     # Reset assembled magnitudes
@@ -106,9 +106,9 @@ function _assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
             fᵢₙₜ_e, kₛ_e, σ_e, ϵ_e = internal_forces(mat, e, u_e)
 
             # Assembles the element internal magnitudes
-            _assemble!(state, fᵢₙₜ_e, e)
-            _assemble!(state, kₛ_e, e)
-            _assemble!(state, σ_e, ϵ_e, e)
+            assemble!(state, fᵢₙₜ_e, e)
+            assemble!(state, kₛ_e, e)
+            assemble!(state, σ_e, ϵ_e, e)
         end
     end
 
