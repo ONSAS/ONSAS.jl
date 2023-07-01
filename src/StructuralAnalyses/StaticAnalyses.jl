@@ -20,7 +20,7 @@ using ..Solutions
 using ..StaticStates
 using ..Assemblers
 
-@reexport import ..StructuralAnalyses: initial_time, current_time, final_time, _next!,
+@reexport import ..StructuralAnalyses: initial_time, current_time, final_time, next!,
                                        iteration_residuals, is_done, reset!
 @reexport import ..Assemblers: assemble!
 
@@ -40,7 +40,7 @@ and extends the following methods:
 * [`final_time`](@ref)
 * [`load_factors`](@ref)
 * [`current_load_factor`](@ref)
-* [`_next!`](@ref)
+* [`next!`](@ref)
 * [`is_done`](@ref)
 * [`reset!`](@ref)
 * [`_solve!`](@ref)
@@ -80,7 +80,7 @@ load_factors(sa::AbstractStaticAnalysis) = sa.λᵥ
 current_load_factor(sa::AbstractStaticAnalysis) = current_time(sa)
 
 "Jumps to the next current load factor defined in the structural analysis."
-_next!(sa::AbstractStaticAnalysis) = sa.current_step[] += 1
+next!(sa::AbstractStaticAnalysis) = sa.current_step[] += 1
 
 "Sets the current load factor of the structural analysis to the initial load factor.
 Also resets! the iteration and `AbstractStructuralState`."

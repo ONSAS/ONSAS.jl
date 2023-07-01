@@ -204,12 +204,12 @@ sa_init = NonLinearStaticAnalysis(s, λ₁; NSTEPS=NSTEPS, initial_step=init_ste
     @test load_factors(sa_init) == λᵥ
 
     # Next step
-    _next!(sa_init)
+    next!(sa_init)
     @test current_time(sa_init) == λᵥ[init_step + 1]
     @test current_load_factor(sa_init) == (init_step + 1) * λ₁ / NSTEPS
     @test !is_done(sa_init)
-    _next!(sa_init)
-    _next!(sa_init)
+    next!(sa_init)
+    next!(sa_init)
     @test is_done(sa_init)
 
     # Reset the analysis

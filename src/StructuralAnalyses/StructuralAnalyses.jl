@@ -26,7 +26,7 @@ using ..Utils
 
 export AbstractStructuralState, Δ_displacements, tangent_matrix, residual_forces!, tangent_matrix,
        structure, assembler, residual_forces_norms, residual_displacements_norms,
-       AbstractStructuralAnalysis, initial_time, current_time, final_time, _next!, is_done,
+       AbstractStructuralAnalysis, initial_time, current_time, final_time, next!, is_done,
        current_state, current_iteration
 
 """ Abstract supertype to define a new structural state.
@@ -143,7 +143,7 @@ to be solved.
 
 * [`current_state`](@ref)
 * [`current_iteration`](@ref)
-* [`_next!`](@ref)
+* [`next!`](@ref)
 * [`is_done`](@ref)
 * [`reset!`](@ref)
 
@@ -164,7 +164,7 @@ final_time(a::AbstractStructuralAnalysis) = a.t₁
 
 "Increment the time step given of a structural analysis. Dispatch is done for different
 solvers."
-_next!(a::AbstractStructuralAnalysis, solver::AbstractSolver) = a.t += time_step(a)
+next!(a::AbstractStructuralAnalysis, solver::AbstractSolver) = a.t += time_step(a)
 
 "Return true if the structural analysis is completed."
 is_done(a::AbstractStructuralAnalysis) = current_time(a) > final_time(a)
