@@ -151,10 +151,11 @@ This method extracts all node dofs with the same symbol as local_dof_symbol.
 function local_dofs(e::AbstractElement)
     lds = local_dof_symbol(e)
     res = Dof[]
-    for n in nodes(e)
-        # For each node, append to the result the dofs restricted to local dof symbols.
-        dict = dofs(n)
-        for s in lds
+    for s in lds
+        # Store in the resulting array the dofs per element that match each local dof.
+        # Traversal order matters, since `local_dofs` is then used to build reduced matrices.
+        for n in nodes(e)
+            dict = dofs(n)
             if !haskey(dict, s)
                 throw(ArgumentError("Element $(e.label) doesn't have dofs with symbol $s."))
             end
