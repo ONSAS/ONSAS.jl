@@ -87,7 +87,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
         @debugtime "Save current state" push!(sol, current_state(sa))
 
         # Increment the time or load factor step.
-        @debugtime "Next step" _next!(sa)
+        @debugtime "Next step" next!(sa)
     end
     sol
 end

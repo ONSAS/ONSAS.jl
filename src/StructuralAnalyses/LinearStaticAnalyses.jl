@@ -90,7 +90,7 @@ function _solve!(sa::LinearStaticAnalysis)
         push!(solution, current_state(sa))
 
         # Increments the time or load factor step
-        _next!(sa)
+        next!(sa)
     end
 
     solution
@@ -106,7 +106,7 @@ function step!(sa::LinearStaticAnalysis)
     fₑₓₜ_red = view(external_forces(state), free_dofs_idx)
     K = tangent_matrix(state)[free_dofs_idx, free_dofs_idx]
     ΔU = Δ_displacements(state)
-# NOTE: May not warn if K is singular, see ONSAS#392.
+    # NOTE: May not warn if K is singular, see ONSAS#392.
     cg!(ΔU, K, fₑₓₜ_red)
 
     # Update displacements into the state.
