@@ -56,12 +56,7 @@ dimension(::AbstractEntity{dim}) where {dim} = dim
 
 "Return the dofs of an `AbstractEntity` `e`."
 function dofs(e::AbstractEntity)
-    vecdfs = dofs.(nodes(e))
-    dfs = mergewith(vcat, vecdfs[1], vecdfs[2])
-    [mergewith!(vcat, dfs, vecdfs[i]) for i in 3:length(vecdfs)]
-    # TODO Simplify?
-    # mapreduce(vcat, dofs, nodes(e))
-    return dfs
+    mapfoldl(dofs, mergewith!(vcat), nodes(e); init=Dictionary{Symbol,Vector{Dof}}())
 end
 
 "Return the dofs of a `Vector` `ve` with `AbstractEntity`es."
@@ -149,8 +144,10 @@ Since global degrees of freedom are for the assemble process this function is us
 extracting the node dofs with the symbol defined by the `AbstractElement` `e`."
 function local_dof_symbol(e::AbstractElement) end
 
-"Return local dofs given a vector of local dof symobls. This method extracts all node dofs with the same symbol
-as local_dof_symbol"
+"""
+Return local dofs given a vector of local dof symbols.
+This method extracts all node dofs with the same symbol as local_dof_symbol.
+"""
 function local_dofs(e::AbstractElement)
     local_dof_symbols = local_dof_symbol(e)
     local_dofs = Vector{Dof}()
