@@ -9,7 +9,7 @@ using ..Structures
 
 @reexport import ..StructuralSolvers: _reset!
 
-export Assembler, assemble!, reset_assembler!, end_assemble, _end_assemble!
+export Assembler, assemble!, reset_assembler!, end_assemble, end_assemble!
 
 """"
 Struct that stores column indexes, row indexes and values for the assemble process.
@@ -75,7 +75,7 @@ end
 end_assemble(a::Assembler{T}) where {T} = sparse(a.I, a.J, a.V)
 
 "Inserts an the `Assembler` object `a` into the tangent system matrix `K_sys`."
-function _end_assemble!(K_sys::AbstractMatrix{T}, a::Assembler{T}) where {T}
+function end_assemble!(K_sys::AbstractMatrix{T}, a::Assembler{T}) where {T}
     for (index_v, v) in enumerate(a.V)
         K_sys[a.I[index_v], a.J[index_v]] += v
     end

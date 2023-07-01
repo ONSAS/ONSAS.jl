@@ -113,7 +113,7 @@ function assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
     end
 
     # Insert values in the assembler objet into the sysyem tangent stiffness matrix
-    _end_assemble!(state)
+    end_assemble!(state)
 end
 
 "Resets the assembled magnitudes of the `AbstractStructuralState` `state`."

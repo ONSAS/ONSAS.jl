@@ -20,7 +20,7 @@ using ..Utils
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 @reexport import ..Structures: free_dofs
 @reexport import ..StructuralSolvers: _update!
-@reexport import ..Assemblers: assemble!, _end_assemble!
+@reexport import ..Assemblers: assemble!, end_assemble!
 @reexport import ..StructuralSolvers: reset!
 @reexport import ..Solutions: displacements, external_forces, iteration_residuals
 
@@ -102,7 +102,7 @@ function assemble!(st::AbstractStructuralState, σₑ::E, ϵₑ::E,
 end
 
 "Fill the system tangent matrix in the `AbstractStructuralState` `st` once the `Assembler` object is built."
-_end_assemble!(st::AbstractStructuralState) = _end_assemble!(tangent_matrix(st), assembler(st))
+end_assemble!(st::AbstractStructuralState) = end_assemble!(tangent_matrix(st), assembler(st))
 
 "Return system tangent matrix in the `AbstractStructuralState` `st`."
 function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end

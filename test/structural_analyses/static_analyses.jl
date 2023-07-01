@@ -167,7 +167,7 @@ sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ,
     assemble!(default_s, k_e_2, truss₂)
     assemble!(default_s, σ_e_2, ϵ_e_2, truss₂)
     # End assemble
-    _end_assemble!(default_s)
+    end_assemble!(default_s)
 
     # Manufactured assemble
     Fᵢₙₜ = zeros(9)
