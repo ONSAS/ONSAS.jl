@@ -118,7 +118,7 @@ end
 
 "Resets the assembled magnitudes of the `AbstractStructuralState` `state`."
 function _reset_assemble!(state::AbstractStructuralState)
-    _reset!(assembler(state))
+    reset!(assembler(state))
     internal_forces(state) .= 0.0
     tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
     # FIXME: Zero out stress and strain
