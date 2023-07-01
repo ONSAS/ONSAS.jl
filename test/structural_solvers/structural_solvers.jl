@@ -92,7 +92,7 @@ end
 
     a = Assembler(length(Ke))
     for n_e in 1:2
-        _assemble!(a, dofs_elements[n_e], Ke)
+        assemble!(a, dofs_elements[n_e], Ke)
     end
 
     @test a.I == [1, 2, 1, 2, 2, 3, 2, 3]
@@ -113,7 +113,7 @@ end
 
     K_to_fill_assembler = spzeros(3, 3)
 
-    _end_assemble!(K_to_fill_assembler, a)
+    end_assemble!(K_to_fill_assembler, a)
 
     @test all([K_glob_assembler[ind] == val for (ind, val) in enumerate(K_glob_assembler)])
     @test all([K_glob_assembler[ind] == val for (ind, val) in enumerate(K_to_fill_assembler)])

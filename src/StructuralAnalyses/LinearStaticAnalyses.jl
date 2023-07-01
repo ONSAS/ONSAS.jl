@@ -19,7 +19,7 @@ using ..StructuralSolvers
 using ..Solvers
 using ..Solutions
 
-@reexport import ..StructuralSolvers: _solve!, _step!
+@reexport import ..StructuralSolvers: _solve!, step!
 
 export LinearStaticAnalysis
 
@@ -78,13 +78,13 @@ function _solve!(sa::LinearStaticAnalysis)
         apply!(sa, load_bcs(boundary_conditions(s))) # Compute Fext
 
         # Assemble K
-        _assemble!(s, sa)
+        assemble!(s, sa)
 
         # Increment structure displacements U = U + ΔU
-        _step!(sa)
+        step!(sa)
 
         # Recompute σ and ε for the assembler
-        _assemble!(s, sa)
+        assemble!(s, sa)
 
         # Save current state
         push!(solution, current_state(sa))
@@ -97,7 +97,7 @@ function _solve!(sa::LinearStaticAnalysis)
 end
 
 "Computes ΔU for solving the linear analysis."
-function _step!(sa::LinearStaticAnalysis)
+function step!(sa::LinearStaticAnalysis)
     # Extract state info
     state = current_state(sa)
     free_dofs_idx = free_dofs(state)

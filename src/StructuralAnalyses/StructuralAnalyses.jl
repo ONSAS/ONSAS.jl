@@ -20,7 +20,7 @@ using ..Utils
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 @reexport import ..Structures: free_dofs
 @reexport import ..StructuralSolvers: _update!
-@reexport import ..Assemblers: _assemble!, _end_assemble!
+@reexport import ..Assemblers: assemble!, end_assemble!
 @reexport import ..StructuralSolvers: reset!
 @reexport import ..Solutions: displacements, external_forces, iteration_residuals
 
@@ -45,7 +45,7 @@ export AbstractStructuralState, Δ_displacements, tangent_matrix, residual_force
 
 
 ### Iteration:
-* [`_assemble!`](@ref)
+* [`assemble!`](@ref)
 * [`assembler`](@ref)
 * [`iteration_residuals`](@ref)
 * [`residual_forces_norms`](@ref)
@@ -85,24 +85,24 @@ free_dofs(st::AbstractStructuralState) = st.free_dofs
 
 # Assemble
 "Assembles the element `e` internal forces `fᵢₙₜ_e` into the `AbstractState` `st`"
-function _assemble!(st::AbstractStructuralState, fᵢₙₜ_e::AbstractVector, e::AbstractElement)
+function assemble!(st::AbstractStructuralState, fᵢₙₜ_e::AbstractVector, e::AbstractElement)
     view(internal_forces(st), local_dofs(e)) .+= fᵢₙₜ_e
 end
 
 "Assembles the element `e` stiffness matrix matrix `K_e` into the `AbstractState` `st`"
-function _assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::AbstractElement)
-    _assemble!(assembler(st), local_dofs(e), kₛ_e)
+function assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::AbstractElement)
+    assemble!(assembler(st), local_dofs(e), kₛ_e)
 end
 
 "Assembles the element `e` stress σₑ and strain ϵₑ into the `AbstractState` `st`"
-function _assemble!(st::AbstractStructuralState, σₑ::E, ϵₑ::E,
-                    e::AbstractElement) where {E<:Union{Real,AbstractMatrix}}
+function assemble!(st::AbstractStructuralState, σₑ::E, ϵₑ::E,
+                   e::AbstractElement) where {E<:Union{Real,AbstractMatrix}}
     stress(st)[e] .= σₑ
     strain(st)[e] .= ϵₑ
 end
 
 "Fill the system tangent matrix in the `AbstractStructuralState` `st` once the `Assembler` object is built."
-_end_assemble!(st::AbstractStructuralState) = _end_assemble!(tangent_matrix(st), assembler(st))
+end_assemble!(st::AbstractStructuralState) = end_assemble!(tangent_matrix(st), assembler(st))
 
 "Return system tangent matrix in the `AbstractStructuralState` `st`."
 function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
