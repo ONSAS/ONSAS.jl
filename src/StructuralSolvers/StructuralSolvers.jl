@@ -10,11 +10,11 @@ using LinearAlgebra: norm
 using ..Entities
 
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
-       MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet
-export ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol
-export ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!
-export AbstractSolver, step_size, tolerances, step!, solve!, _solve!, solve, reset!
-export AbstractSolution
+       MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet,
+       ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol,
+       ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!,
+       AbstractSolver, step_size, tolerances, step!, solve!, _solve!, solve, reset!,
+       AbstractSolution, iterations
 
 const INITIAL_Δ = 1e12
 
