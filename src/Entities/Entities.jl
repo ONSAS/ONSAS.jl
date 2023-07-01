@@ -56,10 +56,7 @@ dimension(::AbstractEntity{dim}) where {dim} = dim
 
 "Return the dofs of an `AbstractEntity` `e`."
 function dofs(e::AbstractEntity)
-    vecdfs = dofs.(nodes(e))
-    dfs = mergewith(vcat, vecdfs[1], vecdfs[2])
-    [mergewith!(vcat, dfs, vecdfs[i]) for i in 3:length(vecdfs)]
-    return dfs
+    mapfoldl(dofs, mergewith!(vcat), nodes(e); init=Dictionary{Symbol,Vector{Dof}}())
 end
 
 "Return the dofs of a `Vector` `ve` with `AbstractEntity`es."
@@ -147,20 +144,25 @@ Since global degrees of freedom are for the assemble process this function is us
 extracting the node dofs with the symbol defined by the `AbstractElement` `e`."
 function local_dof_symbol(e::AbstractElement) end
 
-"Return local dofs given a vector of local dof symobls. This method extracts all node dofs with the same symbol
-as local_dof_symbol"
+"""
+Return local dofs given a vector of local dof symbols.
+This method extracts all node dofs with the same symbol as local_dof_symbol.
+"""
 function local_dofs(e::AbstractElement)
-    local_dof_symbols = local_dof_symbol(e)
-    local_dofs = Vector{Dof}()
-    element_dofs = dofs(e)
-    for dof_symbol in local_dof_symbols
-        if dof_symbol ∉ keys(element_dofs)
-            error("Element $(e.label) does not have dofs with symbol $(dof_symbol)")
-        else
-            push!(local_dofs, element_dofs[dof_symbol]...)
+    lds = local_dof_symbol(e)
+    res = Dof[]
+    for s in lds
+        # Store in the resulting array the dofs per element that match each local dof.
+        # Traversal order matters, since `local_dofs` is then used to build reduced matrices.
+        for n in nodes(e)
+            dict = dofs(n)
+            if !haskey(dict, s)
+                throw(ArgumentError("Element $(e.label) doesn't have dofs with symbol $s."))
+            end
+            append!(res, dict[s])
         end
     end
-    return local_dofs
+    res
 end
 
 "Return the internal forces vector of an `AbstractElement` `e` with an `AbstractMaterial` `m`."
