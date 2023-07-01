@@ -7,7 +7,7 @@ using ..Entities
 using ..Nodes
 using ..Structures
 
-@reexport import ..StructuralSolvers: _reset!
+@reexport import ..StructuralSolvers: reset!
 
 export Assembler, assemble!, reset_assembler!, end_assemble, end_assemble!
 
@@ -61,7 +61,7 @@ function assemble!(a::Assembler{T},
 end
 
 "Empties the `Assembler` object `a`. This is useful to reuse the same assembler."
-function _reset!(a::Assembler{T}) where {T}
+function reset!(a::Assembler{T}) where {T}
     N = length(a.I)
     empty!(a.I)
     empty!(a.J)
