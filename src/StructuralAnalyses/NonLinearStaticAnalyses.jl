@@ -70,7 +70,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
     while !is_done(sa)
 
         # Sets Δu, ΔR and relatives norms to zero
-        _reset!(current_iteration(sa))
+        reset!(current_iteration(sa))
 
         # Computes external forces
         apply!(sa, load_bcs(boundary_conditions(s)))
@@ -87,7 +87,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
         @debugtime "Save current state" push!(sol, current_state(sa))
 
         # Increment the time or load factor step.
-        @debugtime "Next step" _next!(sa)
+        @debugtime "Next step" next!(sa)
     end
     sol
 end

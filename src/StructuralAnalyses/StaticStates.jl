@@ -104,7 +104,7 @@ function reset!(state::StaticState)
     # Reset assembled magnitudes
     internal_forces(state) .= 0.0
     tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
-    _reset!(assembler(state))
+    reset!(assembler(state))
     # Reset the stress and strains dictionaries
     for (e, _) in pairs(stress(state))
         stress(state)[e] .= zeros(3, 3)
@@ -115,7 +115,7 @@ function reset!(state::StaticState)
     # Reset iteration state
     displacements(state) .= 0.0
     Δ_displacements(state) .= 0.0
-    _reset!(iteration_residuals(state))
+    reset!(iteration_residuals(state))
     # Return state
     @info "The structural state has been reset."
     state

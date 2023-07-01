@@ -12,7 +12,7 @@ using ..Entities
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet,
        ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol,
-       ResidualsIterationStep, iter, criterion, _reset!, isconverged!, _update!,
+       ResidualsIterationStep, iter, criterion, isconverged!, _update!,
        AbstractSolver, step_size, tolerances, step!, solve!, _solve!, solve, reset!,
        AbstractSolution, iterations
 
@@ -98,7 +98,7 @@ residual_forces_tol(ri_step::ResidualsIterationStep) = (ri_step.Δr_rel, ri_step
 displacement_tol(ri_step::ResidualsIterationStep) = (ri_step.ΔU_rel, ri_step.ΔU_norm)
 
 "Sets the iteration step to 0."
-function _reset!(ri_step::ResidualsIterationStep{T}) where {T<:Real}
+function reset!(ri_step::ResidualsIterationStep{T}) where {T<:Real}
     ri_step.ΔU_norm = ri_step.Δr_norm = ri_step.ΔU_rel = ri_step.Δr_rel = INITIAL_Δ * ones(T)[1]
     ri_step.iter = 0
     ri_step.criterion = NotConvergedYet()
@@ -106,7 +106,7 @@ function _reset!(ri_step::ResidualsIterationStep{T}) where {T<:Real}
 end
 
 "Sets the iteration step with nothing."
-function _reset!(ri_step::ResidualsIterationStep{<:Nothing})
+function reset!(ri_step::ResidualsIterationStep{<:Nothing})
     ri_step.iter = 0
     ri_step.criterion = ResidualForceCriterion()
     ri_step
