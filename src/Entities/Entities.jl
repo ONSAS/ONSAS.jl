@@ -149,17 +149,20 @@ Return local dofs given a vector of local dof symbols.
 This method extracts all node dofs with the same symbol as local_dof_symbol.
 """
 function local_dofs(e::AbstractElement)
-    local_dof_symbols = local_dof_symbol(e)
-    local_dofs = Vector{Dof}()
-    element_dofs = dofs(e)
-    for dof_symbol in local_dof_symbols
-        if dof_symbol ∉ keys(element_dofs)
-            error("Element $(e.label) does not have dofs with symbol $(dof_symbol)")
-        else
-            push!(local_dofs, element_dofs[dof_symbol]...)
+    lds = local_dof_symbol(e)
+    res = Dof[]
+    for s in lds
+        # Store in the resulting array the dofs per element that match each local dof.
+        # Traversal order matters, since `local_dofs` is then used to build reduced matrices.
+        for n in nodes(e)
+            dict = dofs(n)
+            if !haskey(dict, s)
+                throw(ArgumentError("Element $(e.label) doesn't have dofs with symbol $s."))
+            end
+            append!(res, dict[s])
         end
     end
-    return local_dofs
+    res
 end
 
 "Return the internal forces vector of an `AbstractElement` `e` with an `AbstractMaterial` `m`."
