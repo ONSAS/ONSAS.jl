@@ -9,7 +9,7 @@ using ..Structures
 
 @reexport import ..StructuralSolvers: _reset!
 
-export Assembler, assemble!, _reset_assembler!, end_assemble, _end_assemble!
+export Assembler, assemble!, reset_assembler!, end_assemble, _end_assemble!
 
 """"
 Struct that stores column indexes, row indexes and values for the assemble process.
