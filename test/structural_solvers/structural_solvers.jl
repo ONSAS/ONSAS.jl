@@ -39,7 +39,7 @@ tols = ConvergenceSettings(tol_u, tol_f, max_iter)
     @test criterion(residuals_current_step) isa NotConvergedYet
     @test all(map(x -> x ≥ 1e3, displacement_tol(residuals_current_step)))
     @test all(map(x -> x ≥ 1e3, residual_forces_tol(residuals_current_step)))
-    _update!(residuals_current_step, ΔUCriterion())
+    update!(residuals_current_step, ΔUCriterion())
     @test isconverged!(residuals_current_step, tols) isa NotConvergedYet
 
     # Update residuals
@@ -52,7 +52,7 @@ tols = ConvergenceSettings(tol_u, tol_f, max_iter)
     fₑₓₜ = [1e3, 1e3]
     Δr_rel = Δr_norm / norm(fₑₓₜ)
 
-    _update!(residuals_current_step, ΔU_norm, ΔU_rel, Δr_norm, Δr_rel)
+    update!(residuals_current_step, ΔU_norm, ΔU_rel, Δr_norm, Δr_rel)
 
     @test iterations(residuals_current_step) == 1
 

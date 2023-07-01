@@ -19,7 +19,7 @@ using ..Utils
 @reexport import ..Utils: apply!
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 @reexport import ..Structures: free_dofs
-@reexport import ..StructuralSolvers: _update!
+@reexport import ..StructuralSolvers: update!
 @reexport import ..Assemblers: assemble!, end_assemble!
 @reexport import ..StructuralSolvers: reset!
 @reexport import ..Solutions: displacements, external_forces, iteration_residuals
@@ -122,7 +122,7 @@ function residual_displacements_norms(st::AbstractStructuralState)
 end
 
 "Updates the `AbstractStructuralState` `st` during the displacements iteration."
-function _update!(st::AbstractStructuralState, args...; kwargs...) end
+function update!(st::AbstractStructuralState, args...; kwargs...) end
 
 "Resets  the `AbstractStructuralState` assembled magnitudes before starting a new assembly."
 function reset!(st::AbstractStructuralState, args...; kwargs...) end
