@@ -43,13 +43,33 @@ truss₁ = Truss(n₁, n₂, s)
 truss₂ = Truss(n₂, n₃, s)
 truss₃ = Truss(n₁, n₃, s)
 truss₄ = Truss(n₄, n₃, s)
-# Mesh
+
 # Materials
 steel = SVK(E, ν, "steel")
 new_steel = SVK(2E, ν, "new_steel")
 aluminum = SVK(E / 3, ν, "aluminium")
 mat_dict = dictionary([steel => [truss₁, truss₃], aluminum => [truss₂]])
 s_materials = StructuralMaterial(mat_dict)
+
+empty_mat_dict = dictionary([steel=>Vector{AbstractElement}(),aluminum => Vector{AbstractElement}()])
+empty_materials = StructuralMaterial(matdict)
+
+@testset "ONSAS.StructuralMaterial" begin
+    @test s_materials[truss₁] == steel
+    @test s_materials["steel"] == steel
+    @test truss₁ ∈ s_materials[steel] && truss₃ ∈ s_materials[steel]
+    insert!(s_materials, new_steel)
+    @test new_steel ∈ keys(element_materials(s_materials))
+    delete!(s_materials, new_steel)
+    @test new_steel ∉ keys(element_materials(s_materials))
+    material_label_to_be_replaced = "steel"
+    replace!(s_materials, new_steel, material_label_to_be_replaced)
+    @test new_steel ∈ keys(element_materials(s_materials))
+    @test steel ∉ keys(element_materials(s_materials))
+    @test s_materials[truss₁] == new_steel
+    @test all(map(isempty,element_materials(empty_materials)))
+end
+
 # Boundary conditions
 Fⱼ = 20.0
 Fᵢ = 10.0
@@ -67,21 +87,6 @@ s_boundary_conditions_only_nodes = StructuralBoundaryCondition(; node_bcs=node_b
 s_boundary_conditions_only_faces = StructuralBoundaryCondition(; face_bcs=face_bc)
 s_boundary_conditions_only_elements = StructuralBoundaryCondition(; element_bcs=elem_bc)
 s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
-
-@testset "ONSAS.StructuralMaterial" begin
-    @test s_materials[truss₁] == steel
-    @test s_materials["steel"] == steel
-    @test truss₁ ∈ s_materials[steel] && truss₃ ∈ s_materials[steel]
-    insert!(s_materials, new_steel)
-    @test new_steel ∈ keys(element_materials(s_materials))
-    delete!(s_materials, new_steel)
-    @test new_steel ∉ keys(element_materials(s_materials))
-    material_label_to_be_replaced = "steel"
-    replace!(s_materials, new_steel, material_label_to_be_replaced)
-    @test new_steel ∈ keys(element_materials(s_materials))
-    @test steel ∉ keys(element_materials(s_materials))
-    @test s_materials[truss₁] == new_steel
-end
 
 @testset "ONSAS.StructuralBoundaryCondition" begin
 
