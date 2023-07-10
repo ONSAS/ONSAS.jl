@@ -64,7 +64,14 @@ end
 Base.pairs(sm::StructuralMaterial) = pairs(element_materials(sm))
 
 "Checks that each `Element` has a single `Material` in the dictionary `mat_dict`."
-_element_material_is_unique(mat_dict) = length(unique(values(mat_dict))) == length(values(mat_dict))
+function _element_material_is_unique(mat_dict)
+    unique_elements =  unique(values(mat_dict))
+    if all(map(isempty, unique_elements))
+        true
+    else
+        length(unique_elements) == length(values(mat_dict))
+    end
+end
 
 "Apply the `StructuralBoundaryCondition` to the `AbstractMesh` `m`. For this is required sets
 into the `Mesh` and the corresponding boundary condition labels declared in `bcs`."
