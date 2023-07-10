@@ -10,6 +10,7 @@ using ONSAS.StructuralEntities
 using ONSAS.StructuralMaterials
 using ONSAS.StructuralBoundaryConditions
 using ONSAS.Nodes
+using ONSAS.Entities
 using ONSAS.TriangularFaces
 using ONSAS.Trusses
 using ONSAS.Tetrahedrons
@@ -52,7 +53,7 @@ mat_dict = dictionary([steel => [truss₁, truss₃], aluminum => [truss₂]])
 s_materials = StructuralMaterial(mat_dict)
 
 empty_mat_dict = dictionary([steel=>Vector{AbstractElement}(),aluminum => Vector{AbstractElement}()])
-empty_materials = StructuralMaterial(matdict)
+empty_materials = StructuralMaterial(empty_mat_dict)
 
 @testset "ONSAS.StructuralMaterial" begin
     @test s_materials[truss₁] == steel
