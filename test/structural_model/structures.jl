@@ -1,5 +1,6 @@
 using Test
 using Dictionaries: dictionary
+
 using ONSAS.Structures
 using ONSAS.Squares
 using ONSAS.SVKMaterial
@@ -52,7 +53,8 @@ aluminum = SVK(E / 3, ν, "aluminium")
 mat_dict = dictionary([steel => [truss₁, truss₃], aluminum => [truss₂]])
 s_materials = StructuralMaterial(mat_dict)
 
-empty_mat_dict = dictionary([steel=>Vector{AbstractElement}(),aluminum => Vector{AbstractElement}()])
+empty_mat_dict = dictionary([steel => Vector{AbstractElement}(),
+                             aluminum => Vector{AbstractElement}()])
 empty_materials = StructuralMaterial(empty_mat_dict)
 
 @testset "ONSAS.StructuralMaterial" begin
@@ -68,7 +70,7 @@ empty_materials = StructuralMaterial(empty_mat_dict)
     @test new_steel ∈ keys(element_materials(s_materials))
     @test steel ∉ keys(element_materials(s_materials))
     @test s_materials[truss₁] == new_steel
-    @test all(map(isempty,element_materials(empty_materials)))
+    @test all(map(isempty, element_materials(empty_materials)))
 end
 
 # Boundary conditions

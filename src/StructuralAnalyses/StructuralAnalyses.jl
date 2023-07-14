@@ -53,75 +53,75 @@ export AbstractStructuralState, Δ_displacements, tangent_matrix, residual_force
 """
 abstract type AbstractStructuralState end
 
-"Return the `Assembler` used in the `AbstractStructuralState` `st`."
+"Return the assembler used in the structural state."
 assembler(st::AbstractStructuralState) = st.assembler
 
-"Return current `ResidualsIterationStep` object form an `AbstractStructuralState` `st`."
+"Return current `ResidualsIterationStep` object form an structural state."
 iteration_residuals(st::AbstractStructuralState) = st.iter_state
 
-"Return current displacements vector at the current `AbstractStructuralState` `st`."
+"Return current displacements vector at the current structural state."
 displacements(st::AbstractStructuralState) = st.Uᵏ
 
-"Return current displacements increment vector at the current `AbstractStructuralState` `st`."
+"Return current displacements increment vector at the current structural state."
 Δ_displacements(st::AbstractStructuralState) = st.ΔUᵏ
 
-"Return the current internal forces vector in the `AbstractStructuralState` `st`."
+"Return the current internal forces vector in the structural state."
 internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
 
-"Return external forces vector in the `AbstractStructuralState` `st`."
+"Return external forces vector in the structural state."
 external_forces(st::AbstractStructuralState) = st.Fₑₓₜᵏ
 
-"Return residual forces vector in the `AbstractStructuralState` `st`."
+"Return residual forces vector in the structural state."
 function residual_forces!(st::AbstractStructuralState) end
 
-"Return stresses for each `Element` in the `AbstractStructuralState` `st`."
+"Return stresses for each `Element` in the structural state."
 stress(st::AbstractStructuralState) = st.σᵏ
 
-"Return strains for each `Element` in the `AbstractStructuralState` `st`."
+"Return strains for each `Element` in the structural state."
 strain(st::AbstractStructuralState) = st.ϵᵏ
 
-"Return free `Dof`s of the structure in the `AbstractStructuralState` `st`."
+"Return free `Dof`s of the structure in the structural state."
 free_dofs(st::AbstractStructuralState) = st.free_dofs
 
 # Assemble
-"Assembles the element `e` internal forces `fᵢₙₜ_e` into the `AbstractState` `st`"
+"Assembles the element `e` internal forces `fᵢₙₜ_e` into the structural state."
 function assemble!(st::AbstractStructuralState, fᵢₙₜ_e::AbstractVector, e::AbstractElement)
     view(internal_forces(st), local_dofs(e)) .+= fᵢₙₜ_e
 end
 
-"Assembles the element `e` stiffness matrix matrix `K_e` into the `AbstractState` `st`"
+"Assembles the element `e` stiffness matrix matrix `K_e` into the structural state."
 function assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::AbstractElement)
     assemble!(assembler(st), local_dofs(e), kₛ_e)
 end
 
-"Assembles the element `e` stress σₑ and strain ϵₑ into the `AbstractState` `st`"
+"Assembles the element `e` stress σₑ and strain ϵₑ into the structural state."
 function assemble!(st::AbstractStructuralState, σₑ::E, ϵₑ::E,
                    e::AbstractElement) where {E<:Union{Real,AbstractMatrix}}
     stress(st)[e] .= σₑ
     strain(st)[e] .= ϵₑ
 end
 
-"Fill the system tangent matrix in the `AbstractStructuralState` `st` once the `Assembler` object is built."
+"Fill the system tangent matrix in the structural state once the assembler object is built."
 end_assemble!(st::AbstractStructuralState) = end_assemble!(tangent_matrix(st), assembler(st))
 
-"Return system tangent matrix in the `AbstractStructuralState` `st`."
+"Return system tangent matrix in the structural state."
 function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
 
-"Return relative residual forces for the current `AbstractStructuralState` `st`."
+"Return relative residual forces for the current structural state."
 function residual_forces_norms(st::AbstractStructuralState)
     rᵏ_norm = norm(residual_forces!(st))
     fₑₓₜ_norm = norm(external_forces(st))
     rᵏ_norm, rᵏ_norm / fₑₓₜ_norm
 end
 
-"Return relative residual displacements for the current `AbstractStructuralState` `st`."
+"Return relative residual displacements for the current structural state."
 function residual_displacements_norms(st::AbstractStructuralState)
     ΔU_norm = norm(Δ_displacements(st))
     U_norm = norm(displacements(st))
     ΔU_norm, ΔU_norm / U_norm
 end
 
-"Updates the `AbstractStructuralState` `st` during the displacements iteration."
+"Updates the structural state during the displacements iteration."
 function update!(st::AbstractStructuralState, args...; kwargs...) end
 
 "Resets  the `AbstractStructuralState` assembled magnitudes before starting a new assembly."
@@ -187,20 +187,14 @@ function apply!(sa::AbstractStructuralAnalysis, lbc::AbstractNeumannBoundaryCond
     t = current_time(sa)
     bcs = boundary_conditions(structure(sa))
     dofs_lbc, dofs_values = apply(bcs, lbc, t)
-    external_forces(current_state(sa))[dofs_lbc] = dofs_values
+    external_forces(current_state(sa))[dofs_lbc] .+= dofs_values
 end
 
 "Apply a vector of load boundary conditions to the structure."
 function apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractNeumannBoundaryCondition})
-    [apply!(sa, lbc) for lbc in l_bcs]
+    for lbc in l_bcs
+        apply!(sa, lbc)
+    end
 end
 
-# ================
-# Dynamic analysis
-# ================
-
-# ================
-# Modal analysis
-# ================
-
-end #module
+end

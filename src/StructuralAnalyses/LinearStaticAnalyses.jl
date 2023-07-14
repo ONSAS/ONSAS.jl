@@ -75,16 +75,17 @@ function _solve!(sa::LinearStaticAnalysis)
         displacements(current_state(sa)) .= 0.0
 
         # Compute external force
-        apply!(sa, load_bcs(boundary_conditions(s))) # Compute Fext
+        external_forces(current_state(sa)) .= 0
+        @debugtime "Assemble external forces" apply!(sa, load_bcs(boundary_conditions(s)))
 
         # Assemble K
-        assemble!(s, sa)
+        @debugtime "Assemble internal forces" assemble!(s, sa)
 
         # Increment structure displacements U = U + ΔU
-        step!(sa)
+        @debugtime "Step" step!(sa)
 
         # Recompute σ and ε for the assembler
-        assemble!(s, sa)
+        @debugtime "Assemble internal forces" assemble!(s, sa)
 
         # Save current state
         push!(solution, current_state(sa))

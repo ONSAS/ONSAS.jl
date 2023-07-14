@@ -116,7 +116,7 @@ function assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
     end_assemble!(state)
 end
 
-"Resets the assembled magnitudes of the `AbstractStructuralState` `state`."
+"Resets the assembled magnitudes in the state."
 function reset_assemble!(state::AbstractStructuralState)
     reset!(assembler(state))
     internal_forces(state) .= 0.0
@@ -125,7 +125,7 @@ function reset_assemble!(state::AbstractStructuralState)
     nothing
 end
 
-"Pushes the current state `c_state` into the `StatesSolution` `st_sol`."
+"Pushes the current state into the solution."
 function Base.push!(st_sol::StatesSolution, c_state::StaticState)
     # Copies TODO Need to store all these?
     fdofs = free_dofs(c_state)
