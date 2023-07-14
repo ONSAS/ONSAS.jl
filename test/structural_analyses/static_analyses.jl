@@ -30,8 +30,8 @@ ang = 65 # truss angle in degrees
 L = 2 # Length in m
 d = L * cos(deg2rad(65))   # vertical distance in m
 h = L * sin(deg2rad(65))
-Fₖ = -3e8  # vertical   load in N
-
+Fₖ = -3e8  # vertical load in N
+Fⱼ = -2e8  # vertical load in N
 # -------------------------------
 # Materials
 # -------------------------------
@@ -73,8 +73,9 @@ s_materials = StructuralMaterial(mat_dict)
 bc₁ = FixedDof(:u, [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
 bc₂ = FixedDof(:u, [2], "fixed_uⱼ")
 # Load
-bc₃ = GlobalLoad(:u, t -> [0, 0, Fₖ * t], "load in j")
-node_bcs = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂]])
+bc₃ = GlobalLoad(:u, t -> [0, 0, Fₖ * t], "load in k")
+bc₄ = GlobalLoad(:u, t -> [0, Fⱼ * t, 0.0], "load in j")
+node_bcs = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂], bc₄ => [n₂]])
 s_boundary_conditions = StructuralBoundaryCondition(; node_bcs)
 # -------------------------------
 # Structure
@@ -202,6 +203,12 @@ sa_init = NonLinearStaticAnalysis(s, λ₁; NSTEPS=NSTEPS, initial_step=init_ste
     @test final_time(sa_init) == last(λᵥ)
     @test current_load_factor(sa_init) == init_step * λ₁ / NSTEPS
     @test load_factors(sa_init) == λᵥ
+
+    # External forces
+    @test external_forces(current_state(sa_init)) == zeros(num_dofs(s))
+    apply!(sa_init, load_bcs(s_boundary_conditions))
+    @test external_forces(current_state(sa_init))[4:6] ==
+          bc₄(current_time(sa_init)) + bc₃(current_time(sa_init))
 
     # Next step
     next!(sa_init)
