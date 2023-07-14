@@ -69,16 +69,17 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
     # Load factors iteration.
     while !is_done(sa)
 
-        # Sets Δu, ΔR and relatives norms to zero
+        # Reset assembled magnitudes
         reset!(current_iteration(sa))
 
         # Computes external forces
-        apply!(sa, load_bcs(boundary_conditions(s)))
+        external_forces(current_state(sa)) .= 0
+        @debugtime "Assemble external forces" apply!(sa, load_bcs(boundary_conditions(s)))
 
         # Displacements iteration.
         while isconverged!(current_iteration(sa), tolerances(alg)) isa NotConvergedYet
             # Compute residual forces and tangent matrix.
-            @debugtime "Assemble" assemble!(s, sa)
+            @debugtime "Assemble internal forces" assemble!(s, sa)
 
             # Increment structure displacements `U = U + ΔU`.
             @debugtime "Step" step!(sa, alg)
