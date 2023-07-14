@@ -80,6 +80,9 @@ function run_linear_extension_example()
     # Numerical solution
     # -------------------------------
     states_sol = solve!(sa)
+
+    write_vtks(states_sol, "linear_extension")
+
     # Select random points to test the solution
     ## Displacements
     x₀_rand = Lx * rand(2)
