@@ -11,12 +11,12 @@ using ..Entities
 using ..Nodes
 
 @reexport import ..Entities: dimension, nodes
-@reexport import ..Meshes: Mesh
+@reexport import ..Meshes: Mesh, connectivity
 
 # Physical nodes index, all gmsh files should be defined with this label
 const PHYSICAL_NODE_LABEL = "node"
 
-export MshFile, connectivity, material_label, entity_label, bc_label, physical_index, gmsh_println,
+export MshFile, material_label, entity_label, bc_label, physical_index, gmsh_println,
        PHYSICAL_NODE_LABEL
 
 """
