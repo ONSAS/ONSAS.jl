@@ -23,7 +23,7 @@ using ..Utils
 
 export AbstractMesh, Mesh, EntitySet, connectivity, faces, face_set, node, element, elements,
        element_set, num_dofs, num_elements, node_set, add_node_to_set!, add_element_to_set!,
-       add_face_to_set!, add_entity_to_set!, node_coordinates_matrix
+       add_face_to_set!, add_entity_to_set!, node_matrix
 
 """
 Abstract mesh of dimension `dim`.
@@ -42,7 +42,7 @@ Abstract mesh of dimension `dim`.
 * [`node`](@ref)
 * [`nodes`](@ref)
 * [`num_nodes`](@ref)
-* [`node_coordinates_matrix`](@ref)
+* [`node_matrix`](@ref)
 """
 abstract type AbstractMesh{dim} end
 
@@ -171,10 +171,10 @@ function Mesh(; nodes::Vector{N}=Vector{AbstractNode}(),
 end
 
 "Return the mesh node coordinates matrix. Each row is a node, each column a coordinate."
-function node_coordinates_matrix(mesh::Mesh{dim,T}) where {dim,T}
-    nodes_coords_matrix = Matrix{Float64}(undef, (num_nodes(mesh), dim))
+function node_matrix(mesh::Mesh{dim,T}) where {dim,T}
+    nodes_coords_matrix = Matrix{eltype(T)}(undef, (dim, num_nodes(mesh)))
     for (i, n) in enumerate(nodes(mesh))
-        nodes_coords_matrix[i, :] = coordinates(n)
+        nodes_coords_matrix[:, i] = coordinates(n)
     end
     nodes_coords_matrix
 end

@@ -47,11 +47,11 @@ const RTOL = 1e-5
     @test element(mesh, 1) == t₁
 
     # Standard form
-    nodes_matrix = Matrix{Float64}(undef, num_nodes(mesh), dimension(mesh))
+    nodes_matrix = Matrix{Float64}(undef, dimension(mesh), num_nodes(mesh))
     for (i, n) in enumerate(nodes(mesh))
-        nodes_matrix[i, :] = coordinates(n)
+        nodes_matrix[:, i] = coordinates(n)
     end
-    @test node_coordinates_matrix(mesh) == nodes_matrix
+    @test node_matrix(mesh) == nodes_matrix
     @test Meshes.connectivity(mesh) == [[1, 2], [2, 3], [3, 4]]
 
     # Add new nodes and elements.
