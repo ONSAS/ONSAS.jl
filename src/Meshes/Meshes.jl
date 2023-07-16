@@ -21,22 +21,28 @@ using ..Utils
 @reexport import ..Entities: dimension, dofs, nodes, num_nodes
 @reexport import ..Nodes: set_dofs!
 
-export AbstractMesh, Mesh, EntitySet, faces, face_set, node, element, elements, element_set,
-       num_dofs, num_elements, node_set, add_node_to_set!, add_element_to_set!, add_face_to_set!,
-       add_entity_to_set!
+export AbstractMesh, Mesh, EntitySet, connectivity, faces, face_set, node, element, elements,
+       element_set, num_dofs, num_elements, node_set, add_node_to_set!, add_element_to_set!,
+       add_face_to_set!, add_entity_to_set!, node_matrix
 
 """
 Abstract mesh of dimension `dim`.
 
 **Common methods**
+* [`connectivity`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
 * [`num_dofs`](@ref)
+* [`set_dofs`](@ref)
+* [`element`](@ref)
 * [`elements`](@ref)
+* [`face`](@ref)
 * [`faces`](@ref)
 * [`num_elements`](@ref)
+* [`node`](@ref)
 * [`nodes`](@ref)
 * [`num_nodes`](@ref)
+* [`node_matrix`](@ref)
 """
 abstract type AbstractMesh{dim} end
 
@@ -164,6 +170,34 @@ function Mesh(; nodes::Vector{N}=Vector{AbstractNode}(),
     Mesh(nodes, elements, faces, node_sets, element_sets, face_sets, extra)
 end
 
+"Return the mesh node coordinates matrix. Each row is a node, each column a coordinate."
+function node_matrix(mesh::Mesh{dim,T}) where {dim,T}
+    nodes_coords_matrix = Matrix{eltype(T)}(undef, (dim, num_nodes(mesh)))
+    for (i, n) in enumerate(nodes(mesh))
+        nodes_coords_matrix[:, i] = coordinates(n)
+    end
+    nodes_coords_matrix
+end
+
+"Return the mesh connectivity."
+function connectivity(mesh::Mesh{dim,T}) where {dim,T}
+
+    # Check if a already contains the connectivity
+    hasproperty(mesh.extra, :connectivity) && return mesh.extra.connectivity
+
+    connectivity = Vector{Vector{Int}}(undef, num_elements(mesh))
+
+    enumerate_nodes = Dictionary{AbstractNode,Int}()
+    for (i, n) in enumerate(nodes(mesh))
+        get!(enumerate_nodes, n, i)
+    end
+
+    for (i, e) in enumerate(elements(mesh))
+        connectivity[i] = [enumerate_nodes[n] for n in nodes(e)]
+    end
+    connectivity
+end
+
 "Return the set of named nodes."
 node_set(m::Mesh) = m.node_sets
 
@@ -196,10 +230,10 @@ function add_node_to_set!(node_sets::EntitySet, name::AbstractString, idx::Int)
     node_sets
 end
 
-"Return the set of named elements. "
+"Return the set of named elements."
 element_set(m::Mesh) = m.element_sets
 
-"Return the set of elements associated to a given name. "
+"Return the set of elements associated to a given name."
 element_set(m::Mesh, name::String) = get(element_set(m), name, nothing)
 
 "Return a `Vector` of `Element`s  with `element_set_name` in the `Mesh` `m`."

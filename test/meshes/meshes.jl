@@ -25,7 +25,7 @@ const RTOL = 1e-5
     n₁ = Node(0, 0, 0)
     n₂ = Node(L, L, L)
     n₃ = Node(2L, 0, 5L)
-    n₄ = Node(2L, 0, 5L)
+    n₄ = Node(3L, 0, 5L)
     vec_nodes = [n₁, n₂, n₃, n₄]
 
     ## Entities
@@ -45,6 +45,14 @@ const RTOL = 1e-5
     @test nodes(mesh) == vec_nodes
     @test elements(mesh) == vec_elements
     @test element(mesh, 1) == t₁
+
+    # Standard form
+    nodes_matrix = Matrix{Float64}(undef, dimension(mesh), num_nodes(mesh))
+    for (i, n) in enumerate(nodes(mesh))
+        nodes_matrix[:, i] = coordinates(n)
+    end
+    @test node_matrix(mesh) == nodes_matrix
+    @test Meshes.connectivity(mesh) == [[1, 2], [2, 3], [3, 4]]
 
     # Add new nodes and elements.
     new_node₁ = Node(3L, 0, 5L)
