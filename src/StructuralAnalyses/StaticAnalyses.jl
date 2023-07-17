@@ -83,7 +83,7 @@ current_load_factor(sa::AbstractStaticAnalysis) = current_time(sa)
 next!(sa::AbstractStaticAnalysis) = sa.current_step[] += 1
 
 "Sets the current load factor of the structural analysis to the initial load factor.
-Also resets! the iteration and `AbstractStructuralState`."
+Also Reset! the iteration and `AbstractStructuralState`."
 function reset!(sa::AbstractStaticAnalysis)
     sa.current_step[] = 1
     reset!(current_state(sa))
@@ -116,16 +116,15 @@ function assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
     end_assemble!(state)
 end
 
-"Resets the assembled magnitudes in the state."
-function reset_assemble!(state::AbstractStructuralState)
+"Reset the assembled magnitudes in the state."
+function reset_assemble!(state::StaticState)
     reset!(assembler(state))
     internal_forces(state) .= 0.0
-    tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
-    # FIXME: Zero out stress and strain
+    tangent_matrix(state).nzval .= 0.0
     nothing
 end
 
-"Pushes the current state into the solution."
+"Push the current state into the solution."
 function Base.push!(st_sol::StatesSolution, c_state::StaticState)
     # Copies TODO Need to store all these?
     fdofs = free_dofs(c_state)

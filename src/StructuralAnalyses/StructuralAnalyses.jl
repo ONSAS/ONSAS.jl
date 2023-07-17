@@ -124,7 +124,7 @@ end
 "Updates the structural state during the displacements iteration."
 function update!(st::AbstractStructuralState, args...; kwargs...) end
 
-"Resets  the `AbstractStructuralState` assembled magnitudes before starting a new assembly."
+"Reset  the `AbstractStructuralState` assembled magnitudes before starting a new assembly."
 function reset!(st::AbstractStructuralState, args...; kwargs...) end
 
 """ Abstract supertype for all structural analysis.
