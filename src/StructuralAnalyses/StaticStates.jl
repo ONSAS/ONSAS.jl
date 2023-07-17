@@ -99,7 +99,7 @@ end
 "Return the current system tangent matrix form the static state ."
 tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
-"Resets the static state assembled magnitudes and the iteration state."
+"Reset the static state assembled magnitudes and the iteration state."
 function reset!(state::StaticState)
     # Reset assembled magnitudes
     internal_forces(state) .= 0.0

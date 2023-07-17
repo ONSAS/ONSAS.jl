@@ -214,7 +214,7 @@ function _solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
 "Return the initialized analysis. By default, it Return the same analysis."
 _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
 
-"Resets the analysis to the state before starting a new assembly."
+"Reset the analysis to the state before starting a new assembly."
 function reset! end
 
 end # module
