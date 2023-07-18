@@ -7,6 +7,7 @@ module StaticAnalyses
 
 using Dictionaries: dictionary
 using Reexport
+using SparseArrays
 
 using ..Materials
 using ..Entities
@@ -120,7 +121,9 @@ end
 function reset_assemble!(state::StaticState)
     reset!(assembler(state))
     internal_forces(state) .= 0.0
-    tangent_matrix(state).nzval .= 0.0
+    K = tangent_matrix(state)
+    I, J, V = findnz(tangent_matrix(state))
+    K[I, J] .= zeros(eltype(V))
     nothing
 end
 
