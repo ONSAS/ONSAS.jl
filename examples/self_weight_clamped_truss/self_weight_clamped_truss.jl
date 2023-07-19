@@ -1,5 +1,5 @@
 # ---------------------------------
-# Own weight clamped truss example
+# Self weight clamped truss example
 # --------------------------------
 #=
 This model consist of a clamped truss with its own weight. First the
@@ -51,7 +51,7 @@ function analytic_u(x::Real; F::Real, E::Real,
 end
 
 "Return mesh"
-function mesh(N::Int, L::Real, A::Real, ϵ_model)
+function create_mesh(N::Int, L::Real, A::Real, ϵ_model)
     nodes = [Node(l) for l in LinRange(0, L, N + 1)]
     elements = [Truss(nodes[i], nodes[i + 1], Square(sqrt(A)), ϵ_model)
                 for i in 1:N]
@@ -67,25 +67,25 @@ function structure(N::Int;
     # -------------
     # Mesh
     # -------------
-    mesh = Main.mesh(N, L, A, ϵ_model)
+    s_mesh = create_mesh(N, L, A, ϵ_model)
     # -------------------------------
     # Materials
     # -------------------------------
     material = SVK(; E, ν, ρ, label="material")
-    materials = StructuralMaterial(material => elements(mesh))
+    materials = StructuralMaterial(material => elements(s_mesh))
     # -------------------------------
     # Boundary conditions
     # -------------------------------
     fixed_bc = FixedDof(:u, [1], "fixed")
     gravity_bc_ramp = GlobalLoad(:u, t -> t * [density(material) * g], "gravity")
     node_bcs = Dictionary{AbstractBoundaryCondition,Vector{Node}}()
-    insert!(node_bcs, fixed_bc, [first(nodes(mesh))])
-    element_bcs = dictionary([gravity_bc_ramp => elements(mesh)])
+    insert!(node_bcs, fixed_bc, [first(nodes(s_mesh))])
+    element_bcs = dictionary([gravity_bc_ramp => elements(s_mesh)])
     boundary_conditions = StructuralBoundaryCondition(; node_bcs, element_bcs)
     # -------------------------------
     # Structure
     # -------------------------------
-    Structure(mesh, materials, boundary_conditions)
+    Structure(s_mesh, materials, boundary_conditions)
 end;
 
 function run_example(; ATOL::Real)
