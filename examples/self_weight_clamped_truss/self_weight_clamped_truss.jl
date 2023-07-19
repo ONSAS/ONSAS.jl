@@ -2,22 +2,22 @@
 # Self weight clamped truss example
 # --------------------------------
 #=
-This model consist of a clamped truss with its own weight. First the
-weight is applied and consecutive the load at the time starting from the own
+This model consist of a clamped truss with its self weight. First the
+weight is applied and consecutive the load at the time starting from the self
 weight deformed configuration.
 
-# Analysis 1: Own weight
+# Analysis 1: Self weight
 
 ## Forces
 -> g
 --------> F
 
-# Analysis 1: Own weight
+# Analysis 1: Self weight
 #-----------------------------
 # ->  ->  ->  ->  ->  ->  -> -
 #-----------------------------
 
-# Analysis 2: Own weight + load
+# Analysis 2: Self weight + load
 #-----------------------------
 # ->  ->  ->  ->  ->  ->  -> - -----> F
 #-----------------------------
@@ -94,7 +94,7 @@ function run_example(; ATOL::Real)
     #-----------------------------
     g, N, E, ν, ρ, L, A, F, ϵ_model = parameters()
     #-----------------------------
-    # Analysis 1: Own weight
+    # Analysis 1: Self weight
     #-----------------------------
     # Structure
     s = structure(N; E, ν, ρ, L, A, g, ϵ_model)
@@ -113,18 +113,18 @@ function run_example(; ATOL::Real)
     analytic_u_last_node = analytic_u(L; F=0.0, E, A, L, g, ρ)
     @test numerical_u_last_node ≈ analytic_u_last_node atol = ATOL
     #-----------------------------------
-    # Analysis 2: Own weight + tip load
+    # Analysis 2: Self weight + tip load
     #-----------------------------------
     constant_gravity = GlobalLoad(:u, t -> [ρ * g], "gravity")
     replace!(boundary_conditions(s), constant_gravity)
     tip_load_bc = GlobalLoad(:u, t -> t * [F], "gravity")
     insert!(boundary_conditions(s), tip_load_bc, last(nodes(s)))
     # Analysis
-    last_state_analysis_own_weight = last(states(gravity_solution))
+    last_state_analysis_self_weight = last(states(gravity_solution))
     NSTEPS_LOAD_ANALYSIS = 10
     load_analysis = LinearStaticAnalysis(s;
                                          NSTEPS=NSTEPS_LOAD_ANALYSIS,
-                                         initial_state=last_state_analysis_own_weight)
+                                         initial_state=last_state_analysis_self_weight)
     # Check displacement at the initial state
     @test last(displacements(current_state(load_analysis))) ≈ analytic_u_last_node atol = ATOL
     # Solution
