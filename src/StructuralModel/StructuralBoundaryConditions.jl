@@ -289,7 +289,7 @@ function Base.replace!(sb::StructuralBoundaryCondition,
 
     # node boundary conditions replacement
     node_boundary_conditions = node_bcs(sb)
-    if haskey(node_boundary_conditions, old_bc)
+    if old_bc ∈ node_boundary_conditions
         old_nodes = node_boundary_conditions[old_bc]
         delete!(node_boundary_conditions, old_bc)
         insert!(node_boundary_conditions, new_bc, old_nodes)
@@ -297,7 +297,7 @@ function Base.replace!(sb::StructuralBoundaryCondition,
 
     # face boundary conditions replacement
     face_boundary_conditions = face_bcs(sb)
-    if haskey(face_boundary_conditions, old_bc)
+    if old_bc ∈ face_boundary_conditions
         old_faces = face_boundary_conditions[old_bc]
         delete!(face_boundary_conditions, old_bc)
         insert!(face_boundary_conditions, new_bc, old_faces)
@@ -305,7 +305,7 @@ function Base.replace!(sb::StructuralBoundaryCondition,
 
     # element boundary conditions replacement
     element_boundary_conditions = element_bcs(sb)
-    if haskey(element_boundary_conditions, old_bc)
+    if old_bc ∈ element_boundary_conditions
         old_elements = element_boundary_conditions[old_bc]
         delete!(element_boundary_conditions, old_bc)
         insert!(element_boundary_conditions, new_bc, old_elements)
