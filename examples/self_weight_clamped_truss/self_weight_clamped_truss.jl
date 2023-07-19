@@ -88,7 +88,7 @@ function structure(N::Int;
     Structure(s_mesh, materials, boundary_conditions)
 end;
 
-function run_example(; ATOL::Real)
+function run_cantilever_own_weight(; ATOL::Real)
     #-----------------------------
     # Problem parameters
     #-----------------------------

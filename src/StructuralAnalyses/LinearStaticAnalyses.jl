@@ -51,7 +51,7 @@ function LinearStaticAnalysis(s::S, λᵥ::LFV;
                               initial_step::Int=1) where {S<:AbstractStructure,
                                                           LFV<:Vector{<:Real}}
     !(1 ≤ initial_step ≤ length(λᵥ)) &&
-        throw(ArgumentError("initial_step must be in [1, length(λᵥ)] but is: $initial_step."))
+        throw(ArgumentError("initial_step must be in [1, $(length(λᵥ))] but is: $initial_step."))
     LinearStaticAnalysis(s, initial_state, λᵥ, ScalarWrapper(initial_step))
 end
 
