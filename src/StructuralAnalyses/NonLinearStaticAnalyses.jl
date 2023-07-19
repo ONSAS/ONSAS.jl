@@ -29,7 +29,7 @@ A non linear static analysis is a collection of parameters for defining the stat
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 As this analysis is nonlinear the stiffness of the structure is updated at each iteration.
 """
-struct NonLinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <:
+struct NonLinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}} <:
        AbstractStaticAnalysis
     "Structure to be analyzed."
     s::S
@@ -39,18 +39,24 @@ struct NonLinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}}
     λᵥ::LFV
     "Current load factor step."
     current_step::ScalarWrapper{Int}
-    function NonLinearStaticAnalysis(s::S, λᵥ::LFV;
-                                     initial_step::Int=1) where {S<:AbstractStructure,
-                                                                 LFV<:AbstractVector{<:Real}}
-        return new{S,LFV}(s, StaticState(s), λᵥ, ScalarWrapper(initial_step))
-    end
+end
+"Constructor for a non linear analysis with load factors, optional initial step and initial state."
+function NonLinearStaticAnalysis(s::S, λᵥ::LFV;
+                                 initial_state::StaticState=StaticState(s),
+                                 initial_step::Int=1) where {S<:AbstractStructure,
+                                                             LFV<:AbstractVector{<:Real}}
+    !(1 ≤ initial_step ≤ length(λᵥ)) &&
+        throw(ArgumentError("initial_step must be in [1, $(length(λᵥ))] but is: $initial_step."))
+    NonLinearStaticAnalysis(s, initial_state, λᵥ, ScalarWrapper(initial_step))
+
+    NonLinearStaticAnalysis(s, initial_state, λᵥ, ScalarWrapper(initial_step))
 end
 
 "Constructor for non linear static analysis given a final time (or load factor) and the number of steps."
 function NonLinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1)
     t₀ = t₁ / NSTEPS
     λᵥ = collect(LinRange(t₀, t₁, NSTEPS))
-    return NonLinearStaticAnalysis(s, λᵥ; initial_step=initial_step)
+    NonLinearStaticAnalysis(s, λᵥ; initial_step=initial_step)
 end
 
 function Base.show(io::IO, sa::NonLinearStaticAnalysis)
