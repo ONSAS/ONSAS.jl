@@ -88,7 +88,7 @@ function structure(N::Int;
     Structure(s_mesh, materials, boundary_conditions)
 end;
 
-function run_cantilever_own_weight(; ATOL::Real)
+function run_cantilever_self_weight(; ATOL::Real)
     #-----------------------------
     # Problem parameters
     #-----------------------------
@@ -142,4 +142,4 @@ function run_cantilever_own_weight(; ATOL::Real)
     @test numerical_u_last_node ≈ analytic_u_last_node atol = ATOL
 end
 
-run_example(; ATOL=1e-6)
+run_cantilever_self_weight(; ATOL=1e-6)
