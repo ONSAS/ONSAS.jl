@@ -1,23 +1,23 @@
 # ---------------------------------
-# Clamped truss with self-weight
+# Self weight clamped truss example
 # --------------------------------
 #=
-This model consist of a clamped truss with its own weight. First the
-weight is applied and consecutive the load at the time starting from the own
+This model consist of a clamped truss with its self weight. First the
+weight is applied and consecutive the load at the time starting from the self
 weight deformed configuration.
 
-# Analysis 1: Own weight
+# Analysis 1: Self weight
 
 ## Forces
 -> g
 --------> F
 
-# Analysis 1: Own weight
+# Analysis 1: Self weight
 #-----------------------------
 # ->  ->  ->  ->  ->  ->  -> -
 #-----------------------------
 
-# Analysis 2: Own weight + load
+# Analysis 2: Self weight + load
 #-----------------------------
 # ->  ->  ->  ->  ->  ->  -> - -----> F
 #-----------------------------
@@ -36,7 +36,7 @@ function parameters()
     F = 10e6    # Force at the tip
     g = 9.81    # Gravity
     ϵ_model = RotatedEngineeringStrain
-    g, N, E, ν, ρ, L, A, F, ϵ_model
+    (; g, N, E, ν, ρ, L, A, F, ϵ_model)
 end
 
 #-----------------------------
@@ -89,9 +89,9 @@ end;
 #-----------------------------
 # Problem parameters
 #-----------------------------
-g, N, E, ν, ρ, L, A, F, ϵ_model = parameters()
+(; g, N, E, ν, ρ, L, A, F, ϵ_model) = parameters()
 #-----------------------------
-# Analysis 1: Own weight
+# Analysis 1: Self weight
 #-----------------------------
 # Structure
 s = structure(N; E, ν, ρ, L, A, g, ϵ_model)
@@ -110,7 +110,7 @@ numerical_u_last_node = last(displacements(gravity_solution, last(nodes(s)), 1))
 analytic_u_last_node = analytic_u(L; F=0.0, E, A, L, g, ρ)
 @test numerical_u_last_node ≈ analytic_u_last_node atol = 1e-6
 #-----------------------------------
-# Analysis 2: Own weight + tip load
+# Analysis 2: Self weight + tip load
 #-----------------------------------
 # tip_load_bc = GlobalLoad(:u, t -> t * [F], "tip_load")
 constant_gravity = GlobalLoad(:u, t -> [ρ * g], "gravity")
