@@ -1,5 +1,5 @@
 # ---------------------------------
-# Own weight clamped truss example
+# Clamped truss with self-weight
 # --------------------------------
 #=
 This model consist of a clamped truss with its own weight. First the
