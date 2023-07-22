@@ -21,6 +21,10 @@ using ..Solutions
 
 @reexport import ..StructuralSolvers: _solve!, step!
 
+# Since linear analysis do not iterate, the iteration state is:
+const LinearResidualsIterationStep = ResidualsIterationStep(nothing, nothing, nothing, nothing, 1,
+                                                            ΔU_and_ResidualForce_Criteria())
+
 export LinearStaticAnalysis
 
 """
@@ -28,7 +32,7 @@ A linear analysis is a collection of parameters for defining the static analysis
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 As this analysis is linear the stiffness of the structure remains constant at each displacements iteration step.
 """
-struct LinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <:
+struct LinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}} <:
        AbstractStaticAnalysis
     "Structure to be analyzed."
     s::S
@@ -38,21 +42,27 @@ struct LinearStaticAnalysis{S<:AbstractStructure,LFV<:AbstractVector{<:Real}} <:
     λᵥ::LFV
     "Current load factor step."
     current_step::ScalarWrapper{Int}
-    function LinearStaticAnalysis(s::S, λᵥ::LFV;
-                                  initial_step::Int=1) where {S<:AbstractStructure,
-                                                              LFV<:AbstractVector{<:Real}}
-        # Since linear analysis is not iterating
-        iter_state = ResidualsIterationStep(nothing, nothing, nothing, nothing, 1,
-                                            ΔU_and_ResidualForce_Criteria())
-        new{S,LFV}(s, StaticState(s, iter_state), λᵥ, ScalarWrapper(initial_step))
-    end
+end
+
+"Constructor for linear analysis with load factors, optional initial step and initial state."
+function LinearStaticAnalysis(s::S, λᵥ::LFV;
+                              initial_state::StaticState=StaticState(s,
+                                                                     LinearResidualsIterationStep),
+                              initial_step::Int=1) where {S<:AbstractStructure,
+                                                          LFV<:Vector{<:Real}}
+    !(1 ≤ initial_step ≤ length(λᵥ)) &&
+        throw(ArgumentError("initial_step must be in [1, $(length(λᵥ))] but is: $initial_step."))
+    LinearStaticAnalysis(s, initial_state, λᵥ, ScalarWrapper(initial_step))
 end
 
 "Constructor for linear analysis given a final time (or load factor) and the number of steps."
-function LinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1)
-    t₀ = t₁ / NSTEPS
-    λᵥ = collect(LinRange(t₀, t₁, NSTEPS))
-    return LinearStaticAnalysis(s, λᵥ; initial_step=initial_step)
+function LinearStaticAnalysis(s::AbstractStructure, final_time::Real=1.0; NSTEPS=10,
+                              initial_state::StaticState=StaticState(s,
+                                                                     LinearResidualsIterationStep),
+                              initial_step::Int=1)
+    t₀ = final_time / NSTEPS
+    λᵥ = collect(LinRange(t₀, final_time, NSTEPS))
+    LinearStaticAnalysis(s, λᵥ; initial_state, initial_step)
 end
 
 function Base.show(io::IO, sa::LinearStaticAnalysis)
@@ -71,8 +81,6 @@ function _solve!(sa::LinearStaticAnalysis)
 
     # Load factors iteration.
     while !is_done(sa)
-        # Set displacements to zero
-        displacements(current_state(sa)) .= 0.0
 
         # Compute external force
         external_forces(current_state(sa)) .= 0
@@ -81,7 +89,7 @@ function _solve!(sa::LinearStaticAnalysis)
         # Assemble K
         @debugtime "Assemble internal forces" assemble!(s, sa)
 
-        # Increment structure displacements U = U + ΔU
+        # Increment structure displacements U = ΔU
         @debugtime "Step" step!(sa)
 
         # Recompute σ and ε for the assembler
@@ -111,7 +119,7 @@ function step!(sa::LinearStaticAnalysis)
     cg!(ΔU, K, fₑₓₜ_red)
 
     # Update displacements into the state.
-    state.Uᵏ[free_dofs_idx] .+= ΔU
+    displacements(state)[free_dofs_idx] .= ΔU
 end
 
 end # module
