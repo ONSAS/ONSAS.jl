@@ -56,7 +56,7 @@ end
 function NonLinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1)
     t₀ = t₁ / NSTEPS
     λᵥ = collect(LinRange(t₀, t₁, NSTEPS))
-    NonLinearStaticAnalysis(s, λᵥ; initial_step=initial_step)
+    NonLinearStaticAnalysis(s, λᵥ; initial_step)
 end
 
 function Base.show(io::IO, sa::NonLinearStaticAnalysis)
