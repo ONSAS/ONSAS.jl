@@ -36,7 +36,7 @@ function parameters()
     F = 10e6    # Force at the tip
     g = 9.81    # Gravity
     ϵ_model = RotatedEngineeringStrain
-    (; g, N, E, ν, ρ, L, A, F, ϵ_model)
+    g, N, E, ν, ρ, L, A, F, ϵ_model
 end
 
 #-----------------------------
@@ -72,7 +72,7 @@ function structure(N::Int;
     # Materials
     # -------------------------------
     material = SVK(; E, ν, ρ, label="material")
-    materials = StructuralMaterial(material => elements(mesh))
+    materials = StructuralMaterial(material => elements(s_mesh))
     # -------------------------------
     # Boundary conditions
     # -------------------------------
@@ -141,32 +141,5 @@ function run_cantilever_self_weight(; ATOL::Real)
     analytic_u_last_node = analytic_u(L; F, E, A, L, g, ρ)
     @test numerical_u_last_node ≈ analytic_u_last_node atol = ATOL
 end
-#-----------------------------
-# Problem parameters
-#-----------------------------
-(; g, N, E, ν, ρ, L, A, F, ϵ_model) = parameters()
-#-----------------------------
-# Analysis 1: Self weight
-#-----------------------------
-# Structure
-s = structure(N; E, ν, ρ, L, A, g, ϵ_model)
-# Analysis
-gravity_analysis = LinearStaticAnalysis(s; NSTEPS=10)
-# Solution
-gravity_solution = solve!(gravity_analysis)
-# Tests
-# External force
-numerical_Fext = external_forces(last(states(gravity_solution)))
-analytical_Fext = [ρ * g * A * L / N for n in nodes(s)]
-analytical_Fext[1] = analytical_Fext[end] = ρ * g * A / 2 * L / N
-@test numerical_Fext ≈ analytical_Fext atol = 1e-6
-# Displacement
-numerical_u_last_node = last(displacements(gravity_solution, last(nodes(s)), 1))
-analytic_u_last_node = analytic_u(L; F=0.0, E, A, L, g, ρ)
-@test numerical_u_last_node ≈ analytic_u_last_node atol = 1e-6
-#-----------------------------------
-# Analysis 2: Self weight + tip load
-#-----------------------------------
-# tip_load_bc = GlobalLoad(:u, t -> t * [F], "tip_load")
-constant_gravity = GlobalLoad(:u, t -> [ρ * g], "gravity")
-replace!(boundary_conditions(s), constant_gravity)
+
+run_cantilever_self_weight(; ATOL=1e-6)
