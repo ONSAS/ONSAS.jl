@@ -36,7 +36,7 @@ function parameters()
     F = 10e6    # Force at the tip
     g = 9.81    # Gravity
     ϵ_model = RotatedEngineeringStrain
-    g, N, E, ν, ρ, L, A, F, ϵ_model
+    (; g, N, E, ν, ρ, L, A, F, ϵ_model)
 end
 
 #-----------------------------
@@ -67,32 +67,32 @@ function structure(N::Int;
     # -------------
     # Mesh
     # -------------
-    s_mesh = create_mesh(N, L, A, ϵ_model)
+    m = create_mesh(N, L, A, ϵ_model)
     # -------------------------------
     # Materials
     # -------------------------------
     material = SVK(; E, ν, ρ, label="material")
-    materials = StructuralMaterial(material => elements(s_mesh))
+    materials = StructuralMaterial(material => elements(m))
     # -------------------------------
     # Boundary conditions
     # -------------------------------
     fixed_bc = FixedDof(:u, [1], "fixed")
     gravity_bc_ramp = GlobalLoad(:u, t -> t * [density(material) * g], "gravity")
     node_bcs = Dictionary{AbstractBoundaryCondition,Vector{Node}}()
-    insert!(node_bcs, fixed_bc, [first(nodes(s_mesh))])
-    element_bcs = dictionary([gravity_bc_ramp => elements(s_mesh)])
+    insert!(node_bcs, fixed_bc, [first(nodes(m))])
+    element_bcs = dictionary([gravity_bc_ramp => elements(m)])
     boundary_conditions = StructuralBoundaryCondition(; node_bcs, element_bcs)
     # -------------------------------
     # Structure
     # -------------------------------
-    Structure(s_mesh, materials, boundary_conditions)
+    Structure(m, materials, boundary_conditions)
 end;
 
 function run_cantilever_self_weight(; ATOL::Real)
     #-----------------------------
     # Problem parameters
     #-----------------------------
-    g, N, E, ν, ρ, L, A, F, ϵ_model = parameters()
+    (; g, N, E, ν, ρ, L, A, F, ϵ_model) = parameters()
     #-----------------------------
     # Analysis 1: Self weight
     #-----------------------------
