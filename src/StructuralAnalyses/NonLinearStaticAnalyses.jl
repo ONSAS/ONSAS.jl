@@ -48,8 +48,6 @@ function NonLinearStaticAnalysis(s::S, λᵥ::LFV;
     !(1 ≤ initial_step ≤ length(λᵥ)) &&
         throw(ArgumentError("initial_step must be in [1, $(length(λᵥ))] but is: $initial_step."))
     NonLinearStaticAnalysis(s, initial_state, λᵥ, ScalarWrapper(initial_step))
-
-    NonLinearStaticAnalysis(s, initial_state, λᵥ, ScalarWrapper(initial_step))
 end
 
 "Constructor for non linear static analysis given a final time (or load factor) and the number of steps."
