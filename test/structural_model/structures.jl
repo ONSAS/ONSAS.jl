@@ -150,9 +150,10 @@ s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
           truss₄ ∈ s_boundary_conditions[bc₄]
 
     scale_factor = 10
-    old_label_to_replace = label(bc₃)
-    old_nodes_bc = node_bcs(s_boundary_conditions)[bc₃]
-    old_faces_bc = face_bcs(s_boundary_conditions)[bc₃]
+    old_bc = bc₃
+    old_label_to_replace = label(old_bc)
+    old_nodes_bc = node_bcs(s_boundary_conditions)[old_bc]
+    old_faces_bc = face_bcs(s_boundary_conditions)[old_bc]
 
     new_bc = GlobalLoad(:u, t -> scale_factor * [0, Fⱼ * t, 0], old_label_to_replace)
 
