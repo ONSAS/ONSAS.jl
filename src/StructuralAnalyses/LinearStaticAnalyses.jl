@@ -73,7 +73,7 @@ function Base.show(io::IO, sa::LinearStaticAnalysis)
 end
 
 "Solves a linear analysis problem mutating the state."
-function _solve!(sa::LinearStaticAnalysis)
+function _solve!(sa::LinearStaticAnalysis) # TODO Add ::DummySolver second arg.
     s = structure(sa)
 
     # Initialize solution

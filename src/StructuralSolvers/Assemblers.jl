@@ -7,9 +7,7 @@ using ..Entities
 using ..Nodes
 using ..Structures
 
-@reexport import ..StructuralSolvers: reset!
-
-export Assembler, assemble!, reset_assembler!, end_assemble, end_assemble!
+export Assembler, assemble!, reset_assembler!, end_assemble, end_assemble!, reset!
 
 """"
 Struct that stores column indexes, row indexes and values for the assemble process.
