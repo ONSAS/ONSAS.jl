@@ -17,7 +17,9 @@ using ..Assemblers
 using ..Utils
 using ..Nodes
 
-@reexport import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
+@reexport import ..Assemblers: reset!
+@reexport import ..StructuralAnalyses: residual_forces!
+@reexport import ..StructuralSolvers: tangent_matrix
 
 export StaticState
 

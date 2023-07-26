@@ -6,15 +6,20 @@ A step! method is used to perform a single iteration step.
 module StructuralSolvers
 
 using LinearAlgebra: norm
+using Reexport
 
+using ..StructuralAnalyses
 using ..Entities
+
+@reexport import ..Assemblers: reset!
+@reexport import ..StructuralAnalyses: tangent_matrix
 
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet,
        ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol,
-       ResidualsIterationStep, iter, criterion, isconverged!, update!,
-       AbstractSolver, step_size, tolerances, step!, solve!, _solve!, solve, reset!,
-       AbstractSolution, iterations
+       ResidualsIterationStep, iter, criterion, isconverged!,
+       AbstractSolver, step_size, tolerances, step!, solve!, _solve!, solve,
+       AbstractSolution, iterations, update!, next!
 
 const INITIAL_Δ = 1e12
 
@@ -124,9 +129,7 @@ function update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real,
     ri_step.ΔU_rel = ΔU_rel
     ri_step.Δr_norm = Δr_norm
     ri_step.Δr_rel = Δr_rel
-
     step!(ri_step)
-
     ri_step
 end
 
@@ -142,20 +145,18 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
     Δr_rel_tol = residual_forces_tol(cs)
     max_iter = max_iter_tol(cs)
 
-    if Δr_relᵏ ≤ Δr_rel_tol
-        update!(ri_step, ResidualForceCriterion())
+    criterion = if Δr_relᵏ ≤ Δr_rel_tol
         ResidualForceCriterion()
         # Check residual forces convergence
     elseif ΔU_relᵏ ≤ ΔU_rel_tol
-        update!(ri_step, ΔUCriterion())
         ΔUCriterion()
     elseif iterations(ri_step) > max_iter
-        update!(ri_step, MaxIterCriterion())
         @warn "Maximum number of iterations was reached."
         MaxIterCriterion()
     else
         NotConvergedYet()
     end
+    update!(ri_step, criterion)
 end
 
 #==========#
@@ -175,6 +176,13 @@ tolerances(solver::AbstractSolver) = solver.tol
 
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
 function step!(solver::AbstractSolver, analysis::A) where {A} end
+
+"Increment the time step given of a structural analysis. Dispatch is done for different
+solvers."
+next!(a::AbstractStructuralAnalysis, solver::AbstractSolver) = a.t += time_step(a) # TODO Define `time_step` fallback.
+
+"Return system tangent matrix in the structural state given a solver."
+function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
 
 # ===============
 # Solve function
@@ -213,8 +221,5 @@ function _solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
 
 "Return the initialized analysis. By default, it Return the same analysis."
 _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
-
-"Reset the analysis to the state before starting a new assembly."
-function reset! end
 
 end # module

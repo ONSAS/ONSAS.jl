@@ -13,21 +13,18 @@ using ..Entities
 using ..BoundaryConditions
 using ..Meshes
 using ..Structures
-using ..StructuralSolvers
 using ..Utils
 
 @reexport import ..Utils: apply!
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 @reexport import ..Structures: free_dofs
-@reexport import ..StructuralSolvers: update!
 @reexport import ..Assemblers: assemble!, end_assemble!
-@reexport import ..StructuralSolvers: reset!
-@reexport import ..Solutions: displacements, external_forces, iteration_residuals
 
-export AbstractStructuralState, Δ_displacements, tangent_matrix, residual_forces!, tangent_matrix,
+export AbstractStructuralState, Δ_displacements, residual_forces!,
        structure, assembler, residual_forces_norms, residual_displacements_norms,
-       AbstractStructuralAnalysis, initial_time, current_time, final_time, next!, is_done,
-       current_state, current_iteration
+       AbstractStructuralAnalysis, initial_time, current_time, final_time, is_done,
+       current_state, current_iteration, displacements, external_forces, iteration_residuals,
+       tangent_matrix
 
 """ Abstract supertype to define a new structural state.
 **Abstract Methods**
@@ -104,9 +101,6 @@ end
 "Fill the system tangent matrix in the structural state once the assembler object is built."
 end_assemble!(st::AbstractStructuralState) = end_assemble!(tangent_matrix(st), assembler(st))
 
-"Return system tangent matrix in the structural state."
-function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
-
 "Return relative residual forces for the current structural state."
 function residual_forces_norms(st::AbstractStructuralState)
     rᵏ_norm = norm(residual_forces!(st))
@@ -120,12 +114,6 @@ function residual_displacements_norms(st::AbstractStructuralState)
     U_norm = norm(displacements(st))
     ΔU_norm, ΔU_norm / U_norm
 end
-
-"Updates the structural state during the displacements iteration."
-function update!(st::AbstractStructuralState, args...; kwargs...) end
-
-"Reset  the `AbstractStructuralState` assembled magnitudes before starting a new assembly."
-function reset!(st::AbstractStructuralState, args...; kwargs...) end
 
 """ Abstract supertype for all structural analysis.
 
@@ -145,8 +133,6 @@ to be solved.
 * [`current_iteration`](@ref)
 * [`next!`](@ref)
 * [`is_done`](@ref)
-* [`reset!`](@ref)
-
 """
 abstract type AbstractStructuralAnalysis end
 
@@ -162,10 +148,6 @@ current_time(a::AbstractStructuralAnalysis) = a.t
 "Return the final time of structural analysis."
 final_time(a::AbstractStructuralAnalysis) = a.t₁
 
-"Increment the time step given of a structural analysis. Dispatch is done for different
-solvers."
-next!(a::AbstractStructuralAnalysis, solver::AbstractSolver) = a.t += time_step(a)
-
 "Return true if the structural analysis is completed."
 is_done(a::AbstractStructuralAnalysis) = current_time(a) > final_time(a)
 
@@ -174,9 +156,6 @@ current_state(a::AbstractStructuralAnalysis) = a.state
 
 "Return the current displacements iteration state of the structural analysis."
 current_iteration(a::AbstractStructuralAnalysis) = iteration_residuals(a.state)
-
-"Rests the structural analysis (sets the current time to the initial time)."
-function reset!(a::AbstractStructuralState) end
 
 # ================
 # Common methods
@@ -196,5 +175,8 @@ function apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractNeumannB
         apply!(sa, lbc)
     end
 end
+
+"Return system tangent matrix in the structural state given a solver."
+function tangent_matrix(st::AbstractStructuralState) end
 
 end
