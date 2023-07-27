@@ -205,7 +205,7 @@ function solve!(problem::AbstractStructuralAnalysis, solver::AbstractSolver=Dumm
 end
 solve!(pair::Tuple{AbstractStructuralAnalysis,AbstractSolver}) = solve!(pair.first, pair.last)
 
-"""
+""" Return initialized analysis """
 Return the initialized analysis.
 """
 function init(a::AbstractStructuralAnalysis, solver::AbstractSolver; reset::Bool=true)
