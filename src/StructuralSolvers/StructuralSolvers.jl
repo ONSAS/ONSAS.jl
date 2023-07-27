@@ -205,7 +205,7 @@ function solve!(problem::AbstractStructuralAnalysis, solver::AbstractSolver=Dumm
 end
 solve!(pair::Tuple{AbstractStructuralAnalysis,AbstractSolver}) = solve!(pair.first, pair.last)
 
-""" Return initialized analysis """
+"Copy the structure and optionally reset the state."
 function init(a::AbstractStructuralAnalysis, solver::AbstractSolver; reset::Bool=true)
     acopy = deepcopy(a)
     (reset ? reset!(acopy) : acopy, solver)
@@ -213,41 +213,5 @@ end
 
 "Internal solve function to be overloaded by each analysis."
 function _solve!(problem::AbstractStructuralAnalysis, solver::AbstractSolver, args...; kwargs...) end
-
-#=
-"""
-Solve a structural analysis problem with the given solver.
-"""
-function solve(analysis::A, alg::AbstractSolver=nothing, args...; kwargs...) where {A}
-    # FIXME Errors copying the mesh struct.
-    analysis = deepcopy(analysis)
-    reset!(analysis)
-    solve!(analysis, alg, args...; kwargs...)
-end
-
-"""
-Solve a structural analysis problem with the given solver.
-This function mutates the state defined in the analysis problem; use [`solve`](@ref) to avoid mutation.
-For linear analysis problems, the algorithm doesn't need to be provided.
-
-Return a solution structure holding the result and the algorithm used to obtain it.
-"""
-function solve!(analysis::A, alg::Union{AbstractSolver,Nothing}=nothing, args...;
-                kwargs...) where {A}
-    # TODO Dispatch on `nothing` only for linear problems.
-    if isnothing(alg)
-        _solve!(analysis, args...; kwargs...)
-    else
-        initialized_analysis = _init(analysis, alg, args...; kwargs...)
-        _solve!(initialized_analysis, alg, args...; kwargs...)
-    end
-end
-
-"Internal solve function to be overloaded by each analysis."
-function _solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} end
-
-"Return the initialized analysis. By default, it Return the same analysis."
-_init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
-=#
 
 end # module
