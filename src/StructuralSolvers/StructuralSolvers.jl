@@ -206,8 +206,6 @@ end
 solve!(pair::Tuple{AbstractStructuralAnalysis,AbstractSolver}) = solve!(pair.first, pair.last)
 
 """ Return initialized analysis """
-Return the initialized analysis.
-"""
 function init(a::AbstractStructuralAnalysis, solver::AbstractSolver; reset::Bool=true)
     acopy = deepcopy(a)
     (reset ? reset!(acopy) : acopy, solver)
