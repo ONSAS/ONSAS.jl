@@ -1,6 +1,7 @@
 module ONSAS
 
 using Reexport: @reexport
+using CommonSolve
 
 FILES = ["Utils.jl",
          # Materials

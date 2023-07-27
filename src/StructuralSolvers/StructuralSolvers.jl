@@ -13,13 +13,14 @@ using ..Entities
 
 @reexport import ..Assemblers: reset!
 @reexport import ..StructuralAnalyses: tangent_matrix
+@reexport import ..CommonSolve: solve!, init
 
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet,
        ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol,
        ResidualsIterationStep, iter, criterion, isconverged!,
-       AbstractSolver, step_size, tolerances, step!, solve!, _solve!, solve,
-       AbstractSolution, iterations, update!, next!
+       AbstractSolver, step_size, tolerances, step!, solve, solve!, _solve!,
+       AbstractSolution, iterations, update!, next!, DummySolver
 
 const INITIAL_Δ = 1e12
 
@@ -168,6 +169,9 @@ Abstract supertype for all direct integration methods.
 """
 abstract type AbstractSolver end
 
+"Solver used as placeholder for e.g. problems that don't require such struct."
+struct DummySolver <: AbstractSolver end
+
 "Return the step size."
 step_size(solver::AbstractSolver) = solver.Δt
 
@@ -188,6 +192,31 @@ function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
 # Solve function
 # ===============
 
+"""
+Solve a structural analysis problem with the given solver, returning a solution structure
+which holds the result and the algorithm used to obtain it.
+
+This function mutates the state defined in the analysis problem.
+Use [`solve`](@ref) to avoid mutation.
+For linear analysis problems, the algorithm doesn't need to be provided.
+"""
+function solve!(problem::AbstractStructuralAnalysis, solver::AbstractSolver=DummySolver())
+    _solve!(problem, solver)
+end
+solve!(pair::Tuple{AbstractStructuralAnalysis,AbstractSolver}) = solve!(pair.first, pair.last)
+
+"""
+Return the initialized analysis.
+"""
+function init(a::AbstractStructuralAnalysis, solver::AbstractSolver; reset::Bool=true)
+    acopy = deepcopy(a)
+    (reset ? reset!(acopy) : acopy, solver)
+end
+
+"Internal solve function to be overloaded by each analysis."
+function _solve!(problem::AbstractStructuralAnalysis, solver::AbstractSolver, args...; kwargs...) end
+
+#=
 """
 Solve a structural analysis problem with the given solver.
 """
@@ -221,5 +250,6 @@ function _solve!(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A}
 
 "Return the initialized analysis. By default, it Return the same analysis."
 _init(analysis::A, alg::AbstractSolver, args...; kwargs...) where {A} = analysis
+=#
 
 end # module
