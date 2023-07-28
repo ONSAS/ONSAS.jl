@@ -7,8 +7,10 @@ module StaticStates
 
 using SparseArrays: spzeros
 using Dictionaries: Dictionary, dictionary
+using InteractiveUtils: subtypes
 using Reexport
 
+using ..Entities
 using ..Meshes
 using ..Structures
 using ..StructuralAnalyses
@@ -78,7 +80,8 @@ function StaticState(s::AbstractStructure,
     # Initialize pairs strains
     ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
-    assemblerᵏ = Assembler(s)
+    cache = dictionary(nameof(T) => elements_cache(T) for T in subtypes(AbstractElement))
+    assemblerᵏ = Assembler(s, cache)
     fdofs = free_dofs(s)
     return StaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
                        iter_state)

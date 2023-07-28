@@ -10,7 +10,7 @@ using ..IsotropicLinearElasticMaterial
 using ..HyperElasticMaterials
 
 @reexport import ..Entities: create_entity, internal_forces, local_dof_symbol, strain, stress,
-                             weights, volume
+                             weights, volume, elements_cache
 
 export Tetrahedron, reference_coordinates
 
@@ -47,6 +47,28 @@ end
 function create_entity(t::Tetrahedron, vn::AbstractVector{<:AbstractNode})
     Tetrahedron(vn, label(t))
 end
+
+struct TetrahedronCache{T} <: AbstractElementCache
+    fint::Vector{T}
+    # TODO Use Symmetric K.
+    Ks::Matrix{T}
+    σ::Matrix{T}
+    ε::Matrix{T}
+    F::Matrix{T}
+    H::Matrix{T}
+    function TetrahedronCache()
+        fint = zeros(12)
+        Ks = zeros(12, 12)
+        σ = zeros(3, 3)
+        ε = zeros(3, 3)
+        F = zeros(3, 3)
+        H = zeros(3, 3)
+        new{Float64}(fint, Ks, σ, ε, F, H)
+    end
+end
+
+"Return an empty Tetrahedron cache."
+elements_cache(::Type{Tetrahedron}) = TetrahedronCache()
 
 "Return the `Tetrahedron` `t` volume in the reference configuration."
 function volume(t::Tetrahedron)
@@ -89,67 +111,69 @@ function _B_mat(deriv::AbstractMatrix, 𝔽::AbstractMatrix)
     B
 end
 
+function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector)
+    internal_forces(m, t, u_e, TetrahedronCache())
+end
+
 "Return the internal force of a `Tetrahedron` element `t` doted with an `AbstractHyperElasticMaterial` `m` +
 and a an element displacement vector `u_e`."
-function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector)
+function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector,
+                         cache::TetrahedronCache)
+    (; fint, Ks, σ, ε, F, H) = cache
+
     ∂X∂ζ = _shape_functions_derivatives(t)
-
     X = _coordinates_matrix(t)
-
     U = reshape(u_e, 3, 4)
-
     J = _jacobian_mat(X, ∂X∂ζ)
-
     vol = _volume(J)
 
-    # OkaThe deformation gradient F can be obtained by integrating
-    # funder over time ∂F/∂t.
+    # The deformation gradient F can be obtained by integrating f under over time ∂F/∂t.
     funder = inv(J)' * ∂X∂ζ
 
     # ∇u in global coordinats
-    ℍ = U * funder'
+    H .= U * funder'
 
     # Deformation gradient
-    𝔽 = ℍ + eye(3)
+    F .= H + eye(3)
 
     # Green-Lagrange strain
-    𝔼 = Symmetric(0.5 * (ℍ + ℍ' + ℍ' * ℍ))
-
+    𝔼 = Symmetric(0.5 * (H + H' + H' * H))
     𝕊, ∂𝕊∂𝔼 = cosserat_stress(m, 𝔼)
-
-    B = _B_mat(funder, 𝔽)
-
+    B = _B_mat(funder, F)
     𝕊_voigt = voigt(𝕊)
-
-    fᵢₙₜ_e = B' * 𝕊_voigt * vol
+    fint .= B' * 𝕊_voigt * vol
 
     # Material stiffness
     Kₘ = Symmetric(B' * ∂𝕊∂𝔼 * B * vol)
+    Ks .= 0.0
 
     # Geometric stiffness
     aux = funder' * 𝕊 * funder * vol
-
-    Kᵧ = zeros(12, 12) #TODO: Use Symmetriy and avoid indexes
-
     for i in 1:4
         for j in 1:4
-            Kᵧ[(i - 1) * 3 + 1, (j - 1) * 3 + 1] = aux[i, j]
-            Kᵧ[(i - 1) * 3 + 2, (j - 1) * 3 + 2] = aux[i, j]
-            Kᵧ[(i - 1) * 3 + 3, (j - 1) * 3 + 3] = aux[i, j]
+            Ks[(i - 1) * 3 + 1, (j - 1) * 3 + 1] = aux[i, j]
+            Ks[(i - 1) * 3 + 2, (j - 1) * 3 + 2] = aux[i, j]
+            Ks[(i - 1) * 3 + 3, (j - 1) * 3 + 3] = aux[i, j]
         end
     end
 
     # Stifness matrix
-    Kᵢₙₜ_e = Kₘ + Kᵧ
+    Ks .= Kₘ + Ks
 
     # Compute stress and strian just for post-process
     # Piola stress
-    ℙ = Symmetric(𝔽 * 𝕊)
+    σ .= Symmetric(F * 𝕊)
 
     # Cauchy strain tensor
-    ℂ = Symmetric(𝔽' * 𝔽)
+    ε .= Symmetric(F' * F)
 
-    fᵢₙₜ_e, Kᵢₙₜ_e, ℙ, ℂ
+    fint, Ks, σ, ε
+end
+
+# TODO Implement method.
+function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::AbstractVector,
+                         ::TetrahedronCache)
+    internal_forces(m, t, u_e)
 end
 
 "
@@ -177,11 +201,11 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
 
     funder = inv(J)' * ∂X∂ζ
 
-    # ∇u = ℍ in global coordinats
+    # ∇u = H in global coordinats
     U = reshape(u_e, 3, 4)
-    ℍ = U * funder'
+    H = U * funder'
 
-    ϵ = Symmetric(0.5 * (ℍ + ℍ'))
+    ϵ = Symmetric(0.5 * (H + H'))
     𝔽 = eye(3)
 
     B = _B_mat(funder, 𝔽)
