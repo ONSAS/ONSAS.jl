@@ -19,8 +19,8 @@ using ..Materials
 
 export AbstractEntity, nodes, create_entity
 export AbstractFace, normal_direction, volume
-export AbstractElement, cross_section, internal_forces, inertial_forces, local_dof_symbol,
-       local_dofs, nodes, strain, stress, weights, num_nodes
+export AbstractElement, AbstractElementCache, cross_section, internal_forces, inertial_forces,
+       local_dof_symbol, local_dofs, nodes, strain, stress, weights, num_nodes
 
 # =================
 # Abstract Entity
@@ -188,5 +188,18 @@ end
 
 "Return the volume of the element."
 function volume(e::AbstractElement) end
+
+"""
+Cache for internal forces computations.
+"""
+abstract type AbstractElementCache end
+
+"""
+Concrete subtypes of `AbstractElement` should implement either the three-arg version (no cache)
+or the four-arg version (use the cache).
+"""
+function internal_forces(mat::AbstractMaterial, e::AbstractElement, u_e::AbstractVector, ::Nothing)
+    internal_forces(mat, e, u_e)
+end
 
 end # module

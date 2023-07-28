@@ -105,7 +105,8 @@ function assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
 
             # Global dofs of the element (dofs where K must be added)
             u_e = view(displacements(state), local_dofs(e))
-            fᵢₙₜ_e, kₛ_e, σ_e, ϵ_e = internal_forces(mat, e, u_e)
+            cache = internal_cache(state, e)
+            fᵢₙₜ_e, kₛ_e, σ_e, ϵ_e = internal_forces(mat, e, u_e, cache)
 
             # Assembles the element internal magnitudes
             assemble!(state, fᵢₙₜ_e, e)

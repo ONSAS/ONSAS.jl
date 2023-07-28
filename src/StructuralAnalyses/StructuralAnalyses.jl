@@ -24,7 +24,7 @@ export AbstractStructuralState, Δ_displacements, residual_forces!,
        structure, assembler, residual_forces_norms, residual_displacements_norms,
        AbstractStructuralAnalysis, initial_time, current_time, final_time, is_done,
        current_state, current_iteration, displacements, external_forces, iteration_residuals,
-       tangent_matrix
+       tangent_matrix, internal_cache
 
 """ Abstract supertype to define a new structural state.
 **Abstract Methods**
@@ -114,6 +114,12 @@ function residual_displacements_norms(st::AbstractStructuralState)
     U_norm = norm(displacements(st))
     ΔU_norm, ΔU_norm / U_norm
 end
+
+"Return the cache associated to the given element."
+function internal_cache(state::AbstractStructuralState, e::AbstractElement)
+    internal_cache(state, typeof(e))
+end
+internal_cache(::AbstractStructuralState, ::Type{<:AbstractElement}) = nothing
 
 """ Abstract supertype for all structural analysis.
 
