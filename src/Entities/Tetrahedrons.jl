@@ -209,7 +209,7 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
     # Stiffness matrix
     Ks .= Symmetric(B' * ∂𝕊∂𝔼 * B * vol)
 
-    fint = Ks * u_e
+    fint .= Ks * u_e
 
     fint, Ks, σ, ε
 end
