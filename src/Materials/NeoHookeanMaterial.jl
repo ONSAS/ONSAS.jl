@@ -8,7 +8,7 @@ using ..Utils
 
 @reexport import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus,
                                            bulk_modulus, poisson_ratio
-@reexport import ..HyperElasticMaterials: cosserat_stress, strain_energy
+@reexport import ..HyperElasticMaterials: cosserat_stress!, strain_energy
 
 export NeoHookean
 
@@ -18,7 +18,7 @@ The strain energy `Ψ` is: `Ψ(𝔼)` = `G`/2 (tr(`ℂ`) -2 *log(`J`))^2 + `K`/2
 
 For context see the wikipedia article on [Neo-Hookean_solid](https://en.wikipedia.org/wiki/Neo-Hookean_solid).
 
-It is also possible to construct a `NeoHookean` material given its elasticity and shear modulus `E`, `ν` respectively and its density `ρ`. 
+It is also possible to construct a `NeoHookean` material given its elasticity and shear modulus `E`, `ν` respectively and its density `ρ`.
 For context see the wikipedia article on [Lamé parameters](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters).
 """
 struct NeoHookean{T<:Real} <: AbstractHyperElasticMaterial
@@ -60,7 +60,7 @@ function strain_energy(m::NeoHookean, 𝔼::AbstractMatrix)
     J = sqrt(det(ℂ))
     # First invariant
     I₁ = tr(ℂ)
-    # Strain energy function 
+    # Strain energy function
     Ψ = shear_modulus(m) / 2 * (I₁ - 2 * log(J)) + bulk_modulus(m) / 2 * (J - 1)^2
 end
 
@@ -90,39 +90,45 @@ end
 bulk_modulus(m::NeoHookean) = m.K
 
 "Return the Cosserat stress tensor `𝕊` given the Green-Lagrange `𝔼` strain tensor."
-function _𝕊_analytic(m::NeoHookean, 𝔼::AbstractMatrix)
+function _S_analytic(m::NeoHookean, E::AbstractMatrix; eye_cache::AbstractMatrix{<:Real}=eye(3))
     # Right hand Cauchy strain tensor
-    ℂ = Symmetric(2 * 𝔼 + eye(3))
-    ℂ⁻¹ = inv(ℂ)
-    J = sqrt(det(ℂ))
-    # Compute 𝕊 
-    shear_modulus(m) * (eye(3) - ℂ⁻¹) + bulk_modulus(m) * (J * (J - 1) * ℂ⁻¹)
+    C = Symmetric(2 * E + eye_cache)
+    C⁻¹ = inv(C)
+    J = sqrt(det(C))
+    # Compute 𝕊
+    shear_modulus(m) * (eye_cache - C⁻¹) + bulk_modulus(m) * (J * (J - 1) * C⁻¹)
 end
+
+"Return the Cosserat stress tensor `𝕊` given the Green-Lagrange `𝔼` strain tensor."
+function _S_analytic!(S::AbstractMatrix, m::NeoHookean, E::AbstractMatrix;
+                      eye_cache::AbstractMatrix{<:Real}=eye(3))
+    S .= Symmetric(_S_analytic(m, E; eye_cache))
+end
+
+const ∂S∂E_forward_diff = zeros(6, 6)
+const aux_gradients = zeros(3, 3)
 
 "Return the `∂𝕊∂𝔼` for a material `m`, the Gree-Lagrange strain tensor `𝔼` and a
 function to compute 𝕊 analytically."
-function _∂𝕊_∂𝔼(m::NeoHookean, 𝔼::AbstractMatrix, 𝕊_analytic::Function=_𝕊_analytic)
-    indexes = [(1, 1), (2, 2), (3, 3), (2, 3), (1, 3), (1, 2)]
-
-    ∂S∂𝔼_forward_diff = zeros(6, 6)
-    aux_gradients = zeros(3, 3)
-
+function _∂S∂E!(∂S∂E::Matrix, m::NeoHookean, 𝔼::AbstractMatrix, S_analytic::Function=_S_analytic)
     row = 1
-    for index in indexes
+    for index in INDEXES_TO_VOIGT
         i, j = index
-        ∂S∂𝔼_forward_diff[row, :] .= voigt(ForwardDiff.gradient!(aux_gradients,
-                                                                 E -> 𝕊_analytic(m, E)[i, j],
-                                                                 collect(𝔼)), 0.5)
+        ∂S∂E[row, :] .= voigt(ForwardDiff.gradient!(aux_gradients,
+                                                    E -> S_analytic(m, E)[i, j],
+                                                    collect(𝔼)), 0.5)
         row += 1
     end
-    ∂S∂𝔼_forward_diff
+    ∂S∂E
 end
 
-"Return the Cosserat or Second-Piola Kirchoff stress tensor `𝕊` 
-considering a `SVK` material `m` and the Green-Lagrange  
+"Return the Cosserat or Second-Piola Kirchoff stress tensor `𝕊`
+considering a `SVK` material `m` and the Green-Lagrange
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
-function cosserat_stress(m::NeoHookean, 𝔼::AbstractMatrix)
-    _𝕊_analytic(m, 𝔼), _∂𝕊_∂𝔼(m, 𝔼, _𝕊_analytic)
+function cosserat_stress!(S::AbstractMatrix{<:Real}, ∂S∂E::Matrix{<:Real},
+                          m::NeoHookean, E::AbstractMatrix; eye_cache=eye(3)) # Is used in a different method
+    _S_analytic!(S, m, E; eye_cache)
+    _∂S∂E!(∂S∂E, m, E, _S_analytic)
 end
 
 end

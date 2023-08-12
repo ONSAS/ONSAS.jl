@@ -92,8 +92,9 @@ function assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::Abstr
 end
 
 "Assembles the element `e` stress σₑ and strain ϵₑ into the structural state."
-function assemble!(st::AbstractStructuralState, σₑ::E, ϵₑ::E,
-                   e::AbstractElement) where {E<:Union{Real,AbstractMatrix}}
+function assemble!(st::AbstractStructuralState, σₑ::ST, ϵₑ::ET,
+                   e::AbstractElement) where {ST<:Union{Real,AbstractMatrix},
+                                              ET<:Union{Real,AbstractMatrix}}
     stress(st)[e] .= σₑ
     strain(st)[e] .= ϵₑ
 end
