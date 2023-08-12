@@ -55,12 +55,17 @@ struct TetrahedronCache{T,ST<:Symmetric{T}} <: AbstractElementCache
     fint::Vector{T}
     "Stiffness matrix."
     Ks::ST
+    "Cosserat stress."
+    S::ST
+    "Constitutive driver."
+    ∂S∂E::Matrix{T}
     "Piola stress."
-    σ::ST
+    P::ST
     "Cauchy-Green strain."
     ε::ST
     "Deformation gradient."
     F::Matrix{T}
+    "U material derivative."
     H::Matrix{T}
     "Reference coordinates."
     X::Matrix{T}
@@ -74,10 +79,16 @@ struct TetrahedronCache{T,ST<:Symmetric{T}} <: AbstractElementCache
     aux_geometric_Ks::Matrix{T}
     "Lagrange Green Strain"
     E::ST
+    "Aux eye matrix"
+    I₃₃::Matrix{T}
+    "Aux ones matrix"
+    ones₃₃::Matrix{T}
     function TetrahedronCache()
         fint = zeros(12)
         Ks = Symmetric(zeros(12, 12))
-        σ = Symmetric(zeros(3, 3))
+        S = Symmetric(zeros(3, 3))
+        ∂S∂E = zeros(6, 6)
+        P = Symmetric(zeros(3, 3))
         ε = Symmetric(zeros(3, 3))
         F = zeros(3, 3)
         H = zeros(3, 3)
@@ -87,8 +98,10 @@ struct TetrahedronCache{T,ST<:Symmetric{T}} <: AbstractElementCache
         B = zeros(6, 12)
         aux_geometric_Ks = zeros(4, 4)
         E = Symmetric(zeros(3, 3))
-        new{Float64,Symmetric{Float64}}(fint, Ks, σ, ε, F, H, X, J,
-                                        funder, B, aux_geometric_Ks, E)
+        I₃₃ = eye(3)
+        ones₃₃ = ones(3, 3)
+        new{Float64,Symmetric{Float64}}(fint, Ks, S, ∂S∂E, P, ε, F, H, X, J,
+                                        funder, B, aux_geometric_Ks, E, I₃₃, ones₃₃)
     end
 end
 
@@ -167,7 +180,7 @@ end
 and a an element displacement vector `u_e`. This function modifies the cache to avoid memory allocations."
 function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector,
                          cache::TetrahedronCache)
-    (; fint, Ks, σ, ε, F, H, X, J, funder, B, aux_geometric_Ks, E) = cache
+    (; fint, Ks, P, ε, F, H, X, J, funder, B, aux_geometric_Ks, E) = cache
 
     # Kinematics
     U = reshape(u_e, 3, 4)
@@ -196,12 +209,12 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
     Ks .= Km + Ks
 
     # Piola stress
-    σ .= Symmetric(F * 𝕊)
+    P .= Symmetric(F * 𝕊)
 
     # Right hand Cauchy strain tensor
     ε .= Symmetric(F' * F)
 
-    fint, Ks, σ, ε
+    fint, Ks, P, ε
 end
 
 "
@@ -220,7 +233,7 @@ A 4-tuple containing:
 "
 function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::AbstractVector,
                          cache::TetrahedronCache)
-    (; fint, Ks, σ, ε, F, H, X, J, funder, B) = cache
+    (; fint, Ks, S, ∂S∂E, ε, F, H, X, J, funder, B, I₃₃, ones₃₃) = cache
 
     # Kinematics
     ∂X∂ζ = _shape_functions_derivatives(t)
@@ -231,19 +244,19 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
     U = reshape(u_e, 3, 4)
     H .= U * funder'
     ε .= Symmetric(0.5 * (H + H'))
-    F .= eye(3)
+    F .= I₃₃
     _B_mat!(B, funder, F)
 
-    # Stresses
-    σaux, ∂𝕊∂𝔼 = cauchy_stress(m, ε)
-    σ .= Symmetric(σaux)
+    # Stresses (due to stresses are all the same for linear elastic materials cosserat
+    # is used as cache)
+    stress!(S, ∂S∂E, m, ε; cache_ones=ones₃₃, cache_eye=I₃₃)
 
     # Stiffness matrix
-    Ks .= Symmetric(B' * ∂𝕊∂𝔼 * B * vol)
+    Ks .= Symmetric(B' * ∂S∂E * B * vol)
 
     fint .= Ks * u_e
 
-    fint, Ks, σ, ε
+    fint, Ks, S, ε
 end
 
 "Shape function derivatives."
