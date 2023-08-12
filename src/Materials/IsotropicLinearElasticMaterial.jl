@@ -69,15 +69,16 @@ end
 
 "Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ`
 considering a `IsotropicLinearElastic` material `m`."
-function stress!(σ::AbstractMatrix, ∂σ∂ϵ::AbstractMatrix,
-                 m::IsotropicLinearElastic, ϵ::AbstractMatrix)
+function stress!(σ::AbstractMatrix{<:Real}, ∂σ∂ϵ::Matrix{<:Real},
+                 m::IsotropicLinearElastic{<:Real}, ϵ::AbstractMatrix{<:Real};
+                 cache_eye::AbstractMatrix{<:Real}=eye(3),
+                 cache_ones::Matrix{<:Real}=ones(3, 3))
     λ, G = lame_parameters(m)
 
-    I₃₃ = eye(3)
-    σ .= Symmetric(λ * tr(ϵ) * I₃₃ + 2 * G * ϵ)
+    σ .= Symmetric(λ * tr(ϵ) * cache_eye + 2 * G * ϵ)
 
-    ∂σ∂ϵ[1:3, 1:3] .= λ * ones(3, 3) + 2 * G * I₃₃
-    ∂σ∂ϵ[4:6, 4:6] .= G * I₃₃
+    ∂σ∂ϵ[1:3, 1:3] .= λ * cache_ones + 2 * G * cache_eye
+    ∂σ∂ϵ[4:6, 4:6] .= G * cache_eye
 
     σ, ∂σ∂ϵ
 end

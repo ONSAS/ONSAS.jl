@@ -81,6 +81,8 @@ struct TetrahedronCache{T,ST<:Symmetric{T}} <: AbstractElementCache
     E::ST
     "Aux eye matrix"
     I₃₃::Matrix{T}
+    "Aux ones matrix"
+    ones₃₃::Matrix{T}
     function TetrahedronCache()
         fint = zeros(12)
         Ks = Symmetric(zeros(12, 12))
@@ -97,8 +99,9 @@ struct TetrahedronCache{T,ST<:Symmetric{T}} <: AbstractElementCache
         aux_geometric_Ks = zeros(4, 4)
         E = Symmetric(zeros(3, 3))
         I₃₃ = eye(3)
+        ones₃₃ = ones(3, 3)
         new{Float64,Symmetric{Float64}}(fint, Ks, S, ∂S∂E, P, ε, F, H, X, J,
-                                        funder, B, aux_geometric_Ks, E, I₃₃)
+                                        funder, B, aux_geometric_Ks, E, I₃₃, ones₃₃)
     end
 end
 
@@ -177,7 +180,7 @@ end
 and a an element displacement vector `u_e`. This function modifies the cache to avoid memory allocations."
 function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector,
                          cache::TetrahedronCache)
-    (; fint, Ks, σ, ε, F, H, X, J, funder, B, aux_geometric_Ks, E) = cache
+    (; fint, Ks, P, ε, F, H, X, J, funder, B, aux_geometric_Ks, E) = cache
 
     # Kinematics
     U = reshape(u_e, 3, 4)
@@ -206,12 +209,12 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
     Ks .= Km + Ks
 
     # Piola stress
-    σ .= Symmetric(F * 𝕊)
+    P .= Symmetric(F * 𝕊)
 
     # Right hand Cauchy strain tensor
     ε .= Symmetric(F' * F)
 
-    fint, Ks, σ, ε
+    fint, Ks, P, ε
 end
 
 "
@@ -230,7 +233,7 @@ A 4-tuple containing:
 "
 function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::AbstractVector,
                          cache::TetrahedronCache)
-    (; fint, Ks, S, ∂S∂E, ε, F, H, X, J, funder, B, I₃₃) = cache
+    (; fint, Ks, S, ∂S∂E, ε, F, H, X, J, funder, B, I₃₃, ones₃₃) = cache
 
     # Kinematics
     ∂X∂ζ = _shape_functions_derivatives(t)
@@ -246,7 +249,7 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
 
     # Stresses (due to stresses are all the same for linear elastic materials cosserat
     # is used as cache)
-    stress!(S, ∂S∂E, m, ε)
+    stress!(S, ∂S∂E, m, ε; cache_ones=ones₃₃, cache_eye=I₃₃)
 
     # Stiffness matrix
     Ks .= Symmetric(B' * ∂S∂E * B * vol)
