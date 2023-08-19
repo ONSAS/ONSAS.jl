@@ -7,6 +7,7 @@ module StaticAnalyses
 
 using Dictionaries: dictionary
 using Reexport
+using SparseArrays
 
 using ..Materials
 using ..Entities
@@ -20,9 +21,10 @@ using ..Solutions
 using ..StaticStates
 using ..Assemblers
 
-@reexport import ..StructuralAnalyses: initial_time, current_time, final_time, next!,
-                                       iteration_residuals, is_done, reset!
-@reexport import ..Assemblers: assemble!
+@reexport import ..StructuralAnalyses: initial_time, current_time, final_time, iteration_residuals,
+                                       is_done
+@reexport import ..StructuralSolvers: next!
+@reexport import ..Assemblers: assemble!, reset!
 
 export AbstractStaticAnalysis, load_factors, current_load_factor
 
@@ -83,7 +85,7 @@ current_load_factor(sa::AbstractStaticAnalysis) = current_time(sa)
 next!(sa::AbstractStaticAnalysis) = sa.current_step[] += 1
 
 "Sets the current load factor of the structural analysis to the initial load factor.
-Also resets! the iteration and `AbstractStructuralState`."
+Also Reset! the iteration and `AbstractStructuralState`."
 function reset!(sa::AbstractStaticAnalysis)
     sa.current_step[] = 1
     reset!(current_state(sa))
@@ -103,7 +105,8 @@ function assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
 
             # Global dofs of the element (dofs where K must be added)
             u_e = view(displacements(state), local_dofs(e))
-            fᵢₙₜ_e, kₛ_e, σ_e, ϵ_e = internal_forces(mat, e, u_e)
+            cache = elements_cache(state, e)
+            fᵢₙₜ_e, kₛ_e, σ_e, ϵ_e = internal_forces(mat, e, u_e, cache)
 
             # Assembles the element internal magnitudes
             assemble!(state, fᵢₙₜ_e, e)
@@ -116,16 +119,17 @@ function assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
     end_assemble!(state)
 end
 
-"Resets the assembled magnitudes in the state."
-function reset_assemble!(state::AbstractStructuralState)
+"Reset the assembled magnitudes in the state."
+function reset_assemble!(state::StaticState)
     reset!(assembler(state))
     internal_forces(state) .= 0.0
-    tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
-    # FIXME: Zero out stress and strain
+    K = tangent_matrix(state)
+    I, J, V = findnz(tangent_matrix(state))
+    K[I, J] .= zeros(eltype(V))
     nothing
 end
 
-"Pushes the current state into the solution."
+"Push the current state into the solution."
 function Base.push!(st_sol::StatesSolution, c_state::StaticState)
     # Copies TODO Need to store all these?
     fdofs = free_dofs(c_state)

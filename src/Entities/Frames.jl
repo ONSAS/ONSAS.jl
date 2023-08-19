@@ -50,6 +50,11 @@ end
 
 local_dof_symbol(::Frame) = [:u, :θ]
 
+struct FrameCache <: AbstractElementCache
+    Ks::Matrix{Float64}
+    f::Vector{Float64}
+end
+
 function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVector)
     @assert f.mass_matrix == Consistent
 

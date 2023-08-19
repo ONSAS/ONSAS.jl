@@ -17,9 +17,11 @@ using ..FixedDofBoundaryConditions
 using ..Nodes
 using ..Meshes
 
+const BCtoEntities{BC,E} = Dictionary{BC,Vector{E}} where {BC,E}
+
 @reexport import ..BoundaryConditions: apply
 @reexport import ..Entities: apply!
-export StructuralBoundaryCondition, all_bcs, fixed_dof_bcs, load_bcs,
+export StructuralBoundaryCondition, BCtoEntities, all_bcs, fixed_dof_bcs, load_bcs,
        displacement_bcs, element_bcs, face_bcs, node_bcs
 
 """
@@ -31,12 +33,11 @@ Base.@kwdef struct StructuralBoundaryCondition{NB<:AbstractBoundaryCondition,
                                                EB<:AbstractBoundaryCondition,
                                                N<:AbstractNode,F<:AbstractFace,E<:AbstractElement}
     "Maps each boundary conditions for a vector of nodes. "
-    node_bcs::Dictionary{NB,Vector{N}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractNode}}()
+    node_bcs::BCtoEntities{NB,N} = BCtoEntities{AbstractBoundaryCondition,AbstractNode}()
     "Maps each boundary conditions for a vector of faces."
-    face_bcs::Dictionary{FB,Vector{F}} = Dictionary{AbstractBoundaryCondition,Vector{AbstractFace}}()
+    face_bcs::BCtoEntities{FB,F} = BCtoEntities{AbstractBoundaryCondition,AbstractFace}()
     "Maps each boundary conditions for a vector of elements. "
-    element_bcs::Dictionary{EB,Vector{E}} = Dictionary{AbstractBoundaryCondition,
-                                                       Vector{AbstractElement}}()
+    element_bcs::BCtoEntities{EB,E} = BCtoEntities{AbstractBoundaryCondition,AbstractElement}()
 end
 function StructuralBoundaryCondition(pairs::Pair...)
     # Lenient constructor allowing to handle different concrete subtypes.
@@ -45,9 +46,9 @@ end
 function StructuralBoundaryCondition(pairs::Vector{Pair{B,Vector{E}}}) where {B<:AbstractBoundaryCondition,
                                                                               E<:Union{AbstractEntity,
                                                                                        AbstractNode}}
-    node_bcs = Dictionary{AbstractBoundaryCondition,Vector{AbstractNode}}()
-    face_bcs = Dictionary{AbstractBoundaryCondition,Vector{AbstractFace}}()
-    element_bcs = Dictionary{AbstractBoundaryCondition,Vector{AbstractElement}}()
+    node_bcs = BCtoEntities{AbstractBoundaryCondition,AbstractNode}()
+    face_bcs = BCtoEntities{AbstractBoundaryCondition,AbstractFace}()
+    element_bcs = BCtoEntities{AbstractBoundaryCondition,AbstractElement}()
     for (k, v) in pairs
         for vi in v
             if vi isa AbstractNode
@@ -220,70 +221,64 @@ function apply!(bcs::StructuralBoundaryCondition, m::AbstractMesh)
     bcs
 end
 
-"Apply node boundary conditions to the mesh."
+function _assign_entities_to_bc!(bc_to_entities::BCtoEntities{BC},
+                                 set_accessor::Function,
+                                 mesh_entities::Vector{E},
+                                 type_label::String,
+                                 m::AbstractMesh) where {BC<:AbstractBoundaryCondition,
+                                                         E<:Union{AbstractEntity,AbstractNode}}
+    sets = set_accessor(m)
+    for (dbc, entities) in pairs(bc_to_entities)
+        dbc_label = string(label(dbc))
+        # Check if the boundary condition label is in the set
+        # if not, the boundary condition is not applied
+        if haskey(sets, dbc_label)
+            for index in set_accessor(m, dbc_label)
+                push!(entities, mesh_entities[index])
+            end
+        elseif !isempty(entities)
+            @warn "The bc with label $dbc_label is already applied to the mesh."
+        end
+    end
+end
+
+"Apply node boundary conditions to the mesh. Assign entities with the same label in the
+boundary conditions set."
 function apply_node_bcs!(bcs::StructuralBoundaryCondition, m::AbstractMesh)
-    # Assign entities to the node boundary conditions
-    vec_nodes = nodes(m)
-    node_sets = node_set(m)
-    node_boundary_conditions = node_bcs(bcs)
+    _assign_entities_to_bc!(node_bcs(bcs),
+                            node_set,
+                            nodes(m),
+                            "node",
+                            m)
 
-    for (dbc, entities) in pairs(node_boundary_conditions)
-        dbc_label = string(label(dbc))
-        # Check if the boundary conditions label is the mesh node set
-        # if not, the boundary condition is not applied
-        if haskey(node_sets, dbc_label)
-            for node_index in node_set(m, dbc_label)
-                push!(entities, vec_nodes[node_index])
-            end
-        end
-    end
-    for empty_bc in findall(isempty, node_boundary_conditions)
-        delete!(node_boundary_conditions, empty_bc)
+    _delete_empty_bc(node_bcs(bcs))
+end
+function _delete_empty_bc(bc_entity::BCtoEntities)
+    for empty_bc in findall(isempty, bc_entity)
+        delete!(bc_entity, empty_bc)
     end
 end
 
-"Apply face boundary conditions to the mesh."
+"Apply face boundary conditions to the mesh. Assign entities with the same label in the
+boundary conditions set."
 function apply_face_bcs!(bcs::StructuralBoundaryCondition, m::AbstractMesh)
-    # Assign entities to the node boundary conditions
-    vec_faces = faces(m)
-    face_sets = face_set(m)
-    face_boundary_conditions = face_bcs(bcs)
-
-    for (dbc, entities) in pairs(face_boundary_conditions)
-        dbc_label = string(label(dbc))
-        # Check if the boundary conditions label is the mesh face set
-        # if not, the boundary condition is not applied
-        if haskey(face_sets, dbc_label)
-            for face_index in face_set(m, dbc_label)
-                push!(entities, vec_faces[face_index])
-            end
-        end
-    end
-    for empty_bc in findall(isempty, face_boundary_conditions)
-        delete!(face_boundary_conditions, empty_bc)
-    end
+    _assign_entities_to_bc!(face_bcs(bcs),
+                            face_set,
+                            faces(m),
+                            "face",
+                            m)
+    _delete_empty_bc(face_bcs(bcs))
 end
 
-"Apply element boundary conditions to the mesh."
+"Apply element boundary conditions to the mesh. Assign entities with the same label in the
+boundary conditions set."
 function apply_element_bcs!(bcs::StructuralBoundaryCondition, m::AbstractMesh)
-    # Assign entities to the node boundary conditions
-    vec_elements = elements(m)
-    element_sets = element_set(m)
-    element_boundary_conditions = element_bcs(bcs)
-
-    for (dbc, entities) in pairs(element_boundary_conditions)
-        dbc_label = string(label(dbc))
-        # Check if the boundary conditions label is the mesh element set
-        # if not, the boundary condition is not applied
-        if haskey(element_sets, dbc_label)
-            for element_index in element_set(m, dbc_label)
-                push!(entities, vec_elements[element_index])
-            end
-        end
-    end
-    for empty_bc in findall(isempty, element_boundary_conditions)
-        delete!(element_boundary_conditions, empty_bc)
-    end
+    _assign_entities_to_bc!(element_bcs(bcs),
+                            element_set,
+                            elements(m),
+                            "element",
+                            m)
+    _delete_empty_bc(element_bcs(bcs))
 end
 
 "Replace the boundary condition with the same label as the new."
@@ -294,7 +289,8 @@ function Base.replace!(sb::StructuralBoundaryCondition,
 
     # node boundary conditions replacement
     node_boundary_conditions = node_bcs(sb)
-    if haskey(node_boundary_conditions, old_bc)
+    node_bc_type = eltype(keys(node_boundary_conditions))
+    if (old_bc isa node_bc_type) && haskey(node_boundary_conditions, old_bc)
         old_nodes = node_boundary_conditions[old_bc]
         delete!(node_boundary_conditions, old_bc)
         insert!(node_boundary_conditions, new_bc, old_nodes)
@@ -302,7 +298,8 @@ function Base.replace!(sb::StructuralBoundaryCondition,
 
     # face boundary conditions replacement
     face_boundary_conditions = face_bcs(sb)
-    if haskey(face_boundary_conditions, old_bc)
+    face_bc_type = eltype(keys(face_boundary_conditions))
+    if (old_bc isa face_bc_type) && haskey(face_boundary_conditions, old_bc)
         old_faces = face_boundary_conditions[old_bc]
         delete!(face_boundary_conditions, old_bc)
         insert!(face_boundary_conditions, new_bc, old_faces)
@@ -310,11 +307,53 @@ function Base.replace!(sb::StructuralBoundaryCondition,
 
     # element boundary conditions replacement
     element_boundary_conditions = element_bcs(sb)
-    if haskey(element_boundary_conditions, old_bc)
+    element_bc_type = eltype(keys(element_boundary_conditions))
+    if (old_bc isa element_bc_type) && haskey(element_boundary_conditions, old_bc)
         old_elements = element_boundary_conditions[old_bc]
         delete!(element_boundary_conditions, old_bc)
         insert!(element_boundary_conditions, new_bc, old_elements)
     end
+end
+
+"Delete a boundary condition."
+function Base.delete!(sb::StructuralBoundaryCondition,
+                      bc::AbstractBoundaryCondition)
+    haskey(node_bcs(sb), bc) && delete!(node_bcs(sb), bc)
+    haskey(element_bcs(sb), bc) && delete!(element_bcs(sb), bc)
+    haskey(face_bcs(sb), bc) && delete!(face_bcs(sb), bc)
+end
+Base.delete!(sb::StructuralBoundaryCondition, label::Label) = delete!(sb, sb[label])
+
+"Insert a boundary condition."
+function Base.insert!(sb::StructuralBoundaryCondition,
+                      bc::AbstractBoundaryCondition,
+                      bc_entities::Vector{<:AbstractNode})
+    insert!(node_bcs(sb), bc, bc_entities)
+end
+function Base.insert!(sb::StructuralBoundaryCondition,
+                      bc::AbstractBoundaryCondition,
+                      bc_entities::AbstractNode...)
+    insert!(sb, bc, collect(bc_entities))
+end
+function Base.insert!(sb::StructuralBoundaryCondition,
+                      bc::AbstractBoundaryCondition,
+                      bc_entities::Vector{<:AbstractFace})
+    insert!(face_bcs(sb), bc, bc_entities)
+end
+function Base.insert!(sb::StructuralBoundaryCondition,
+                      bc::AbstractBoundaryCondition,
+                      bc_entities::AbstractFace...)
+    insert!(sb, bc, collect(bc_entities))
+end
+function Base.insert!(sb::StructuralBoundaryCondition,
+                      bc::AbstractBoundaryCondition,
+                      bc_entities::Vector{<:AbstractElement})
+    insert!(element_bcs(sb), bc, bc_entities)
+end
+function Base.insert!(sb::StructuralBoundaryCondition,
+                      bc::AbstractBoundaryCondition,
+                      bc_entities::AbstractElement...)
+    insert!(sb, bc, collect(bc_entities))
 end
 
 end # module

@@ -14,7 +14,7 @@ using ..CrossSections
 using ..Utils
 
 @reexport import ..Entities: nodes, create_entity, cross_section, internal_forces, local_dof_symbol,
-                             strain, stress
+                             strain, stress, volume
 
 export Truss, strain_model
 export AbstractStrainModel, RotatedEngineeringStrain, GreenStrain
@@ -93,9 +93,13 @@ function Truss(g::AbstractCrossSection, label::Label=NO_LABEL)
     Truss(Node(0, 0, 0), Node(0, 0, 0), g, DEFAULT_STRAIN_MODEL, label)
 end
 
-#==============================#
-# Truss element hard contracts #
-#==============================#
+"Return `Truss` volume."
+function volume(e::Truss{dim}) where {dim}
+    X_ref_row = reduce(vcat, coordinates(e))
+    Bdif, _ = _aux_matrices(dim)
+    l_ref = sqrt(sum((Bdif * X_ref_row) .^ 2))
+    area(cross_section(e)) * l_ref
+end
 
 "Return the cross-section of a `Truss` element `t`."
 cross_section(t::Truss) = t.cross_section

@@ -96,7 +96,7 @@ function run_uniaxial_compression()
     # -------------------------------
     # Final load factor
     sa₁ = NonLinearStaticAnalysis(s₁; NSTEPS=NSTEPS)
-    # Resets the analysis in order to run it multiple times
+    # Reset the analysis in order to run it multiple times
     reset!(sa₁)
     # -------------------------------
     # Algorithm

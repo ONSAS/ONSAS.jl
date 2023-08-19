@@ -66,7 +66,10 @@ mat_label = "steel"
                             σ_vogit[6] σ_vogit[2] σ_vogit[4]
                             σ_vogit[5] σ_vogit[4] σ_vogit[3]])
 
-    σ, ∂σ∂ϵ = cauchy_stress(linear_steel, ϵ)
+    σ = Symmetric(zeros(3, 3))
+    ∂σ∂ϵ = zeros(6, 6)
+
+    σ, ∂σ∂ϵ = stress!(σ, ∂σ∂ϵ, linear_steel, ϵ)
 
     @test σ ≈ σ_expected rtol = RTOL
 end

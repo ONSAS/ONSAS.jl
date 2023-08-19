@@ -7,8 +7,10 @@ module StaticStates
 
 using SparseArrays: spzeros
 using Dictionaries: Dictionary, dictionary
+using InteractiveUtils: subtypes
 using Reexport
 
+using ..Entities
 using ..Meshes
 using ..Structures
 using ..StructuralAnalyses
@@ -17,7 +19,9 @@ using ..Assemblers
 using ..Utils
 using ..Nodes
 
-@reexport import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
+@reexport import ..Assemblers: reset!
+@reexport import ..StructuralAnalyses: residual_forces!
+@reexport import ..StructuralSolvers: tangent_matrix
 
 export StaticState
 
@@ -76,7 +80,8 @@ function StaticState(s::AbstractStructure,
     # Initialize pairs strains
     ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
-    assemblerᵏ = Assembler(s)
+    cache = dictionary(nameof(T) => elements_cache(T) for T in subtypes(AbstractElement))
+    assemblerᵏ = Assembler(s, cache)
     fdofs = free_dofs(s)
     return StaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
                        iter_state)
@@ -99,7 +104,7 @@ end
 "Return the current system tangent matrix form the static state ."
 tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
-"Resets the static state assembled magnitudes and the iteration state."
+"Reset the static state assembled magnitudes and the iteration state."
 function reset!(state::StaticState)
     # Reset assembled magnitudes
     internal_forces(state) .= 0.0
