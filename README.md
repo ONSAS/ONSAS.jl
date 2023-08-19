@@ -1,12 +1,8 @@
 # ONSAS.jl
 
----
 ## *An Open Nonlinear Structural Analysis Solver*
 
-| **Documentation** |**Status** |**License** |  **Community** |
-|:-----------------:|:----------------------------:|:-----------:| :-----------:|
-| [![docs-dev][dev-img]][dev-url] | [![CI][ci-img]][ci-url] [![codecov][cov-img]][cov-url] |  [![license][lic-img]][lic-url] | [![community][com-img]][com-url] |
-
+[![docs-dev][dev-img]][dev-url] [![CI][ci-img]][ci-url] [![codecov][cov-img]][cov-url] [![license][lic-img]][lic-url] [![community][com-img]][com-url]
 
 [dev-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [dev-url]: https://ONSAS.github.io/ONSAS.jl/dev/
@@ -22,21 +18,19 @@
 [com-img]: https://user-images.githubusercontent.com/50339940/224228295-4ff7c201-975f-4e87-af51-86036a10f289.svg
 
 
+`ONSAS.jl` is a Julia implementation of the [ONSAS.m](https://github.com/ONSAS/ONSAS.m/) Structural Analysis Solver.
 
----
-## 💾 [Installing](https://julialang.github.io/Pkg.jl/v1/managing-packages/)
+## Installation
 
-`ONSAS.jl` is a registered Julia package and [as such you can install it](https://julialang.github.io/Pkg.jl/v1/managing-packages/) by activating the `pkg` mode (type `]`, and to leave it, type `<backspace>`),
+`ONSAS.jl` is a registered Julia package and [as such you can install it](https://julialang.github.io/Pkg.jl/v1/managing-packages/), from your Julia terminal, by activating the `pkg` mode (type `]`, and to leave it, type `<backspace>`),
 followed by
 
 ```julia
 pkg> add ONSAS
 ```
 
----
-## 💻 Contributing
+## Contributing
 All forms of contributing are kindly welcome (bug reports, docs, features, suggestions, questions and discussions). See CONTRIBUTING or  for more details.
 
----
-## 📓 [Manual](http://onsas.github.io/ONSAS.jl/dev/)
+## Manual
 To help you get started with using ONSAS.jl, we have provided resources in the [docs](http://onsas.github.io/ONSAS.jl/dev/). This includes internal documentation for interfaces, algorithms, and examples
