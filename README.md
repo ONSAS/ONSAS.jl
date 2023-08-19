@@ -20,7 +20,7 @@
 `ONSAS.jl` is a registered Julia package and can be installed and added to your project from your Julia terminal using:
 
 ```julia
-julia> add ONSAS
+julia> using ONSAS
 ```
 
 To help you get started with using ONSAS.jl, we have provided resources in the [docs](http://onsas.github.io/ONSAS.jl/dev/). This includes internal documentation for interfaces, algorithms, and examples
