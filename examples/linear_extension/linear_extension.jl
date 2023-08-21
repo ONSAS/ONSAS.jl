@@ -2,6 +2,7 @@
 # Uniaxial Extension Example 1  from (Zerpa et. Al., 2019, CMAME).
 # ----------------------------------------------------------------
 using Test, LinearAlgebra, Suppressor
+
 using ONSAS
 
 # Mesh with Gmsh.jl (see linear_extension_sketch)
