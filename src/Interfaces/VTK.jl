@@ -19,13 +19,11 @@ function write_vtks(states_sol, filename)
     num_elem = length(states_sol.analysis.s.mesh.elements)
     cells = [MeshCell(VTKCellTypes.VTK_TETRA, connec_mat[e]) for e in 1:num_elem]
 
-    s = states_sol.analysis.s
-    nnodes = length(nodes(s))
+    pdata = displacements(states_sol)[end]
     vtk_grid(filename, nodes_mat, cells) do vtk
-        vtk["Displacements x", VTKPointData()] = rand(3 * nnodes)
+        vtk["Displacements", VTKPointData()] = pdata
     end
 
-    # Main.@infiltrate
     #=
     s = states_sol.analysis.s
     for n in nodes(s)

@@ -36,9 +36,8 @@ FILES = ["Utils.jl",
          "Meshes/Searches.jl",
          "Meshes/Interpolators.jl",
          "Meshes/Handlers.jl",
-         # Interfaces
+         # Interface Gmsh
          "Interfaces/Gmsh.jl",
-         "Interfaces/VTK.jl",
          # Structural Model
          "StructuralModel/StructuralEntities.jl",
          "StructuralModel/StructuralBoundaryConditions.jl",
@@ -54,7 +53,9 @@ FILES = ["Utils.jl",
          "StructuralAnalyses/StaticStates.jl",
          "StructuralAnalyses/StaticAnalyses.jl",
          "StructuralAnalyses/LinearStaticAnalyses.jl",
-         "StructuralAnalyses/NonLinearStaticAnalyses.jl"]
+         "StructuralAnalyses/NonLinearStaticAnalyses.jl",
+         # Interface VTK
+         "Interfaces/VTK.jl"]
 
 foreach(FILES) do m
     include(m)
@@ -101,9 +102,8 @@ end
 @reexport using .Interpolators
 @reexport using .Handlers
 
-# Interfaces with external programs
+# Interface Gmsh
 @reexport using .Gmsh
-@reexport using .VTK
 
 # Structural model
 @reexport using .StructuralEntities
@@ -123,5 +123,8 @@ end
 @reexport using .StaticAnalyses
 @reexport using .LinearStaticAnalyses
 @reexport using .NonLinearStaticAnalyses
+
+# Interface VTK
+@reexport using .VTK
 
 end

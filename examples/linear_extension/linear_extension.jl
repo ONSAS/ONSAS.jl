@@ -82,7 +82,6 @@ function run_linear_extension_example()
     # -------------------------------
     states_sol = solve!(sa)
 
-    Main.@infiltrate
     write_vtks(states_sol, "linear_extension")
 
     # Select random points to test the solution
