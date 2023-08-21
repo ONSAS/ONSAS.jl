@@ -1,6 +1,7 @@
 module ONSAS
 
 using Reexport: @reexport
+using CommonSolve
 
 FILES = ["Utils.jl",
          # Materials
@@ -44,12 +45,12 @@ FILES = ["Utils.jl",
          "StructuralModel/StructuralMaterials.jl",
          "StructuralModel/Structures.jl",
          # Structural Solvers
+         "StructuralSolvers/Assemblers.jl",
+         "StructuralAnalyses/StructuralAnalyses.jl",
          "StructuralSolvers/StructuralSolvers.jl",
          "StructuralSolvers/Solvers.jl",
-         "StructuralSolvers/Assemblers.jl",
          "StructuralSolvers/Solutions.jl",
          # Structural Analyses
-         "StructuralAnalyses/StructuralAnalyses.jl",
          "StructuralAnalyses/StaticStates.jl",
          "StructuralAnalyses/StaticAnalyses.jl",
          "StructuralAnalyses/LinearStaticAnalyses.jl",
@@ -105,19 +106,19 @@ end
 @reexport using .VTK
 
 # Structural model
-@reexport using .StructuralMaterials
 @reexport using .StructuralEntities
 @reexport using .StructuralBoundaryConditions
+@reexport using .StructuralMaterials
 @reexport using .Structures
 
 # Finite element solvers
+@reexport using .Assemblers
+@reexport using .StructuralAnalyses
 @reexport using .StructuralSolvers
 @reexport using .Solvers
-@reexport using .Assemblers
 @reexport using .Solutions
 
 # Structural analyses
-@reexport using .StructuralAnalyses
 @reexport using .StaticStates
 @reexport using .StaticAnalyses
 @reexport using .LinearStaticAnalyses

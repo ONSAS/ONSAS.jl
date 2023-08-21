@@ -1,5 +1,6 @@
 module Assemblers
 
+using Dictionaries: Dictionary
 using SparseArrays: sparse
 using Reexport
 
@@ -7,24 +8,26 @@ using ..Entities
 using ..Nodes
 using ..Structures
 
-@reexport import ..StructuralSolvers: reset!
+@reexport import ..Entities: elements_cache
 
-export Assembler, assemble!, reset_assembler!, end_assemble, end_assemble!
+export Assembler, assemble!, reset_assembler!, end_assemble, end_assemble!, reset!
 
 """"
 Struct that stores column indexes, row indexes and values for the assemble process.
- """
-struct Assembler{T}
+"""
+struct Assembler{T,DT}
     "Column indexes."
     I::Vector{Int}
     "Row indexes."
     J::Vector{Int}
     "Values."
     V::Vector{T}
+    "Elements cache."
+    cache::DT
 end
 
 "Constructor of an `Assembler` with size of the sparse matrix `N` ."
-function Assembler(N::Integer)
+function Assembler(N::Integer, cache=nothing)
     I = Int[]
     J = Int[]
     V = Float64[]
@@ -32,10 +35,14 @@ function Assembler(N::Integer)
     sizehint!(J, N)
     sizehint!(V, N)
 
-    return Assembler(I, J, V)
+    return Assembler(I, J, V, cache)
 end
 
-Assembler(s::AbstractStructure) = Assembler(num_free_dofs(s))
+Assembler(s::AbstractStructure, cache=nothing) = Assembler(num_free_dofs(s), cache)
+
+function elements_cache(a::Assembler, e::AbstractElement)
+    a.cache[nameof(typeof(e))]
+end
 
 """Assembles the element matrix `Ke` into the `Assembler` struct `a`."""
 function assemble!(a::Assembler{T}, dofs::AbstractVector{Dof}, Ke::AbstractMatrix{T}) where {T}

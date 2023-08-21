@@ -105,6 +105,6 @@ end
     stress(t, u_global_structure[local_dofs(t)]) == σ_e
     @test norm(fᵢₙₜ_e) == 0
     @test Kᵢₙₜ_e[1] == E * A / l_def
-    @test norm(σ_e) == 0
-    @test norm(ϵ_e) == 0
+    @test norm(σ_e[1, 1]) == 0
+    @test norm(ϵ_e[1, 1]) == 0
 end

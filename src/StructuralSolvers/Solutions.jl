@@ -20,6 +20,7 @@ using ..Meshes
 using ..Structures
 using ..StructuralSolvers
 
+@reexport import ..StructuralAnalyses: displacements, external_forces, iteration_residuals
 @reexport import ..StructuralSolvers: residual_forces_tol, displacement_tol, criterion, iterations
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 

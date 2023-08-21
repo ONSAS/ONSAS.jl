@@ -150,6 +150,7 @@ s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
           truss₄ ∈ s_boundary_conditions[bc₄]
 
     scale_factor = 10
+    old_bc = bc₃
     old_label_to_replace = label(bc₃)
     old_nodes_bc = node_bcs(s_boundary_conditions)[bc₃]
     old_faces_bc = face_bcs(s_boundary_conditions)[bc₃]
@@ -162,6 +163,14 @@ s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
           scale_factor * [0, Fⱼ * t_to_test, 0]
     @test node_bcs(s_boundary_conditions)[new_bc] == old_nodes_bc
     @test face_bcs(s_boundary_conditions)[new_bc] == old_faces_bc
+
+    # Delete a boundary condition
+    delete!(s_boundary_conditions, bc₃)
+    @test_throws KeyError getindex(s_boundary_conditions, bc₃)
+    insert!(s_boundary_conditions, bc₃, [n₂, n₁])
+    @test n₂ ∈ s_boundary_conditions[bc₃] && n₁ ∈ s_boundary_conditions[bc₃]
+    insert!(s_boundary_conditions, bc₃, face₂)
+    @test face₂ ∈ s_boundary_conditions[bc₃]
 end
 
 @testset "ONSAS.StructuralEntity" begin

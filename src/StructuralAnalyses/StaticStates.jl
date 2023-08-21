@@ -5,10 +5,13 @@ state contains external and internal forces, displacements, stresses and strains
 """
 module StaticStates
 
-using SparseArrays: spzeros
-using Dictionaries: Dictionary, dictionary
+using SparseArrays
+using Dictionaries
+using InteractiveUtils
+using LinearAlgebra
 using Reexport
 
+using ..Entities
 using ..Meshes
 using ..Structures
 using ..StructuralAnalyses
@@ -17,7 +20,9 @@ using ..Assemblers
 using ..Utils
 using ..Nodes
 
-@reexport import ..StructuralAnalyses: tangent_matrix, residual_forces!, reset!
+@reexport import ..Assemblers: reset!
+@reexport import ..StructuralAnalyses: residual_forces!
+@reexport import ..StructuralSolvers: tangent_matrix
 
 export StaticState
 
@@ -74,12 +79,12 @@ function StaticState(s::AbstractStructure,
     Kₛᵏ = spzeros(n_dofs, n_dofs)
     res_forces = zeros(n_fdofs)
     # Initialize pairs strains
-    ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
+    ϵᵏ = dictionary([Pair(e, Symmetric(Matrix{Float64}(undef, (3, 3)))) for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
-    assemblerᵏ = Assembler(s)
+    cache = dictionary(nameof(T) => elements_cache(T) for T in subtypes(AbstractElement))
+    assemblerᵏ = Assembler(s, cache)
     fdofs = free_dofs(s)
-    return StaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
-                       iter_state)
+    StaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
 end
 
 function Base.show(io::IO, sc::StaticState)
@@ -99,7 +104,7 @@ end
 "Return the current system tangent matrix form the static state ."
 tangent_matrix(sc::StaticState) = sc.Kₛᵏ
 
-"Resets the static state assembled magnitudes and the iteration state."
+"Reset the static state assembled magnitudes and the iteration state."
 function reset!(state::StaticState)
     # Reset assembled magnitudes
     internal_forces(state) .= 0.0
@@ -107,8 +112,8 @@ function reset!(state::StaticState)
     reset!(assembler(state))
     # Reset the stress and strains dictionaries
     for (e, _) in pairs(stress(state))
-        stress(state)[e] .= zeros(3, 3)
-        strain(state)[e] .= zeros(3, 3)
+        stress(state)[e] .= Symmetric(zeros(3, 3))
+        strain(state)[e] .= Symmetric(zeros(3, 3))
     end
     # Reset ext force
     external_forces(state) .= 0.0
