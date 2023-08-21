@@ -1,7 +1,7 @@
 "Module defining tetrahedron elements."
 module Tetrahedrons
 
-using StaticArrays, LinearAlgebra, LazySets, Reexport
+using StaticArrays, LinearAlgebra, LazySets, Reexport, Tensors
 
 using ..Utils
 using ..Nodes
@@ -60,7 +60,7 @@ struct TetrahedronCache{T,ST<:Symmetric{T}} <: AbstractElementCache
     "Constitutive driver."
     ∂S∂E::Matrix{T}
     "Piola stress."
-    P::ST
+    P::Matrix{T}
     "Cauchy-Green strain."
     ε::ST
     "Deformation gradient."
@@ -88,7 +88,7 @@ struct TetrahedronCache{T,ST<:Symmetric{T}} <: AbstractElementCache
         Ks = Symmetric(zeros(12, 12))
         S = Symmetric(zeros(3, 3))
         ∂S∂E = zeros(6, 6)
-        P = Symmetric(zeros(3, 3))
+        P = zeros(3, 3)
         ε = Symmetric(zeros(3, 3))
         F = zeros(3, 3)
         H = zeros(3, 3)
@@ -180,7 +180,7 @@ end
 and a an element displacement vector `u_e`. This function modifies the cache to avoid memory allocations."
 function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector,
                          cache::TetrahedronCache)
-    (; fint, Ks, P, ε, F, H, X, J, funder, B, aux_geometric_Ks, E) = cache
+    (; fint, Ks, P, S, ∂S∂E, ε, F, H, X, J, funder, B, aux_geometric_Ks, E, I₃₃) = cache
 
     # Kinematics
     U = reshape(u_e, 3, 4)
@@ -190,26 +190,26 @@ function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::A
     vol = _volume(J)
     funder .= inv(J)' * ∂X∂ζ
     H .= U * funder'
-    F .= H + eye(3)
+    F .= H + I₃₃
 
     E .= Symmetric(0.5 * (H + H' + H' * H))
-    B = _B_mat!(B, funder, F)
+    _B_mat!(B, funder, F)
 
     # Stresses
-    𝕊, ∂𝕊∂𝔼 = cosserat_stress(m, E)
-    𝕊_voigt = voigt(𝕊)
-    fint .= B' * 𝕊_voigt * vol
+    cosserat_stress!(S, ∂S∂E, m, E)
+    S_voigt = voigt(S)
+    fint .= B' * S_voigt * vol
 
     # Material stiffness
-    Km = Symmetric(B' * ∂𝕊∂𝔼 * B * vol)
+    Km = Symmetric(B' * ∂S∂E * B * vol)
 
     # Geometric stiffness
     Ks .= 0.0
-    geometric_stiffness!(Ks, aux_geometric_Ks, 𝕊, funder, vol)
+    geometric_stiffness!(Ks, aux_geometric_Ks, S, funder, vol)
     Ks .= Km + Ks
 
     # Piola stress
-    P .= Symmetric(F * 𝕊)
+    P .= F * S
 
     # Right hand Cauchy strain tensor
     ε .= Symmetric(F' * F)

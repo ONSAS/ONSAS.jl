@@ -16,6 +16,8 @@ An `AbstractLinearElasticMaterial` object facilitates the process of using elast
 * [`shear_modulus`](@ref)
 * [`poisson_ratio`](@ref)
 * [`elasticity_modulus`](@ref)
+* [`bulk_modulus`](@ref)
+* [`stress!`](@ref)
 
 **Abstract fields**
 * label

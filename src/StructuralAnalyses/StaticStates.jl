@@ -5,9 +5,10 @@ state contains external and internal forces, displacements, stresses and strains
 """
 module StaticStates
 
-using SparseArrays: spzeros
-using Dictionaries: Dictionary, dictionary
-using InteractiveUtils: subtypes
+using SparseArrays
+using Dictionaries
+using InteractiveUtils
+using LinearAlgebra
 using Reexport
 
 using ..Entities
@@ -78,13 +79,12 @@ function StaticState(s::AbstractStructure,
     Kₛᵏ = spzeros(n_dofs, n_dofs)
     res_forces = zeros(n_fdofs)
     # Initialize pairs strains
-    ϵᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
+    ϵᵏ = dictionary([Pair(e, Symmetric(Matrix{Float64}(undef, (3, 3)))) for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     cache = dictionary(nameof(T) => elements_cache(T) for T in subtypes(AbstractElement))
     assemblerᵏ = Assembler(s, cache)
     fdofs = free_dofs(s)
-    return StaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
-                       iter_state)
+    StaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
 end
 
 function Base.show(io::IO, sc::StaticState)
@@ -112,8 +112,8 @@ function reset!(state::StaticState)
     reset!(assembler(state))
     # Reset the stress and strains dictionaries
     for (e, _) in pairs(stress(state))
-        stress(state)[e] .= zeros(3, 3)
-        strain(state)[e] .= zeros(3, 3)
+        stress(state)[e] .= Symmetric(zeros(3, 3))
+        strain(state)[e] .= Symmetric(zeros(3, 3))
     end
     # Reset ext force
     external_forces(state) .= 0.0

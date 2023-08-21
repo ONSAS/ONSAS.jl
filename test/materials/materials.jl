@@ -124,13 +124,15 @@ Khyper = λhyper + 2 * Ghyper / 3
     @test label(svk_hyper) == Symbol(l)
 
     # Constitutive driver svk type SVK
-    𝕊_svk, ∂𝕊∂𝔼_svk = cosserat_stress(svk, 𝔼)
-
+    𝕊_svk = Symmetric(zeros(3, 3))
+    ∂𝕊∂𝔼_svk = zeros(6, 6)
+    cosserat_stress!(𝕊_svk, ∂𝕊∂𝔼_svk, svk, 𝔼)
     @test 𝕊_svk ≈ 𝕊_test rtol = RTOL
     @test ∂𝕊∂𝔼_svk ≈ ∂𝕊∂𝔼_test rtol = RTOL
-
-    𝕊_hyper, ∂𝕊∂𝔼_hyper = cosserat_stress(svk_hyper, 𝔼)
-
+    # Constitutive driver HyperElasticMateiral
+    𝕊_hyper = Symmetric(zeros(3, 3))
+    ∂𝕊∂𝔼_hyper = zeros(6, 6)
+    cosserat_stress!(𝕊_hyper, ∂𝕊∂𝔼_hyper, svk_hyper, 𝔼)
     @test 𝕊_hyper ≈ 𝕊_test rtol = RTOL
     @test ∂𝕊∂𝔼_svk ≈ ∂𝕊∂𝔼_test rtol = RTOL
 end
@@ -170,8 +172,13 @@ end
     neo_hyper = HyperElastic([bulk_modulus(neo_flexible), shear_modulus(neo_flexible)],
                              strain_energy_neo, l)
 
-    𝕊_hyper, ∂𝕊∂𝔼_hyper = cosserat_stress(neo_hyper, 𝔼)
-    𝕊_neo, ∂𝕊∂𝔼_neo = cosserat_stress(neo_flexible, 𝔼)
+    𝕊_hyper = Symmetric(zeros(3, 3))
+    ∂𝕊∂𝔼_hyper = zeros(6, 6)
+    𝕊_neo = Symmetric(zeros(3, 3))
+    ∂𝕊∂𝔼_neo = zeros(6, 6)
+
+    cosserat_stress!(𝕊_hyper, ∂𝕊∂𝔼_hyper, neo_hyper, 𝔼)
+    cosserat_stress!(𝕊_neo, ∂𝕊∂𝔼_neo, neo_flexible, 𝔼)
 
     @test 𝕊_hyper ≈ 𝕊_neo rtol = RTOL
     @test ∂𝕊∂𝔼_hyper ≈ ∂𝕊∂𝔼_neo rtol = RTOL

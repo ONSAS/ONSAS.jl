@@ -8,7 +8,7 @@ using ..Utils
 
 @reexport import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus,
                                            bulk_modulus, poisson_ratio
-@reexport import ..HyperElasticMaterials: cosserat_stress, strain_energy
+@reexport import ..HyperElasticMaterials: cosserat_stress!, strain_energy
 
 export SVK
 
@@ -84,16 +84,18 @@ end
 
 "Return the Cosserat or Second-Piola Kirchoff stress tensor `𝕊`
 considering a `SVK` material `m` and the Lagrangian Green
-strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
-function cosserat_stress(m::SVK, 𝔼::AbstractMatrix)
+strain tensor `𝔼`.Also this function provides `∂S∂E` for the iterative method."
+function cosserat_stress!(S::AbstractMatrix{<:Real}, ∂S∂E::Matrix{<:Real},
+                          m::SVK, E::AbstractMatrix;
+                          eye_cache::AbstractMatrix{<:Real}=eye(3),
+                          ones_cache::AbstractMatrix{<:Real}=ones(3, 3))
     λ, G = lame_parameters(m)
-    𝕊 = λ * tr(𝔼) * eye(3) + 2 * G * 𝔼
+    S .= λ * tr(E) * eye_cache + 2 * G * E
 
-    ∂𝕊∂𝔼 = zeros(6, 6)
-    ∂𝕊∂𝔼[1:3, 1:3] = λ * ones(3, 3) + 2 * G * eye(3)
-    ∂𝕊∂𝔼[4:6, 4:6] = G * eye(3)
+    ∂S∂E[1:3, 1:3] .= λ * ones_cache + 2 * G * eye_cache
+    ∂S∂E[4:6, 4:6] .= G * eye_cache
 
-    𝕊, ∂𝕊∂𝔼
+    S, ∂S∂E
 end
 
 end

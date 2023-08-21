@@ -153,7 +153,7 @@ sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ,
     fᵢₙₜ_e_1 = rand(6)
     k_e_1 = rand(6, 6)
     σ_e_1 = rand(3, 3)
-    ϵ_e_1 = rand(3, 3)
+    ϵ_e_1 = Symmetric(rand(3, 3))
     assemble!(default_s, fᵢₙₜ_e_1, truss₁)
     @test internal_forces(default_s)[1:6] ≈ fᵢₙₜ_e_1 rtol = RTOL
     assemble!(default_s, k_e_1, truss₁)
@@ -163,7 +163,7 @@ sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ,
     fᵢₙₜ_e_2 = rand(6)
     k_e_2 = rand(6, 6)
     σ_e_2 = rand(3, 3)
-    ϵ_e_2 = rand(3, 3)
+    ϵ_e_2 = Symmetric(rand(3, 3))
     assemble!(default_s, fᵢₙₜ_e_2, truss₂)
     assemble!(default_s, k_e_2, truss₂)
     assemble!(default_s, σ_e_2, ϵ_e_2, truss₂)

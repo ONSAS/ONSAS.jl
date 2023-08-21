@@ -1,9 +1,9 @@
 module Utils
 
-using LinearAlgebra: Diagonal
+using LinearAlgebra
 
 export ScalarWrapper, label, unwrap, eye, row_vector, @debugtime, voigt, Label, NO_LABEL,
-       Density, Field, index
+       Density, Field, index, fill_symmetric_matrix!, INDEXES_TO_VOIGT
 
 #================================#
 # Generic functions to overload  #
@@ -42,6 +42,21 @@ eye(m::Integer, T=Bool) = Diagonal(ones(T, m))
 "Transforms a vector of vectors into a 1D row vector."
 row_vector(v::Vector{<:AbstractVector{T}}) where {T} = reduce(vcat, v)
 
+function fill_symmetric_matrix!(S::Symmetric{T},
+                                S₁₁::T, S₂₂::T, S₃₃::T, S₂₃::T, S₁₃::T, S₁₂::T) where {T}
+    A = parent(S)
+    S[1, 1] = S₁₁
+    S[2, 2] = S₂₂
+    S[3, 3] = S₃₃
+    A[2, 3] = S₂₃
+    A[1, 3] = S₁₃
+    A[1, 2] = S₁₂
+end
+
+"Indexes to transform form Tensors.jl to Voigt nomenclature."
+const INDEXES_TO_VOIGT = [(1, 1), (2, 2), (3, 3), (2, 3), (1, 3), (1, 2)]
+
+#TODO: Replace indexes
 "Return the tensor `𝕋` in Voigt notation."
 function voigt(𝕋::AbstractMatrix, α::Real=1)
     return [𝕋[1, 1], 𝕋[2, 2], 𝕋[3, 3], α * 𝕋[2, 3], α * 𝕋[1, 3], α * 𝕋[1, 2]]
