@@ -19,19 +19,15 @@ function write_vtks(states_sol, filename)
     num_elem = length(states_sol.analysis.s.mesh.elements)
     cells = [MeshCell(VTKCellTypes.VTK_TETRA, connec_mat[e]) for e in 1:num_elem]
 
-    pdata = displacements(states_sol)[end]
-    vtk_grid(filename, nodes_mat, cells) do vtk
-        vtk["Displacements", VTKPointData()] = pdata
+    n = length(displacements(states_sol))
+    mypad = Integer(ceil(log10(n))) + 1
+    for i in 1:n
+        pdata = displacements(states_sol)[i]
+        filename_i = filename * string(i; pad=mypad)
+        vtk_grid(filename_i, nodes_mat, cells) do vtk
+            vtk["Displacements", VTKPointData()] = pdata
+        end
     end
-
-    #=
-    s = states_sol.analysis.s
-    for n in nodes(s)
-        # Get the displacements for all coordinates at the last time point.
-        data = [last(c) for c in displacements(states_sol, n)]
-        vtk_point_data(filename, data, "Displacements")
-    end
-    =#
 end
 
 end
