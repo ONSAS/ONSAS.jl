@@ -19,12 +19,14 @@ function write_vtks(states_sol, filename)
     num_elem = length(states_sol.analysis.s.mesh.elements)
     cells = [MeshCell(VTKCellTypes.VTK_TETRA, connec_mat[e]) for e in 1:num_elem]
 
-    n = length(displacements(states_sol))
-    mypad = Integer(ceil(log10(n))) + 1
-    for i in 1:n
+    n_times = length(displacements(states_sol))
+    n_dofs = length(displacements(states_sol)[end])
+    mypad = Integer(ceil(log10(n_times))) + 1
+    for i in 1:n_times
         pdata = displacements(states_sol)[i]
+        nodes = nodes_mat + reshape(pdata, (3, Integer(n_dofs / 3))) # TO DO generalize for angle dof cases
         filename_i = filename * string(i; pad=mypad)
-        vtk_grid(filename_i, nodes_mat, cells) do vtk
+        vtk_grid(filename_i, nodes, cells) do vtk
             vtk["Displacements", VTKPointData()] = pdata
         end
     end
