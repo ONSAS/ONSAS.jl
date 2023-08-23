@@ -20,7 +20,7 @@ function write_vtks(states_sol, filename)
     cells = [MeshCell(VTKCellTypes.VTK_TETRA, connec_mat[e]) for e in 1:num_elem]
 
     n_times = length(displacements(states_sol))
-    n_dofs = length(displacements(states_sol)[end])
+    n_dofs = num_dofs(states_sol.analysis.s.mesh)
     mypad = Integer(ceil(log10(n_times))) + 1
     for i in 1:n_times
         pdata = displacements(states_sol)[i]
