@@ -80,7 +80,7 @@ function test(sol::AbstractSolution)
     # Analytic solution
     #-----------------------------
     # Compute the analytic values for the strain, stress and force at the tip
-    "Analytic force given `uᵢ` towards x axis at the tip node."
+    "Analytic force given `uᵢ` towards x axis at the tip node"
     function analytic_P(::Type{GreenStrain}, uᵢ::Real, E::Real=E, l₀::Real=L, A₀::Real=A)
         ϵ_green = 0.5 * ((l₀ + uᵢ)^2 - l₀^2) / (l₀^2)
         # Cosserat stress
@@ -96,7 +96,7 @@ function test(sol::AbstractSolution)
     end
 end
 
-"Run the example."
+"Run the example"
 function run()
     sol = solve()
     test(sol)
