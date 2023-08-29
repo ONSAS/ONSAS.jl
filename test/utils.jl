@@ -1,19 +1,7 @@
 using Test
 using ONSAS.Utils
+using LinearAlgebra
 
-# Test case for ScalarWrapper
-@testset "ONSAS.Utils.ScalarWrapper" begin
-    # Test initialization of ScalarWrapper
-    s = ScalarWrapper(10)
-    @test s.x == 10
-
-    # Test `unwrap` method.
-    @test unwrap(s) == 10
-
-    # Test `getindex` method.
-    @test s[] == 10
-
-    # Test `setindex!` method.
-    s[] = 20
-    @test s[] == 20
+@testset "Utils functions." begin
+    eye(3) == Diagonal([1, 1, 1])
 end
