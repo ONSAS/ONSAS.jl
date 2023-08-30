@@ -18,7 +18,7 @@ function parameters()
     A = 1                 # Cross section area.
     F = 10e6              # Force at the tip
     ϵ_model = GreenStrain # Strain model
-    NSTEPS = 10           # Number of steps load factors steps
+    NSTEPS = 10           # Number of load factors steps
 
     (; NSTEPS, ϵ_model, N, E, ν, ρ, L, A, F)
 end;
@@ -50,9 +50,7 @@ function structure()
     bc₂ = GlobalLoad(:u, t -> [F * t], "load in j")
     # Apply bcs to the nodes
     boundary_conditions = StructuralBoundaryCondition(bc₁ => [first(nodes)], bc₂ => [last(nodes)])
-    # -------------------------------
-    # Structure
-    # -------------------------------
+
     Structure(mesh, materials, boundary_conditions)
 end;
 
@@ -70,8 +68,6 @@ function solve()
     solve!(sa, NewtonRaphson())
 end;
 
-sol = solve()
-
 "Test problem solution"
 function test(sol::AbstractSolution)
     (; F, ϵ_model, E, A, L) = parameters()
@@ -79,13 +75,13 @@ function test(sol::AbstractSolution)
     sa = analysis(sol)
     vec_nodes = ONSAS.nodes(mesh(ONSAS.structure(sa)))
     numeric_uᵢ = displacements(sol, last(vec_nodes))[1]
-    numeric_F_tip = F * load_factors(sa)
+    numeric_P_tip = F * load_factors(sa)
     #-----------------------------
     # Analytic solution
     #-----------------------------
     # Compute the analytic values for the strain, stress and force at the tip
     "Analytic force given `uᵢ` towards x axis at the tip node."
-    function analytic_F(::Type{GreenStrain}, uᵢ::Real, E::Real=E, l₀::Real=L, A₀::Real=A)
+    function analytic_P(::Type{GreenStrain}, uᵢ::Real, E::Real=E, l₀::Real=L, A₀::Real=A)
         ϵ_green = 0.5 * ((l₀ + uᵢ)^2 - l₀^2) / (l₀^2)
         # Cosserat stress
         𝐒₁₁ = E * ϵ_green
@@ -94,17 +90,16 @@ function test(sol::AbstractSolution)
         𝐏₁₁ * A₀
     end
     #
-    analytic_F_tip = analytic_F.(Ref(ϵ_model), numeric_uᵢ)
-    #-----------------------------
-    # Test boolean for CI
-    #-----------------------------
-    @test analytic_F_tip ≈ numeric_F_tip rtol = 1e-3
+    analytic_P_tip = analytic_P.(Ref(ϵ_model), numeric_uᵢ)
+    @testset "Piola-Kirchoff tensor at the right-most node" begin
+        @test analytic_P_tip ≈ numeric_P_tip rtol = 1e-3
+    end
 end
 
-"Runs the clamped truss example."
-function run_clamped_truss_example()
+"Run the example."
+function run()
     sol = solve()
     test(sol)
 end
 
-run_clamped_truss_example()
+run()
