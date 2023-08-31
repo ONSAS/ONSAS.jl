@@ -32,16 +32,16 @@ A linear analysis is a collection of parameters for defining the static analysis
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 As this analysis is linear the stiffness of the structure remains constant at each displacements iteration step.
 """
-struct LinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}} <:
-       AbstractStaticAnalysis
+mutable struct LinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}} <:
+               AbstractStaticAnalysis
     "Structure to be analyzed."
-    s::S
+    const s::S
     "Structural state."
-    state::StaticState
+    const state::StaticState
     "Load factors vector of the analysis."
-    λᵥ::LFV
+    const λᵥ::LFV
     "Current load factor step."
-    current_step::ScalarWrapper{Int}
+    current_step::Int64
 end
 
 "Constructor for linear analysis with load factors, optional initial step and initial state."
@@ -52,7 +52,7 @@ function LinearStaticAnalysis(s::S, λᵥ::LFV;
                                                           LFV<:Vector{<:Real}}
     !(1 ≤ initial_step ≤ length(λᵥ)) &&
         throw(ArgumentError("initial_step must be in [1, $(length(λᵥ))] but is: $initial_step."))
-    LinearStaticAnalysis(s, initial_state, λᵥ, ScalarWrapper(initial_step))
+    LinearStaticAnalysis(s, initial_state, λᵥ, initial_step)
 end
 
 "Constructor for linear analysis given a final time (or load factor) and the number of steps."

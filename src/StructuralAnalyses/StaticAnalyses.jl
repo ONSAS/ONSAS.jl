@@ -68,7 +68,7 @@ final_time(sa::AbstractStaticAnalysis) = last(load_factors(sa))
 "Return true if the structural analysis is completed."
 function is_done(sa::AbstractStaticAnalysis)
     is_done_bool = if sa.current_step[] > length(load_factors(sa))
-        sa.current_step[] -= 1
+        sa.current_step -= 1
         true
     else
         false
@@ -82,12 +82,12 @@ load_factors(sa::AbstractStaticAnalysis) = sa.λᵥ
 current_load_factor(sa::AbstractStaticAnalysis) = current_time(sa)
 
 "Jumps to the next current load factor defined in the structural analysis."
-next!(sa::AbstractStaticAnalysis) = sa.current_step[] += 1
+next!(sa::AbstractStaticAnalysis) = sa.current_step += 1
 
 "Sets the current load factor of the structural analysis to the initial load factor.
 Also Reset! the iteration and `AbstractStructuralState`."
 function reset!(sa::AbstractStaticAnalysis)
-    sa.current_step[] = 1
+    sa.current_step = 1
     reset!(current_state(sa))
     @info "The current time of analysis have been reset."
     sa

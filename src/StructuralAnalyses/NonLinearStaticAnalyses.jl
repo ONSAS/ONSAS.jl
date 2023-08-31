@@ -29,16 +29,16 @@ A non linear static analysis is a collection of parameters for defining the stat
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 As this analysis is nonlinear the stiffness of the structure is updated at each iteration.
 """
-struct NonLinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}} <:
-       AbstractStaticAnalysis
+mutable struct NonLinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}} <:
+               AbstractStaticAnalysis
     "Structure to be analyzed."
-    s::S
+    const s::S
     "Structural state."
-    state::StaticState
+    const state::StaticState
     "Load factors vector of the analysis."
-    λᵥ::LFV
+    const λᵥ::LFV
     "Current load factor step."
-    current_step::ScalarWrapper{Int}
+    current_step::Int64
 end
 "Constructor for a non linear analysis with load factors, optional initial step and initial state."
 function NonLinearStaticAnalysis(s::S, λᵥ::LFV;
@@ -47,7 +47,7 @@ function NonLinearStaticAnalysis(s::S, λᵥ::LFV;
                                                              LFV<:AbstractVector{<:Real}}
     !(1 ≤ initial_step ≤ length(λᵥ)) &&
         throw(ArgumentError("initial_step must be in [1, $(length(λᵥ))] but is: $initial_step."))
-    NonLinearStaticAnalysis(s, initial_state, λᵥ, ScalarWrapper(initial_step))
+    NonLinearStaticAnalysis(s, initial_state, λᵥ, initial_step)
 end
 
 "Constructor for non linear static analysis given a final time (or load factor) and the number of steps."
