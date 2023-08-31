@@ -2,8 +2,8 @@ module Utils
 
 using LinearAlgebra
 
-export ScalarWrapper, label, unwrap, eye, row_vector, @debugtime, voigt, Label, NO_LABEL,
-       Density, Field, index, fill_symmetric_matrix!, INDEXES_TO_VOIGT
+export label, unwrap, eye, row_vector, @debugtime, voigt, Label, NO_LABEL, Density, Field, index,
+       fill_symmetric_matrix!, INDEXES_TO_VOIGT
 
 #================================#
 # Generic functions to overload  #
@@ -22,15 +22,6 @@ function _unwrap end
 
 "Apply one object to the other."
 function apply! end
-
-"Scalar mutable struct to avoid making mutable larger structs."
-mutable struct ScalarWrapper{T}
-    x::T
-end
-
-unwrap(s::ScalarWrapper) = s.x
-@inline Base.getindex(s::ScalarWrapper) = s.x
-@inline Base.setindex!(s::ScalarWrapper, v) = s.x = v
 
 #==================#
 # Utils functions  #
