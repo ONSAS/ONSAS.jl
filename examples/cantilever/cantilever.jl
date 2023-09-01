@@ -61,8 +61,6 @@ function solve()
     solve!(sa, NewtonRaphson())
 end;
 
-sol = solve()
-
 "Test problem solution"
 function test(sol::AbstractSolution)
     (; Px, Py, b, h, E, L, RTOL) = parameters()
