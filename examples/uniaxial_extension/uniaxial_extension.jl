@@ -103,6 +103,12 @@ function run_uniaxial_extension()
     # Numerical solution
     # -------------------------------
     states_sol_case₁ = ONSAS.solve!(sa₁, nr)
+
+    # -------------------------------
+    # Write vtk files
+    # -------------------------------
+    write_vtk(states_sol_case₁, "uniaxial_extension")
+
     "Computes numeric solution α, β and γ for analytic validation."
     function αβγ_numeric(states_sol::AbstractSolution)
         s = structure(analysis(states_sol))
@@ -128,6 +134,7 @@ function run_uniaxial_extension()
     ℂ_numeric_case₁ = last(strain(states_sol_case₁, e))
     # Load factors
     numeric_λᵥ_case₁ = load_factors(sa₁)
+
     # -----------------------------------------------
     # Case 2 - GMSH mesh and `HyperElastic` material
     #------------------------------------------------

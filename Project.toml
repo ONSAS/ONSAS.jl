@@ -1,7 +1,7 @@
 name = "ONSAS"
 uuid = "7d8da659-23aa-453a-9a19-a3d1f6c795f5"
 authors = ["M.C. Vanzulli <mvanzulli@fing.edu.uy>", "M. Forets <mforets@gmail.com>", "J. M. Pérez Zerpa <jorgepz@fing.edu.uy>"]
-version = "0.4.0"
+version = "0.4.1"
 
 [deps]
 AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
@@ -25,7 +25,7 @@ Tensors = "48a634ad-e948-5137-8d70-aa71f2a747f4"
 WriteVTK = "64499a7a-5c06-52f2-abe2-ccb03c286192"
 
 [compat]
-AutoHashEquals = "0.2, 1"
+AutoHashEquals = "0.2, 1, 2"
 CommonSolve = "0.2"
 Dictionaries = "0.3"
 ForwardDiff = "0.10"

@@ -30,3 +30,6 @@ Manifest.toml
 # Benchmark files.
 tune.json
 *results.md
+
+# VTK files.
+*.vtu
