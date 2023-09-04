@@ -2,7 +2,7 @@ module Utils
 
 using LinearAlgebra
 
-export label, unwrap, eye, row_vector, @debugtime, voigt, Label, NO_LABEL, Density, Field, index,
+export label, eye, row_vector, @debugtime, voigt, Label, NO_LABEL, Density, Field, index,
        fill_symmetric_matrix!, INDEXES_TO_VOIGT
 
 #================================#
@@ -16,9 +16,6 @@ function dofs end
 
 "Return the label of an object."
 function label end
-
-"Unwraps the object fields."
-function _unwrap end
 
 "Apply one object to the other."
 function apply! end
