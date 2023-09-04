@@ -85,7 +85,7 @@ function run_linear_extension_example()
     # -------------------------------
     # Write vtk files
     # -------------------------------
-    write_vtk(states_sol, "linear_extension")
+    write_vtk(states_sol, joinpath(@__DIR__, "linear_extension"))
 
     # Select random points to test the solution
     ## Displacements

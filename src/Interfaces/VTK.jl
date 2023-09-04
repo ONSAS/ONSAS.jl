@@ -9,6 +9,7 @@ using WriteVTK
 using ..Meshes
 using ..Nodes
 using ..Solutions
+using ..Structures
 using ..StructuralAnalyses
 
 export write_vtk
@@ -19,7 +20,7 @@ Generate a VTK file given a solution struct.
 Currently only `displacements` are exported for each time point.
 """
 function write_vtk(sol::AbstractSolution, filename::String)
-    msh = mesh(structure(sol))
+    msh = mesh(structure(analysis(sol)))
     nodes_mat = node_matrix(msh)
     connec_mat = connectivity(msh)
     num_elem = length(elements(msh))
