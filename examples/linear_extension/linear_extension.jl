@@ -2,6 +2,7 @@
 # Uniaxial Extension Example 1  from (Zerpa et. Al., 2019, CMAME).
 # ----------------------------------------------------------------
 using Test, LinearAlgebra, Suppressor
+
 using ONSAS
 
 # Mesh with Gmsh.jl (see linear_extension_sketch)
@@ -80,6 +81,12 @@ function run_linear_extension_example()
     # Numerical solution
     # -------------------------------
     states_sol = solve!(sa)
+
+    # -------------------------------
+    # Write vtk files
+    # -------------------------------
+    write_vtk(states_sol, joinpath(@__DIR__, "linear_extension"))
+
     # Select random points to test the solution
     ## Displacements
     x₀_rand = Lx * rand(2)
