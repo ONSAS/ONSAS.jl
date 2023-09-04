@@ -107,7 +107,7 @@ function run_uniaxial_extension()
     # -------------------------------
     # Write vtk files
     # -------------------------------
-    write_vtks(states_sol_case₁, "uniaxial_extension")
+    write_vtk(states_sol_case₁, "uniaxial_extension")
 
     "Computes numeric solution α, β and γ for analytic validation."
     function αβγ_numeric(states_sol::AbstractSolution)

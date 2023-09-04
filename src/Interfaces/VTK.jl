@@ -8,28 +8,36 @@ using WriteVTK
 
 using ..Meshes
 using ..Nodes
+using ..Solutions
 using ..StructuralAnalyses
 
-@reexport import WriteVTK: vtk_grid
-export write_vtks
+export write_vtk
+@reexport import WriteVTK: vtk_grid, write_vtk
 
-function write_vtks(states_sol, filename)
-    nodes_mat = node_matrix(states_sol.analysis.s.mesh)
-    connec_mat = connectivity(states_sol.analysis.s.mesh)
-    num_elem = length(states_sol.analysis.s.mesh.elements)
+"""
+Generate a VTK file given a solution struct.
+Currently only `displacements` are exported for each time point.
+"""
+function write_vtk(sol::AbstractSolution, filename::String)
+    msh = mesh(structure(sol))
+    nodes_mat = node_matrix(msh)
+    connec_mat = connectivity(msh)
+    num_elem = length(elements(msh))
     cells = [MeshCell(VTKCellTypes.VTK_TETRA, connec_mat[e]) for e in 1:num_elem]
 
-    n_times = length(displacements(states_sol))
-    n_dofs = num_dofs(states_sol.analysis.s.mesh)
+    n_times = length(displacements(sol))
+    n_dofs = num_dofs(msh)
     mypad = Integer(ceil(log10(n_times))) + 1
     for i in 1:n_times
-        pdata = displacements(states_sol)[i]
+        pdata = displacements(sol)[i]
         nodes = nodes_mat + reshape(pdata, (3, Integer(n_dofs / 3))) # TO DO generalize for angle dof cases
         filename_i = filename * string(i; pad=mypad)
         vtk_grid(filename_i, nodes, cells) do vtk
             vtk["Displacements", VTKPointData()] = pdata
         end
     end
+    @debug "VTK output written to $filename"
+    filename
 end
 
 end
