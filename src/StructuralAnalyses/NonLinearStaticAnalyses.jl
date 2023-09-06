@@ -59,7 +59,7 @@ end
 
 function Base.show(io::IO, sa::NonLinearStaticAnalysis)
     println("NonLinearStaticAnalysis for:")
-    println("• Current load factor of $(unwrap(sa.current_step)).")
+    println("• Current load factor of $(sa.current_step).")
     show(io, sa.s)
     show(io, sa.state)
 end
