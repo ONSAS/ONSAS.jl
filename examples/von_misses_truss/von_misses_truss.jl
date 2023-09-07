@@ -126,10 +126,10 @@ end;
 
 "Run the example"
 function run()
-    for strain_model in [RotatedEngineeringStrain, GreenStrain]
+    for strain_model in (RotatedEngineeringStrain, GreenStrain)
         sol = solve(strain_model)
         test(sol, strain_model)
     end
-end
+end;
 
 run()
