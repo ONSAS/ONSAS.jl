@@ -1,6 +1,6 @@
-# ------------------------
-# Von Misses Truss Example
-# ------------------------
+# -----------------------------
+# Uniaxial Compression Example
+# -----------------------------
 using Test, LinearAlgebra, Suppressor
 using ONSAS
 
