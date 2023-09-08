@@ -17,7 +17,7 @@ function parameters()
     Li = 2.0                    # Dimension in x of the box in m
     Lj = 1.0                    # Dimension in y of the box in m
     Lk = 1.0                    # Dimension in z of the box in m
-    ms = 0.5                    # Refinement factor for the mesh
+    ms = 0.5                    # Mesh size parameter
     RTOL = 1e-4                 # Relative tolerance for tests
     ATOL = 1e-10                # Absolute tolerance for tests
     NSTEPS = 9                  # Number of steps for the test
