@@ -7,152 +7,110 @@ using ONSAS
 # Mesh Cube with Gmsh.jl
 include(joinpath("..", "uniaxial_extension", "uniaxial_mesh.jl"))
 
-function run_uniaxial_compression()
-    ## scalar parameters
-    E = 1.0                    # Young modulus in Pa
-    ν = 0.3                    # Poisson's ratio
-    μ = G = E / (2 * (1 + ν))  # Second Lamé parameter
-    K = E / (3 * (1 - 2 * ν))  # Bulk modulus
-    p = 1                      # Pressure load in Pa
-    Lᵢ = 2.0                   # Dimension in x of the box in m
-    Lⱼ = 1.0                   # Dimension in y of the box in m
-    Lₖ = 1.0                   # Dimension in z of the box in m
-    ms = 0.5            # Refinement factor for the mesh
-    RTOL = 1e-4          # Relative tolerance for tests
-    ATOL = 1e-10         # Absolute tolerance for tests
-    NSTEPS = 9           # Number of steps for the test
+"Return problem parameters"
+function parameters()
+    E = 1.0                     # Young modulus in Pa
+    ν = 0.3                     # Poisson's ratio
+    μ = G = E / (2 * (1 + ν))   # Second Lamé parameter
+    K = E / (3 * (1 - 2 * ν))   # Bulk modulus
+    p = 1                       # Pressure load in Pa
+    Li = 2.0                    # Dimension in x of the box in m
+    Lj = 1.0                    # Dimension in y of the box in m
+    Lk = 1.0                    # Dimension in z of the box in m
+    ms = 0.5                    # Mesh size parameter
+    RTOL = 1e-4                 # Relative tolerance for tests
+    ATOL = 1e-10                # Absolute tolerance for tests
+    NSTEPS = 9                  # Number of steps for the test
+    (; μ, G, K, p, Li, Lj, Lk, ms, RTOL, ATOL, NSTEPS)
+end;
 
-    # -----------------------------------------------------
-    # Case 1 - Manufactured mesh and `NeoHookean` material
-    #------------------------------------------------------
-    # -------------------------------
+#= -----------------------------------------------------
+Two cases are considered:
+Case 1 - Manufactured mesh, `NeoHookean` material and GlobalLoad
+Case 2 - GMSH mesh and `HyperElastic` material and Pressure
+------------------------------------------------------=#
+abstract type AbstractCase end
+struct FirstCase <: AbstractCase end
+struct SecondCase <: AbstractCase end
+
+"Return the boundary conditions"
+function boundary_conditions()
+    (; p) = parameters()
+
+    bc_fixed_x_label = "fixed-ux"
+    bc_fixed_x = FixedDof(:u, [1], bc_fixed_x_label)
+    bc_fixed_y_label = "fixed-uj"
+    bc_fixed_y = FixedDof(:u, [2], bc_fixed_y_label)
+    bc_fixed_k_label = "fixed-uk"
+    bc_fixed_k = FixedDof(:u, [3], bc_fixed_k_label)
+    bc_load_label = "compression"
+    bc_load = GlobalLoad(:u, t -> [-p * t, 0, 0], bc_load_label)
+    bc_labels = [bc_fixed_x_label, bc_fixed_y_label, bc_fixed_k_label, bc_load_label]
+
+    (; bc_fixed_x, bc_fixed_y, bc_fixed_k, bc_load, bc_labels)
+end;
+
+"Return the first case structural model"
+function structure(::FirstCase=FirstCase())
+    (; μ, K, Li, Lj, Lk) = parameters()
+    # -------------
     # Mesh
-    #--------------------------------
-    n₁ = Node(0.0, 0.0, 0.0)
-    n₂ = Node(0.0, 0.0, Lₖ)
-    n₃ = Node(0.0, Lⱼ, Lₖ)
-    n₄ = Node(0.0, Lⱼ, 0.0)
-    n₅ = Node(Lᵢ, 0.0, 0.0)
-    n₆ = Node(Lᵢ, 0.0, Lₖ)
-    n₇ = Node(Lᵢ, Lⱼ, Lₖ)
-    n₈ = Node(Lᵢ, Lⱼ, 0.0)
-    vec_nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
-    s₁_mesh = Mesh(; nodes=vec_nodes)
-    ## Faces
-    f₁ = TriangularFace(n₅, n₈, n₆, "loaded_face_1")
-    f₂ = TriangularFace(n₆, n₈, n₇, "loaded_face_2")
-    f₃ = TriangularFace(n₄, n₁, n₂, "x=0_face_1")
-    f₄ = TriangularFace(n₄, n₂, n₃, "x=0_face_2")
-    f₅ = TriangularFace(n₆, n₂, n₁, "y=0_face_1")
-    f₆ = TriangularFace(n₆, n₁, n₅, "y=0_face_2")
-    f₇ = TriangularFace(n₁, n₄, n₅, "z=0_face_1")
-    f₈ = TriangularFace(n₄, n₈, n₅, "z=0_face_2")
-    vec_faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
-    append!(faces(s₁_mesh), vec_faces)
+    # -------------
+    n1 = Node(0.0, 0.0, 0.0)
+    n2 = Node(0.0, 0.0, Lk)
+    n3 = Node(0.0, Lj, Lk)
+    n4 = Node(0.0, Lj, 0.0)
+    n5 = Node(Li, 0.0, 0.0)
+    n6 = Node(Li, 0.0, Lk)
+    n7 = Node(Li, Lj, Lk)
+    n8 = Node(Li, Lj, 0.0)
+    vec_nodes = [n1, n2, n3, n4, n5, n6, n7, n8]
+    mesh = Mesh(; nodes=vec_nodes)
+    f1 = TriangularFace(n5, n8, n6, "loaded_face_1")
+    f2 = TriangularFace(n6, n8, n7, "loaded_face_2")
+    f3 = TriangularFace(n4, n1, n2, "x=0_face_1")
+    f4 = TriangularFace(n4, n2, n3, "x=0_face_2")
+    f5 = TriangularFace(n6, n2, n1, "y=0_face_1")
+    f6 = TriangularFace(n6, n1, n5, "y=0_face_2")
+    f7 = TriangularFace(n1, n4, n5, "z=0_face_1")
+    f8 = TriangularFace(n4, n8, n5, "z=0_face_2")
+    vec_faces = [f1, f2, f3, f4, f5, f6, f7, f8]
+    append!(faces(mesh), vec_faces)
     ## Entities
-    t₁ = Tetrahedron(n₁, n₄, n₂, n₆, "tetra_1")
-    t₂ = Tetrahedron(n₆, n₂, n₃, n₄, "tetra_2")
-    t₃ = Tetrahedron(n₄, n₃, n₆, n₇, "tetra_3")
-    t₄ = Tetrahedron(n₄, n₁, n₅, n₆, "tetra_4")
-    t₅ = Tetrahedron(n₄, n₆, n₅, n₈, "tetra_5")
-    t₆ = Tetrahedron(n₄, n₇, n₆, n₈, "tetra_6")
-    vec_elems = [t₁, t₂, t₃, t₄, t₅, t₆]
-    append!(elements(s₁_mesh), vec_elems)
-    # -------------------------------
-    # Dofs
-    #--------------------------------
+    t1 = Tetrahedron(n1, n4, n2, n6, "tetra_1")
+    t2 = Tetrahedron(n6, n2, n3, n4, "tetra_2")
+    t3 = Tetrahedron(n4, n3, n6, n7, "tetra_3")
+    t4 = Tetrahedron(n4, n1, n5, n6, "tetra_4")
+    t5 = Tetrahedron(n4, n6, n5, n8, "tetra_5")
+    t6 = Tetrahedron(n4, n7, n6, n8, "tetra_6")
+    vec_elems = [t1, t2, t3, t4, t5, t6]
+    append!(elements(mesh), vec_elems)
     dof_dim = 3
-    set_dofs!(s₁_mesh, :u, dof_dim)
+    set_dofs!(mesh, :u, dof_dim)
     # -------------------------------
     # Materials
     # -------------------------------
-    # Built neo hookian material with E and ν
     neo_hookean = NeoHookean(K, μ, "NeoBuiltIn")
-    s₁_materials = StructuralMaterial(neo_hookean => [t₁, t₂, t₃, t₄, t₅, t₆])
+    materials = StructuralMaterial(neo_hookean => [t1, t2, t3, t4, t5, t6])
     # -------------------------------
     # Boundary conditions
     # -------------------------------
-    # Fixed dofs
-    bc₁_label = "fixed-ux"
-    bc₁ = FixedDof(:u, [1], bc₁_label)
-    bc₂_label = "fixed-uj"
-    bc₂ = FixedDof(:u, [2], bc₂_label)
-    bc₃_label = "fixed-uk"
-    bc₃ = FixedDof(:u, [3], bc₃_label)
-    # Load
-    bc₄_label = "compression"
-    bc₄ = GlobalLoad(:u, t -> [-p * t, 0, 0], bc₄_label)
-    # Assign this to faces
-    face_bc = [bc₁ => [f₃, f₄], bc₂ => [f₅, f₆], bc₃ => [f₇, f₈], bc₄ => [f₁, f₂]]
-    # Crete boundary conditions struct
-    s₁_boundary_conditions = StructuralBoundaryCondition(face_bc)
-    bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
-    # -------------------------------
-    # Structure
-    # -------------------------------
-    s₁ = Structure(s₁_mesh, s₁_materials, s₁_boundary_conditions)
-    # -------------------------------
-    # Structural Analysis
-    # -------------------------------
-    # Final load factor
-    sa₁ = NonLinearStaticAnalysis(s₁; NSTEPS=NSTEPS)
-    # Reset the analysis in order to run it multiple times
-    reset!(sa₁)
-    # -------------------------------
-    # Algorithm
-    # -------------------------------
-    tol_f = 1e-10
-    tol_u = 1e-10
-    max_iter = 30
-    tols = ConvergenceSettings(tol_u, tol_f, max_iter)
-    nr = NewtonRaphson(tols)
-    # -------------------------------
-    # Numerical solution
-    # -------------------------------
-    states_sol_case₁ = solve!(sa₁, nr)
-    "Computes numeric solution α(L_def/L_ref), β(L_def/L_ref) and γ(L_def/L_ref)
-    for analytic validation."
-    function αβγ_numeric(states_sol::AbstractSolution)
-        s = structure(analysis(states_sol))
-        # Node at (Lᵢ, Lⱼ, Lₖ)
-        n₇ = nodes(s)[7]
-        displacements_n₇ = displacements(states_sol_case₁, n₇)
-        # Displacements in the x (component 1) axis at node 7
-        numerical_uᵢ = displacements_n₇[1]
-        numerical_α = 1 .+ numerical_uᵢ / Lᵢ
-        # Displacements in the y (component 2) axis at node 7
-        numerical_uⱼ = displacements_n₇[2]
-        numerical_β = 1 .+ numerical_uⱼ / Lⱼ
-        # Displacements in the z (component 3) axis at node 7
-        numerical_uₖ = displacements_n₇[3]
-        numerical_γ = 1 .+ numerical_uₖ / Lₖ
-        numerical_α, numerical_β, numerical_γ, numerical_uᵢ, numerical_uⱼ, numerical_uₖ
-    end
-    # Numeric solution for testing
-    numeric_α_case₁, numeric_β_case₁, numeric_γ_case₁, numeric_uᵢ_case₁, _, _ = αβγ_numeric(states_sol_case₁)
-    # Extract ℙ and ℂ from the last state using a random element
-    e = rand(elements(s₁))
-    # Cosserat or second Piola-Kirchhoff stress tensor
-    ℙ_numeric_case₁ = stress(states_sol_case₁, e)
-    # ℙᵢᵢ component:
-    ℙᵢᵢ_numeric_case₁ = getindex.(ℙ_numeric_case₁, 1, 1)
-    # ℙⱼⱼ component:
-    ℙⱼⱼ_numeric_case₁ = getindex.(ℙ_numeric_case₁, 2, 2)
-    # ℙₖₖ component:
-    ℙₖₖ_numeric_case₁ = getindex.(ℙ_numeric_case₁, 3, 3)
-    # Get the Right hand Cauchy strain tensor ℂ at a random state
-    ℂ_rand_numeric_case₁ = rand(strain(states_sol_case₁, e))
-    # Get the Second Piola Kirchhoff stress tensor ℙ at a random state
-    ℙ_rand_numeric_case₁ = rand(stress(states_sol_case₁, e))
-    # Load factors
-    load_factors_case₁ = load_factors(sa₁)
-    # -----------------------------------------------
-    # Case 2 - GMSH mesh and `HyperElastic` material
-    #------------------------------------------------
+    (; bc_fixed_x, bc_fixed_y, bc_fixed_k, bc_load) = boundary_conditions()
+    face_bc = [bc_fixed_x => [f3, f4],
+               bc_fixed_y => [f5, f6],
+               bc_fixed_k => [f7, f8],
+               bc_load => [f1, f2]]
+    bcs = StructuralBoundaryCondition(face_bc)
+
+    Structure(mesh, materials, bcs)
+end;
+
+"Return the second case structural model"
+function structure(::SecondCase)
+    (; μ, K, p, Li, Lj, Lk, ms) = parameters()
     # -------------------------------
     # Materials
     # -------------------------------
-    # Define a new HyperElastic material from the strain energy function
     "Neo-Hookean strain energy function given the Green-Lagrange strain
     tensor `𝔼`, second lamé parameter `μ` and bulk modulus `K`."
     function strain_energy_neo(𝔼::AbstractMatrix, K::Real, μ::Real)
@@ -164,22 +122,20 @@ function run_uniaxial_compression()
         # Strain energy function
         Ψ = μ / 2 * (I₁ - 2 * log(J)) + K / 2 * (J - 1)^2
     end
-    params = [K, μ] # The order must be the same defined in the strain energy (splatting)
+    # The order must be the same defined in the strain energy (splatting)
+    params = [K, μ]
     mat_label = "neoHyper"
     neo_hookean_hyper = HyperElastic(params, strain_energy_neo, mat_label)
-    # Material types without assigned elements
-    s_materials = StructuralMaterial(neo_hookean_hyper)
+    materials = StructuralMaterial(neo_hookean_hyper)
     # -------------------------------
     # Boundary Conditions
     # -------------------------------
-    # Redefine the load boundary condition
-    bc₄ = Pressure(:u, t -> p * t, bc₄_label)
-    # BoundaryConditions types without assigned node, feces and elements
-    s_boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
+    (; bc_fixed_x, bc_fixed_y, bc_fixed_k, bc_labels) = boundary_conditions()
+    bc_load = Pressure(:u, t -> p * t, last(bc_labels))
+    bcs = StructuralBoundaryCondition(bc_fixed_x, bc_fixed_y, bc_fixed_k, bc_load)
     # -------------------------------
     # Entities
     # -------------------------------
-    # Entities types without assigned nodes, faces and elements
     faces_label = "triangle"
     elems_label = "tetrahedron"
     vfaces = [TriangularFace(faces_label)]
@@ -193,119 +149,154 @@ function run_uniaxial_compression()
     labels = [mat_label, entities_labels, bc_labels]
     local mesh_path
     output = @capture_out begin
-        mesh_path = create_uniaxial_mesh(Lᵢ, Lⱼ, Lₖ, labels, filename, ms)
+        mesh_path = create_uniaxial_mesh(Li, Lj, Lk, labels, filename, ms)
     end
     gmsh_println(output)
     msh_file = MshFile(mesh_path)
-    s₂_mesh = Mesh(msh_file, s_entities)
-    # -------------------------------
-    # Dofs
-    #--------------------------------
+    mesh = Mesh(msh_file, s_entities)
     dof_dim = 3
-    set_dofs!(s₂_mesh, :u, dof_dim)
-    # -------------------------------
-    # Structure
-    # -------------------------------
-    apply!(s_materials, s₂_mesh)
-    apply!(s_boundary_conditions, s₂_mesh)
-    s₂ = Structure(s₂_mesh, s_materials, s_boundary_conditions)
+    set_dofs!(mesh, :u, dof_dim)
+    apply!(materials, mesh)
+    apply!(bcs, mesh)
+
+    Structure(mesh, materials, bcs)
+end;
+
+"Return the problem solution"
+function solve(case::AbstractCase)
+    (; NSTEPS) = parameters()
     # -------------------------------
     # Structural Analysis
     # -------------------------------
-    sa₂ = NonLinearStaticAnalysis(s₂, load_factors(sa₁))
-    reset!(sa₂)
+    s = structure(case)
+    sa = NonLinearStaticAnalysis(s; NSTEPS)
+    reset!(sa)
+    # -------------------------------
+    # Solver
+    # -------------------------------
+    tol_f = 1e-10
+    tol_u = 1e-10
+    max_iter = 30
+    tols = ConvergenceSettings(tol_u, tol_f, max_iter)
+    nr = NewtonRaphson(tols)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol_case₂ = solve!(sa₂, nr)
-    # Extract ℙ and ℂ from the last state using a random element
-    e = rand(elements(s₂))
+    solve!(sa, nr)
+end;
+
+"Computes numeric solution
+α(L_def/L_ref), β(L_def/L_ref) and γ(L_def/L_ref)
+for analytic validation."
+function αβγ_numeric(sol::AbstractSolution)
+    (; Li, Lj, Lk) = parameters()
+    s = ONSAS.structure(analysis(sol))
+    # Node at (Li, Lj, Lk)
+    n7 = nodes(s)[7]
+    displacements_n7 = displacements(sol, n7)
+    # Displacements in the x (component 1) axis at node 7
+    ux = displacements_n7[1]
+    α = 1 .+ ux / Li
+    # Displacements in the y (component 2) axis at node 7
+    uy = displacements_n7[2]
+    β = 1 .+ uy / Lj
+    # Displacements in the z (component 3) axis at node 7
+    uz = displacements_n7[3]
+    γ = 1 .+ uz / Lk
+    α, β, γ, ux, uy, uz
+end;
+
+"Return relevant numeric results for testing"
+function numerical_solution(sol::AbstractSolution)
+    s = ONSAS.structure(analysis(sol))
     # Numeric solution for testing
-    numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂, numeric_uᵢ_case₂, _, _ = αβγ_numeric(states_sol_case₂)
+    α, β, γ, uᵢ, _, _ = αβγ_numeric(sol)
+    # Extract P and ℂ from the last state using a random element
+    e = rand(elements(s))
     # Cosserat or second Piola-Kirchhoff stress tensor
-    ℙ_numeric_case₂ = stress(states_sol_case₂, e)
-    # ℙᵢᵢ component:
-    ℙᵢᵢ_numeric_case₂ = getindex.(ℙ_numeric_case₂, 1, 1)
-    # ℙⱼⱼ component:
-    ℙⱼⱼ_numeric_case₂ = getindex.(ℙ_numeric_case₂, 2, 2)
-    # ℙₖₖ component:
-    ℙₖₖ_numeric_case₂ = getindex.(ℙ_numeric_case₂, 3, 3)
+    P = stress(sol, e)
+    # P11 component:
+    P11 = getindex.(P, 1, 1)
+    # P22 component:
+    P22 = getindex.(P, 2, 2)
+    # P33 component:
+    P33 = getindex.(P, 3, 3)
     # Get the Right hand Cauchy strain tensor ℂ at a random state
-    ℂ_rand_numeric_case₂ = rand(strain(states_sol_case₂, e))
-    # Get the Second Piola Kirchhoff stress tensor ℙ at a random state
-    ℙ_rand_numeric_case₂ = rand(stress(states_sol_case₂, e))
-    # Load factors
-    load_factors_case₂ = load_factors(sa₂)
-    #-----------------------------
-    # Analytic solution
-    #-----------------------------
-    "Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
-    function u_ijk_numeric(numerical_α::Vector{<:Real}, numerical_β::Vector{<:Real},
-                           numerical_γ::Vector{<:Real},
-                           x::Real, y::Real, z::Real)
-        x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
-    end
-    # Test with Second Piola-Kirchoff stress tensor `ℙ`.
-    "Computes ℙ(1,1) given α, β and γ."
-    function analytic_ℙᵢᵢ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
+    C_rand = rand(strain(sol, e))
+
+    P11, P22, P33, α, β, γ, uᵢ, P
+end;
+
+"Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
+function u_ijk_numeric(numerical_α::Vector{<:Real},
+                       numerical_β::Vector{<:Real},
+                       numerical_γ::Vector{<:Real},
+                       x::Real, y::Real, z::Real)
+    x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
+end;
+
+"Return analytic Piola-Kirchoff stress tensor `P`"
+function analytic_P(sol::AbstractSolution)
+    _, _, _, numeric_α, numeric_β, _, _ = numerical_solution(sol::AbstractSolution)
+    (; μ, K) = parameters()
+
+    # Test with Second Piola-Kirchoff stress tensor `P`.
+    "Computes P(1,1) given α, β and γ."
+    function analytic_P11(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
         μ * α - μ * (α .^ (-1)) + K * (β .^ 2) .* (α .* (β .^ 2) .- 1)
     end
-    "Computes ℙ(2,2) given α, β and γ."
-    function analytic_ℙⱼⱼ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
+    "Computes P(2,2) given α, β and γ."
+    function analytic_P22(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
         μ * β - μ * (β .^ (-1)) + K * β .* ((α .^ 2) .* (β .^ 2) - α)
     end
-    "Computes ℙ(2,2) given α, β and γ."
-    function analytic_ℙₖₖ(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
-        analytic_ℙⱼⱼ(α, β, μ, K)
+    "Computes P(2,2) given α, β and γ."
+    function analytic_P33(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
+        analytic_P22(α, β, μ, K)
     end
-    # Compute the analytic Second Piola-Kirchoff stress tensor `ℙ` for the numeric vectors α and β
-    # Case 1
-    ℙᵢᵢ_analytic_case₁ = analytic_ℙᵢᵢ(numeric_α_case₁, numeric_β_case₁)
-    ℙⱼⱼ_analytic_case₁ = analytic_ℙⱼⱼ(numeric_α_case₁, numeric_β_case₁)
-    ℙₖₖ_analytic_case₁ = analytic_ℙₖₖ(numeric_α_case₁, numeric_β_case₁)
-    # Case 2
-    ℙᵢᵢ_analytic_case₂ = analytic_ℙᵢᵢ(numeric_α_case₂, numeric_β_case₂)
-    ℙⱼⱼ_analytic_case₂ = analytic_ℙⱼⱼ(numeric_α_case₂, numeric_β_case₂)
-    ℙₖₖ_analytic_case₂ = analytic_ℙₖₖ(numeric_α_case₂, numeric_β_case₂)
-    # -------------------------------
-    # Interpolator tests for Case 2
-    #--------------------------------
-    rand_point = [[rand() * Lᵢ, rand() * Lⱼ, rand() * Lₖ]]
-    eval_handler_rand = PointEvalHandler(mesh(s₂), rand_point)
+    P11_analytic = analytic_P11(numeric_α, numeric_β)
+    P22_analytic = analytic_P22(numeric_α, numeric_β)
+    P33_analytic = analytic_P33(numeric_α, numeric_β)
+
+    P11_analytic, P22_analytic, P33_analytic
+end;
+
+"Test case numerical example solution"
+function test(sol::AbstractSolution)
+    (; RTOL, ATOL, p, Li, Lj, Lk) = parameters()
+    a = analysis(sol)
+    P11_numeric, P22_numeric, P33_numeric, _, _ = numerical_solution(sol)
+    P11_analytic, P22_analytic, P33_analytic = analytic_P(sol)
+    @test P11_analytic ≈ P11_numeric rtol = RTOL
+    @test P22_analytic ≈ P22_numeric atol = ATOL
+    @test P33_analytic ≈ P33_numeric atol = ATOL
+    @test -p * load_factors(a) ≈ P11_analytic rtol = RTOL
+    @test norm(P22_numeric) ≈ 0 atol = ATOL
+    @test norm(P33_numeric) ≈ 0 atol = ATOL
+
+    rand_point = [rand() * [Li, Lj, Lk]]
+    ph = PointEvalHandler(mesh(ONSAS.structure(a)), rand_point)
+
     # Compute analytic solution at a random point
-    uᵢ_case₂, uⱼ_case₂, uₖ_case₂ = u_ijk_numeric(numeric_α_case₂, numeric_β_case₂, numeric_γ_case₂,
-                                                 rand_point[]...)
-    rand_point_uᵢ = displacements(states_sol_case₂, eval_handler_rand, 1)
-    rand_point_uⱼ = displacements(states_sol_case₂, eval_handler_rand, 2)
-    rand_point_uₖ = displacements(states_sol_case₂, eval_handler_rand, 3)
-    stress_point = stress(states_sol_case₂, eval_handler_rand)[]
-    #-----------------------------
-    # Test boolean for CI
-    #-----------------------------
-    @testset "Case 1 Uniaxial Compression Example" begin
-        @test ℙᵢᵢ_analytic_case₁ ≈ ℙᵢᵢ_numeric_case₁ rtol = RTOL
-        @test ℙᵢᵢ_analytic_case₁ ≈ ℙᵢᵢ_numeric_case₁ rtol = RTOL
-        @test ℙⱼⱼ_analytic_case₁ ≈ ℙⱼⱼ_numeric_case₁ atol = ATOL
-        @test ℙₖₖ_analytic_case₁ ≈ ℙₖₖ_numeric_case₁ atol = ATOL
-        @test norm(ℙⱼⱼ_analytic_case₁) ≈ 0 atol = ATOL
-        @test norm(ℙₖₖ_analytic_case₁) ≈ 0 atol = ATOL
-        @test -p * load_factors_case₁ ≈ ℙᵢᵢ_analytic_case₁ rtol = RTOL
-    end
+    _, _, _, numeric_α, numeric_β, numeric_γ, _ = numerical_solution(sol)
 
-    @testset "Case 2 Uniaxial Compression Example" begin
-        @test ℙᵢᵢ_analytic_case₂ ≈ ℙᵢᵢ_numeric_case₂ rtol = RTOL
-        @test ℙᵢᵢ_analytic_case₂ ≈ ℙᵢᵢ_numeric_case₂ rtol = RTOL
-        @test ℙⱼⱼ_analytic_case₂ ≈ ℙⱼⱼ_numeric_case₂ atol = ATOL
-        @test ℙₖₖ_analytic_case₂ ≈ ℙₖₖ_numeric_case₂ atol = ATOL
-        @test norm(ℙⱼⱼ_analytic_case₂) ≈ 0 atol = ATOL
-        @test norm(ℙₖₖ_analytic_case₂) ≈ 0 atol = ATOL
-        @test -p * load_factors_case₂ ≈ ℙᵢᵢ_analytic_case₂ rtol = RTOL
-        # Interpolation
-        @test uᵢ_case₂ ≈ rand_point_uᵢ rtol = RTOL
-        @test uⱼ_case₂ ≈ rand_point_uⱼ rtol = RTOL
-        @test uₖ_case₂ ≈ rand_point_uₖ rtol = RTOL
-        @test getindex.(stress_point, 1) ≈ ℙᵢᵢ_analytic_case₂ rtol = RTOL
-    end
-end
+    u1_case, u2_case, u3_case = u_ijk_numeric(numeric_α, numeric_β, numeric_γ,
+                                              rand_point[]...)
+    rand_point_u1 = displacements(sol, ph, 1)
+    rand_point_u2 = displacements(sol, ph, 2)
+    rand_point_u3 = displacements(sol, ph, 3)
+    stress_point = stress(sol, ph)[]
+    @test u1_case ≈ rand_point_u1 rtol = RTOL
+    @test u2_case ≈ rand_point_u2 rtol = RTOL
+    @test u3_case ≈ rand_point_u3 rtol = RTOL
+    @test getindex.(stress_point, 1) ≈ P11_analytic rtol = RTOL
+end;
 
-run_uniaxial_compression()
+"Run the example"
+function run()
+    for case in (FirstCase(), SecondCase())
+        sol = solve(case)
+        test(sol)
+    end
+end;
+
+run()
