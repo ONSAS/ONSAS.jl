@@ -1,6 +1,6 @@
-# -----------------------------
-# Uniaxial Compression Example
-# -----------------------------
+# -----------------------------------------
+# Hyperelastic Uniaxial Compression Example
+# -----------------------------------------
 using Test, LinearAlgebra, Suppressor
 using ONSAS
 
