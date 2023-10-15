@@ -49,7 +49,7 @@ function structure()
 	bc4 = GlobalLoad(:u, t -> [tension(t), 0, 0], bc4_label)
 	# Get bc labels for the mesh
 	bc_labels = [bc1_label, bc2_label, bc3_label, bc4_label]
-	s_boundary_conditions = StructuralBoundaryCondition(bc1, bc2, bc3, bc4)
+	boundary_conditions = StructuralBoundaryCondition(bc1, bc2, bc3, bc4)
 	# -------------------------------
 	# Entities
 	# -------------------------------
@@ -59,7 +59,7 @@ function structure()
 	vfaces = [TriangularFace(faces_label)]
 	velems = [Tetrahedron(elems_label)]
 	entities_labels = [faces_label, elems_label]
-	s_entities = StructuralEntity(velems, vfaces)
+	entities = StructuralEntity(velems, vfaces)
 	# -------------------------------
 	# Mesh
 	# -------------------------------
@@ -70,14 +70,14 @@ function structure()
 	end
 	gmsh_println(output)
 	msh_file = MshFile(mesh_path)
+	mesh = Mesh(msh_file, entities)
 	# -------------------------------
 	# Structure
 	# -------------------------------
-	mesh = Mesh(msh_file, s_entities)
 	apply!(materials, mesh)
-	apply!(s_boundary_conditions, mesh)
+	apply!(boundary_conditions, mesh)
 
-	Structure(msh_file, materials, s_boundary_conditions, s_entities)
+	Structure(msh_file, materials, boundary_conditions, entities)
 end;
 
 "Return the problem solution"
