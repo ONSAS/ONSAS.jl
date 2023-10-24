@@ -20,7 +20,7 @@ using ..Utils
 @reexport import ..Structures: free_dofs
 @reexport import ..Assemblers: assemble!, end_assemble!
 
-export AbstractStructuralState, Δ_displacements, residual_forces!,
+export AbstractStructuralState, AbstractStaticState, Δ_displacements, residual_forces!,
        structure, assembler, residual_forces_norms, residual_displacements_norms,
        AbstractStructuralAnalysis, initial_time, current_time, final_time, is_done,
        current_state, current_iteration, displacements, external_forces, iteration_residuals,
@@ -49,6 +49,11 @@ export AbstractStructuralState, Δ_displacements, residual_forces!,
 * [`residual_displacements_norms`](@ref)
 """
 abstract type AbstractStructuralState end
+
+"""
+States representing static analyses.
+"""
+abstract type AbstractStaticState <: AbstractStructuralState end
 
 "Return the assembler used in the structural state."
 assembler(st::AbstractStructuralState) = st.assembler
