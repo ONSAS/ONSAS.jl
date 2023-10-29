@@ -209,7 +209,7 @@ end;
 
 "Return analytic solution"
 function analytic_solution(sol::AbstractSolution, p::Point{3,<:Real}, ur::Function=ur)
-    @show rand_R, _, _ = p
+    rand_R, _, _ = p
     (; Ri, Re) = parameters()
     λvec = load_factors(analysis(sol))
     rand_R, _ = rand_point_cylinder()
@@ -222,7 +222,7 @@ end;
 "Return numercial solution"
 function numerical_solution(sol::AbstractSolution, p::Point{3,<:Real}, ::FirstCase)
     # Unwarp a random point
-    @show rand_R, rand_θ, rand_z = p
+    rand_R, rand_θ, rand_z = p
     s = ONSAS.structure(analysis(sol))
     # Get the internal radial displacement at p = (0, Ri, 0)
     m = mesh(s)
