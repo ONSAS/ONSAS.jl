@@ -107,8 +107,8 @@ function run_uniaxial_extension()
     # -------------------------------
     # Write vtk files
     # -------------------------------
-    write_vtk(states_sol_case₁, "uniaxial_extension")
-
+    vtk_path = joinpath("examples", "uniaxial_extension", "uniaxial")
+    write_vtk(states_sol_case₁, vtk_path)
     "Computes numeric solution α, β and γ for analytic validation."
     function αβγ_numeric(states_sol::AbstractSolution)
         s = structure(analysis(states_sol))
@@ -220,7 +220,7 @@ function run_uniaxial_extension()
     β_analytic = sqrt(-ν * (α_analytic^2 - 1) + 1)
     # Gradient tensor
     # 𝑢 = (αx, βy, γz)
-    𝔽_analytic = [α_analytic 0 0
+    𝔽_analytic = [                                                                         α_analytic 0 0
                   0 β_analytic 0
                   0 0 β_analytic]
     # Right hand Cauchy tensor
