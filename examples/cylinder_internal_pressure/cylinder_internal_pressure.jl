@@ -3,7 +3,7 @@
 #----------------------------------------------------
 using LinearAlgebra, Test, Suppressor
 using ONSAS
-using Random: Random
+import Random
 Random.seed!(1234)
 
 # Mesh with Gmsh.jl
