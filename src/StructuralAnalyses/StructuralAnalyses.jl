@@ -21,10 +21,10 @@ using ..Utils
 @reexport import ..Assemblers: assemble!, end_assemble!
 
 export AbstractStructuralState, Δ_displacements, Δ_displacements!, residual_forces!,
-	structure, assembler, residual_forces_norms, residual_displacements_norms,
-	AbstractStructuralAnalysis, initial_time, current_time, final_time, is_done,
-	current_state, current_iteration, displacements, external_forces, iteration_residuals,
-	tangent_matrix, internal_cache, elements_cache
+       structure, assembler, residual_forces_norms, residual_displacements_norms,
+       AbstractStructuralAnalysis, initial_time, current_time, final_time, is_done,
+       current_state, current_iteration, displacements, external_forces, iteration_residuals,
+       tangent_matrix, internal_cache, elements_cache
 
 """ Abstract supertype to define a new structural state.
 **Abstract Methods**
@@ -65,8 +65,8 @@ displacements(st::AbstractStructuralState) = st.Uᵏ
 
 "Update and return current displacements increment vector at the current structural state."
 function Δ_displacements!(st::AbstractStructuralState, ΔUᵏ⁺¹::AbstractVector)
-	st.ΔUᵏ .= ΔUᵏ⁺¹
-	st.ΔUᵏ
+    st.ΔUᵏ .= ΔUᵏ⁺¹
+    st.ΔUᵏ
 end
 
 "Return the current internal forces vector in the structural state."
@@ -90,20 +90,20 @@ free_dofs(st::AbstractStructuralState) = st.free_dofs
 # Assemble
 "Assembles the element `e` internal forces `fᵢₙₜ_e` into the structural state."
 function assemble!(st::AbstractStructuralState, fᵢₙₜ_e::AbstractVector, e::AbstractElement)
-	view(internal_forces(st), local_dofs(e)) .+= fᵢₙₜ_e
+    view(internal_forces(st), local_dofs(e)) .+= fᵢₙₜ_e
 end
 
 "Assembles the element `e` stiffness matrix matrix `K_e` into the structural state."
 function assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::AbstractElement)
-	assemble!(assembler(st), local_dofs(e), kₛ_e)
+    assemble!(assembler(st), local_dofs(e), kₛ_e)
 end
 
 "Assembles the element `e` stress σₑ and strain ϵₑ into the structural state."
 function assemble!(st::AbstractStructuralState, σₑ::ST, ϵₑ::ET,
-	e::AbstractElement) where {ST <: Union{Real, AbstractMatrix},
-	ET <: Union{Real, AbstractMatrix}}
-	stress(st)[e] .= σₑ
-	strain(st)[e] .= ϵₑ
+                   e::AbstractElement) where {ST<:Union{Real,AbstractMatrix},
+                                              ET<:Union{Real,AbstractMatrix}}
+    stress(st)[e] .= σₑ
+    strain(st)[e] .= ϵₑ
 end
 
 "Fill the system tangent matrix in the structural state once the assembler object is built."
@@ -111,26 +111,26 @@ end_assemble!(st::AbstractStructuralState) = end_assemble!(tangent_matrix(st), a
 
 "Return relative residual forces for the current structural state."
 function residual_forces_norms(st::AbstractStructuralState)
-	rᵏ_norm = norm(residual_forces!(st))
-	fₑₓₜ_norm = norm(external_forces(st))
-	rᵏ_norm, rᵏ_norm / fₑₓₜ_norm
+    rᵏ_norm = norm(residual_forces!(st))
+    fₑₓₜ_norm = norm(external_forces(st))
+    rᵏ_norm, rᵏ_norm / fₑₓₜ_norm
 end
 
 "Return relative residual displacements for the current structural state."
 function residual_displacements_norms(st::AbstractStructuralState)
-	ΔU_norm = norm(Δ_displacements(st))
-	U_norm = norm(displacements(st))
-	ΔU_norm, ΔU_norm / U_norm
+    ΔU_norm = norm(Δ_displacements(st))
+    U_norm = norm(displacements(st))
+    ΔU_norm, ΔU_norm / U_norm
 end
 
 "Return the cache associated to the given element."
 function internal_cache(state::AbstractStructuralState, e::AbstractElement)
-	internal_cache(state, typeof(e))
+    internal_cache(state, typeof(e))
 end
 internal_cache(::AbstractStructuralState, ::Type{<:AbstractElement}) = nothing
 
 function elements_cache(s::AbstractStructuralState, e::AbstractElement)
-	elements_cache(assembler(s), e)
+    elements_cache(assembler(s), e)
 end
 
 """ Abstract supertype for all structural analysis.
@@ -181,17 +181,17 @@ current_iteration(a::AbstractStructuralAnalysis) = iteration_residuals(a.state)
 
 "Apply a boundary condition to the structural analysis at the current analysis time."
 function apply!(sa::AbstractStructuralAnalysis, lbc::AbstractNeumannBoundaryCondition)
-	t = current_time(sa)
-	bcs = boundary_conditions(structure(sa))
-	dofs_lbc, dofs_values = apply(bcs, lbc, t)
-	external_forces(current_state(sa))[dofs_lbc] .+= dofs_values
+    t = current_time(sa)
+    bcs = boundary_conditions(structure(sa))
+    dofs_lbc, dofs_values = apply(bcs, lbc, t)
+    external_forces(current_state(sa))[dofs_lbc] .+= dofs_values
 end
 
 "Apply a vector of load boundary conditions to the structure."
 function apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractNeumannBoundaryCondition})
-	for lbc in l_bcs
-		apply!(sa, lbc)
-	end
+    for lbc in l_bcs
+        apply!(sa, lbc)
+    end
 end
 
 "Return system tangent matrix in the structural state given a solver."
