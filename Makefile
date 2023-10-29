@@ -44,4 +44,4 @@ format:
 	$(JULIA) --project=. -e 'using JuliaFormatter; format(".", overwrite=true, verbose=true)'
 
 # Run all tests
-all: tests pages format-check
+all: tests pages format-check clean
