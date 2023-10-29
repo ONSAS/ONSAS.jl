@@ -1,4 +1,4 @@
-.PHONY: all, update, instantiate, test, clean, pages, format-check, format
+.PHONY: all, update, instantiate, tests, clean, pages, format-check, format
 
 # Julia command
 JULIA = julia
@@ -13,7 +13,7 @@ instantiate:
 	$(JULIA) --project=. -e 'import Pkg; Pkg.instantiate()'
 
 # Run all tests
-test:
+tests:
 	$(JULIA) --project=. -e 'include("test/runtests.jl")'
 
 # Make docs
@@ -42,3 +42,6 @@ format-check:
 # Apply JuliaFormatter is applied
 format:
 	$(JULIA) --project=. -e 'using JuliaFormatter; format(".", overwrite=true, verbose=true)'
+
+# Run all tests
+all: tests pages format-check
