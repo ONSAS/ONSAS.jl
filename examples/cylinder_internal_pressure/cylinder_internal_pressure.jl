@@ -3,6 +3,8 @@
 #----------------------------------------------------
 using LinearAlgebra, Test, Suppressor
 using ONSAS
+using Random: Random
+Random.seed!(1234)
 
 # Mesh with Gmsh.jl
 include("cylinder_mesh.jl")
@@ -139,7 +141,7 @@ end;
 "Return a rand point in the cylinder (R, θ, L)."
 function rand_point_cylinder()
     (; Ri, Re, Lz) = parameters()
-    [rand() * (Re - Ri) + Ri, rand() * 2 * π, rand() * Lz]
+    @show [rand() * (Re - Ri) + Ri, rand() * 2 * π, rand() * Lz]
 end;
 
 "Run the example"

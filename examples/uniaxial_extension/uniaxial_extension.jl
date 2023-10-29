@@ -107,8 +107,7 @@ function run_uniaxial_extension()
     # -------------------------------
     # Write vtk files
     # -------------------------------
-    vtk_path = joinpath("examples", "uniaxial_extension", "uniaxial")
-    write_vtk(states_sol_case₁, vtk_path)
+    ONSAS.write_vtk(states_sol_case₁, joinpath(@__DIR__, "uniaxial_extension"))
     "Computes numeric solution α, β and γ for analytic validation."
     function αβγ_numeric(states_sol::AbstractSolution)
         s = structure(analysis(states_sol))
