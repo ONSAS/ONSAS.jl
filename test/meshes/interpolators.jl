@@ -23,22 +23,22 @@ using ONSAS.Meshes
     n₈ = Node(Lᵢ, Lⱼ, 0.0)
     nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
     ## Faces
-    f₁ = TriangularFace(view(nodes,[5,8,6]))
-    f₂ = TriangularFace(view(nodes,[6,8,7]))
-    f₃ = TriangularFace(view(nodes,[4,1,2]))
-    f₄ = TriangularFace(view(nodes,[4,2,3]))
-    f₅ = TriangularFace(view(nodes,[6,2,1]))
-    f₆ = TriangularFace(view(nodes,[6,1,5]))
-    f₇ = TriangularFace(view(nodes,[1,4,5]))
-    f₈ = TriangularFace(view(nodes,[4,8,5]))
+    f₁ = TriangularFace(view(nodes, [5, 8, 6]))
+    f₂ = TriangularFace(view(nodes, [6, 8, 7]))
+    f₃ = TriangularFace(view(nodes, [4, 1, 2]))
+    f₄ = TriangularFace(view(nodes, [4, 2, 3]))
+    f₅ = TriangularFace(view(nodes, [6, 2, 1]))
+    f₆ = TriangularFace(view(nodes, [6, 1, 5]))
+    f₇ = TriangularFace(view(nodes, [1, 4, 5]))
+    f₈ = TriangularFace(view(nodes, [4, 8, 5]))
     faces = [f₁, f₂, f₃, f₄, f₅, f₆, f₇, f₈]
     ## Entities
-    t₁ = Tetrahedron(view(nodes,[1,4,2,6]))
-    t₂ = Tetrahedron(view(nodes,[6,2,3,4]))
-    t₃ = Tetrahedron(view(nodes,[4,3,6,7]))
-    t₄ = Tetrahedron(view(nodes,[4,1,5,6]))
-    t₅ = Tetrahedron(view(nodes,[4,6,5,8]))
-    t₆ = Tetrahedron(view(nodes,[4,7,6,8]))
+    t₁ = Tetrahedron(view(nodes, [1, 4, 2, 6]))
+    t₂ = Tetrahedron(view(nodes, [6, 2, 3, 4]))
+    t₃ = Tetrahedron(view(nodes, [4, 3, 6, 7]))
+    t₄ = Tetrahedron(view(nodes, [4, 1, 5, 6]))
+    t₅ = Tetrahedron(view(nodes, [4, 6, 5, 8]))
+    t₆ = Tetrahedron(view(nodes, [4, 7, 6, 8]))
     elements = [t₁, t₂, t₃, t₄, t₅, t₆]
 
     ## Mesh
