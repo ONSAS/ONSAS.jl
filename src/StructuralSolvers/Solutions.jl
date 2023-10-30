@@ -18,6 +18,8 @@ using ..Interpolators
 using ..Handlers
 using ..Meshes
 using ..Structures
+using ..StructuralAnalyses
+using ..StaticStates
 using ..StructuralSolvers
 
 @reexport import ..StructuralAnalyses: displacements, external_forces, iteration_residuals
@@ -52,17 +54,18 @@ solver(sol::AbstractSolution) = sol.solver
 """
 Solution that stores all intermediate arrays during the analysis.
 """
-struct StatesSolution{ST<:Vector,A,SS<:AbstractSolver} <: AbstractSolution
+struct StatesSolution{ST<:AbstractStaticState,A,SS<:AbstractSolver} <: AbstractSolution
     "Vector containing the converged structural states at each step."
-    states::ST
+    states::Vector{ST}
     "Analysis solved."
     analysis::A
     "Solver employed."
     solver::SS
-    "Constructor with empty `AbstractStructuralState`s `Vector` and type `S`."
-    function StatesSolution(analysis::A, solver::SS) where {A,SS<:AbstractSolver}
-        new{Vector{Any},A,SS}([], analysis, solver)
-    end
+end
+
+"Constructor with empty `AbstractStructuralState`s `Vector` and type `S`."
+function StatesSolution(analysis::A, solver::SS) where {A,SS<:AbstractSolver}
+    StatesSolution{StaticState,A,SS}(StaticState[], analysis, solver)
 end
 
 "Show the states solution."

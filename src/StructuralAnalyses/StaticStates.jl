@@ -32,7 +32,7 @@ Stores the relevant static variables of the structure during the displacements i
 """
 struct StaticState{DU<:AbstractVector,U<:AbstractVector,
                    FE<:AbstractVector,FI<:AbstractVector,K<:AbstractMatrix,
-                   E<:Dictionary,S<:Dictionary} <: AbstractStructuralState
+                   E<:Dictionary,S<:Dictionary} <: AbstractStaticState
     "Free degrees of freedom."
     free_dofs::Vector{Dof}
     "Displacements vector increment."

@@ -51,6 +51,11 @@ export AbstractStructuralState, Δ_displacements, Δ_displacements!, residual_fo
 """
 abstract type AbstractStructuralState end
 
+"""
+States representing static analyses.
+"""
+abstract type AbstractStaticState <: AbstractStructuralState end
+
 "Return the assembler used in the structural state."
 assembler(st::AbstractStructuralState) = st.assembler
 

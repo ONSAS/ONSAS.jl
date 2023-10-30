@@ -3,6 +3,8 @@
 #----------------------------------------------------
 using LinearAlgebra, Test, Suppressor
 using ONSAS
+import Random
+Random.seed!(1234)
 
 # Mesh with Gmsh.jl
 include("cylinder_mesh.jl")
@@ -19,8 +21,8 @@ function parameters()
     E = 210                 # Young modulus in MPa
     ν = 0.3                 # Poisson ratio
     NSTEPS = 9              # Number of load steps
-    ATOL = 2e-2 * (Re - Ri) # Absolut tolerances for testing
-    ms = 0.8                # ms = 2.5 for much more refined mesh (approx 200.000 elems)
+    ATOL = 1e-2 * (Re - Ri) # Absolut tolerances for testing
+    ms = 1                # ms = 2.5 for much more refined mesh (approx 200.000 elems)
     PLOT_RESULTS = false    # boolean to plot results
     (; Lz, Ri, Re, p, ν, E, pressure, ATOL, NSTEPS, PLOT_RESULTS, ms, material_label)
 end;
