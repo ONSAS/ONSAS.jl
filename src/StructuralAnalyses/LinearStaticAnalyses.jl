@@ -125,8 +125,18 @@ function step!(sa::LinearStaticAnalysis)
     end
 
     # Compute ΔU
-    sol = solve!(linear_system)
-    ΔU = Δ_displacements!(state, sol.u)
+    USE_LSOLVE = false
+    abstol = zero(real(eltype(linear_system.b)))
+    reltol = sqrt(eps(real(eltype(linear_system.b))))
+    maxiter = length(linear_system.b)
+    ΔU = if USE_LSOLVE
+        sol = solve!(linear_system; abstol=abstol, reltol=reltol, maxiter=maxiter)
+        Δ_displacements!(state, sol.u)
+    else
+        cg!(state.ΔUᵏ, linear_system.A, linear_system.b; abstol=abstol, reltol=reltol,
+            maxiter=maxiter)
+        state.ΔUᵏ
+    end
 
     # Update U
     displacements(state)[free_dofs_idx] .= ΔU

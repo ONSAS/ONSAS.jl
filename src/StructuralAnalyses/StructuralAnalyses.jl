@@ -20,7 +20,8 @@ using ..Utils
 @reexport import ..Structures: free_dofs
 @reexport import ..Assemblers: assemble!, end_assemble!
 
-export AbstractStructuralState, Δ_displacements, Δ_displacements!, residual_forces!,
+export AbstractStructuralState, AbstractStaticState, Δ_displacements, Δ_displacements!,
+       residual_forces!,
        structure, assembler, residual_forces_norms, residual_displacements_norms,
        AbstractStructuralAnalysis, initial_time, current_time, final_time, is_done,
        current_state, current_iteration, displacements, external_forces, iteration_residuals,

@@ -22,7 +22,7 @@ function parameters()
     ν = 0.3                 # Poisson ratio
     NSTEPS = 9              # Number of load steps
     ATOL = 1e-2 * (Re - Ri) # Absolut tolerances for testing
-    ms = 1                # ms = 2.5 for much more refined mesh (approx 200.000 elems)
+    ms = 1.0                # ms = 2.5 for much more refined mesh (approx 200.000 elems)
     PLOT_RESULTS = false    # boolean to plot results
     (; Lz, Ri, Re, p, ν, E, pressure, ATOL, NSTEPS, PLOT_RESULTS, ms, material_label)
 end;
@@ -141,7 +141,7 @@ end;
 "Return a rand point in the cylinder (R, θ, L)."
 function rand_point_cylinder()
     (; Ri, Re, Lz) = parameters()
-    [rand() * (Re - Ri) + Ri, rand() * 2 * π, rand() * Lz]
+    @show [rand() * (Re - Ri) + Ri, rand() * 2 * π, rand() * Lz]
 end;
 
 "Run the example"
