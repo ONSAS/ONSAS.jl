@@ -65,7 +65,7 @@ Base.pairs(sm::StructuralMaterial) = pairs(element_materials(sm))
 
 "Checks that each `Element` has a single `Material` in the dictionary `mat_dict`."
 function _element_material_is_unique(mat_dict)
-    unique_elements =  unique(values(mat_dict))
+    unique_elements = unique(values(mat_dict))
     if all(map(isempty, unique_elements))
         true
     else
