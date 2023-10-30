@@ -13,7 +13,7 @@ using ..Structures
 using ..StructuralAnalyses
 
 export write_vtk
-@reexport import WriteVTK: vtk_grid, write_vtk
+@reexport import WriteVTK: vtk_grid
 
 """
 Generate a VTK file given a solution struct.
