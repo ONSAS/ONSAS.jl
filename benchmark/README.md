@@ -13,7 +13,7 @@ julia> results = benchmarkpkg("ONSAS", retune=true)
 ```
 
 A shell script, `runbenchmarks.sh`, is also provided. In that case, ensure to run
-the script from the directory containing your ONSAS development environment, or otherwise define the environment variable `ENV["ONSAS"]` containing such environment. Also an check `julia_command` variable is pointing to the julia binary.
+the script from the directory containing your ONSAS development environment, or otherwise define the environment variable `ENV["ONSAS"]` containing such environment. Moreover, `julia_command` needs to point to your Julia binary.
 
 ## How to compare benchmarks
 
