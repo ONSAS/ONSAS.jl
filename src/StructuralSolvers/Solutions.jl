@@ -65,7 +65,7 @@ end
 
 "Constructor with empty `AbstractStructuralState`s `Vector` and type `S`."
 function Solution(analysis::A, solver::SS) where {A,SS<:AbstractSolver}
-    Solution{StaticState,A,SS}(StaticState[], analysis, solver)
+    Solution{FullStaticState,A,SS}(FullStaticState[], analysis, solver)
 end
 
 "Show the states solution."

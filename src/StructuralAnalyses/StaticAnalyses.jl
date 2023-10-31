@@ -120,7 +120,7 @@ function assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
 end
 
 "Reset the assembled magnitudes in the state."
-function reset_assemble!(state::StaticState)
+function reset_assemble!(state::FullStaticState)
     reset!(assembler(state))
     internal_forces(state) .= 0.0
     K = tangent_matrix(state)
@@ -130,7 +130,7 @@ function reset_assemble!(state::StaticState)
 end
 
 "Push the current state into the solution."
-function Base.push!(st_sol::Solution, c_state::StaticState)
+function Base.push!(st_sol::Solution, c_state::FullStaticState)
     # Copies TODO Need to store all these?
     fdofs = free_dofs(c_state)
     Uᵏ = deepcopy(displacements(c_state))
@@ -145,8 +145,8 @@ function Base.push!(st_sol::Solution, c_state::StaticState)
     # Empty assembler since the info is stored in k
     assemblerᵏ = c_state.assembler
 
-    state_copy = StaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
-                             iter_state)
+    state_copy = FullStaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
+                                 iter_state)
     push!(states(st_sol), state_copy)
 end
 

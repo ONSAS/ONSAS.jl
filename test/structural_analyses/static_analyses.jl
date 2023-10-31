@@ -101,10 +101,11 @@ s_assembler = Assembler(2)
 iter_residuals = ResidualsIterationStep()
 res_forces = zeros(2)
 
-sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, s_assembler,
-                       iter_residuals)
+sst_rand = FullStaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
+                           s_assembler,
+                           iter_residuals)
 
-@testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticState" begin
+@testset "ONSAS.StructuralAnalyses.StaticAnalyses.FullStaticState" begin
 
     # Accessors
     @test displacements(sst_rand) == Uᵏ
@@ -146,7 +147,7 @@ sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ,
     @test all([iszero(stress(sst_rand)[e]) for e in Meshes.elements(s)])
 
     # Default static analysis of the structure
-    default_s = StaticState(s)
+    default_s = FullStaticState(s)
 
     # Assemble process
     # truss₁ element
