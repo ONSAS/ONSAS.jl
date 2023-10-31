@@ -68,7 +68,7 @@ end
 function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
     s = structure(sa)
     # Initialize solution.
-    sol = StatesSolution(sa, alg)
+    sol = Solution(sa, alg)
 
     # Load factors iteration.
     while !is_done(sa)

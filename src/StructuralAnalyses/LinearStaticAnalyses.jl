@@ -77,7 +77,7 @@ function _solve!(sa::LinearStaticAnalysis, ::DummySolver)
     s = structure(sa)
 
     # Initialize solution
-    solution = StatesSolution(sa, NewtonRaphson())
+    solution = Solution(sa, NewtonRaphson())
 
     # Load factors iteration.
     while !is_done(sa)

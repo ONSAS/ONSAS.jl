@@ -224,11 +224,11 @@ sa_init = NonLinearStaticAnalysis(s, λ₁; NSTEPS=NSTEPS, initial_step=init_ste
     @test current_time(sa_init) == first(λᵥ)
 end
 
-@testset "ONSAS.StructuralSolvers.StatesSolution" begin
+@testset "ONSAS.StructuralSolvers.Solution" begin
     solved_states = [sst_rand, sst_rand, sst_rand]
     num_states = length(solved_states)
     nr = NewtonRaphson()
-    states_sol = StatesSolution(sa, nr)
+    states_sol = Solution(sa, nr)
     foreach(solved_states) do st
         push!(states_sol, st)
     end
