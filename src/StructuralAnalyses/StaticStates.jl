@@ -24,7 +24,7 @@ using ..Nodes
 @reexport import ..StructuralAnalyses: residual_forces!
 @reexport import ..StructuralSolvers: tangent_matrix
 
-export FullStaticState
+export FullStaticState, StaticState
 
 """
 Stores the relevant static variables of the structure during the displacements iteration.
@@ -124,6 +124,23 @@ function reset!(state::FullStaticState)
     # Return state
     @info "The structural state has been reset."
     state
+end
+
+struct StaticState{U<:AbstractVector,E<:Dictionary,S<:Dictionary} <: AbstractStaticState
+    "Displacements vector."
+    Uᵏ::U
+    "Vector with straings for each element."
+    ϵᵏ::E
+    "Vector with stresses for each element."
+    σᵏ::S
+    function StaticState(Uᵏ::U, ϵᵏ::E, σᵏ::S) where {U,E,S}
+        new{U,E,S}(Uᵏ, ϵᵏ, σᵏ)
+    end
+end
+
+function Base.show(io::IO, sc::StaticState)
+    nu = length(sc.Uᵏ)
+    println("• StaticState with $nu-dofs displacements vector Uᵏ.")
 end
 
 end # module

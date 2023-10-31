@@ -73,11 +73,11 @@ function Base.show(io::IO, sa::LinearStaticAnalysis)
 end
 
 "Solves a linear analysis problem mutating the state."
-function _solve!(sa::LinearStaticAnalysis, ::DummySolver)
+function _solve!(sa::LinearStaticAnalysis, alg::DummySolver)
     s = structure(sa)
 
-    # Initialize solution
-    solution = Solution(sa, NewtonRaphson())
+    # Initialize solution.
+    solution = Solution(sa, alg)
 
     # Load factors iteration.
     while !is_done(sa)

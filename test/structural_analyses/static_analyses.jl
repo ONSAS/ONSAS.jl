@@ -229,7 +229,7 @@ end
     solved_states = [sst_rand, sst_rand, sst_rand]
     num_states = length(solved_states)
     nr = NewtonRaphson()
-    states_sol = Solution(sa, nr)
+    states_sol = Solution(FullStaticState[], sa, nr)
     foreach(solved_states) do st
         push!(states_sol, st)
     end
