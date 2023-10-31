@@ -257,9 +257,8 @@ function test(sol::AbstractSolution, case::FirstCase)
         @test zero_uj_axis_x
     end
     @testset "Radial displacement analytic solution case: $case" begin
-        ATOL_INTERNAL_U = 4 * ATOL
         # A relaxed tolerace is defined, is normal to have a greater error interpolation
-        @test ur_numeric_p_rand ≈ ur_analytic_p_rand atol = ATOL_INTERNAL_U
+        @test ur_numeric_p_rand ≈ ur_analytic_p_rand atol = ATOL
         @test ur_numeric_ni ≈ ur_analytic_ni atol = ATOL
         @test ur_numeric_ne ≈ -ur_analytic_ne atol = ATOL
     end

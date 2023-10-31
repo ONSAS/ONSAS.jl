@@ -74,7 +74,7 @@ function Base.show(io::IO, sa::LinearStaticAnalysis)
 end
 
 "Solves a linear analysis problem mutating the state."
-function _solve!(sa::LinearStaticAnalysis, ::LinearSolveDefault)
+function _solve!(sa::LinearStaticAnalysis, ::Nothing, linear_solver::SciMLBase.AbstractLinearAlgorithm)
     s = structure(sa)
 
     # Initialize solution
@@ -93,7 +93,7 @@ function _solve!(sa::LinearStaticAnalysis, ::LinearSolveDefault)
         end
 
         # Increment structure displacements U = ΔU
-        @debugtime "Step" step!(sa)
+        @debugtime "Step" step!(sa, linear_solver)
 
         # Recompute σ and ε for the assembler
         @debugtime "Update internal forces, stres and strains" assemble!(s, sa)
@@ -109,7 +109,7 @@ function _solve!(sa::LinearStaticAnalysis, ::LinearSolveDefault)
 end
 
 "Computes ΔU for solving the linear analysis."
-function step!(sa::LinearStaticAnalysis)
+function step!(sa::LinearStaticAnalysis, linear_solver::SciMLBase.AbstractLinearAlgorithm)
     # Extract state info
     state = current_state(sa)
     free_dofs_idx = free_dofs(state)
@@ -117,7 +117,7 @@ function step!(sa::LinearStaticAnalysis)
 
     # Compute residual forces r = Fext
     state.res_forces .= view(external_forces(state), free_dofs_idx)
-    linear_system.b = state.res_forces
+    linear_system.b .= state.res_forces
 
     # Update stiffness matrix K
     if sa.current_step == 1
@@ -125,18 +125,12 @@ function step!(sa::LinearStaticAnalysis)
     end
 
     # Compute ΔU
-    USE_LSOLVE = false
     abstol = zero(real(eltype(linear_system.b)))
     reltol = sqrt(eps(real(eltype(linear_system.b))))
     maxiter = length(linear_system.b)
-    ΔU = if USE_LSOLVE
-        sol = solve!(linear_system; abstol=abstol, reltol=reltol, maxiter=maxiter)
-        Δ_displacements!(state, sol.u)
-    else
-        cg!(state.ΔUᵏ, linear_system.A, linear_system.b; abstol=abstol, reltol=reltol,
-            maxiter=maxiter)
-        state.ΔUᵏ
-    end
+
+    sol = solve!(linear_system, linear_solver; abstol=abstol, reltol=reltol, maxiter=maxiter)
+    Δ_displacements!(state, sol.u)
 
     # Update U
     displacements(state)[free_dofs_idx] .= ΔU
