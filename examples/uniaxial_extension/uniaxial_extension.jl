@@ -110,7 +110,7 @@ function run_uniaxial_extension()
     ONSAS.write_vtk(states_sol_case₁, joinpath(@__DIR__, "uniaxial_extension"))
     "Computes numeric solution α, β and γ for analytic validation."
     function αβγ_numeric(states_sol::AbstractSolution)
-        s = structure(analysis(states_sol))
+        s = ONSAS.structure(analysis(states_sol))
         # Node at (Lᵢ, Lⱼ, Lₖ)
         n₇ = nodes(s)[7]
         numerical_uᵢ = displacements(states_sol_case₁, n₇, 1)
