@@ -58,13 +58,13 @@ struct FullStaticState{DU<:AbstractVector,U<:AbstractVector,
     "Linear system cache"
     linear_system::LinearSolve.LinearCache
     function FullStaticState(fdofs::Vector{Dof},
-                         ΔUᵏ::DU, Uᵏ::U,
-                         Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI,
-                         Kₛᵏ::K, res_forces::DU,
-                         ϵᵏ::E, σᵏ::S,
-                         assembler::Assembler,
-                         iter_state::ResidualsIterationStep,
-                         linear_system::LinearSolve.LinearCache) where {DU,U,FE,FI,K,E,S}
+                             ΔUᵏ::DU, Uᵏ::U,
+                             Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI,
+                             Kₛᵏ::K, res_forces::DU,
+                             ϵᵏ::E, σᵏ::S,
+                             assembler::Assembler,
+                             iter_state::ResidualsIterationStep,
+                             linear_system::LinearSolve.LinearCache) where {DU,U,FE,FI,K,E,S}
         # Check dimensions
         @assert length(ΔUᵏ) == length(fdofs) == length(res_forces)
         @assert size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ)
@@ -92,9 +92,8 @@ function FullStaticState(s::AbstractStructure,
     assemblerᵏ = Assembler(s, cache)
     fdofs = free_dofs(s)
     linear_system = init(LinearProblem(Kₛᵏ[fdofs, fdofs], res_forces))
-    StaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state,
-                linear_system)
-    FullStaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
+    FullStaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state,
+                    linear_system)
 end
 
 function Base.show(io::IO, sc::FullStaticState)

@@ -146,9 +146,8 @@ function Base.push!(st_sol::Solution{<:FullStaticState}, c_state::FullStaticStat
     assemblerᵏ = c_state.assembler
     linear_system = c_state.linear_system
 
-
     state_copy = FullStaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
-                                 iter_state)
+                                 iter_state, c_state.linear_system)
     push!(states(st_sol), state_copy)
 end
 

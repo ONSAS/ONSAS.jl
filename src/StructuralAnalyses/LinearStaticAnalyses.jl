@@ -73,7 +73,7 @@ function Base.show(io::IO, sa::LinearStaticAnalysis)
 end
 
 "Solves a linear analysis problem mutating the state."
-function _solve!(sa::LinearStaticAnalysis, ::Nothing,
+function _solve!(sa::LinearStaticAnalysis, alg::Nothing,
                  linear_solver::SciMLBase.AbstractLinearAlgorithm)
     s = structure(sa)
 

@@ -54,7 +54,7 @@ solver(sol::AbstractSolution) = sol.solver
 """
 Solution that stores all intermediate arrays during the analysis.
 """
-struct Solution{ST<:AbstractStaticState,A,SS<:AbstractSolver} <: AbstractSolution
+struct Solution{ST<:AbstractStaticState,A,SS<:Union{AbstractSolver,Nothing}} <: AbstractSolution
     "Vector containing the converged structural states at each step."
     states::Vector{ST}
     "Analysis solved."
@@ -64,7 +64,7 @@ struct Solution{ST<:AbstractStaticState,A,SS<:AbstractSolver} <: AbstractSolutio
 end
 
 "Constructor with empty `AbstractStructuralState`s `Vector` and type `S`."
-function Solution(analysis::A, solver::SS) where {A,SS<:AbstractSolver}
+function Solution(analysis::A, solver::SS) where {A,SS<:Union{AbstractSolver,Nothing}}
     # TODO Use concrete types.
     Solution{StaticState,A,SS}(StaticState[], analysis, solver)
 end
