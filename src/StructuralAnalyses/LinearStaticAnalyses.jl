@@ -5,7 +5,6 @@ geometric linear static analysis.
 """
 module LinearStaticAnalyses
 
-using IterativeSolvers
 using LinearSolve
 using Reexport
 
@@ -74,7 +73,8 @@ function Base.show(io::IO, sa::LinearStaticAnalysis)
 end
 
 "Solves a linear analysis problem mutating the state."
-function _solve!(sa::LinearStaticAnalysis, ::Nothing, linear_solver::SciMLBase.AbstractLinearAlgorithm)
+function _solve!(sa::LinearStaticAnalysis, ::Nothing,
+                 linear_solver::SciMLBase.AbstractLinearAlgorithm)
     s = structure(sa)
 
     # Initialize solution
@@ -124,13 +124,17 @@ function step!(sa::LinearStaticAnalysis, linear_solver::SciMLBase.AbstractLinear
         linear_system.A .= view(tangent_matrix(state), free_dofs_idx, free_dofs_idx)
     end
 
-    # Compute ΔU
-    abstol = zero(real(eltype(linear_system.b)))
-    reltol = sqrt(eps(real(eltype(linear_system.b))))
-    maxiter = length(linear_system.b)
+    # Define tolerances
+    abstol, reltol, maxiter = StructuralSolvers._default_linear_solver_tolerances(linear_system.A,
+                                                                                  linear_system.b)
 
-    sol = solve!(linear_system, linear_solver; abstol=abstol, reltol=reltol, maxiter=maxiter)
-    Δ_displacements!(state, sol.u)
+    # Compute ΔU
+    # TODO: Solve it inplace
+    # sol = solve!(linear_system, linear_solver; abstol=abstol, reltol=reltol, maxiter=maxiter)
+
+    linear_problem = LinearProblem(linear_system.A, linear_system.b)
+    sol = solve(linear_problem, linear_solver; abstol=abstol, reltol=reltol, maxiter=maxiter)
+    ΔU = Δ_displacements!(state, sol.u)
 
     # Update U
     displacements(state)[free_dofs_idx] .= ΔU
