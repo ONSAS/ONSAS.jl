@@ -178,7 +178,8 @@ step_size(solver::AbstractSolver) = solver.Δt
 tolerances(solver::AbstractSolver) = solver.tol
 
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
-function step!(solver::AbstractSolver, analysis::A) where {A} end
+function step!(solver::AbstractSolver,
+               analysis::AbstractStructuralAnalysis) end
 
 "Increment the time step given of a structural analysis. Dispatch is done for different
 solvers."

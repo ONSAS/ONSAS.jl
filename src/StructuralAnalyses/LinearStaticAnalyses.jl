@@ -82,12 +82,13 @@ function _solve!(sa::LinearStaticAnalysis, alg::Nothing,
 
     # Load factors iteration.
     while !is_done(sa)
+        step = sa.current_step
 
         # Compute external force
         external_forces(current_state(sa)) .= 0
         @debugtime "Assemble external forces" apply!(sa, load_bcs(boundary_conditions(s)))
 
-        if sa.current_step == 1
+        if step == 1
             # Assemble K
             @debugtime "Assemble internal forces" assemble!(s, sa)
         end
@@ -99,7 +100,7 @@ function _solve!(sa::LinearStaticAnalysis, alg::Nothing,
         @debugtime "Update internal forces, stres and strains" assemble!(s, sa)
 
         # Save current state
-        push!(solution, current_state(sa))
+        store!(solution, current_state(sa), step)
 
         # Increments the time or load factor step
         next!(sa)
