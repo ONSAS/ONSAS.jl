@@ -37,7 +37,7 @@ mutable struct LinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}}
     "Structure to be analyzed."
     const s::S
     "Structural state."
-    const state::StaticState
+    const state::FullStaticState
     "Load factors vector of the analysis."
     const λᵥ::LFV
     "Current load factor step."
@@ -46,8 +46,8 @@ end
 
 "Constructor for linear analysis with load factors, optional initial step and initial state."
 function LinearStaticAnalysis(s::S, λᵥ::LFV;
-                              initial_state::StaticState=StaticState(s,
-                                                                     LinearResidualsIterationStep),
+                              initial_state::FullStaticState=FullStaticState(s,
+                                                                             LinearResidualsIterationStep),
                               initial_step::Int=1) where {S<:AbstractStructure,
                                                           LFV<:Vector{<:Real}}
     !(1 ≤ initial_step ≤ length(λᵥ)) &&
@@ -57,8 +57,8 @@ end
 
 "Constructor for linear analysis given a final time (or load factor) and the number of steps."
 function LinearStaticAnalysis(s::AbstractStructure, final_time::Real=1.0; NSTEPS=10,
-                              initial_state::StaticState=StaticState(s,
-                                                                     LinearResidualsIterationStep),
+                              initial_state::FullStaticState=FullStaticState(s,
+                                                                             LinearResidualsIterationStep),
                               initial_step::Int=1)
     t₀ = final_time / NSTEPS
     λᵥ = collect(LinRange(t₀, final_time, NSTEPS))
@@ -77,8 +77,8 @@ function _solve!(sa::LinearStaticAnalysis, ::Nothing,
                  linear_solver::SciMLBase.AbstractLinearAlgorithm)
     s = structure(sa)
 
-    # Initialize solution
-    solution = StatesSolution(sa, NewtonRaphson())
+    # Initialize solution.
+    solution = Solution(sa, alg)
 
     # Load factors iteration.
     while !is_done(sa)

@@ -120,7 +120,7 @@ function assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
 end
 
 "Reset the assembled magnitudes in the state."
-function reset_assemble!(state::StaticState)
+function reset_assemble!(state::FullStaticState)
     reset!(assembler(state))
     internal_forces(state) .= 0.0
     K = tangent_matrix(state)
@@ -130,7 +130,7 @@ function reset_assemble!(state::StaticState)
 end
 
 "Push the current state into the solution."
-function Base.push!(st_sol::StatesSolution, c_state::StaticState)
+function Base.push!(st_sol::Solution{<:FullStaticState}, c_state::FullStaticState)
     # Copies TODO Need to store all these?
     fdofs = free_dofs(c_state)
     Uᵏ = deepcopy(displacements(c_state))
@@ -146,9 +146,18 @@ function Base.push!(st_sol::StatesSolution, c_state::StaticState)
     assemblerᵏ = c_state.assembler
     linear_system = c_state.linear_system
 
-    state_copy = StaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
-                             iter_state, linear_system)
+
+    state_copy = FullStaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
+                                 iter_state)
     push!(states(st_sol), state_copy)
+end
+
+function Base.push!(st_sol::Solution{<:StaticState}, c_state::FullStaticState)
+    Uᵏ = deepcopy(displacements(c_state))
+    σᵏ = dictionary([e => deepcopy(σ) for (e, σ) in pairs(stress(c_state))])
+    ϵᵏ = dictionary([e => deepcopy(ϵ) for (e, ϵ) in pairs(strain(c_state))])
+    new_state = StaticState(Uᵏ, ϵᵏ, σᵏ)
+    push!(states(st_sol), new_state)
 end
 
 end # module

@@ -103,8 +103,9 @@ function run_cantilever_self_weight(; ATOL::Real)
     # Solution
     gravity_solution = solve!(gravity_analysis)
     # Tests
-    # External force
-    numerical_Fext = external_forces(last(states(gravity_solution)))
+    # Check forces at the final state
+    last_state_analysis_self_weight = current_state(analysis(gravity_solution))
+    numerical_Fext = external_forces(last_state_analysis_self_weight)
     analytical_Fext = [ρ * g * A * L / N for n in nodes(s)]
     analytical_Fext[1] = analytical_Fext[end] = ρ * g * A / 2 * L / N
     @test numerical_Fext ≈ analytical_Fext atol = ATOL
@@ -120,7 +121,6 @@ function run_cantilever_self_weight(; ATOL::Real)
     tip_load_bc = GlobalLoad(:u, t -> t * [F], "gravity")
     insert!(boundary_conditions(s), tip_load_bc, last(nodes(s)))
     # Analysis
-    last_state_analysis_self_weight = last(states(gravity_solution))
     NSTEPS_LOAD_ANALYSIS = 10
     load_analysis = LinearStaticAnalysis(s;
                                          NSTEPS=NSTEPS_LOAD_ANALYSIS,
@@ -131,10 +131,10 @@ function run_cantilever_self_weight(; ATOL::Real)
     load_solution = solve!(load_analysis)
     # Tests
     # Check forces at the initial state
-    numerical_Fext_initial = external_forces(first(states(load_solution)))
+    numerical_Fext_initial = external_forces(last_state_analysis_self_weight)
     analytical_Fext_initial = [ρ * g * A * L / N for n in nodes(s)]
     analytical_Fext_initial[1] = analytical_Fext_initial[end] = ρ * g * A / 2 * L / N
-    analytical_Fext_initial[end] += F / NSTEPS_LOAD_ANALYSIS
+    analytical_Fext_initial[end] += F
     @test analytical_Fext_initial ≈ numerical_Fext_initial atol = ATOL
     # Displacement
     numerical_u_last_node = last(displacements(load_solution, last(nodes(s)), 1))

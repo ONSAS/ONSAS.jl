@@ -102,10 +102,11 @@ iter_residuals = ResidualsIterationStep()
 res_forces = zeros(2)
 linear_problem = init(LinearProblem(Kₛᵏ, res_forces))
 
-sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, s_assembler,
-                       iter_residuals, linear_problem)
+sst_rand = FullStaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
+                           s_assembler,
+                           iter_residuals, linear_problem)
 
-@testset "ONSAS.StructuralAnalyses.StaticAnalyses.StaticState" begin
+@testset "ONSAS.StructuralAnalyses.StaticAnalyses.FullStaticState" begin
 
     # Accessors
     @test displacements(sst_rand) == Uᵏ
@@ -147,7 +148,7 @@ sst_rand = StaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ,
     @test all([iszero(stress(sst_rand)[e]) for e in Meshes.elements(s)])
 
     # Default static analysis of the structure
-    default_s = StaticState(s)
+    default_s = FullStaticState(s)
 
     # Assemble process
     # truss₁ element
@@ -225,11 +226,11 @@ sa_init = NonLinearStaticAnalysis(s, λ₁; NSTEPS=NSTEPS, initial_step=init_ste
     @test current_time(sa_init) == first(λᵥ)
 end
 
-@testset "ONSAS.StructuralSolvers.StatesSolution" begin
+@testset "ONSAS.StructuralSolvers.Solution" begin
     solved_states = [sst_rand, sst_rand, sst_rand]
     num_states = length(solved_states)
     nr = NewtonRaphson()
-    states_sol = StatesSolution(sa, nr)
+    states_sol = Solution(FullStaticState[], sa, nr)
     foreach(solved_states) do st
         push!(states_sol, st)
     end

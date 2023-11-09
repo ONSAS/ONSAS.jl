@@ -34,7 +34,7 @@ mutable struct NonLinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{
     "Structure to be analyzed."
     const s::S
     "Structural state."
-    const state::StaticState
+    const state::FullStaticState
     "Load factors vector of the analysis."
     const λᵥ::LFV
     "Current load factor step."
@@ -42,7 +42,7 @@ mutable struct NonLinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{
 end
 "Constructor for a non linear analysis with load factors, optional initial step and initial state."
 function NonLinearStaticAnalysis(s::S, λᵥ::LFV;
-                                 initial_state::StaticState=StaticState(s),
+                                 initial_state::FullStaticState=FullStaticState(s),
                                  initial_step::Int=1) where {S<:AbstractStructure,
                                                              LFV<:AbstractVector{<:Real}}
     !(1 ≤ initial_step ≤ length(λᵥ)) &&
@@ -69,7 +69,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver,
                  linear_solver::SciMLBase.AbstractLinearAlgorithm)
     s = structure(sa)
     # Initialize solution.
-    sol = StatesSolution(sa, alg)
+    sol = Solution(sa, alg)
 
     # Load factors iteration.
     while !is_done(sa)
