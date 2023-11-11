@@ -74,6 +74,8 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver,
     # Load factors iteration.
     while !is_done(sa)
 
+        step = sa.current_step
+
         # Reset assembled magnitudes
         reset!(current_iteration(sa))
 
@@ -90,7 +92,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver,
             @debugtime "Step" step!(sa, alg, linear_solver)
         end
         # Save current state.
-        @debugtime "Save current state" push!(sol, current_state(sa))
+        @debugtime "Save current state" store!(sol, current_state(sa), step)
 
         # Increment the time or load factor step.
         @debugtime "Next step" next!(sa)
