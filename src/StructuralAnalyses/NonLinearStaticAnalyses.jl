@@ -73,7 +73,6 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver,
 
     # Load factors iteration.
     while !is_done(sa)
-
         step = sa.current_step
 
         # Reset assembled magnitudes

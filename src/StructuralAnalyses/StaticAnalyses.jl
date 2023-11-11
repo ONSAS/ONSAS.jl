@@ -21,7 +21,8 @@ using ..Solutions
 using ..StaticStates
 using ..Assemblers
 
-@reexport import ..StructuralAnalyses: initial_time, current_time, final_time, iteration_residuals, is_done
+@reexport import ..StructuralAnalyses: initial_time, current_time, final_time, iteration_residuals,
+                                       is_done
 @reexport import ..StructuralSolvers: next!
 @reexport import ..Assemblers: assemble!, reset!
 
