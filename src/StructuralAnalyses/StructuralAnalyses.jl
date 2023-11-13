@@ -20,7 +20,8 @@ using ..Utils
 @reexport import ..Structures: free_dofs
 @reexport import ..Assemblers: assemble!, end_assemble!
 
-export AbstractStructuralState, AbstractStaticState, Δ_displacements, residual_forces!,
+export AbstractStructuralState, AbstractStaticState, Δ_displacements, Δ_displacements!,
+       residual_forces!,
        structure, assembler, residual_forces_norms, residual_displacements_norms,
        AbstractStructuralAnalysis, initial_time, current_time, final_time, is_done,
        current_state, current_iteration, displacements, external_forces, iteration_residuals,
@@ -31,6 +32,7 @@ export AbstractStructuralState, AbstractStaticState, Δ_displacements, residual_
 ### Accessors:
 * [`displacements`](@ref)
 * [`Δ_displacements`](@ref)
+* [`Δ_displacements!`](@ref)
 * [`external_forces`](@ref)
 * [`internal_forces`](@ref)
 * [`residual_forces!`](@ref)
@@ -66,6 +68,12 @@ displacements(st::AbstractStructuralState) = st.Uᵏ
 
 "Return current displacements increment vector at the current structural state."
 Δ_displacements(st::AbstractStructuralState) = st.ΔUᵏ
+
+"Update and return current displacements increment vector at the current structural state."
+function Δ_displacements!(st::AbstractStructuralState, ΔUᵏ⁺¹::AbstractVector)
+    st.ΔUᵏ .= ΔUᵏ⁺¹
+    st.ΔUᵏ
+end
 
 "Return the current internal forces vector in the structural state."
 internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ

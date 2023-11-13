@@ -10,6 +10,7 @@ using Dictionaries
 using InteractiveUtils
 using LinearAlgebra
 using Reexport
+using LinearSolve
 
 using ..Entities
 using ..Meshes
@@ -54,16 +55,22 @@ struct FullStaticState{DU<:AbstractVector,U<:AbstractVector,
     assembler::Assembler
     "Current iteration state."
     iter_state::ResidualsIterationStep
-    function FullStaticState(fdofs::Vector{Dof}, ΔUᵏ::DU, Uᵏ::U, Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Kₛᵏ::K,
-                             res_forces::DU, ϵᵏ::E,
-                             σᵏ::S,
+    "Linear system cache"
+    linear_system::LinearSolve.LinearCache
+    function FullStaticState(fdofs::Vector{Dof},
+                             ΔUᵏ::DU, Uᵏ::U,
+                             Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI,
+                             Kₛᵏ::K, res_forces::DU,
+                             ϵᵏ::E, σᵏ::S,
                              assembler::Assembler,
-                             iter_state::ResidualsIterationStep) where {DU,U,FE,FI,K,E,S}
-        # # Check dimensions
-        @assert length(ΔUᵏ) == length(fdofs)
+                             iter_state::ResidualsIterationStep,
+                             linear_system::LinearSolve.LinearCache) where {DU,U,FE,FI,K,E,S}
+        # Check dimensions
+        @assert length(ΔUᵏ) == length(fdofs) == length(res_forces)
         @assert size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ)
+        # Initialize linear system K.ΔU = R
         new{DU,U,FE,FI,K,E,S}(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assembler,
-                              iter_state)
+                              iter_state, linear_system)
     end
 end
 
@@ -84,7 +91,9 @@ function FullStaticState(s::AbstractStructure,
     cache = dictionary(nameof(T) => elements_cache(T) for T in subtypes(AbstractElement))
     assemblerᵏ = Assembler(s, cache)
     fdofs = free_dofs(s)
-    FullStaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state)
+    linear_system = init(LinearProblem(Kₛᵏ[fdofs, fdofs], res_forces))
+    FullStaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state,
+                    linear_system)
 end
 
 function Base.show(io::IO, sc::FullStaticState)

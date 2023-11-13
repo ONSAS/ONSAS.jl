@@ -5,7 +5,7 @@ geometric linear static analysis.
 """
 module LinearStaticAnalyses
 
-using IterativeSolvers
+using LinearSolve
 using Reexport
 
 using ..Utils
@@ -73,7 +73,8 @@ function Base.show(io::IO, sa::LinearStaticAnalysis)
 end
 
 "Solves a linear analysis problem mutating the state."
-function _solve!(sa::LinearStaticAnalysis, alg::DummySolver)
+function _solve!(sa::LinearStaticAnalysis, alg::Nothing,
+                 linear_solver::SciMLBase.AbstractLinearAlgorithm)
     s = structure(sa)
 
     # Initialize solution.
@@ -81,22 +82,25 @@ function _solve!(sa::LinearStaticAnalysis, alg::DummySolver)
 
     # Load factors iteration.
     while !is_done(sa)
+        step = sa.current_step
 
         # Compute external force
         external_forces(current_state(sa)) .= 0
         @debugtime "Assemble external forces" apply!(sa, load_bcs(boundary_conditions(s)))
 
-        # Assemble K
-        @debugtime "Assemble internal forces" assemble!(s, sa)
+        if step == 1
+            # Assemble K
+            @debugtime "Assemble internal forces" assemble!(s, sa)
+        end
 
         # Increment structure displacements U = ΔU
-        @debugtime "Step" step!(sa)
+        @debugtime "Step" step!(sa, linear_solver)
 
         # Recompute σ and ε for the assembler
-        @debugtime "Assemble internal forces" assemble!(s, sa)
+        @debugtime "Update internal forces, stres and strains" assemble!(s, sa)
 
         # Save current state
-        push!(solution, current_state(sa))
+        store!(solution, current_state(sa), step)
 
         # Increments the time or load factor step
         next!(sa)
@@ -106,19 +110,34 @@ function _solve!(sa::LinearStaticAnalysis, alg::DummySolver)
 end
 
 "Computes ΔU for solving the linear analysis."
-function step!(sa::LinearStaticAnalysis)
+function step!(sa::LinearStaticAnalysis, linear_solver::SciMLBase.AbstractLinearAlgorithm)
     # Extract state info
     state = current_state(sa)
     free_dofs_idx = free_dofs(state)
+    linear_system = state.linear_system
 
-    # Compute Δu
-    fₑₓₜ_red = view(external_forces(state), free_dofs_idx)
-    K = tangent_matrix(state)[free_dofs_idx, free_dofs_idx]
-    ΔU = Δ_displacements(state)
-    # NOTE: May not warn if K is singular, see ONSAS#392.
-    cg!(ΔU, K, fₑₓₜ_red)
+    # Compute residual forces r = Fext
+    state.res_forces .= view(external_forces(state), free_dofs_idx)
+    linear_system.b .= state.res_forces
 
-    # Update displacements into the state.
+    # Update stiffness matrix K
+    if sa.current_step == 1
+        linear_system.A .= view(tangent_matrix(state), free_dofs_idx, free_dofs_idx)
+    end
+
+    # Define tolerances
+    abstol, reltol, maxiter = StructuralSolvers._default_linear_solver_tolerances(linear_system.A,
+                                                                                  linear_system.b)
+
+    # Compute ΔU
+    # TODO: Solve it inplace
+    # sol = solve!(linear_system, linear_solver; abstol=abstol, reltol=reltol, maxiter=maxiter)
+
+    linear_problem = LinearProblem(linear_system.A, linear_system.b)
+    sol = solve(linear_problem, linear_solver; abstol=abstol, reltol=reltol, maxiter=maxiter)
+    ΔU = Δ_displacements!(state, sol.u)
+
+    # Update U
     displacements(state)[free_dofs_idx] .= ΔU
 end
 

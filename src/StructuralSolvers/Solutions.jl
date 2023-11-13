@@ -8,7 +8,7 @@ Of course the solution contains on the analysis and solver used to solve the pro
 """
 module Solutions
 
-using Reexport, PrettyTables
+using Reexport, PrettyTables, Dictionaries
 
 using ..Utils
 using ..Entities
@@ -54,7 +54,8 @@ solver(sol::AbstractSolution) = sol.solver
 """
 Solution that stores all intermediate arrays during the analysis.
 """
-struct Solution{ST<:AbstractStaticState,A,SS<:AbstractSolver} <: AbstractSolution
+struct Solution{ST<:AbstractStaticState,A<:AbstractStructuralAnalysis,
+                SS<:Union{AbstractSolver,Nothing}} <: AbstractSolution
     "Vector containing the converged structural states at each step."
     states::Vector{ST}
     "Analysis solved."
@@ -64,9 +65,27 @@ struct Solution{ST<:AbstractStaticState,A,SS<:AbstractSolver} <: AbstractSolutio
 end
 
 "Constructor with empty `AbstractStructuralState`s `Vector` and type `S`."
-function Solution(analysis::A, solver::SS) where {A,SS<:AbstractSolver}
+function Solution(analysis::A,
+                  solver::SS) where {A<:AbstractStructuralAnalysis,
+                                     SS<:Union{AbstractSolver,Nothing}}
+
     # TODO Use concrete types.
-    Solution{StaticState,A,SS}(StaticState[], analysis, solver)
+    state = current_state(analysis)
+    Uᵏ = displacements(state)
+    ϵᵏ = strain(state)
+    σᵏ = stress(state)
+
+    #TODO: Create a general way to pre-allocate with the number of analysis steps
+    states = Vector{StaticState}(undef, length(analysis.λᵥ))
+
+    for i in 1:length(analysis.λᵥ)
+        sol_Uᵏ = similar(Uᵏ)
+        sol_σᵏ = dictionary([e => similar(σ) for (e, σ) in pairs(σᵏ)])
+        sol_ϵᵏ = dictionary([e => similar(ϵ) for (e, ϵ) in pairs(ϵᵏ)])
+        states[i] = StaticState(sol_Uᵏ, sol_ϵᵏ, sol_σᵏ)
+    end
+
+    Solution{StaticState,A,SS}(states, analysis, solver)
 end
 
 "Show the states solution."
@@ -131,7 +150,7 @@ for f in [:displacements, :internal_forces, :external_forces]
     @eval $f(st_sol::Solution) = $f.(states(st_sol))
 
     "Return the $f at a certain dof for every time step."
-    @eval $f(st_sol::Solution, dof::Dof) = getindex.($f(st_sol), index(dof))
+    @eval $f(st_sol::Solution, dof::Dof) = getindex.($f(st_sol), Utils.index(dof))
 
     "Return the $f at a certain dof's vector for every time step."
     @eval $f(st_sol::Solution, vdof::Vector{Dof}) = [$f(st_sol, dof) for dof in vdof]

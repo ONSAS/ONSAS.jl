@@ -1,4 +1,4 @@
-using Test, LinearAlgebra, SparseArrays
+using Test, LinearAlgebra, SparseArrays, LinearSolve
 using Dictionaries: dictionary
 
 using ONSAS.StaticAnalyses
@@ -100,10 +100,11 @@ Kₛᵏ = spzeros(9, 9)
 s_assembler = Assembler(2)
 iter_residuals = ResidualsIterationStep()
 res_forces = zeros(2)
+linear_problem = init(LinearProblem(Kₛᵏ, res_forces))
 
 sst_rand = FullStaticState(free_dofs(s), ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
                            s_assembler,
-                           iter_residuals)
+                           iter_residuals, linear_problem)
 
 @testset "ONSAS.StructuralAnalyses.StaticAnalyses.FullStaticState" begin
 

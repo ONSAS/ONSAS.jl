@@ -26,7 +26,7 @@ using ..Assemblers
 @reexport import ..StructuralSolvers: next!
 @reexport import ..Assemblers: assemble!, reset!
 
-export AbstractStaticAnalysis, load_factors, current_load_factor
+export AbstractStaticAnalysis, load_factors, current_load_factor, store!
 
 """ Abstract supertype for all structural analysis.
 
@@ -129,7 +129,7 @@ function reset_assemble!(state::FullStaticState)
     nothing
 end
 
-"Push the current state into the solution."
+"Stores the current state into the solution."
 function Base.push!(st_sol::Solution{<:FullStaticState}, c_state::FullStaticState)
     # Copies TODO Need to store all these?
     fdofs = free_dofs(c_state)
@@ -144,18 +144,30 @@ function Base.push!(st_sol::Solution{<:FullStaticState}, c_state::FullStaticStat
     iter_state = deepcopy(iteration_residuals(c_state))
     # Empty assembler since the info is stored in k
     assemblerᵏ = c_state.assembler
+    linear_system = c_state.linear_system
 
     state_copy = FullStaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
-                                 iter_state)
+                                 iter_state, c_state.linear_system)
     push!(states(st_sol), state_copy)
 end
 
-function Base.push!(st_sol::Solution{<:StaticState}, c_state::FullStaticState)
-    Uᵏ = deepcopy(displacements(c_state))
-    σᵏ = dictionary([e => deepcopy(σ) for (e, σ) in pairs(stress(c_state))])
-    ϵᵏ = dictionary([e => deepcopy(ϵ) for (e, ϵ) in pairs(strain(c_state))])
-    new_state = StaticState(Uᵏ, ϵᵏ, σᵏ)
-    push!(states(st_sol), new_state)
+function store!(sol::Solution{<:StaticState}, state::FullStaticState, step::Int)
+    solution_state = states(sol)[step]
+    sol_Uᵏ = displacements(solution_state)
+    sol_σᵏ = stress(solution_state)
+    sol_ϵᵏ = strain(solution_state)
+
+    Uᵏ = deepcopy(displacements(state))
+    sol_Uᵏ .= Uᵏ
+
+    state_σᵏ = stress(state)
+    state_ϵᵏ = strain(state)
+    for e in keys(state_σᵏ)
+        state_σᵏ_e = getindex(state_σᵏ, e)
+        sol_σᵏ[e] .= state_σᵏ_e
+        state_ϵᵏ_e = getindex(state_ϵᵏ, e)
+        sol_ϵᵏ[e] .= state_ϵᵏ_e
+    end
 end
 
 end # module
