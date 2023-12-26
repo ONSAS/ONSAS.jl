@@ -21,9 +21,8 @@ using ..Assemblers
 using ..Utils
 using ..Nodes
 
-@reexport import ..Assemblers: reset!
+# @reexport import ..Assemblers: reset!
 @reexport import ..StructuralAnalyses: residual_forces!
-@reexport import ..StructuralSolvers: tangent_matrix
 
 export FullDynamicState, DynamicState
 
@@ -61,7 +60,7 @@ struct FullDynamicState{DU<:AbstractVector,U<:AbstractVector,
     Kₛᵏ::K
     "Residual forces cache."
     res_forces::DU
-    "Vector with straings for each element."
+    "Vector with strains for each element."
     ϵᵏ::E
     "Vector with stresses for each element."
     σᵏ::S
@@ -72,9 +71,9 @@ struct FullDynamicState{DU<:AbstractVector,U<:AbstractVector,
     "Linear system cache"
     linear_system::LinearSolve.LinearCache
     function FullDynamicState(fdofs::Vector{Dof},
-                              ΔUᵏ::DU, Uᵏ::U, Udotᵏ::U, Udotdotᵏ::U
-                              Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI,Fᵢₙₑᵏ::FI, Fᵥᵢₛᵏ::FI,
-                              Kᵏ::K,Mᵏ::K, Cᵏ::K, Kₛᵏ::K, res_forces::DU,
+                              ΔUᵏ::DU, Uᵏ::U, Udotᵏ::U, Udotdotᵏ::U,
+                              Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Fᵢₙₑᵏ::FI, Fᵥᵢₛᵏ::FI,
+                              Kᵏ::K, Mᵏ::K, Cᵏ::K, Kₛᵏ::K, res_forces::DU,
                               ϵᵏ::E, σᵏ::S,
                               assembler::Assembler,
                               iter_state::ResidualsIterationStep,
@@ -82,15 +81,16 @@ struct FullDynamicState{DU<:AbstractVector,U<:AbstractVector,
         # Check dimensions
         @assert length(ΔUᵏ) == length(fdofs) == length(res_forces)
         @assert begin
-            size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == size(Mᵏ,1) == size(Mᵏ,2) == size(Cᵏ,1) == size(Cᵏ,2) ==  size(Kᵏ,1) == size(Kᵏ,2)  == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ)
+            size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == size(Mᵏ, 1) == size(Mᵏ, 2) == size(Cᵏ, 1) ==
+            size(Cᵏ, 2) == size(Kᵏ, 1) == size(Kᵏ, 2) == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) ==
+            length(Uᵏ)
         end
         # Initialize linear system K.ΔU = R
-        new{DU,U,FE,FI,K,E,S}(
-            fdofs,
-        ΔUᵏ, Uᵏ, Udotᵏ, Udotdotᵏ,
-        Fₑₓₜᵏ, Fᵢₙₜᵏ,Fᵢₙₑᵏ, Fᵥᵢₛᵏ,
-        Kᵏ,Mᵏ, Cᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
-        assembler, iter_state, linear_system)
+        new{DU,U,FE,FI,K,E,S}(fdofs,
+                              ΔUᵏ, Uᵏ, Udotᵏ, Udotdotᵏ,
+                              Fₑₓₜᵏ, Fᵢₙₜᵏ, Fᵢₙₑᵏ, Fᵥᵢₛᵏ,
+                              Kᵏ, Mᵏ, Cᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
+                              assembler, iter_state, linear_system)
     end
 end
 
@@ -110,11 +110,9 @@ function FullDynamicState(s::AbstractStructure,
     Fᵢₙₑᵏ = zeros(n_dofs)
     Fᵥᵢₛᵏ = zeros(n_dofs)
 
-
     Kᵏ = spzeros(n_dofs, n_dofs)
     Mᵏ = spzeros(n_dofs, n_dofs)
     Cᵏ = spzeros(n_dofs, n_dofs)
-
 
     Kₛᵏ = spzeros(n_dofs, n_dofs)
     res_forces = zeros(n_fdofs)
@@ -129,11 +127,13 @@ function FullDynamicState(s::AbstractStructure,
     fdofs = free_dofs(s)
     linear_system = init(LinearProblem(Kₛᵏ[fdofs, fdofs], res_forces))
 
-    FullDynamicState(fdofs, ΔUᵏ, Uᵏ,Udotᵏ,Udotdotᵏ Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state,
-                     linear_system)
+    FullDynamicState(fdofs,
+                     ΔUᵏ, Uᵏ, Udotᵏ, Udotdotᵏ,
+                     Fₑₓₜᵏ, Fᵢₙₜᵏ, Fᵢₙₑᵏ, Fᵥᵢₛᵏ,
+                     Kᵏ, Mᵏ, Cᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
+                     assembler, iter_state, linear_system)
 end
 
-̈U = 2
 function Base.show(io::IO, sc::FullDynamicState)
     nu = length(sc.Uᵏ)
     K = sc.Kₛᵏ
@@ -144,39 +144,38 @@ end
 
 "Update and return the current residual forces of the Dynamic state."
 function residual_forces!(sc::FullDynamicState)
-    return sc.res_forces .= view(external_forces(sc), free_dofs(sc)) -
-                            view(internal_forces(sc), free_dofs(sc))
+    sc.res_forces .= view(external_forces(sc), free_dofs(sc)) -
+                     view(internal_forces(sc), free_dofs(sc)) -
+                     view(inertial_forces(sc), free_dofs(sc)) -
+                     view(viscus_forces(sc), free_dofs(sc))
 end
 
-"Return the current system tangent matrix form the Dynamic state ."
-tangent_matrix(sc::FullDynamicState) = sc.Kₛᵏ
-
-"Reset the Dynamic state assembled magnitudes and the iteration state."
-function reset!(state::FullDynamicState)
-    # Reset assembled magnitudes
-    internal_forces(state) .= 0.0
-    tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
-    reset!(assembler(state))
-    # Reset the stress and strains dictionaries
-    for (e, _) in pairs(stress(state))
-        stress(state)[e] .= Symmetric(zeros(3, 3))
-        strain(state)[e] .= Symmetric(zeros(3, 3))
-    end
-    # Reset ext force
-    external_forces(state) .= 0.0
-    # Reset iteration state
-    displacements(state) .= 0.0
-    Δ_displacements(state) .= 0.0
-    reset!(iteration_residuals(state))
-    # Return state
-    @info "The structural state has been reset."
-    state
-end
+# "Reset the Dynamic state assembled magnitudes and the iteration state."
+# function reset!(state::FullDynamicState)
+#     # Reset assembled magnitudes
+#     internal_forces(state) .= 0.0
+#     tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
+#     reset!(assembler(state))
+#     # Reset the stress and strains dictionaries
+#     for (e, _) in pairs(stress(state))
+#         stress(state)[e] .= Symmetric(zeros(3, 3))
+#         strain(state)[e] .= Symmetric(zeros(3, 3))
+#     end
+#     # Reset ext force
+#     external_forces(state) .= 0.0
+#     # Reset iteration state
+#     displacements(state) .= 0.0
+#     Δ_displacements(state) .= 0.0
+#     reset!(iteration_residuals(state))
+#     # Return state
+#     @info "The structural state has been reset."
+#     state
+# end
 
 struct DynamicState{U<:AbstractVector,E<:Dictionary,S<:Dictionary} <: AbstractDynamicState
     "Displacements vector."
     Uᵏ::U
-    "Vector with straings for each element."
+    "Vector with strains for each element."
     ϵᵏ::E
     "Vector with stresses for each element."
     σᵏ::S
@@ -187,7 +186,7 @@ end
 
 function Base.show(io::IO, sc::DynamicState)
     nu = length(sc.Uᵏ)
-    println("• DynamicState with $nu-dofs displacements vector Uᵏ.")
+    println("• DynamicState with $nu-dofs displacement, velocity and accelration vectors Uᵏ, Udotᵏ, Udotdotᵏ.")
 end
 
 end # module

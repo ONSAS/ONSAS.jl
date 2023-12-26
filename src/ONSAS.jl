@@ -48,7 +48,10 @@ FILES = ["Utils.jl",
          "StructuralAnalyses/StructuralAnalyses.jl",
          "StructuralSolvers/StructuralSolvers.jl",
          "StructuralSolvers/Solvers.jl",
+         # Structural States
          "StructuralAnalyses/StaticStates.jl",
+         "StructuralAnalyses/DynamicStates.jl",
+         # Structural Solutions
          "StructuralSolvers/Solutions.jl",
          # Structural Analyses
          "StructuralAnalyses/StaticAnalyses.jl",
@@ -120,6 +123,7 @@ end
 
 # Structural analyses
 @reexport using .StaticStates
+@reexport using .DynamicStates
 @reexport using .StaticAnalyses
 @reexport using .LinearStaticAnalyses
 @reexport using .NonLinearStaticAnalyses
