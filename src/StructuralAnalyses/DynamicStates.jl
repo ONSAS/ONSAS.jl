@@ -21,8 +21,7 @@ using ..Assemblers
 using ..Utils
 using ..Nodes
 
-# @reexport import ..Assemblers: reset!
-@reexport import ..StructuralAnalyses: residual_forces!
+@reexport import ..Assemblers: reset!
 
 export FullDynamicState, DynamicState
 
@@ -142,45 +141,49 @@ function Base.show(io::IO, sc::FullDynamicState)
             "and $(s[1]) × $(s[2]) tangent matrix Kₛᵏ with $(length(K.nzval)) stored entries.")
 end
 
-"Update and return the current residual forces of the Dynamic state."
-function residual_forces!(sc::FullDynamicState)
-    sc.res_forces .= view(external_forces(sc), free_dofs(sc)) -
-                     view(internal_forces(sc), free_dofs(sc)) -
-                     view(inertial_forces(sc), free_dofs(sc)) -
-                     view(viscus_forces(sc), free_dofs(sc))
-end
+"Reset the Dynamic state assembled magnitudes and the iteration state."
+function reset!(state::FullDynamicState)
+    # Reset assembled magnitudes
+    mass_matrix(state) .= 0.0
+    damping_matrix(state) .= 0.0
+    stiffness_matrix(state) .= 0.0
+    tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
+    reset!(assembler(state))
+    # Reset the stress and strains dictionaries
+    for (e, _) in pairs(stress(state))
+        stress(state)[e] .= Symmetric(zeros(3, 3))
+        strain(state)[e] .= Symmetric(zeros(3, 3))
+    end
+    # Reset forces
+    internal_forces(state) .= 0.0
+    external_forces(state) .= 0.0
+    inertial_forces(state) .= 0.0
+    viscous_forces(state) .= 0.0
 
-# "Reset the Dynamic state assembled magnitudes and the iteration state."
-# function reset!(state::FullDynamicState)
-#     # Reset assembled magnitudes
-#     internal_forces(state) .= 0.0
-#     tangent_matrix(state)[findall(!iszero, tangent_matrix(state))] .= 0.0
-#     reset!(assembler(state))
-#     # Reset the stress and strains dictionaries
-#     for (e, _) in pairs(stress(state))
-#         stress(state)[e] .= Symmetric(zeros(3, 3))
-#         strain(state)[e] .= Symmetric(zeros(3, 3))
-#     end
-#     # Reset ext force
-#     external_forces(state) .= 0.0
-#     # Reset iteration state
-#     displacements(state) .= 0.0
-#     Δ_displacements(state) .= 0.0
-#     reset!(iteration_residuals(state))
-#     # Return state
-#     @info "The structural state has been reset."
-#     state
-# end
+    # Reset iteration state
+    Δ_displacements(state) .= 0.0
+    displacements(state) .= 0.0
+    velocity(state) .= 0.0
+    acceleration(state) .= 0.0
+    reset!(iteration_residuals(state))
+    # Return state
+    @info "The structural state has been reset."
+    state
+end
 
 struct DynamicState{U<:AbstractVector,E<:Dictionary,S<:Dictionary} <: AbstractDynamicState
     "Displacements vector."
     Uᵏ::U
+    "Velocity vector."
+    Udotᵏ::U
+    "Acceleration vector."
+    Udotdotᵏ::U
     "Vector with strains for each element."
     ϵᵏ::E
     "Vector with stresses for each element."
     σᵏ::S
-    function DynamicState(Uᵏ::U, ϵᵏ::E, σᵏ::S) where {U,E,S}
-        new{U,E,S}(Uᵏ, ϵᵏ, σᵏ)
+    function DynamicState(Uᵏ::U, Udotᵏ::U, Udotdotᵏ::U, ϵᵏ::E, σᵏ::S) where {U,E,S}
+        new{U,E,S}(Uᵏ, Udotᵏ, Udotdotᵏ, ϵᵏ, σᵏ)
     end
 end
 

@@ -25,7 +25,7 @@ export AbstractStructuralState, AbstractStaticState, AbstractDynamicState, Δ_di
        residual_displacements_norms, AbstractStructuralAnalysis, initial_time, current_time,
        final_time, is_done, current_state, current_iteration, displacements, external_forces,
        iteration_residuals, tangent_matrix, internal_cache, elements_cache, velocity, acceleration,
-       viscus_forces, mass_matrix, damping_matrix, stiffness_matrix
+       viscous_forces, mass_matrix, damping_matrix, stiffness_matrix
 
 """ Abstract supertype to define a new structural state.
 **Abstract Methods**
@@ -157,13 +157,16 @@ acceleration(st::AbstractDynamicState) = st.Udotdotᵏ
 inertial_forces(st::AbstractStructuralState) = st.Fᵢₙₑᵏ
 
 "Return the current viscous forces vector in the structural state."
-viscus_forces(st::AbstractStructuralState) = st.Fᵥᵢₛᵏ
+viscous_forces(st::AbstractStructuralState) = st.Fᵥᵢₛᵏ
 
 "Return the current mass matrix in the structural state."
 mass_matrix(st::AbstractStructuralState) = st.Mᵏ
 
 "Return the current damping matrix in the structural state."
 damping_matrix(st::AbstractStructuralState) = st.Cᵏ
+
+"Return the current stiffness matrix in the structural state."
+stiffness_matrix(st::AbstractStructuralState) = st.Kᵏ
 
 """ Abstract supertype for all structural analysis.
 
