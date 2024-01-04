@@ -47,7 +47,7 @@ struct FullStaticState{DU<:AbstractVector,U<:AbstractVector,
     Kₛᵏ::K
     "Residual forces cache."
     res_forces::DU
-    "Vector with straings for each element."
+    "Vector with strains for each element."
     ϵᵏ::E
     "Vector with stresses for each element."
     σᵏ::S
@@ -138,7 +138,7 @@ end
 struct StaticState{U<:AbstractVector,E<:Dictionary,S<:Dictionary} <: AbstractStaticState
     "Displacements vector."
     Uᵏ::U
-    "Vector with straings for each element."
+    "Vector with strains for each element."
     ϵᵏ::E
     "Vector with stresses for each element."
     σᵏ::S
