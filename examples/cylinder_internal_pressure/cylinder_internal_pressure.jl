@@ -141,7 +141,7 @@ end;
 "Return a rand point in the cylinder (R, θ, L)."
 function rand_point_cylinder()
     (; Ri, Re, Lz) = parameters()
-    @show [rand() * (Re - Ri) + Ri, rand() * 2 * π, rand() * Lz]
+    [rand() * (Re - Ri) + Ri, rand() * 2 * π, rand() * Lz]
 end;
 
 "Run the example"
