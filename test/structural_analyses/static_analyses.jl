@@ -193,8 +193,8 @@ end
 NSTEPS = 9
 init_step = 7
 
-sa = NonLinearStaticAnalysis(s, λ₁; NSTEPS=NSTEPS)
-sa_init = NonLinearStaticAnalysis(s, λ₁; NSTEPS=NSTEPS, initial_step=init_step)
+sa = NonLinearStaticAnalysis(s, λ₁; NSTEPS)
+sa_init = NonLinearStaticAnalysis(s, λ₁; NSTEPS, initial_step=init_step)
 
 @testset "ONSAS.StructuralAnalyses.StaticAnalyses.NonLinearStaticAnalysis" begin
     @test structure(sa_init) == s
