@@ -91,7 +91,7 @@ function structure(::FirstCase)
     bc1 = FixedDof(:u, [1], bc1_label)
     bc2_label = "fixed-uj"
     bc2 = FixedDof(:u, [2], bc2_label)
-    bc3_label = "fixed-uk"
+    bc3_label = "fixed-uz"
     bc3 = FixedDof(:u, [3], bc3_label)
     # Load
     bc4_label = "tension"
