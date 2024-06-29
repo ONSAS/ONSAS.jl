@@ -1,6 +1,6 @@
 # ONSAS.jl
 
-## *An Open Nonlinear Structural Analysis Solver*
+## *An (experimental) Julia Open Nonlinear Structural Analysis Solver*
 
 [![docs-dev][dev-img]][dev-url] [![CI][ci-img]][ci-url] [![codecov][cov-img]][cov-url] [![license][lic-img]][lic-url]
 
@@ -13,7 +13,7 @@
 [lic-img]: https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000
 [lic-url]: https://github.com/ONSAS/ONSAS.jl/blob/main/LICENSE
 
-`ONSAS.jl` is a Julia implementation of [ONSAS.m](https://github.com/ONSAS/ONSAS.m/): Open Nonlinear Structural Analysis Solver for GNU-Octave/Matlab.
+`ONSAS.jl` is a Julia implementation of [ONSAS](https://github.com/ONSAS/ONSAS/): Open Nonlinear Structural Analysis Solver for GNU-Octave/Matlab. **This package is not actively developed right now.**
 
 ## Using ONSAS
 
