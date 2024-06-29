@@ -89,7 +89,7 @@ function structure(::FirstCase)
     # Fixed dofs
     bc1_label = "fixed-ux"
     bc1 = FixedDof(:u, [1], bc1_label)
-    bc2_label = "fixed-uj"
+    bc2_label = "fixed-uy"
     bc2 = FixedDof(:u, [2], bc2_label)
     bc3_label = "fixed-uz"
     bc3 = FixedDof(:u, [3], bc3_label)
