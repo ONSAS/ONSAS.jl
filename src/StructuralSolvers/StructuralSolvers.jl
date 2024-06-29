@@ -7,6 +7,8 @@ module StructuralSolvers
 
 using LinearAlgebra: norm
 using Reexport
+using LinearSolve
+using IterativeSolvers
 
 using ..StructuralAnalyses
 using ..Entities
@@ -20,10 +22,10 @@ export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol,
        ResidualsIterationStep, iter, criterion, isconverged!,
        AbstractSolver, step_size, tolerances, step!, solve, solve!, _solve!,
-       AbstractSolution, iterations, update!, next!, DummySolver
+       AbstractSolution, iterations, update!, next!
 
 const INITIAL_Δ = 1e12
-
+const DEFAULT_LINEAR_SOLVER = IterativeSolversJL_CG
 """
 Facilitates the process of defining and checking numerical convergence.
 """
@@ -169,9 +171,6 @@ Abstract supertype for all direct integration methods.
 """
 abstract type AbstractSolver end
 
-"Solver used as placeholder for e.g. problems that don't require such struct."
-struct DummySolver <: AbstractSolver end
-
 "Return the step size."
 step_size(solver::AbstractSolver) = solver.Δt
 
@@ -179,7 +178,8 @@ step_size(solver::AbstractSolver) = solver.Δt
 tolerances(solver::AbstractSolver) = solver.tol
 
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
-function step!(solver::AbstractSolver, analysis::A) where {A} end
+function step!(solver::AbstractSolver,
+               analysis::AbstractStructuralAnalysis) end
 
 "Increment the time step given of a structural analysis. Dispatch is done for different
 solvers."
@@ -199,9 +199,11 @@ which holds the result and the algorithm used to obtain it.
 This function mutates the state defined in the analysis problem.
 Use [`solve`](@ref) to avoid mutation.
 For linear analysis problems, the algorithm doesn't need to be provided.
+Also a linar solver form the LinearSolve.jl package can by provided. By default the wrapper to IterativeSolvers Conjugatge Gradient is being used.
 """
-function solve!(problem::AbstractStructuralAnalysis, solver::AbstractSolver=DummySolver())
-    _solve!(problem, solver)
+function solve!(problem::AbstractStructuralAnalysis, solver::Union{AbstractSolver,Nothing}=nothing,
+                linear_solve::SciMLBase.AbstractLinearAlgorithm=DEFAULT_LINEAR_SOLVER())
+    _solve!(problem, solver, linear_solve)
 end
 solve!(pair::Tuple{AbstractStructuralAnalysis,AbstractSolver}) = solve!(pair.first, pair.last)
 
@@ -209,6 +211,14 @@ solve!(pair::Tuple{AbstractStructuralAnalysis,AbstractSolver}) = solve!(pair.fir
 function init(a::AbstractStructuralAnalysis, solver::AbstractSolver; reset::Bool=true)
     acopy = deepcopy(a)
     (reset ? reset!(acopy) : acopy, solver)
+end
+
+"Return default linear solver tolerances"
+function _default_linear_solver_tolerances(A::AbstractMatrix{<:Real}, b::Vector{<:Real})
+    abstol = zero(real(eltype(b)))
+    reltol = sqrt(eps(real(eltype(b))))
+    maxiter = length(b)
+    abstol, reltol, maxiter
 end
 
 "Internal solve function to be overloaded by each analysis."

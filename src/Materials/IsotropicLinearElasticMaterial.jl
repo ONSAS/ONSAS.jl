@@ -7,7 +7,7 @@ using ..LinearElasticMaterials
 using ..Utils
 
 @reexport import ..LinearElasticMaterials: lame_parameters, shear_modulus, poisson_ratio,
-                                           elasticity_modulus, bulk_modulus, cauchy_stress
+                                           elasticity_modulus, bulk_modulus, stress!
 
 export IsotropicLinearElastic
 
@@ -69,13 +69,16 @@ end
 
 "Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ`
 considering a `IsotropicLinearElastic` material `m`."
-function cauchy_stress(m::IsotropicLinearElastic, ϵ::AbstractMatrix)
+function stress!(σ::AbstractMatrix{<:Real}, ∂σ∂ϵ::Matrix{<:Real},
+                 m::IsotropicLinearElastic{<:Real}, ϵ::AbstractMatrix{<:Real};
+                 cache_eye::AbstractMatrix{<:Real}=eye(3),
+                 cache_ones::Matrix{<:Real}=ones(3, 3))
     λ, G = lame_parameters(m)
-    σ = Symmetric(λ * tr(ϵ) * eye(3) + 2 * G * ϵ)
 
-    ∂σ∂ϵ = zeros(6, 6)
-    ∂σ∂ϵ[1:3, 1:3] = λ * ones(3, 3) + 2 * G * eye(3)
-    ∂σ∂ϵ[4:6, 4:6] = G * eye(3)
+    σ .= Symmetric(λ * tr(ϵ) * cache_eye + 2 * G * ϵ)
+
+    ∂σ∂ϵ[1:3, 1:3] .= λ * cache_ones + 2 * G * cache_eye
+    ∂σ∂ϵ[4:6, 4:6] .= G * cache_eye
 
     σ, ∂σ∂ϵ
 end

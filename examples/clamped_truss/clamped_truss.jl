@@ -8,17 +8,24 @@ This model is a static generalization taken from [3].
 using Test, LinearAlgebra
 using ONSAS
 
-"Runs the clamped truss example."
-function run_clamped_truss_example()
-    # Parameters
-    N = 100     # Number of elements.
-    E = 30e6    # Young's modulus.
-    ν = 0.3     # Poisson's ratio.
-    ρ = 7.3e-4  # Density.
-    L = 200     # Element length.
-    A = 1       # Cross section area.
-    F = 10e6    # Force at the tip
-    ϵ_model = GreenStrain
+"Return the problem parameters"
+function parameters()
+    N = 100               # Number of elements.
+    E = 30e6              # Young's modulus.
+    ν = 0.3               # Poisson's ratio.
+    ρ = 7.3e-4            # Density.
+    L = 200               # Element length.
+    A = 1                 # Cross section area.
+    F = 10e6              # Force at the tip
+    ϵ_model = GreenStrain # Strain model
+    NSTEPS = 10           # Number of load factors steps
+
+    (; NSTEPS, ϵ_model, N, E, ν, ρ, L, A, F)
+end;
+
+"Return the problem structural model"
+function structure()
+    (; N, E, ν, ρ, L, A, F, ϵ_model) = parameters()
     # -------------
     # Mesh
     # -------------
@@ -39,38 +46,42 @@ function run_clamped_truss_example()
     # -------------------------------
     # Boundary conditions
     # -------------------------------
-    # Fixed dofs
     bc₁ = FixedDof(:u, [1], "fixed_uₓ")
-    # Load
     bc₂ = GlobalLoad(:u, t -> [F * t], "load in j")
     # Apply bcs to the nodes
     boundary_conditions = StructuralBoundaryCondition(bc₁ => [first(nodes)], bc₂ => [last(nodes)])
-    # -------------------------------
-    # Structure
-    # -------------------------------
-    s = Structure(mesh, materials, boundary_conditions)
+
+    Structure(mesh, materials, boundary_conditions)
+end;
+
+"Return the problem solution"
+function solve()
+    s = structure()
     # -------------------------------
     # Structural Analysis
     # -------------------------------
-    NSTEPS = 10
+    (; NSTEPS) = parameters()
     sa = NonLinearStaticAnalysis(s; NSTEPS=NSTEPS)
-    # -------------------------------
-    # Solver
-    # -------------------------------
-    nr = NewtonRaphson()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solution = solve!(sa, nr)
+    solve!(sa, NewtonRaphson())
+end;
+
+"Test problem solution"
+function test(sol::AbstractSolution)
+    (; F, ϵ_model, E, A, L) = parameters()
     # Force and displacement at the tip
-    numeric_uᵢ = displacements(solution, last(nodes))[1]
-    numeric_F_tip = F * load_factors(sa)
+    sa = analysis(sol)
+    vec_nodes = ONSAS.nodes(mesh(ONSAS.structure(sa)))
+    numeric_uᵢ = displacements(sol, last(vec_nodes))[1]
+    numeric_P_tip = F * load_factors(sa)
     #-----------------------------
     # Analytic solution
     #-----------------------------
     # Compute the analytic values for the strain, stress and force at the tip
-    "Analytic force given `uᵢ` towards x axis at the tip node."
-    function analytic_F(::Type{GreenStrain}, uᵢ::Real, E::Real=E, l₀::Real=L, A₀::Real=A)
+    "Analytic force given `uᵢ` towards x axis at the tip node"
+    function analytic_P(::Type{GreenStrain}, uᵢ::Real, E::Real=E, l₀::Real=L, A₀::Real=A)
         ϵ_green = 0.5 * ((l₀ + uᵢ)^2 - l₀^2) / (l₀^2)
         # Cosserat stress
         𝐒₁₁ = E * ϵ_green
@@ -79,11 +90,16 @@ function run_clamped_truss_example()
         𝐏₁₁ * A₀
     end
     #
-    analytic_F_tip = analytic_F.(Ref(ϵ_model), numeric_uᵢ)
-    #-----------------------------
-    # Test boolean for CI
-    #-----------------------------
-    @test analytic_F_tip ≈ numeric_F_tip rtol = 1e-3
+    analytic_P_tip = analytic_P.(Ref(ϵ_model), numeric_uᵢ)
+    @testset "Piola-Kirchoff tensor at the right-most node" begin
+        @test analytic_P_tip ≈ numeric_P_tip rtol = 1e-3
+    end
 end
 
-run_clamped_truss_example()
+"Run the example"
+function run()
+    sol = solve()
+    test(sol)
+end
+
+run()

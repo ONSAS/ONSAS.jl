@@ -6,7 +6,7 @@ geometric non-linear static analysis.
 module NonLinearStaticAnalyses
 
 using LinearAlgebra: norm
-using IterativeSolvers: cg!
+using LinearSolve
 using Reexport
 
 using ..Utils
@@ -29,25 +29,25 @@ A non linear static analysis is a collection of parameters for defining the stat
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 As this analysis is nonlinear the stiffness of the structure is updated at each iteration.
 """
-struct NonLinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}} <:
-       AbstractStaticAnalysis
+mutable struct NonLinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}} <:
+               AbstractStaticAnalysis
     "Structure to be analyzed."
-    s::S
+    const s::S
     "Structural state."
-    state::StaticState
+    const state::FullStaticState
     "Load factors vector of the analysis."
-    λᵥ::LFV
+    const λᵥ::LFV
     "Current load factor step."
-    current_step::ScalarWrapper{Int}
+    current_step::Int64
 end
 "Constructor for a non linear analysis with load factors, optional initial step and initial state."
 function NonLinearStaticAnalysis(s::S, λᵥ::LFV;
-                                 initial_state::StaticState=StaticState(s),
+                                 initial_state::FullStaticState=FullStaticState(s),
                                  initial_step::Int=1) where {S<:AbstractStructure,
                                                              LFV<:AbstractVector{<:Real}}
     !(1 ≤ initial_step ≤ length(λᵥ)) &&
         throw(ArgumentError("initial_step must be in [1, $(length(λᵥ))] but is: $initial_step."))
-    NonLinearStaticAnalysis(s, initial_state, λᵥ, ScalarWrapper(initial_step))
+    NonLinearStaticAnalysis(s, initial_state, λᵥ, initial_step)
 end
 
 "Constructor for non linear static analysis given a final time (or load factor) and the number of steps."
@@ -59,19 +59,21 @@ end
 
 function Base.show(io::IO, sa::NonLinearStaticAnalysis)
     println("NonLinearStaticAnalysis for:")
-    println("• Current load factor of $(unwrap(sa.current_step)).")
+    println("• Current load factor of $(sa.current_step).")
     show(io, sa.s)
     show(io, sa.state)
 end
 
 "Solves an non linear static analysis problem with a given solver."
-function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
+function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver,
+                 linear_solver::SciMLBase.AbstractLinearAlgorithm)
     s = structure(sa)
     # Initialize solution.
-    sol = StatesSolution(sa, alg)
+    sol = Solution(sa, alg)
 
     # Load factors iteration.
     while !is_done(sa)
+        step = sa.current_step
 
         # Reset assembled magnitudes
         reset!(current_iteration(sa))
@@ -86,10 +88,10 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
             @debugtime "Assemble internal forces" assemble!(s, sa)
 
             # Increment structure displacements `U = U + ΔU`.
-            @debugtime "Step" step!(sa, alg)
+            @debugtime "Step" step!(sa, alg, linear_solver)
         end
         # Save current state.
-        @debugtime "Save current state" push!(sol, current_state(sa))
+        @debugtime "Save current state" store!(sol, current_state(sa), step)
 
         # Increment the time or load factor step.
         @debugtime "Next step" next!(sa)
@@ -98,16 +100,28 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver)
 end
 
 "Computes ΔU for solving the non linear static analysis with a Newton Raphson method."
-function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson)
+function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson,
+               linear_solver::SciMLBase.AbstractLinearAlgorithm)
     # Extract state info
     state = current_state(sa)
     free_dofs_idx = free_dofs(state)
+    linear_system = state.linear_system
 
-    # Compute Δu
+    # Compute residual forces r = Fext - Fint
     r = residual_forces!(state)
-    K = tangent_matrix(state)[free_dofs_idx, free_dofs_idx]
-    ΔU = Δ_displacements(state)
-    cg!(ΔU, K, r)
+    linear_system.b .= state.res_forces
+
+    # Update stiffness matrix K
+    linear_system.A .= view(tangent_matrix(state), free_dofs_idx, free_dofs_idx)
+
+    # Define tolerances
+    abstol, reltol, maxiter = StructuralSolvers._default_linear_solver_tolerances(linear_system.A,
+                                                                                  linear_system.b)
+
+    # Compute ΔU
+    linear_problem = LinearProblem(linear_system.A, linear_system.b)
+    sol = solve(linear_problem, linear_solver; abstol=abstol, reltol=reltol, maxiter=maxiter)
+    ΔU = Δ_displacements!(state, sol.u)
 
     # Compute norms
     norm_ΔU = norm(ΔU)

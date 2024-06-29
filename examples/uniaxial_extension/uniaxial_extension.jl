@@ -103,9 +103,14 @@ function run_uniaxial_extension()
     # Numerical solution
     # -------------------------------
     states_sol_case₁ = ONSAS.solve!(sa₁, nr)
+
+    # -------------------------------
+    # Write vtk files
+    # -------------------------------
+    ONSAS.write_vtk(states_sol_case₁, joinpath(@__DIR__, "uniaxial_extension"))
     "Computes numeric solution α, β and γ for analytic validation."
     function αβγ_numeric(states_sol::AbstractSolution)
-        s = structure(analysis(states_sol))
+        s = ONSAS.structure(analysis(states_sol))
         # Node at (Lᵢ, Lⱼ, Lₖ)
         n₇ = nodes(s)[7]
         numerical_uᵢ = displacements(states_sol_case₁, n₇, 1)
@@ -128,6 +133,7 @@ function run_uniaxial_extension()
     ℂ_numeric_case₁ = last(strain(states_sol_case₁, e))
     # Load factors
     numeric_λᵥ_case₁ = load_factors(sa₁)
+
     # -----------------------------------------------
     # Case 2 - GMSH mesh and `HyperElastic` material
     #------------------------------------------------
@@ -213,9 +219,7 @@ function run_uniaxial_extension()
     β_analytic = sqrt(-ν * (α_analytic^2 - 1) + 1)
     # Gradient tensor
     # 𝑢 = (αx, βy, γz)
-    𝔽_analytic = [α_analytic 0 0
-                  0 β_analytic 0
-                  0 0 β_analytic]
+    𝔽_analytic = [α_analytic 0 0; 0 β_analytic 0; 0 0 β_analytic]
     # Right hand Cauchy tensor
     ℂ_analytic = 𝔽_analytic' * 𝔽_analytic
     𝕁 = det(ℂ_analytic)

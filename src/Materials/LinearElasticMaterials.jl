@@ -4,7 +4,7 @@ module LinearElasticMaterials
 using ..Materials
 
 export AbstractLinearElasticMaterial, lame_parameters, elasticity_modulus, shear_modulus,
-       bulk_modulus, poisson_ratio, cauchy_stress
+       bulk_modulus, poisson_ratio, stress!
 
 """ Abstract supertype for all elastic material models.
 
@@ -16,6 +16,8 @@ An `AbstractLinearElasticMaterial` object facilitates the process of using elast
 * [`shear_modulus`](@ref)
 * [`poisson_ratio`](@ref)
 * [`elasticity_modulus`](@ref)
+* [`bulk_modulus`](@ref)
+* [`stress!`](@ref)
 
 **Abstract fields**
 * label
@@ -38,8 +40,10 @@ function elasticity_modulus(m::AbstractLinearElasticMaterial) end
 "Return the bulk modulus `K` for an `AbstractLinearElasticMaterial` material `m`."
 function bulk_modulus(m::AbstractLinearElasticMaterial) end
 
-"Return the cauchy stress tensor `σ` and the constitutive driver `∂σ∂ϵ`
+"Return the stress tensor `σ` and the constitutive driver `∂σ∂ϵ`
 considering a `IsotropicLinearElastic` material `m`."
-function cauchy_stress(m::AbstractLinearElasticMaterial, ϵ::AbstractMatrix) end
+function stress!(σ::AbstractMatrix, ∂σ∂ϵ::AbstractMatrix,
+                 m::AbstractLinearElasticMaterial,
+                 ϵ::AbstractMatrix) end
 
 end

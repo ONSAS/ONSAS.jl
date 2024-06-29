@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# Uniaxial Extension Example 1  from (Zerpa et. Al., 2019, CMAME).
+# Linear Elastic Extension Example 1  from (Zerpa et. Al., 2019, CMAME).
 # ----------------------------------------------------------------
 using Test, LinearAlgebra, Suppressor
 using ONSAS
@@ -7,44 +7,49 @@ using ONSAS
 # Mesh with Gmsh.jl (see linear_extension_sketch)
 include("linear_extension_mesh.jl")
 
-"Runs the Linear extension example."
-function run_linear_extension_example()
-    # -------------------------------
-    # Mesh
-    # -------------------------------
-    ## scalar parameters
+"Return problem parameters"
+function parameters()
     E = 2.0             # Young modulus in Pa
-    nu = 0.4             # Poisson's ratio
-    p = 3               # Tension load in Pa
+    ν = 0.4             # Poisson's ratio
+    λ = E * ν / ((1 + ν) * (1 - 2 * ν)) # First Lamé parameter
+    G = E / (2 * (1 + ν)) # Second Lamé parameter
     tension(t) = p * t  # Tension load function
+    p = 3               # Tension load in Pa
     Lx = 2.0            # Dimension in x of the box in m
     Ly = 1.0            # Dimension in y of the box in m
     Lz = 1.0            # Dimension in z of the box in m
     RTOL = 1e-4         # Relative tolerance for tests
-    NSTEPS = 9          # Number of steps for the test
+    ATOL = 1e-6         # Absolute tolerance for tests
+    NSTEPS = 9          # νmber of steps for the test
     ms = 0.5            # Refinement factor
+    (; Lx, Ly, Lz, E, ν, λ, G, tension, RTOL, ATOL, NSTEPS, ms)
+end;
+
+"Return the problem structural model"
+function structure()
+    (; Lx, Ly, Lz, E, ν, tension, ms) = parameters()
     # -------------------------------
     # Materials
     # -------------------------------
     mat_label = "mat"
-    mat = IsotropicLinearElastic(E, nu, mat_label)
-    s_materials = StructuralMaterial(mat)
+    mat = IsotropicLinearElastic(E, ν, mat_label)
+    materials = StructuralMaterial(mat)
     # -------------------------------
     # Boundary conditions
     # -------------------------------
     # Fixed dofs
-    bc₁_label = "fixed-ux"
-    bc₁ = FixedDof(:u, [1], bc₁_label)
-    bc₂_label = "fixed-uy"
-    bc₂ = FixedDof(:u, [2], bc₂_label)
-    bc₃_label = "fixed-uz"
-    bc₃ = FixedDof(:u, [3], bc₃_label)
+    bc1_label = "fixed-ux"
+    bc1 = FixedDof(:u, [1], bc1_label)
+    bc2_label = "fixed-uy"
+    bc2 = FixedDof(:u, [2], bc2_label)
+    bc3_label = "fixed-uz"
+    bc3 = FixedDof(:u, [3], bc3_label)
     # Load
-    bc₄_label = "tension"
-    bc₄ = GlobalLoad(:u, t -> [tension(t), 0, 0], bc₄_label)
+    bc4_label = "tension"
+    bc4 = GlobalLoad(:u, t -> [tension(t), 0, 0], bc4_label)
     # Get bc labels for the mesh
-    bc_labels = [bc₁_label, bc₂_label, bc₃_label, bc₄_label]
-    s_boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)
+    bc_labels = [bc1_label, bc2_label, bc3_label, bc4_label]
+    boundary_conditions = StructuralBoundaryCondition(bc1, bc2, bc3, bc4)
     # -------------------------------
     # Entities
     # -------------------------------
@@ -54,7 +59,7 @@ function run_linear_extension_example()
     vfaces = [TriangularFace(faces_label)]
     velems = [Tetrahedron(elems_label)]
     entities_labels = [faces_label, elems_label]
-    s_entities = StructuralEntity(velems, vfaces)
+    entities = StructuralEntity(velems, vfaces)
     # -------------------------------
     # Mesh
     # -------------------------------
@@ -65,13 +70,20 @@ function run_linear_extension_example()
     end
     gmsh_println(output)
     msh_file = MshFile(mesh_path)
+    mesh = Mesh(msh_file, entities)
     # -------------------------------
     # Structure
     # -------------------------------
-    mesh = Mesh(msh_file, s_entities)
-    apply!(s_materials, mesh)
-    apply!(s_boundary_conditions, mesh)
-    s = Structure(msh_file, s_materials, s_boundary_conditions, s_entities)
+    apply!(materials, mesh)
+    apply!(boundary_conditions, mesh)
+
+    Structure(msh_file, materials, boundary_conditions, entities)
+end;
+
+"Return the problem solution"
+function solve()
+    (; NSTEPS) = parameters()
+    s = structure()
     # -------------------------------
     # Structural Analysis
     # -------------------------------
@@ -79,116 +91,182 @@ function run_linear_extension_example()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol = solve!(sa)
-    # Select random points to test the solution
+    solve!(sa)
+end;
+
+"Return random points to evaluate the solution"
+function test_points(sol::AbstractSolution)
+    (; Lx, Ly, Lz) = parameters()
+    s = ONSAS.structure(analysis(sol))
+    e = rand(elements(s))
+    x0_rand = Lx * rand(2)
+    y0_rand = Ly * rand(2)
+    z0_rand = Lz * rand(2)
+    p1 = Point(x0_rand[1], y0_rand[1], z0_rand[1])
+    p2 = Point(x0_rand[2], y0_rand[2], z0_rand[2])
+    return p1, p2, e
+end;
+
+"Return numerical results for testing"
+function numerical_solution(sol::AbstractSolution,
+                            p1::Point{dim}, p2::Point{dim},
+                            e::ONSAS.AbstractElement{dim}) where {dim}
+    s = ONSAS.structure(analysis(sol))
     ## Displacements
-    x₀_rand = Lx * rand(2)
-    y₀_rand = Ly * rand(2)
-    z₀_rand = Lz * rand(2)
-    p₁ = Point(x₀_rand[1], y₀_rand[1], z₀_rand[1])
-    p₂ = Point(x₀_rand[2], y₀_rand[2], z₀_rand[2])
-    # Evaluate the solution at p₁, p₂
-    eval_handler_rand = PointEvalHandler(ONSAS.mesh(s), [p₁, p₂])
+    # Evaluate the solution at p1, p2
+    eval_handler_rand = PointEvalHandler(ONSAS.mesh(s), [p1, p2])
     # rand points displacements
     # point 1
-    uᵢ_numeric_p₁ = displacements(states_sol, eval_handler_rand, 1)[1]
-    uⱼ_numeric_p₁ = displacements(states_sol, eval_handler_rand, 2)[1]
-    uₖ_numeric_p₁ = displacements(states_sol, eval_handler_rand, 3)[1]
+    ui_1 = displacements(sol, eval_handler_rand, 1)[1]
+    uj_1 = displacements(sol, eval_handler_rand, 2)[1]
+    uk_1 = displacements(sol, eval_handler_rand, 3)[1]
     # point 2
-    uᵢ_numeric_p₂ = displacements(states_sol, eval_handler_rand, 1)[2]
-    uⱼ_numeric_p₂ = displacements(states_sol, eval_handler_rand, 2)[2]
-    uₖ_numeric_p₂ = displacements(states_sol, eval_handler_rand, 3)[2]
+    ui_2 = displacements(sol, eval_handler_rand, 1)[2]
+    uj_2 = displacements(sol, eval_handler_rand, 2)[2]
+    uk_2 = displacements(sol, eval_handler_rand, 3)[2]
     ## Strain and stresses
     # Evaluate the solution at a random element
-    e_rand = rand(elements(s))
-    ϵ_e_rand = strain(states_sol, e_rand)
-    ϵᵢ_numeric_e_rand = getindex.(ϵ_e_rand, 1)
-    ϵⱼ_numeric_e_rand = getindex.(ϵ_e_rand, 2)
-    ϵₖ_numeric_e_rand = getindex.(ϵ_e_rand, 2)
-    σ_e_rand = stress(states_sol, e_rand)
-    σᵢ_numeric_e_rand = getindex.(σ_e_rand, 1)
-    σⱼ_numeric_e_rand = getindex.(σ_e_rand, 2)
-    σₖ_numeric_e_rand = getindex.(σ_e_rand, 2)
-    # -------------------------------
-    # Analytic solution
-    # -------------------------------
+    ϵ_e = strain(sol, e)
+    ϵi = getindex.(ϵ_e, 1)
+    ϵj = getindex.(ϵ_e, 2)
+    ϵk = getindex.(ϵ_e, 3)
+    σ_e = stress(sol, e)
+    σi = getindex.(σ_e, 1)
+    σj = getindex.(σ_e, 2)
+    σk = getindex.(σ_e, 3)
+
+    ui_1, uj_1, uk_1, ui_2, uj_2, uk_2,
+    ϵi, ϵj, ϵk,
+    σi, σj, σk
+end;
+
+"Return analytical results for testing"
+function analytic_solution(sol::AbstractSolution, p1::Point{dim}, p2::Point{dim},
+                           e::AbstractElement{dim}) where {dim}
+    (; E, ν, λ, G, tension) = parameters()
+    sa = analysis(sol)
     ## Displacements
-    "Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
-    function u_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, nu::Real=nu,
-                            E::Real=E)
-        C(t) = tension(t) * (1 - nu - 2nu^2) / (1 - nu)
+    "Compute displacements νmeric solution ui, uj and uk for analytic validation."
+    function u_ijk_analytic(λv::Vector{<:Real},
+                            x0::Real, y0::Real, z0::Real,
+                            ν::Real=ν, E::Real=E)
+        C(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
 
-        uᵢ(t) = C(t) / E * x₀
-        uⱼ(t) = 0.0
-        uₖ(t) = 0.0
+        ui(t) = C(t) / E * x0
+        uj(t) = 0.0
+        uk(t) = 0.0
 
-        [[uᵢ(t) for t in λᵥ], [uⱼ(t) for t in λᵥ], [uₖ(t) for t in λᵥ]]
+        [[ui(t) for t in λv], [uj(t) for t in λv], [uk(t) for t in λv]]
     end
     # point 1
-    u_analytic_p₁ = u_ijk_analytic(load_factors(sa), p₁[1], p₁[2], p₁[3])
-    uᵢ_analytic_p₁ = u_analytic_p₁[1]
+    u_1 = u_ijk_analytic(load_factors(sa), p1[1], p1[2], p1[3])
+    ui_1 = u_1[1]
+    uj_1 = u_1[2]
+    uk_1 = u_1[3]
     # point 2
-    u_analytic_p₂ = u_ijk_analytic(load_factors(sa), p₂[1], p₂[2], p₂[3])
-    uᵢ_analytic_p₂ = u_analytic_p₂[1]
+    u_2 = u_ijk_analytic(load_factors(sa), p2[1], p2[2], p2[3])
+    ui_2 = u_2[1]
+    uj_2 = u_2[2]
+    uk_2 = u_2[3]
     ## Strains
-    "Computes strains numeric solution ϵᵢ, ϵⱼ and ϵₖ for analytic validation."
-    function ϵ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, nu::Real=nu,
+    "Compute strains νmeric solution ϵi, ϵj and ϵk for analytic validation."
+    function ϵ_ijk_analytic(λv::Vector{<:Real}, x0::Real, y0::Real, z0::Real, ν::Real=ν,
                             E::Real=E)
-        C(t) = tension(t) * (1 - nu - 2nu^2) / (1 - nu)
+        C(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
 
-        ϵᵢ(t) = C(t) / E
-        ϵⱼ(t) = 0.0
-        ϵₖ(t) = 0.0
+        ϵi(t) = C(t) / E
+        ϵj(t) = 0.0
+        ϵk(t) = 0.0
 
-        [[ϵᵢ(t) for t in λᵥ], [ϵⱼ(t) for t in λᵥ], [ϵₖ(t) for t in λᵥ]]
+        [[ϵi(t) for t in λv], [ϵj(t) for t in λv], [ϵk(t) for t in λv]]
     end
     ## Stresses
-    "Computes strains numeric solution ϵᵢ, ϵⱼ and ϵₖ for analytic validation."
-    function σ_ijk_analytic(λᵥ::Vector{<:Real}, x₀::Real, y₀::Real, z₀::Real, mat::AbstractMaterial)
-        λ, G = lame_parameters(mat)
-        C(t) = tension(t) * (1 - nu - 2nu^2) / (1 - nu)
+    "Compute strains νmeric solution ϵi, ϵj and ϵk for analytic validation."
+    function σ_ijk_analytic(λv::Vector{<:Real}, x0::Real, y0::Real, z0::Real, λ::Real, G::Real)
+        C(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
 
-        ϵᵢ(t) = C(t) / E
-        ϵⱼ(t) = 0.0
-        ϵₖ(t) = 0.0
+        ϵi(t) = C(t) / E
+        ϵj(t) = 0.0
+        ϵk(t) = 0.0
 
-        σᵢ(t) = (λ + 2G) * ϵᵢ(t) + λ * ϵⱼ(t) + λ * ϵₖ(t)
-        σⱼ(t) = λ * ϵᵢ(t) + (λ + 2G) * ϵⱼ(t) + λ * ϵₖ(t)
-        σₖ(t) = λ * ϵᵢ(t) + λ * ϵⱼ(t) + (λ + 2G) * ϵₖ(t)
+        σi(t) = (λ + 2G) * ϵi(t) + λ * ϵj(t) + λ * ϵk(t)
+        σj(t) = λ * ϵi(t) + (λ + 2G) * ϵj(t) + λ * ϵk(t)
+        σk(t) = λ * ϵi(t) + λ * ϵj(t) + (λ + 2G) * ϵk(t)
 
-        [[σᵢ(t) for t in λᵥ], [σⱼ(t) for t in λᵥ], [σₖ(t) for t in λᵥ]]
+        [[σi(t) for t in λv], [σj(t) for t in λv], [σk(t) for t in λv]]
     end
     # point in the rand element selected
-    p_rand_e = rand(coordinates(e_rand))
+    p = rand(coordinates(e))
     # strain
-    λᵥ = load_factors(sa)
-    ϵ_analytic_p_rand_e = ϵ_ijk_analytic(λᵥ, p_rand_e[1], p_rand_e[2], p_rand_e[3])
-    ϵᵢ_analytic_p_rand_e = ϵ_analytic_p_rand_e[1]
+    λv = load_factors(sa)
+    ϵ = ϵ_ijk_analytic(λv, p[1], p[2], p[3])
+    ϵ_1 = ϵ[1]
+    ϵ_2 = ϵ[2]
+    ϵ_3 = ϵ[3]
     # stress
-    σ_analytic_p_rand_e = σ_ijk_analytic(λᵥ, p_rand_e[1], p_rand_e[2], p_rand_e[3], mat)
-    σᵢ_analytic_p_rand_e = σ_analytic_p_rand_e[1]
-    σⱼ_analytic_p_rand_e = σ_analytic_p_rand_e[2]
-    σₖ_analytic_p_rand_e = σ_analytic_p_rand_e[3]
+    σ = σ_ijk_analytic(λv, p[1], p[2], p[3], λ, G)
+    σ_1 = σ[1]
+    σ_2 = σ[2]
+    σ_3 = σ[3]
+
+    ui_1, uj_1, uk_1, ui_2, uj_2, uk_2, ϵ_1, ϵ_2, ϵ_3, σ_1, σ_2, σ_3
+end;
+
+function write_vtk(sol::AbstractSolution)
+    ONSAS.write_vtk(sol, joinpath(@__DIR__, "linear_extension"))
+end;
+
+function test(sol::AbstractSolution)
+    (; RTOL, ATOL) = parameters()
+    p1, p2, e = test_points(sol)
+
+    ui_1_num, uj_1_num, uk_1_num, ui_2_num, uj_2_num, uk_2_num,
+    ϵi_num, ϵj_num, ϵk_num,
+    σi_num, σj_num, σk_num = numerical_solution(sol, p1, p2, e)
+
+    ui_1_analy, uj_1_analy, uk_1_analy, ui_2_analy, uj_2_analy, uk_2_analy,
+    ϵi_analy, ϵj_analy, ϵk_analy,
+    σi_analy, σj_analy, σk_analy = analytic_solution(sol, p1, p2, e)
+
     #-----------------------------
-    # Test boolean for CI
+    # Test booleans for CI
     #-----------------------------
-    @testset "Linear Extension example" begin
-        # Displacements
-        @test uᵢ_numeric_p₁ ≈ uᵢ_analytic_p₁ rtol = RTOL
-        @test norm(uⱼ_numeric_p₁) ≈ 0 atol = RTOL
-        @test norm(uₖ_numeric_p₁) ≈ 0 atol = RTOL
-        @test uᵢ_numeric_p₂ ≈ uᵢ_analytic_p₂ rtol = RTOL
-        @test norm(uⱼ_numeric_p₂) ≈ 0 atol = RTOL
-        @test norm(uₖ_numeric_p₂) ≈ 0 atol = RTOL
-        # Strains
-        @test ϵᵢ_numeric_e_rand ≈ ϵᵢ_analytic_p_rand_e rtol = RTOL
-        @test norm(ϵⱼ_numeric_e_rand) ≈ 0 atol = RTOL
-        @test norm(ϵₖ_numeric_e_rand) ≈ 0 atol = RTOL
-        # Stresses
-        @test σᵢ_analytic_p_rand_e ≈ σᵢ_analytic_p_rand_e rtol = RTOL
-        @test σⱼ_analytic_p_rand_e ≈ σⱼ_analytic_p_rand_e atol = RTOL
-        @test σₖ_analytic_p_rand_e ≈ σₖ_analytic_p_rand_e atol = RTOL
+    @testset "Linear Extension example displacements Point 1" begin
+        @test ui_1_num ≈ ui_1_analy rtol = RTOL
+        @test uj_1_num ≈ uj_1_analy atol = ATOL
+        @test norm(uj_1_analy) ≈ 0 atol = ATOL
+        @test uk_1_num ≈ uk_1_analy atol = ATOL
+        @test norm(uk_1_analy) ≈ 0 atol = ATOL
+    end
+
+    @testset "Linear Extension example displacements Point 2" begin
+        @test ui_2_num ≈ ui_2_analy rtol = RTOL
+        @test uj_2_num ≈ uj_2_analy atol = ATOL
+        @test norm(uj_2_analy) ≈ 0 atol = ATOL
+        @test uk_2_num ≈ uk_2_analy atol = ATOL
+        @test norm(uk_2_analy) ≈ 0 atol = ATOL
+    end
+
+    @testset "Linear Extension example strains random Point " begin
+        @test ϵi_num ≈ ϵi_analy rtol = RTOL
+        @test ϵj_num ≈ ϵj_analy atol = ATOL
+        @test norm(ϵj_analy) ≈ 0 atol = ATOL
+        @test ϵk_num ≈ ϵk_analy atol = ATOL
+        @test norm(ϵk_num) ≈ 0 atol = ATOL
+    end
+
+    @testset "Linear Extension example stress random Point " begin
+        @test σi_num ≈ σi_analy rtol = RTOL
+        @test σj_num ≈ σj_analy rtol = RTOL skip = true
+        @test σk_num ≈ σk_analy rtol = RTOL skip = true
     end
 end
 
-run_linear_extension_example()
+"Run the example"
+function run()
+    sol = solve()
+    write_vtk(sol)
+    test(sol)
+end;
+
+run()

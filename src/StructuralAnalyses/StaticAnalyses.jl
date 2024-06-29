@@ -26,7 +26,7 @@ using ..Assemblers
 @reexport import ..StructuralSolvers: next!
 @reexport import ..Assemblers: assemble!, reset!
 
-export AbstractStaticAnalysis, load_factors, current_load_factor
+export AbstractStaticAnalysis, load_factors, current_load_factor, store!
 
 """ Abstract supertype for all structural analysis.
 
@@ -68,7 +68,7 @@ final_time(sa::AbstractStaticAnalysis) = last(load_factors(sa))
 "Return true if the structural analysis is completed."
 function is_done(sa::AbstractStaticAnalysis)
     is_done_bool = if sa.current_step[] > length(load_factors(sa))
-        sa.current_step[] -= 1
+        sa.current_step -= 1
         true
     else
         false
@@ -82,12 +82,12 @@ load_factors(sa::AbstractStaticAnalysis) = sa.λᵥ
 current_load_factor(sa::AbstractStaticAnalysis) = current_time(sa)
 
 "Jumps to the next current load factor defined in the structural analysis."
-next!(sa::AbstractStaticAnalysis) = sa.current_step[] += 1
+next!(sa::AbstractStaticAnalysis) = sa.current_step += 1
 
 "Sets the current load factor of the structural analysis to the initial load factor.
 Also Reset! the iteration and `AbstractStructuralState`."
 function reset!(sa::AbstractStaticAnalysis)
-    sa.current_step[] = 1
+    sa.current_step = 1
     reset!(current_state(sa))
     @info "The current time of analysis have been reset."
     sa
@@ -120,7 +120,7 @@ function assemble!(s::AbstractStructure, sa::AbstractStaticAnalysis)
 end
 
 "Reset the assembled magnitudes in the state."
-function reset_assemble!(state::StaticState)
+function reset_assemble!(state::FullStaticState)
     reset!(assembler(state))
     internal_forces(state) .= 0.0
     K = tangent_matrix(state)
@@ -129,8 +129,8 @@ function reset_assemble!(state::StaticState)
     nothing
 end
 
-"Push the current state into the solution."
-function Base.push!(st_sol::StatesSolution, c_state::StaticState)
+"Stores the current state into the solution."
+function Base.push!(st_sol::Solution{<:FullStaticState}, c_state::FullStaticState)
     # Copies TODO Need to store all these?
     fdofs = free_dofs(c_state)
     Uᵏ = deepcopy(displacements(c_state))
@@ -144,10 +144,30 @@ function Base.push!(st_sol::StatesSolution, c_state::StaticState)
     iter_state = deepcopy(iteration_residuals(c_state))
     # Empty assembler since the info is stored in k
     assemblerᵏ = c_state.assembler
+    linear_system = c_state.linear_system
 
-    state_copy = StaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
-                             iter_state)
+    state_copy = FullStaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
+                                 iter_state, c_state.linear_system)
     push!(states(st_sol), state_copy)
+end
+
+function store!(sol::Solution{<:StaticState}, state::FullStaticState, step::Int)
+    solution_state = states(sol)[step]
+    sol_Uᵏ = displacements(solution_state)
+    sol_σᵏ = stress(solution_state)
+    sol_ϵᵏ = strain(solution_state)
+
+    Uᵏ = deepcopy(displacements(state))
+    sol_Uᵏ .= Uᵏ
+
+    state_σᵏ = stress(state)
+    state_ϵᵏ = strain(state)
+    for e in keys(state_σᵏ)
+        state_σᵏ_e = getindex(state_σᵏ, e)
+        sol_σᵏ[e] .= state_σᵏ_e
+        state_ϵᵏ_e = getindex(state_ϵᵏ, e)
+        sol_ϵᵏ[e] .= state_ϵᵏ_e
+    end
 end
 
 end # module

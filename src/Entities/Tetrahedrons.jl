@@ -1,11 +1,12 @@
 "Module defining tetrahedron elements."
 module Tetrahedrons
 
-using StaticArrays, LinearAlgebra, LazySets, Reexport
+using StaticArrays, LinearAlgebra, LazySets, Reexport, Tensors
 
 using ..Utils
 using ..Nodes
 using ..Entities
+using ..Materials
 using ..IsotropicLinearElasticMaterial
 using ..HyperElasticMaterials
 
@@ -48,22 +49,59 @@ function create_entity(t::Tetrahedron, vn::AbstractVector{<:AbstractNode})
     Tetrahedron(vn, label(t))
 end
 
-struct TetrahedronCache{T} <: AbstractElementCache
+"Contains the cache to compute the element internal forces and stiffness matrix."
+struct TetrahedronCache{T,ST<:Symmetric{T}} <: AbstractElementCache
+    "Internal forces."
     fint::Vector{T}
-    # TODO Use Symmetric K.
-    Ks::Matrix{T}
-    σ::Matrix{T}
-    ε::Matrix{T}
+    "Stiffness matrix."
+    Ks::ST
+    "Cosserat stress."
+    S::ST
+    "Constitutive driver."
+    ∂S∂E::Matrix{T}
+    "Piola stress."
+    P::Matrix{T}
+    "Cauchy-Green strain."
+    ε::ST
+    "Deformation gradient."
     F::Matrix{T}
+    "U material derivative."
     H::Matrix{T}
+    "Reference coordinates."
+    X::Matrix{T}
+    "Jacobian matrix."
+    J::Matrix{T}
+    "Shape functions derivatives."
+    funder::Matrix{T}
+    "B matrix."
+    B::Matrix{T}
+    "Auxiliary matrix for computing Geometric Stiffness (only AbstractHyperElasticMaterial)."
+    aux_geometric_Ks::Matrix{T}
+    "Lagrange Green Strain"
+    E::ST
+    "Aux eye matrix"
+    I₃₃::Matrix{T}
+    "Aux ones matrix"
+    ones₃₃::Matrix{T}
     function TetrahedronCache()
         fint = zeros(12)
-        Ks = zeros(12, 12)
-        σ = zeros(3, 3)
-        ε = zeros(3, 3)
+        Ks = Symmetric(zeros(12, 12))
+        S = Symmetric(zeros(3, 3))
+        ∂S∂E = zeros(6, 6)
+        P = zeros(3, 3)
+        ε = Symmetric(zeros(3, 3))
         F = zeros(3, 3)
         H = zeros(3, 3)
-        new{Float64}(fint, Ks, σ, ε, F, H)
+        X = zeros(3, 4)
+        J = zeros(3, 3)
+        funder = zeros(3, 4)
+        B = zeros(6, 12)
+        aux_geometric_Ks = zeros(4, 4)
+        E = Symmetric(zeros(3, 3))
+        I₃₃ = eye(3)
+        ones₃₃ = ones(3, 3)
+        new{Float64,Symmetric{Float64}}(fint, Ks, S, ∂S∂E, P, ε, F, H, X, J,
+                                        funder, B, aux_geometric_Ks, E, I₃₃, ones₃₃)
     end
 end
 
@@ -85,95 +123,98 @@ local_dof_symbol(::Tetrahedron) = [:u]
 _coordinates_matrix(t::Tetrahedron) = reduce(hcat, coordinates(t))
 
 "Computes Jacobian matrix"
-function _jacobian_mat(tetrahedron_coords_matrix::AbstractMatrix, derivatives::AbstractMatrix)
+function _jacobian_mat(tetrahedron_coords_matrix::AbstractMatrix, derivatives::Matrix)
     tetrahedron_coords_matrix * derivatives'
 end
 
-"Computes volume element of a tetrahedron given J = det(𝔽)."
-function _volume(jacobian_mat::AbstractMatrix)
+"Computes volume element of a tetrahedron given J = det(F)."
+function _volume(jacobian_mat::Matrix)
     volume = det(jacobian_mat) / 6.0
     @assert volume > 0 throw(ArgumentError("Element with negative volume, check connectivity."))
     volume
 end
 
-function _B_mat(deriv::AbstractMatrix, 𝔽::AbstractMatrix)
-    B = zeros(6, 12)
-
-    B[1:3, :] = [diagm(deriv[:, 1]) * 𝔽' diagm(deriv[:, 2]) * 𝔽' diagm(deriv[:, 3]) * 𝔽' diagm(deriv[:,
-                                                                                                     4]) *
-                                                                                         𝔽']
+function _B_mat!(B::Matrix, deriv::Matrix, F::Matrix)
+    B[1:3, :] = [diagm(deriv[:, 1]) * F' diagm(deriv[:, 2]) *
+                                         F' diagm(deriv[:, 3]) * F' diagm(deriv[:, 4]) * F']
 
     for k in 1:4
-        B[4:6, (k - 1) * 3 .+ (1:3)] = [deriv[2, k] * 𝔽[:, 3]' + deriv[3, k] * 𝔽[:, 2]'
-                                        deriv[1, k] * 𝔽[:, 3]' + deriv[3, k] * 𝔽[:, 1]'
-                                        deriv[1, k] * 𝔽[:, 2]' + deriv[2, k] * 𝔽[:, 1]']
+        B[4:6, (k - 1) * 3 .+ (1:3)] = [deriv[2, k] * F[:, 3]' + deriv[3, k] * F[:, 2]'
+                                        deriv[1, k] * F[:, 3]' + deriv[3, k] * F[:, 1]'
+                                        deriv[1, k] * F[:, 2]' + deriv[2, k] * F[:, 1]']
     end
     B
 end
 
-function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector)
+"Return the internal forces of a `Tetrahedron` element `t` doted with and `AbstractMaterial` `m` and
+an element displacement vector `u_e`. "
+function internal_forces(m::AbstractMaterial, t::Tetrahedron, u_e::AbstractVector)
     internal_forces(m, t, u_e, TetrahedronCache())
 end
 
-"Return the internal force of a `Tetrahedron` element `t` doted with an `AbstractHyperElasticMaterial` `m` +
-and a an element displacement vector `u_e`."
-function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector,
-                         cache::TetrahedronCache)
-    (; fint, Ks, σ, ε, F, H) = cache
-
-    ∂X∂ζ = _shape_functions_derivatives(t)
-    X = _coordinates_matrix(t)
-    U = reshape(u_e, 3, 4)
-    J = _jacobian_mat(X, ∂X∂ζ)
-    vol = _volume(J)
-
-    # The deformation gradient F can be obtained by integrating f under over time ∂F/∂t.
-    funder = inv(J)' * ∂X∂ζ
-
-    # ∇u in global coordinats
-    H .= U * funder'
-
-    # Deformation gradient
-    F .= H + eye(3)
-
-    # Green-Lagrange strain
-    𝔼 = Symmetric(0.5 * (H + H' + H' * H))
-    𝕊, ∂𝕊∂𝔼 = cosserat_stress(m, 𝔼)
-    B = _B_mat(funder, F)
-    𝕊_voigt = voigt(𝕊)
-    fint .= B' * 𝕊_voigt * vol
-
-    # Material stiffness
-    Kₘ = Symmetric(B' * ∂𝕊∂𝔼 * B * vol)
-    Ks .= 0.0
-
-    # Geometric stiffness
-    aux = funder' * 𝕊 * funder * vol
+"Return the geometric stiffness."
+function geometric_stiffness!(Ks::Symmetric, aux_geometric_Ks::Matrix,
+                              𝕊::AbstractMatrix, funder::Matrix{<:Real}, vol::Real)
+    aux_geometric_Ks .= funder' * 𝕊 * funder * vol
     for i in 1:4
-        for j in 1:4
-            Ks[(i - 1) * 3 + 1, (j - 1) * 3 + 1] = aux[i, j]
-            Ks[(i - 1) * 3 + 2, (j - 1) * 3 + 2] = aux[i, j]
-            Ks[(i - 1) * 3 + 3, (j - 1) * 3 + 3] = aux[i, j]
+        for j in i:4
+            # Diagonal elements can be set directly
+            if i == j
+                Ks[(i - 1) * 3 + 1, (j - 1) * 3 + 1] = aux_geometric_Ks[i, j]
+                Ks[(i - 1) * 3 + 2, (j - 1) * 3 + 2] = aux_geometric_Ks[i, j]
+                Ks[(i - 1) * 3 + 3, (j - 1) * 3 + 3] = aux_geometric_Ks[i, j]
+                # Off-diagonal elements must ensure symmetry
+            else
+                Ks.data[(i - 1) * 3 + 1, (j - 1) * 3 + 1] = aux_geometric_Ks[i, j]
+                Ks.data[(j - 1) * 3 + 1, (i - 1) * 3 + 1] = aux_geometric_Ks[i, j]
+                Ks.data[(i - 1) * 3 + 2, (j - 1) * 3 + 2] = aux_geometric_Ks[i, j]
+                Ks.data[(j - 1) * 3 + 2, (i - 1) * 3 + 2] = aux_geometric_Ks[i, j]
+                Ks.data[(i - 1) * 3 + 3, (j - 1) * 3 + 3] = aux_geometric_Ks[i, j]
+                Ks.data[(j - 1) * 3 + 3, (i - 1) * 3 + 3] = aux_geometric_Ks[i, j]
+            end
         end
     end
-
-    # Stifness matrix
-    Ks .= Kₘ + Ks
-
-    # Compute stress and strian just for post-process
-    # Piola stress
-    σ .= Symmetric(F * 𝕊)
-
-    # Cauchy strain tensor
-    ε .= Symmetric(F' * F)
-
-    fint, Ks, σ, ε
 end
 
-# TODO Implement method.
-function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::AbstractVector,
-                         ::TetrahedronCache)
-    internal_forces(m, t, u_e)
+"Return the internal force of a `Tetrahedron` element `t` doted with an `AbstractHyperElasticMaterial` `m` +
+and a an element displacement vector `u_e`. This function modifies the cache to avoid memory allocations."
+function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector,
+                         cache::TetrahedronCache)
+    (; fint, Ks, P, S, ∂S∂E, ε, F, H, X, J, funder, B, aux_geometric_Ks, E, I₃₃) = cache
+
+    # Kinematics
+    U = reshape(u_e, 3, 4)
+    ∂X∂ζ = _shape_functions_derivatives(t)
+    X .= _coordinates_matrix(t)
+    J .= _jacobian_mat(X, ∂X∂ζ)
+    vol = _volume(J)
+    funder .= inv(J)' * ∂X∂ζ
+    H .= U * funder'
+    F .= H + I₃₃
+
+    E .= Symmetric(0.5 * (H + H' + H' * H))
+    _B_mat!(B, funder, F)
+
+    # Stresses
+    cosserat_stress!(S, ∂S∂E, m, E)
+    S_voigt = voigt(S)
+    fint .= B' * S_voigt * vol
+
+    # Material stiffness
+    Km = Symmetric(B' * ∂S∂E * B * vol)
+
+    # Geometric stiffness
+    Ks .= 0.0
+    geometric_stiffness!(Ks, aux_geometric_Ks, S, funder, vol)
+    Ks .= Km + Ks
+
+    # Piola stress
+    P .= F * S
+
+    # Right hand Cauchy strain tensor
+    ε .= Symmetric(F' * F)
+
+    fint, Ks, P, ε
 end
 
 "
@@ -190,50 +231,47 @@ A 4-tuple containing:
 - `stress`: `Symmetric` type, the Cauchy stress tensor of the tetrahedron element.
 - `strain`: `Symmetric` type, the strain tensor of the tetrahedron element.
 "
-function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::AbstractVector)
+function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::AbstractVector,
+                         cache::TetrahedronCache)
+    (; fint, Ks, S, ∂S∂E, ε, F, H, X, J, funder, B, I₃₃, ones₃₃) = cache
+
+    # Kinematics
     ∂X∂ζ = _shape_functions_derivatives(t)
-
-    X = _coordinates_matrix(t)
-
-    J = _jacobian_mat(X, ∂X∂ζ)
-
+    X .= _coordinates_matrix(t)
+    J .= _jacobian_mat(X, ∂X∂ζ)
     vol = _volume(J)
-
-    funder = inv(J)' * ∂X∂ζ
-
-    # ∇u = H in global coordinats
+    funder .= inv(J)' * ∂X∂ζ
     U = reshape(u_e, 3, 4)
-    H = U * funder'
+    H .= U * funder'
+    ε .= Symmetric(0.5 * (H + H'))
+    F .= I₃₃
+    _B_mat!(B, funder, F)
 
-    ϵ = Symmetric(0.5 * (H + H'))
-    𝔽 = eye(3)
+    # Stresses (due to stresses are all the same for linear elastic materials cosserat
+    # is used as cache)
+    stress!(S, ∂S∂E, m, ε; cache_ones=ones₃₃, cache_eye=I₃₃)
 
-    B = _B_mat(funder, 𝔽)
+    # Stiffness matrix
+    Ks .= Symmetric(B' * ∂S∂E * B * vol)
 
-    σ, ∂σ∂ϵ = cauchy_stress(m, ϵ)
+    fint .= Ks * u_e
 
-    Kᵢₙₜ_e = Symmetric(B' * ∂σ∂ϵ * B * vol)
-
-    fᵢₙₜ_e = Kᵢₙₜ_e * u_e
-
-    fᵢₙₜ_e, Kᵢₙₜ_e, σ, ϵ
+    fint, Ks, S, ε
 end
+
+"Shape function derivatives."
+const ∂X∂ζ_1 = [1.0  -1.0  0.0  0.0
+                0.0  -1.0  0.0  1.0
+                0.0  -1.0  1.0  0.0]
 
 "Return the shape functions derivatives of a `Tetrahedron` element."
-function _shape_functions_derivatives(::Tetrahedron, order=1)
-    d = zeros(3, 4)
-    if order == 1
-        d[1, 1] = 1
-        d[1:3, 2] = [-1, -1, -1]
-        d[3, 3] = 1
-        d[2, 4] = 1
+function _shape_functions_derivatives(::Tetrahedron, order::Int=1)
+    ∂X∂ζ = if order == 1
+        ∂X∂ζ_1
     end
-    d
 end
 
-"""
-Indices for computing the minors of the interpolation matrix, implemented as a hash table.
-"""
+"Indices for computing the minors of the interpolation matrix, implemented as a hash table."
 const MINOR_INDICES = [([2, 3, 4], [2, 3, 4])    ([2, 3, 4], [1, 3, 4])    ([2, 3, 4], [1, 2, 4])    ([2, 3, 4], [1, 2, 3])
                        ([1, 3, 4], [2, 3, 4])    ([1, 3, 4], [1, 3, 4])    ([1, 3, 4], [1, 2, 4])    ([1, 3, 4], [1, 2, 3])
                        ([1, 2, 4], [2, 3, 4])    ([1, 2, 4], [1, 3, 4])    ([1, 2, 4], [1, 2, 4])    ([1, 2, 4], [1, 2, 3])

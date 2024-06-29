@@ -20,17 +20,19 @@ using ..Utils
 @reexport import ..Structures: free_dofs
 @reexport import ..Assemblers: assemble!, end_assemble!
 
-export AbstractStructuralState, Δ_displacements, residual_forces!,
-       structure, assembler, residual_forces_norms, residual_displacements_norms,
-       AbstractStructuralAnalysis, initial_time, current_time, final_time, is_done,
-       current_state, current_iteration, displacements, external_forces, iteration_residuals,
-       tangent_matrix, internal_cache, elements_cache
+export AbstractStructuralState, AbstractStaticState, AbstractDynamicState, Δ_displacements,
+       Δ_displacements!, residual_forces!, structure, assembler, residual_forces_norms,
+       residual_displacements_norms, AbstractStructuralAnalysis, initial_time, current_time,
+       final_time, is_done, current_state, current_iteration, displacements, external_forces,
+       iteration_residuals, tangent_matrix, internal_cache, elements_cache, velocity, acceleration,
+       viscous_forces, mass_matrix, damping_matrix, stiffness_matrix
 
 """ Abstract supertype to define a new structural state.
 **Abstract Methods**
 ### Accessors:
 * [`displacements`](@ref)
 * [`Δ_displacements`](@ref)
+* [`Δ_displacements!`](@ref)
 * [`external_forces`](@ref)
 * [`internal_forces`](@ref)
 * [`residual_forces!`](@ref)
@@ -50,6 +52,11 @@ export AbstractStructuralState, Δ_displacements, residual_forces!,
 """
 abstract type AbstractStructuralState end
 
+"""
+States representing static analyses.
+"""
+abstract type AbstractStaticState <: AbstractStructuralState end
+
 "Return the assembler used in the structural state."
 assembler(st::AbstractStructuralState) = st.assembler
 
@@ -62,6 +69,12 @@ displacements(st::AbstractStructuralState) = st.Uᵏ
 "Return current displacements increment vector at the current structural state."
 Δ_displacements(st::AbstractStructuralState) = st.ΔUᵏ
 
+"Update and return current displacements increment vector at the current structural state."
+function Δ_displacements!(st::AbstractStructuralState, ΔUᵏ⁺¹::AbstractVector)
+    st.ΔUᵏ .= ΔUᵏ⁺¹
+    st.ΔUᵏ
+end
+
 "Return the current internal forces vector in the structural state."
 internal_forces(st::AbstractStructuralState) = st.Fᵢₙₜᵏ
 
@@ -70,6 +83,9 @@ external_forces(st::AbstractStructuralState) = st.Fₑₓₜᵏ
 
 "Return residual forces vector in the structural state."
 function residual_forces!(st::AbstractStructuralState) end
+
+"Return system tangent matrix in the structural state given a solver."
+tangent_matrix(st::AbstractStructuralState) = st.Kₛᵏ
 
 "Return stresses for each `Element` in the structural state."
 stress(st::AbstractStructuralState) = st.σᵏ
@@ -92,8 +108,9 @@ function assemble!(st::AbstractStructuralState, kₛ_e::AbstractMatrix, e::Abstr
 end
 
 "Assembles the element `e` stress σₑ and strain ϵₑ into the structural state."
-function assemble!(st::AbstractStructuralState, σₑ::E, ϵₑ::E,
-                   e::AbstractElement) where {E<:Union{Real,AbstractMatrix}}
+function assemble!(st::AbstractStructuralState, σₑ::ST, ϵₑ::ET,
+                   e::AbstractElement) where {ST<:Union{Real,AbstractMatrix},
+                                              ET<:Union{Real,AbstractMatrix}}
     stress(st)[e] .= σₑ
     strain(st)[e] .= ϵₑ
 end
@@ -124,6 +141,32 @@ internal_cache(::AbstractStructuralState, ::Type{<:AbstractElement}) = nothing
 function elements_cache(s::AbstractStructuralState, e::AbstractElement)
     elements_cache(assembler(s), e)
 end
+
+"""
+States representing dynamic analyses.
+"""
+abstract type AbstractDynamicState <: AbstractStructuralState end
+
+"Return current velocity vector at the current structural state."
+velocity(st::AbstractDynamicState) = st.Udotᵏ
+
+"Return current acceleration vector at the current structural state."
+acceleration(st::AbstractDynamicState) = st.Udotdotᵏ
+
+"Return the current inertial forces vector in the structural state."
+inertial_forces(st::AbstractStructuralState) = st.Fᵢₙₑᵏ
+
+"Return the current viscous forces vector in the structural state."
+viscous_forces(st::AbstractStructuralState) = st.Fᵥᵢₛᵏ
+
+"Return the current mass matrix in the structural state."
+mass_matrix(st::AbstractStructuralState) = st.Mᵏ
+
+"Return the current damping matrix in the structural state."
+damping_matrix(st::AbstractStructuralState) = st.Cᵏ
+
+"Return the current stiffness matrix in the structural state."
+stiffness_matrix(st::AbstractStructuralState) = st.Kᵏ
 
 """ Abstract supertype for all structural analysis.
 
@@ -185,8 +228,5 @@ function apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractNeumannB
         apply!(sa, lbc)
     end
 end
-
-"Return system tangent matrix in the structural state given a solver."
-function tangent_matrix(st::AbstractStructuralState) end
 
 end

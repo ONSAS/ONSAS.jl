@@ -4,68 +4,63 @@
 using Test, LinearAlgebra
 using ONSAS
 
-"Runs the Von Misses Truss example."
-function run_von_misses_truss_example()
+"Return the problem parameters"
+function parameters()
     ## scalar parameters
     E = 210e9                 # Young modulus in Pa
     ν = 0.0                   # Poisson's modulus
-    A₀ = 2.5e-3                # Cross-section area in m²
-    ANG = 65                  # truss angle in degrees
+    A = 2.5e-3                # Cross-section area in m²
+    d = sqrt(4 * A / pi)      # Diameter in m
+    a = sqrt(A)               # Side in m
+    θ = 65                      # truss angle in degrees
     L = 2                     # Length in m
-    V = L * cos(deg2rad(ANG)) # vertical distance in m
-    H = L * sin(deg2rad(ANG)) # horizontal distance in m
-    Fₖ = -3e8                 # Vertical load in N
+    V = L * cos(deg2rad(θ)) # vertical distance in m
+    H = L * sin(deg2rad(θ)) # horizontal distance in m
+    Fk = -3e8                 # Vertical load in N
     RTOL = 1e-4               # Relative tolerance for tests
-    strain_model = rand((GreenStrain, RotatedEngineeringStrain))
+    (; E, ν, A, a, d, θ, L, V, H, Fk, RTOL)
+end;
+
+"Return the problem structural model"
+function structure(strain_model::Type{<:AbstractStrainModel}=GreenStrain)
+    (; H, a, d, V, E, ν, Fk) = parameters()
     # -------------
     # Mesh
     # -------------
-    ## Nodes
-    n₁ = Node(0.0, 0.0, 0.0)
-    n₂ = Node(V, 0.0, H)
-    n₃ = Node(2V, 0.0, 0.0)
-    nodes = [n₁, n₂, n₃]
-    ## Cross sections
-    d = sqrt(4 * A₀ / pi)
-    s₁ = Circle(d)
-    a = sqrt(A₀)
-    s₂ = Square(a)
-    ## Entities
-    truss₁ = Truss(n₁, n₂, s₁, strain_model, "left_truss") # [n₁, n₂]
-    truss₂ = Truss(n₂, n₃, s₂, strain_model, "right_truss") # [n₂, n₃]
-    elements = [truss₁, truss₂]
-    ## Mesh
-    s_mesh = Mesh(; nodes, elements)
-    # -------------------------------
-    # Dofs
-    #--------------------------------
-    dof_dim = 3
-    set_dofs!(s_mesh, :u, dof_dim)
+    n1 = Node(0.0, 0.0, 0.0)
+    n2 = Node(V, 0.0, H)
+    n3 = Node(2V, 0.0, 0.0)
+    nodes = [n1, n2, n3]
+    s1 = Circle(d)
+    s2 = Square(a)
+    truss_left = Truss(n1, n2, s1, strain_model, "left_truss")
+    truss_right = Truss(n2, n3, s2, strain_model, "right_truss")
+    elements = [truss_left, truss_right]
+    mesh = Mesh(; nodes, elements)
+    set_dofs!(mesh, :u, 3)
     # -------------------------------
     # Materials
     # -------------------------------
     steel = SVK(; E=E, ν=ν, label="steel")
-    s_materials = StructuralMaterial(steel => [truss₁, truss₂])
+    materials = StructuralMaterial(steel => [truss_left, truss_right])
     # -------------------------------
     # Boundary conditions
     # -------------------------------
-    # Fixed dofs
-    bc₁ = FixedDof(:u, [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
-    bc₂ = FixedDof(:u, [2], "fixed_uⱼ")
-    # Load
-    bc₃ = GlobalLoad(:u, t -> [0, 0, Fₖ * t], "load in j")
-    s_boundary_conditions = StructuralBoundaryCondition(bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂])
-    # -------------------------------
-    # Structure
-    # -------------------------------
-    s = Structure(s_mesh, s_materials, s_boundary_conditions)
+    bc_fixed = FixedDof(:u, [1, 2, 3], "all_u_fixed")
+    bc_fixed_y = FixedDof(:u, [2], "fixed_uy")
+    bc_load = GlobalLoad(:u, t -> [0, 0, Fk * t], "load in j")
+    s_boundary_conditions = StructuralBoundaryCondition(bc_fixed => [n1, n3], bc_fixed_y => [n2],
+                                                        bc_load => [n2])
+    Structure(mesh, materials, s_boundary_conditions)
+end;
+
+"Return the problem solution"
+function solve(strain_model::Type{<:AbstractStrainModel}=GreenStrain)
     # -------------------------------
     # Structural Analysis
     # -------------------------------
-    # Final load factor
-    λ₁ = 1
-    NSTEPS = 1
-    sa = NonLinearStaticAnalysis(s, λ₁; NSTEPS=NSTEPS)
+    s = structure(strain_model)
+    sa = NonLinearStaticAnalysis(s; NSTEPS=1)
     # -------------------------------
     # Solver
     # -------------------------------
@@ -77,46 +72,64 @@ function run_von_misses_truss_example()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    states_sol = solve!(sa, nr)
-    n₂_displacements = displacements(states_sol, n₂)
-    numerical_uᵢ = n₂_displacements[1]
-    numerical_uⱼ = n₂_displacements[2]
-    numerical_uₖ = n₂_displacements[3]
-    @test norm(numerical_uᵢ) ≤ RTOL
-    @test norm(numerical_uⱼ) ≤ RTOL
-    numerical_λᵥ = -load_factors(sa) * Fₖ
-    # TODO: fix me
-    # Test stress and strains
-    σ_truss₂ = stress(states_sol, truss₂)
-    ϵ_truss₂ = strain(states_sol, truss₂)
-    # if strain_model == RotatedEngineeringStrain
-    #     @test σ_truss₂ == E * ϵ_truss₂
-    # end
-    #-----------------------------
+    solve!(sa, nr)
+end;
+
+"Test problem solution"
+function test(sol::AbstractSolution, strain_model::Type{<:AbstractStrainModel}=GreenStrain)
+    (; V, H, E, A, L, Fk, RTOL) = parameters()
+    sa = analysis(sol)
+    mesh = ONSAS.mesh(ONSAS.structure(sa))
+    elements = ONSAS.elements(mesh)
+    right_truss = elements[2]
+    n2 = nodes(mesh)[2]
+    n2_displacements = displacements(sol, n2)
+    numerical_ui = n2_displacements[1]
+    numerical_uj = n2_displacements[2]
+    numerical_uk = n2_displacements[3]
+    numerical_λ = -load_factors(sa) * Fk
+    # Test null displacements due tu symmetry and 2D reasons
+    @testset "Null displacements 0 case: $strain_model" begin
+        @test norm(numerical_ui) ≤ 100 * eps()
+        @test norm(numerical_uj) ≤ eps()
+    end
+    σ_right_truss = stress(sol, right_truss)
+    ϵ_right_truss = strain(sol, right_truss)
+    # Test stress and strain
+    @testset "Stress and strain case: $strain_model" begin
+        @test σ_right_truss[1, 1] ≈ E * ϵ_right_truss[1, 1] rtol = RTOL skip = true
+    end
+
     # Analytic solution
     #-----------------------------
-    "Analytic load factor solution for the displacement `uₖ` towards z axis at node `n₂` `RotatedEngineeringStrain` ."
-    function load_factors_analytic(uₖ::Real, ::Type{RotatedEngineeringStrain},
-                                   E::Real=E, A::Real=A₀,
-                                   H::Real=H, V::Real=V, l₀=L)
+    "Analytic load factor solution for the displacement `uk` towards z axis at node `n2` `3otatedEngineeringStrain` "
+    function load_factors_analytic(uk::Real, ::Type{RotatedEngineeringStrain},
+                                   E::Real=E, A::Real=A,
+                                   H::Real=H, V::Real=V, l0=L)
         -2 * E * A *
-        ((H + uₖ)^2 + V^2 - l₀^2) /
-        (l₀ * (l₀ + sqrt((H + uₖ)^2 + V^2))) *
-        (H + uₖ) / sqrt((H + uₖ)^2 + V^2)
+        ((H + uk)^2 + V^2 - l0^2) /
+        (l0 * (l0 + sqrt((H + uk)^2 + V^2))) *
+        (H + uk) / sqrt((H + uk)^2 + V^2)
     end
-    "Analytic load factor solution for the displacement `uₖ` towards z axis at node `n₂` `RotatedEngineeringStrain` ."
-    function load_factors_analytic(uₖ::Real, ::Type{GreenStrain},
-                                   E::Real=E, A::Real=A₀,
-                                   H::Real=H, V::Real=V, l₀=L)
-        -2 * E * A * ((H + uₖ) * (2 * H * uₖ + uₖ^2)) / (2.0 * L^3)
+    "Analytic load factor solution for the displacement `uk` towards z axis at node `n2` `3otatedEngineeringStrain` "
+    function load_factors_analytic(uk::Real, ::Type{GreenStrain},
+                                   E::Real=E, A::Real=A,
+                                   H::Real=H, V::Real=V, l0=L)
+        -2 * E * A * ((H + uk) * (2 * H * uk + uk^2)) / (2.0 * L^3)
     end
-    analytics_λᵥ = load_factors_analytic.(numerical_uₖ, strain_model)
-    #-----------------------------
-    # Test boolean for CI
-    #-----------------------------
-    @test analytics_λᵥ ≈ numerical_λᵥ rtol = RTOL
+    analytics_λ = load_factors_analytic.(numerical_uk, strain_model)
 
-    return states_sol
-end
+    @testset "Analytic and numeric load factors case: $strain_model" begin
+        @test analytics_λ ≈ numerical_λ rtol = RTOL
+    end
+end;
 
-run_von_misses_truss_example()
+"Run the example"
+function run()
+    for strain_model in (RotatedEngineeringStrain, GreenStrain)
+        sol = solve(strain_model)
+        test(sol, strain_model)
+    end
+end;
+
+run()
