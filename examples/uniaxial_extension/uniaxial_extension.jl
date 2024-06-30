@@ -87,19 +87,14 @@ function structure(::FirstCase)
     # Boundary conditions
     # -------------------------------
     # Fixed dofs
-    bc1_label = "fixed-ux"
-    bc1 = FixedDof(:u, [1], bc1_label)
-    bc2_label = "fixed-uy"
-    bc2 = FixedDof(:u, [2], bc2_label)
-    bc3_label = "fixed-uz"
-    bc3 = FixedDof(:u, [3], bc3_label)
+    bc1 = FixedDof(:u, [1])
+    bc2 = FixedDof(:u, [2])
+    bc3 = FixedDof(:u, [3])
     # Load
-    bc4_label = "tension"
-    bc4 = GlobalLoad(:u, t -> [p * t, 0, 0], bc4_label)
+    bc4 = GlobalLoad(:u, t -> [p * t, 0, 0])
     # Crete boundary conditions struct
     bcs = StructuralBoundaryCondition(bc1 => [f3, f4], bc2 => [f5, f6],
                                       bc3 => [f7, f8], bc4 => [f1, f2])
-    bc_labels = [bc1_label, bc2_label, bc3_label, bc4_label]
     # -------------------------------
     # Structure
     # -------------------------------
@@ -230,9 +225,9 @@ function structure(::SecondCase)
     # Fixed dofs
     bc1_label = "fixed-ux"
     bc1 = FixedDof(:u, [1], bc1_label)
-    bc2_label = "fixed-uj"
+    bc2_label = "fixed-uy"
     bc2 = FixedDof(:u, [2], bc2_label)
-    bc3_label = "fixed-uk"
+    bc3_label = "fixed-uz"
     bc3 = FixedDof(:u, [3], bc3_label)
     # Redefine the load boundary condition
     bc4_label = "tension"
