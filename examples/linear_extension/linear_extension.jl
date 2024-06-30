@@ -87,7 +87,7 @@ function solve()
     # -------------------------------
     # Structural Analysis
     # -------------------------------
-    sa = LinearStaticAnalysis(s; NSTEPS=NSTEPS)
+    sa = LinearStaticAnalysis(s; NSTEPS)
     # -------------------------------
     # Numerical solution
     # -------------------------------
