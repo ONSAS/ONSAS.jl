@@ -159,7 +159,7 @@ function test(::FirstCase, sol::AbstractSolution)
     a = analysis(sol)
     svk = materials(ONSAS.structure(a))[:svk]
     @testset "Verify VTK is written" begin
-        ONSAS.write_vtk(sol, joinpath(@__DIR__, "uniaxial_extension"))
+        write_vtk(sol, joinpath(@__DIR__, "uniaxial_extension"))
     end
     # -------------------------------
     # Numerical solution
