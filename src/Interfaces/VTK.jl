@@ -13,7 +13,7 @@ using ..Structures
 using ..StructuralAnalyses
 
 export write_vtk
-@reexport import WriteVTK: vtk_grid
+@reexport import WriteVTK: write_vtk
 
 """
 Generate a VTK file given a solution struct.
@@ -23,7 +23,7 @@ function write_vtk(sol::AbstractSolution, filename::String)
     msh = mesh(structure(analysis(sol)))
     nodes_mat = node_matrix(msh)
     connec_mat = connectivity(msh)
-    num_elem = length(elements(msh))
+    num_elem = num_elements(msh)
     cells = [MeshCell(VTKCellTypes.VTK_TETRA, connec_mat[e]) for e in 1:num_elem]
 
     n_times = length(displacements(sol))
@@ -37,7 +37,7 @@ function write_vtk(sol::AbstractSolution, filename::String)
             vtk["Displacements", VTKPointData()] = pdata
         end
     end
-    @debug "VTK output written to $filename"
+    @info "VTK output written to $filename"
     filename
 end
 
