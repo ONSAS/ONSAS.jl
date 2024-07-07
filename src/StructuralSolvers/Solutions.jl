@@ -8,7 +8,7 @@ Of course the solution contains on the analysis and solver used to solve the pro
 """
 module Solutions
 
-using Reexport, PrettyTables, Dictionaries
+using Reexport, PrettyTables, Dictionaries, LinearSolve
 
 using ..Utils
 using ..Entities
@@ -55,7 +55,7 @@ solver(sol::AbstractSolution) = sol.solver
 Solution that stores all intermediate arrays during the analysis.
 """
 struct Solution{ST<:AbstractStaticState,A<:AbstractStructuralAnalysis,
-                SS<:Union{AbstractSolver,Nothing}} <: AbstractSolution
+                SS<:Union{AbstractSolver,SciMLBase.AbstractLinearAlgorithm}} <: AbstractSolution
     "Vector containing the converged structural states at each step."
     states::Vector{ST}
     "Analysis solved."
@@ -67,7 +67,7 @@ end
 "Constructor with empty `AbstractStructuralState`s `Vector` and type `S`."
 function Solution(analysis::A,
                   solver::SS) where {A<:AbstractStructuralAnalysis,
-                                     SS<:Union{AbstractSolver,Nothing}}
+                                     SS<:Union{AbstractSolver,SciMLBase.AbstractLinearAlgorithm}}
 
     # TODO Use concrete types.
     state = current_state(analysis)
@@ -88,8 +88,9 @@ function Solution(analysis::A,
     Solution{StaticState,A,SS}(states, analysis, solver)
 end
 
-"Show the states solution."
-function Base.show(io::IO, ::MIME"text/plain", solution::Solution)
+"Generic minimal show method for a generic `solution`"
+function Base.show(io::IO, ::MIME"text/plain",
+                   solution::Solution)
     println("Analysis solved:")
     println("----------------\n")
     show(io, analysis(solution))
@@ -97,19 +98,6 @@ function Base.show(io::IO, ::MIME"text/plain", solution::Solution)
     println("\nSolver employed:")
     println("----------------\n")
     show(io, solver(solution))
-
-    println("\nStats:")
-    println("----------")
-    # Check convergence
-    is_any_step_not_converged = any([criterion_step isa Union{NotConvergedYet,MaxIterCriterion}
-                                     for criterion_step in criterion(solution)])
-
-    num_iterations = reduce(+, iterations(solution))
-    avg_iterations = round(num_iterations / length(states(solution)); digits=1)
-    println("• Number of linear systems solved: $num_iterations")
-    println("• Average of iterations per step : $avg_iterations")
-    println("• Convergence success            : $(!is_any_step_not_converged)")
-    _print_table(solution)
 end
 
 "Print the solution table"

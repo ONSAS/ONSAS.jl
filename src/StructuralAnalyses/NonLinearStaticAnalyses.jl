@@ -136,4 +136,23 @@ function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson,
     update!(current_iteration(sa), norm_ΔU, rel_norm_ΔU, norm_r, rel_norm_r)
 end
 
+"Show the solution when solved with an in-house algorithm."
+function Base.show(io::IO, ::MIME"text/plain",
+                   solution::Solution{<:FullStaticState})
+    show(io, solution)
+
+    println("\nStats:")
+    println("----------")
+    # Check convergence
+    is_any_step_not_converged = any([criterion_step isa Union{NotConvergedYet,MaxIterCriterion}
+                                     for criterion_step in criterion(solution)])
+
+    num_iterations = reduce(+, iterations(solution))
+    avg_iterations = round(num_iterations / length(states(solution)); digits=1)
+    println("• Number of linear systems solved: $num_iterations")
+    println("• Average of iterations per step : $avg_iterations")
+    println("• Convergence success            : $(!is_any_step_not_converged)")
+    _print_table(solution)
+end
+
 end # module
