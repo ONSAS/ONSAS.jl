@@ -9,25 +9,25 @@ include("linear_extension_mesh.jl")
 
 "Return problem parameters"
 function parameters()
-    E = 2.0             # Young modulus in Pa
-    ν = 0.4             # Poisson's ratio
+    E = 2.0                             # Young modulus in Pa
+    ν = 0.4                             # Poisson's ratio
     λ = E * ν / ((1 + ν) * (1 - 2 * ν)) # First Lamé parameter
-    G = E / (2 * (1 + ν)) # Second Lamé parameter
-    tension(t) = p * t  # Tension load function
-    p = 3               # Tension load in Pa
-    Lx = 2.0            # Dimension in x of the box in m
-    Ly = 1.0            # Dimension in y of the box in m
-    Lz = 1.0            # Dimension in z of the box in m
-    RTOL = 1e-4         # Relative tolerance for tests
-    ATOL = 1e-6         # Absolute tolerance for tests
-    NSTEPS = 9          # νmber of steps for the test
-    ms = 0.5            # Refinement factor
-    (; Lx, Ly, Lz, E, ν, λ, G, tension, RTOL, ATOL, NSTEPS, ms)
+    G = E / (2 * (1 + ν))               # Second Lamé parameter
+    tension_load(t) = p * t             # Tension load function
+    p = 3                               # Tension load in Pa
+    Lx = 2.0                            # Dimension in x of the box in m
+    Ly = 1.0                            # Dimension in y of the box in m
+    Lz = 1.0                            # Dimension in z of the box in m
+    RTOL = 1e-4                         # Relative tolerance for tests
+    ATOL = 1e-6                         # Absolute tolerance for tests
+    NSTEPS = 9                          # number of steps for the test
+    ms = 0.5                            # Refinement factor
+    (; Lx, Ly, Lz, E, ν, λ, G, tension_load, RTOL, ATOL, NSTEPS, ms)
 end;
 
 "Return the problem structural model"
 function structure()
-    (; Lx, Ly, Lz, E, ν, tension, ms) = parameters()
+    (; Lx, Ly, Lz, E, ν, tension_load, ms) = parameters()
     # -------------------------------
     # Materials
     # -------------------------------
@@ -46,7 +46,7 @@ function structure()
     bc3 = FixedDof(:u, [3], bc3_label)
     # Load
     bc4_label = "tension"
-    bc4 = GlobalLoad(:u, t -> [tension(t), 0, 0], bc4_label)
+    bc4 = GlobalLoad(:u, t -> [tension_load(t), 0, 0], bc4_label)
     # Get bc labels for the mesh
     bc_labels = [bc1_label, bc2_label, bc3_label, bc4_label]
     boundary_conditions = StructuralBoundaryCondition(bc1, bc2, bc3, bc4)
@@ -70,13 +70,9 @@ function structure()
     end
     gmsh_println(output)
     msh_file = MshFile(mesh_path)
-    mesh = Mesh(msh_file, entities)
     # -------------------------------
     # Structure
     # -------------------------------
-    apply!(materials, mesh)
-    apply!(boundary_conditions, mesh)
-
     Structure(msh_file, materials, boundary_conditions, entities)
 end;
 
@@ -87,11 +83,11 @@ function solve()
     # -------------------------------
     # Structural Analysis
     # -------------------------------
-    sa = LinearStaticAnalysis(s; NSTEPS=NSTEPS)
+    sa = LinearStaticAnalysis(s; NSTEPS)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solve!(sa)
+    sol = solve!(sa)
 end;
 
 "Return random points to evaluate the solution"
@@ -143,14 +139,14 @@ end;
 "Return analytical results for testing"
 function analytic_solution(sol::AbstractSolution, p1::Point{dim}, p2::Point{dim},
                            e::AbstractElement{dim}) where {dim}
-    (; E, ν, λ, G, tension) = parameters()
+    (; E, ν, λ, G, tension_load) = parameters()
     sa = analysis(sol)
     ## Displacements
     "Compute displacements νmeric solution ui, uj and uk for analytic validation."
     function u_ijk_analytic(λv::Vector{<:Real},
                             x0::Real, y0::Real, z0::Real,
                             ν::Real=ν, E::Real=E)
-        C(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
+        C(t) = tension_load(t) * (1 - ν - 2ν^2) / (1 - ν)
 
         ui(t) = C(t) / E * x0
         uj(t) = 0.0
@@ -172,7 +168,7 @@ function analytic_solution(sol::AbstractSolution, p1::Point{dim}, p2::Point{dim}
     "Compute strains νmeric solution ϵi, ϵj and ϵk for analytic validation."
     function ϵ_ijk_analytic(λv::Vector{<:Real}, x0::Real, y0::Real, z0::Real, ν::Real=ν,
                             E::Real=E)
-        C(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
+        C(t) = tension_load(t) * (1 - ν - 2ν^2) / (1 - ν)
 
         ϵi(t) = C(t) / E
         ϵj(t) = 0.0
@@ -183,7 +179,7 @@ function analytic_solution(sol::AbstractSolution, p1::Point{dim}, p2::Point{dim}
     ## Stresses
     "Compute strains νmeric solution ϵi, ϵj and ϵk for analytic validation."
     function σ_ijk_analytic(λv::Vector{<:Real}, x0::Real, y0::Real, z0::Real, λ::Real, G::Real)
-        C(t) = tension(t) * (1 - ν - 2ν^2) / (1 - ν)
+        C(t) = tension_load(t) * (1 - ν - 2ν^2) / (1 - ν)
 
         ϵi(t) = C(t) / E
         ϵj(t) = 0.0
@@ -260,7 +256,7 @@ function test(sol::AbstractSolution)
         @test σj_num ≈ σj_analy rtol = RTOL skip = true
         @test σk_num ≈ σk_analy rtol = RTOL skip = true
     end
-end
+end;
 
 "Run the example"
 function run()

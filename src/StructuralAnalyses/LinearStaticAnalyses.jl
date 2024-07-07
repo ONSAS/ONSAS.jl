@@ -73,12 +73,12 @@ function Base.show(io::IO, sa::LinearStaticAnalysis)
 end
 
 "Solves a linear analysis problem mutating the state."
-function _solve!(sa::LinearStaticAnalysis, alg::Nothing,
+function _solve!(sa::LinearStaticAnalysis, ::Nothing,
                  linear_solver::SciMLBase.AbstractLinearAlgorithm)
     s = structure(sa)
 
     # Initialize solution.
-    solution = Solution(sa, alg)
+    solution = Solution(sa, linear_solver)
 
     # Load factors iteration.
     while !is_done(sa)
@@ -97,7 +97,7 @@ function _solve!(sa::LinearStaticAnalysis, alg::Nothing,
         @debugtime "Step" step!(sa, linear_solver)
 
         # Recompute σ and ε for the assembler
-        @debugtime "Update internal forces, stres and strains" assemble!(s, sa)
+        @debugtime "Update internal forces, stresses and strains" assemble!(s, sa)
 
         # Save current state
         store!(solution, current_state(sa), step)
