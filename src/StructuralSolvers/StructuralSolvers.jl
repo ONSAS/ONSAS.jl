@@ -63,8 +63,10 @@ struct ResidualForceCriterion <: AbstractConvergenceCriterion end
 """ `ΔUCriterion` indicates displacements increment convergence criterion. """
 struct ΔUCriterion <: AbstractConvergenceCriterion end
 
-""" `ΔU_and_ResidualForce_Criteria` convergence criterion indicates that both ΔU and residual forces
-converged . """
+"""
+`ΔU_and_ResidualForce_Criteria` convergence criterion indicates that both
+ΔU and residual forces converged .
+"""
 struct ΔU_and_ResidualForce_Criteria <: AbstractConvergenceCriterion end
 
 """ `MaxIterCriterion` criteria indicates that the maximum number of iterations has been reached. """
@@ -198,8 +200,9 @@ which holds the result and the algorithm used to obtain it.
 
 This function mutates the state defined in the analysis problem.
 Use [`solve`](@ref) to avoid mutation.
-For linear analysis problems, the algorithm doesn't need to be provided.
-Also a linar solver form the LinearSolve.jl package can by provided. By default the wrapper to IterativeSolvers Conjugatge Gradient is being used.
+For linear analysis problems, the algorithm doesn't need to be provided since `linear_solve` is used.
+Also a linear solver form the LinearSolve.jl package can by provided. By default the wrapper
+to IterativeSolvers Conjugatge Gradient is being used.
 """
 function solve!(problem::AbstractStructuralAnalysis, solver::Union{AbstractSolver,Nothing}=nothing,
                 linear_solve::SciMLBase.AbstractLinearAlgorithm=DEFAULT_LINEAR_SOLVER())
