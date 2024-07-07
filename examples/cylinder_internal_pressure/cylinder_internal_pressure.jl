@@ -109,7 +109,7 @@ function solve(::FirstCase)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solve!(sa)
+    solve!(sa; linear_solve_inplace=false)
 end;
 
 "Return the problem solution"

@@ -143,11 +143,11 @@ function Base.push!(st_sol::Solution{<:FullStaticState}, c_state::FullStaticStat
     ϵᵏ = dictionary([e => deepcopy(ϵ) for (e, ϵ) in pairs(strain(c_state))])
     iter_state = deepcopy(iteration_residuals(c_state))
     # Empty assembler since the info is stored in k
-    assemblerᵏ = c_state.assembler
+    assembler = c_state.assembler
     linear_system = c_state.linear_system
 
-    state_copy = FullStaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ,
-                                 iter_state, c_state.linear_system)
+    state_copy = FullStaticState(fdofs, ΔUᵏ, Uᵏ, fₑₓₜᵏ, fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assembler,
+                                 iter_state, linear_system)
     push!(states(st_sol), state_copy)
 end
 

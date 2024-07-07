@@ -15,14 +15,14 @@ using ..Entities
 
 @reexport import ..Assemblers: reset!
 @reexport import ..StructuralAnalyses: tangent_matrix
-@reexport import ..CommonSolve: solve!, init
+@reexport import ..CommonSolve: solve, solve!
 
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet,
        ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol,
        ResidualsIterationStep, iter, criterion, isconverged!,
        AbstractSolver, step_size, tolerances, step!, solve, solve!, _solve!,
-       AbstractSolution, iterations, update!, next!
+       AbstractSolution, iterations, update!, next!, DEFAULT_LINEAR_SOLVER
 
 const INITIAL_Δ = 1e12
 const DEFAULT_LINEAR_SOLVER = IterativeSolversJL_CG
@@ -194,26 +194,33 @@ function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
 # Solve function
 # ===============
 
+function solve(problem::AbstractStructuralAnalysis,
+               solver::Union{AbstractSolver,Nothing}=nothing,
+               args...;
+               kwargs...)
+    solve!(deepcopy(problem), solver, args...; kwargs...)
+end
+
+"Internal solve function to be overloaded by each analysis"
+function _solve!(problem::AbstractStructuralAnalysis,
+                 solver::Union{AbstractSolver,Nothing},
+                 args...; kwargs...) end
+
 """
 Solve a structural analysis problem with the given solver, returning a solution structure
 which holds the result and the algorithm used to obtain it.
 
-This function mutates the state defined in the analysis problem.
-Use [`solve`](@ref) to avoid mutation.
-For linear analysis problems, the algorithm doesn't need to be provided since `linear_solve` is used.
-Also a linear solver form the LinearSolve.jl package can by provided. By default the wrapper
-to IterativeSolvers Conjugatge Gradient is being used.
-"""
-function solve!(problem::AbstractStructuralAnalysis, solver::Union{AbstractSolver,Nothing}=nothing,
-                linear_solve::SciMLBase.AbstractLinearAlgorithm=DEFAULT_LINEAR_SOLVER())
-    _solve!(problem, solver, linear_solve)
-end
-solve!(pair::Tuple{AbstractStructuralAnalysis,AbstractSolver}) = solve!(pair.first, pair.last)
+This function mutates the state defined in the analysis problem. Use [`solve`](@ref) to avoid mutation.
+For linear analysis problems, the algorithm doesn't need to be provided. Also a linear solver form
+the LinearSolve.jl package can by provided. By default the wrapper to IterativeSolvers Conjugatge
+Gradient is being used.
 
-"Copy the structure and optionally reset the state."
-function init(a::AbstractStructuralAnalysis, solver::AbstractSolver; reset::Bool=true)
-    acopy = deepcopy(a)
-    (reset ? reset!(acopy) : acopy, solver)
+"""
+function solve!(problem::AbstractStructuralAnalysis,
+                solver::Union{AbstractSolver,Nothing}=nothing,
+                linear_solve::SciMLBase.AbstractLinearAlgorithm=DEFAULT_LINEAR_SOLVER();
+                linear_solve_inplace::Bool=false)
+    _solve!(problem, solver, linear_solve; linear_solve_inplace)
 end
 
 "Return default linear solver tolerances"
@@ -223,8 +230,5 @@ function _default_linear_solver_tolerances(A::AbstractMatrix{<:Real}, b::Vector{
     maxiter = length(b)
     abstol, reltol, maxiter
 end
-
-"Internal solve function to be overloaded by each analysis."
-function _solve!(problem::AbstractStructuralAnalysis, solver::AbstractSolver, args...; kwargs...) end
 
 end # module

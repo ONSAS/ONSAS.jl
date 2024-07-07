@@ -66,7 +66,8 @@ end
 
 "Solves an non linear static analysis problem with a given solver."
 function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver,
-                 linear_solver::SciMLBase.AbstractLinearAlgorithm)
+                 linear_solver::SciMLBase.AbstractLinearAlgorithm;
+                 linear_solve_inplace::Bool)
     s = structure(sa)
     # Initialize solution.
     sol = Solution(sa, alg)
@@ -88,7 +89,7 @@ function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver,
             @debugtime "Assemble internal forces" assemble!(s, sa)
 
             # Increment structure displacements `U = U + ΔU`.
-            @debugtime "Step" step!(sa, alg, linear_solver)
+            @debugtime "Step" step!(sa, alg, linear_solver; linear_solve_inplace)
         end
         # Save current state.
         @debugtime "Save current state" store!(sol, current_state(sa), step)
@@ -101,7 +102,8 @@ end
 
 "Computes ΔU for solving the non linear static analysis with a Newton Raphson method."
 function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson,
-               linear_solver::SciMLBase.AbstractLinearAlgorithm)
+               linear_solver::SciMLBase.AbstractLinearAlgorithm;
+               linear_solve_inplace::Bool)
     # Extract state info
     state = current_state(sa)
     free_dofs_idx = free_dofs(state)
@@ -119,8 +121,16 @@ function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson,
                                                                                   linear_system.b)
 
     # Compute ΔU
-    linear_problem = LinearProblem(linear_system.A, linear_system.b)
-    sol = solve(linear_problem, linear_solver; abstol=abstol, reltol=reltol, maxiter=maxiter)
+    sol = if linear_solve_inplace
+        solve!(linear_system, linear_solver;
+               abstol=abstol, reltol=reltol, maxiter=maxiter)
+    else
+        linear_problem = LinearProblem(linear_system.A, linear_system.b)
+        solve(linear_problem, linear_solver;
+              abstol=abstol,
+              reltol=reltol,
+              maxiter=maxiter)
+    end
     ΔU = Δ_displacements!(state, sol.u)
 
     # Compute norms

@@ -16,6 +16,7 @@ using ..StaticStates
 using ..StructuralAnalyses
 using ..StaticAnalyses
 using ..StructuralSolvers
+using ..StructuralSolvers: _default_linear_solver_tolerances
 using ..Solvers
 using ..Solutions
 
@@ -73,8 +74,9 @@ function Base.show(io::IO, sa::LinearStaticAnalysis)
 end
 
 "Solves a linear analysis problem mutating the state."
-function _solve!(sa::LinearStaticAnalysis, ::Nothing,
-                 linear_solver::SciMLBase.AbstractLinearAlgorithm)
+function _solve!(sa::LinearStaticAnalysis, alg::Nothing,
+                 linear_solver::SciMLBase.AbstractLinearAlgorithm;
+                 linear_solve_inplace::Bool)
     s = structure(sa)
 
     # Initialize solution.
@@ -94,7 +96,7 @@ function _solve!(sa::LinearStaticAnalysis, ::Nothing,
         end
 
         # Increment structure displacements U = ΔU
-        @debugtime "Step" step!(sa, linear_solver)
+        @debugtime "Step" step!(sa, linear_solver; linear_solve_inplace)
 
         # Recompute σ and ε for the assembler
         @debugtime "Update internal forces, stresses and strains" assemble!(s, sa)
@@ -110,7 +112,9 @@ function _solve!(sa::LinearStaticAnalysis, ::Nothing,
 end
 
 "Computes ΔU for solving the linear analysis."
-function step!(sa::LinearStaticAnalysis, linear_solver::SciMLBase.AbstractLinearAlgorithm)
+function step!(sa::LinearStaticAnalysis,
+               linear_solver::SciMLBase.AbstractLinearAlgorithm;
+               linear_solve_inplace::Bool)
     # Extract state info
     state = current_state(sa)
     free_dofs_idx = free_dofs(state)
@@ -126,15 +130,25 @@ function step!(sa::LinearStaticAnalysis, linear_solver::SciMLBase.AbstractLinear
     end
 
     # Define tolerances
-    abstol, reltol, maxiter = StructuralSolvers._default_linear_solver_tolerances(linear_system.A,
-                                                                                  linear_system.b)
+    abstol, reltol, maxiter = _default_linear_solver_tolerances(linear_system.A,
+                                                                linear_system.b)
 
     # Compute ΔU
     # TODO: Solve it inplace
-    # sol = solve!(linear_system, linear_solver; abstol=abstol, reltol=reltol, maxiter=maxiter)
-
-    linear_problem = LinearProblem(linear_system.A, linear_system.b)
-    sol = solve(linear_problem, linear_solver; abstol=abstol, reltol=reltol, maxiter=maxiter)
+    sol = if linear_solve_inplace
+        LinearSolve.solve!(new_linear_system,
+                           linear_solver;
+                           abstol=abstol,
+                           reltol=reltol,
+                           maxiter=maxiter)
+    else
+        lp = LinearProblem(linear_system.A, linear_system.b)
+        LinearSolve.solve!(init(lp, linear_solver),
+                           linear_solver;
+                           abstol=abstol,
+                           reltol=reltol,
+                           maxiter=maxiter)
+    end
     ΔU = Δ_displacements!(state, sol.u)
 
     # Update U

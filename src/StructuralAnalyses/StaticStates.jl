@@ -76,7 +76,8 @@ end
 
 "Default constructor for static state given an structure and iteration state."
 function FullStaticState(s::AbstractStructure,
-                         iter_state::ResidualsIterationStep=ResidualsIterationStep())
+                         iter_state::ResidualsIterationStep=ResidualsIterationStep(),
+                         linear_solver=DEFAULT_LINEAR_SOLVER())
     n_dofs = num_dofs(s)
     n_fdofs = num_free_dofs(s)
     Uᵏ = zeros(n_dofs)
@@ -91,7 +92,8 @@ function FullStaticState(s::AbstractStructure,
     cache = dictionary(nameof(T) => elements_cache(T) for T in subtypes(AbstractElement))
     assemblerᵏ = Assembler(s, cache)
     fdofs = free_dofs(s)
-    linear_system = init(LinearProblem(Kₛᵏ[fdofs, fdofs], res_forces))
+    linear_system = init(LinearProblem(Kₛᵏ[fdofs, fdofs], res_forces), linear_solver)
+    # linear_system = init(LinearProblem(Kₛᵏ[fdofs, fdofs], res_forces))
     FullStaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state,
                     linear_system)
 end

@@ -54,11 +54,11 @@ function solve()
     # Structural Analysis
     # -------------------------------
     (; NSTEPS) = parameters()
-    sa = NonLinearStaticAnalysis(s; NSTEPS=NSTEPS)
+    sa = NonLinearStaticAnalysis(s; NSTEPS)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solve!(sa, NewtonRaphson())
+    sol = ONSAS.solve(sa, NewtonRaphson())
 end;
 
 "Test problem solution"
