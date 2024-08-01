@@ -1,6 +1,6 @@
 # ONSAS.jl
 
-## *An (experimental) Julia Open Nonlinear Structural Analysis Solver*
+## *An Julia Open Nonlinear Structural Analysis Solver*
 
 [![docs-dev][dev-img]][dev-url] [![CI][ci-img]][ci-url] [![codecov][cov-img]][cov-url] [![license][lic-img]][lic-url]
 
