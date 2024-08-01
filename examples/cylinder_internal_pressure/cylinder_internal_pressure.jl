@@ -139,7 +139,7 @@ function solve(::SecondCase)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solve(sa, nr)
+    ONSAS.solve(sa, nr)
 end;
 
 "Return a rand point in the cylinder (R, θ, L)."
