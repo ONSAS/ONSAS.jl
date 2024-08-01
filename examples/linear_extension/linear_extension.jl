@@ -87,7 +87,7 @@ function solve()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    sol = solve!(sa)
+    ONSAS.solve(sa)
 end;
 
 "Return random points to evaluate the solution"

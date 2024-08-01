@@ -3,6 +3,7 @@
 #----------------------------------------------------
 using LinearAlgebra, Test, Suppressor
 using ONSAS
+using ONSAS.LinearStaticAnalyses: LinearResidualsIterationStep
 import Random
 Random.seed!(1234)
 
@@ -105,11 +106,14 @@ function solve(::FirstCase)
     # Structural Analysis
     # -------------------------------
     s = structure(liner_elastic)
-    sa = LinearStaticAnalysis(s; NSTEPS)
+    # TODO: Revise possible singular K matrix influenced by LinearSolver initialization.
+    linear_solver = nothing
+    initial_state = FullStaticState(s, LinearResidualsIterationStep, linear_solver)
+    sa = LinearStaticAnalysis(s; NSTEPS, initial_state)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solve!(sa)
+    ONSAS.solve(sa; linear_solve_inplace=false)
 end;
 
 "Return the problem solution"
@@ -135,7 +139,7 @@ function solve(::SecondCase)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solve!(sa, nr)
+    ONSAS.solve(sa, nr)
 end;
 
 "Return a rand point in the cylinder (R, θ, L)."

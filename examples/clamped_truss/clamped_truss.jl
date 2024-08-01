@@ -65,7 +65,7 @@ function solve()
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solve!(sa, NewtonRaphson())
+    ONSAS.solve(sa, NewtonRaphson())
 end;
 
 "Test problem solution"
