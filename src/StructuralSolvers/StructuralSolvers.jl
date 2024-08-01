@@ -22,10 +22,14 @@ export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol,
        ResidualsIterationStep, iter, criterion, isconverged!,
        AbstractSolver, step_size, tolerances, step!, solve, solve!, _solve!,
-       AbstractSolution, iterations, update!, next!, DEFAULT_LINEAR_SOLVER
+       AbstractSolution, iterations, update!, next!, LinearSolver, DEFAULT_LINEAR_SOLVER
 
 const INITIAL_Δ = 1e12
+"Default LinearSolve.jl solver"
 const DEFAULT_LINEAR_SOLVER = IterativeSolversJL_CG
+"LinearSolve solver object. If is `nothing`  default algorithm by `LinearSolve.jl`` is used."
+const LinearSolver = Union{SciMLBase.AbstractLinearAlgorithm,Nothing}
+
 """
 Facilitates the process of defining and checking numerical convergence.
 """
@@ -201,29 +205,27 @@ function solve(problem::AbstractStructuralAnalysis,
     solve!(deepcopy(problem), solver, args...; kwargs...)
 end
 
+"""
+Solve a structural analysis problem with the given solver, returning a solution structure
+which holds the result and the algorithm used to obtain it.
+
+This function mutates the state defined in the analysis problem from the initial to final state.
+Use [`solve`](@ref) to avoid  mutation. For linear analysis problems, the `solver` doesn't need
+to be provided. Also a linear solver form LinearSolve.jl package can by provided.
+By default `DEFAULT_LINEAR_SOLVER` is utilized.
+"""
+function solve!(problem::AbstractStructuralAnalysis,
+                solver::Union{AbstractSolver,Nothing}=nothing,
+                linear_solve::LinearSolver=DEFAULT_LINEAR_SOLVER();
+                linear_solve_inplace::Bool=false)
+    _solve!(problem, solver, linear_solve; linear_solve_inplace)
+end
+
 "Internal solve function to be overloaded by each analysis"
 function _solve!(problem::AbstractStructuralAnalysis,
                  solver::Union{AbstractSolver,Nothing},
                  args...; kwargs...) end
 
-"""
-Solve a structural analysis problem with the given solver, returning a solution structure
-which holds the result and the algorithm used to obtain it.
-
-This function mutates the state defined in the analysis problem. Use [`solve`](@ref) to avoid mutation.
-For linear analysis problems, the algorithm doesn't need to be provided. Also a linear solver form
-the LinearSolve.jl package can by provided. By default the wrapper to IterativeSolvers Conjugatge
-Gradient is being used.
-
-"""
-function solve!(problem::AbstractStructuralAnalysis,
-                solver::Union{AbstractSolver,Nothing}=nothing,
-                linear_solve::SciMLBase.AbstractLinearAlgorithm=DEFAULT_LINEAR_SOLVER();
-                linear_solve_inplace::Bool=false)
-    _solve!(problem, solver, linear_solve; linear_solve_inplace)
-end
-
-"Return default linear solver tolerances"
 function _default_linear_solver_tolerances(A::AbstractMatrix{<:Real}, b::Vector{<:Real})
     abstol = zero(real(eltype(b)))
     reltol = sqrt(eps(real(eltype(b))))

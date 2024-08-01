@@ -93,7 +93,6 @@ function FullStaticState(s::AbstractStructure,
     assemblerᵏ = Assembler(s, cache)
     fdofs = free_dofs(s)
     linear_system = init(LinearProblem(Kₛᵏ[fdofs, fdofs], res_forces), linear_solver)
-    # linear_system = init(LinearProblem(Kₛᵏ[fdofs, fdofs], res_forces))
     FullStaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state,
                     linear_system)
 end

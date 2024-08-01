@@ -74,8 +74,9 @@ function Base.show(io::IO, sa::LinearStaticAnalysis)
 end
 
 "Solves a linear analysis problem mutating the state."
-function _solve!(sa::LinearStaticAnalysis, alg::Nothing,
-                 linear_solver::SciMLBase.AbstractLinearAlgorithm;
+function _solve!(sa::LinearStaticAnalysis,
+                 alg::Nothing,
+                 linear_solver::LinearSolver;
                  linear_solve_inplace::Bool)
     s = structure(sa)
 
@@ -113,7 +114,7 @@ end
 
 "Computes ΔU for solving the linear analysis."
 function step!(sa::LinearStaticAnalysis,
-               linear_solver::SciMLBase.AbstractLinearAlgorithm;
+               linear_solver::LinearSolver;
                linear_solve_inplace::Bool)
     # Extract state info
     state = current_state(sa)
@@ -136,18 +137,12 @@ function step!(sa::LinearStaticAnalysis,
     # Compute ΔU
     # TODO: Solve it inplace
     sol = if linear_solve_inplace
-        LinearSolve.solve!(new_linear_system,
-                           linear_solver;
-                           abstol=abstol,
-                           reltol=reltol,
-                           maxiter=maxiter)
+        LinearSolve.solve!(linear_system,
+                           linear_solver; abstol, reltol, maxiter)
     else
         lp = LinearProblem(linear_system.A, linear_system.b)
         LinearSolve.solve!(init(lp, linear_solver),
-                           linear_solver;
-                           abstol=abstol,
-                           reltol=reltol,
-                           maxiter=maxiter)
+                           linear_solver; abstol, reltol, maxiter)
     end
     ΔU = Δ_displacements!(state, sol.u)
 

@@ -65,8 +65,9 @@ function Base.show(io::IO, sa::NonLinearStaticAnalysis)
 end
 
 "Solves an non linear static analysis problem with a given solver."
-function _solve!(sa::NonLinearStaticAnalysis, alg::AbstractSolver,
-                 linear_solver::SciMLBase.AbstractLinearAlgorithm;
+function _solve!(sa::NonLinearStaticAnalysis,
+                 alg::AbstractSolver,
+                 linear_solver::LinearSolver;
                  linear_solve_inplace::Bool)
     s = structure(sa)
     # Initialize solution.
@@ -122,14 +123,10 @@ function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson,
 
     # Compute ΔU
     sol = if linear_solve_inplace
-        solve!(linear_system, linear_solver;
-               abstol=abstol, reltol=reltol, maxiter=maxiter)
+        solve!(linear_system, linear_solver; abstol, reltol, maxiter)
     else
         linear_problem = LinearProblem(linear_system.A, linear_system.b)
-        solve(linear_problem, linear_solver;
-              abstol=abstol,
-              reltol=reltol,
-              maxiter=maxiter)
+        solve(linear_problem, linear_solver; abstol, reltol, maxiter)
     end
     ΔU = Δ_displacements!(state, sol.u)
 
