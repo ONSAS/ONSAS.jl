@@ -96,7 +96,7 @@ end
 
 "2D node constructor with two coordinates."
 function Node(x₁::T, x₂::T, dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) where {T<:Real}
-    Node(Point((x₁, x₂)), dofs)
+    Node(Point(x₁, x₂), dofs)
 end
 
 "3D node constructor with coordinates."
