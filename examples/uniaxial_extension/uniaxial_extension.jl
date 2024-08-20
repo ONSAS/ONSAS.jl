@@ -121,7 +121,7 @@ function solve(c::AbstractCase)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solve!(nsa, nr)
+    ONSAS.solve(nsa, nr)
 end;
 
 "Computes numeric solution α, β and γ for analytic validation."

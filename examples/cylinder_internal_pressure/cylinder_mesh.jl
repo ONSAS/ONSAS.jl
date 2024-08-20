@@ -1,7 +1,7 @@
 using Gmsh
 
-"Creates a mesh for a cylinder loaded with a pressure in its internal face 
-and fixed in k at (0,0,0) and (0,0,Lₖ), the boundary conditions and physical 
+"Creates a mesh for a cylinder loaded with a pressure in its internal face
+and fixed in k at (0,0,0) and (0,0,Lₖ), the boundary conditions and physical
 properties are passed into as `labels`. The .msh file is generated at `filename`
 at a given `dir`ectory  with a refinement factor `ms`."
 function create_cylinder_mesh(Rᵢ::Real, Rₑ::Real, Lₖ::Real,
@@ -97,7 +97,7 @@ function create_cylinder_mesh(Rᵢ::Real, Rₑ::Real, Lₖ::Real,
     gmsh.model.geo.addLine(8, 17, 27)
     gmsh.model.geo.addLine(9, 18, 28)
 
-    # Curve and surfaces 
+    # Curve and surfaces
     # Rₑ
     gmsh.model.geo.addCurveLoop([-5, 25, 15, -26], 1)
     gmsh.model.geo.addSurfaceFilling([1], 1)
@@ -117,12 +117,12 @@ function create_cylinder_mesh(Rᵢ::Real, Rₑ::Real, Lₖ::Real,
     gmsh.model.geo.addCurveLoop([-4, 24, 14, -21], 8)
     gmsh.model.geo.addSurfaceFilling([-8], 8)
 
-    # Surface at z = 0 
+    # Surface at z = 0
     gmsh.model.geo.addCurveLoop([5, 6, 7, 8], 9)
     gmsh.model.geo.addCurveLoop([-4, -3, -2, -1], 10)
     gmsh.model.geo.addPlaneSurface([9, 10], 9)
 
-    # Surface at z = Lₖ 
+    # Surface at z = Lₖ
     gmsh.model.geo.addCurveLoop([-18, -17, -16, -15], 11)
     gmsh.model.geo.addCurveLoop([11, 12, 13, 14], 12)
     gmsh.model.geo.addPlaneSurface([11, 12], 10)
@@ -139,10 +139,10 @@ function create_cylinder_mesh(Rᵢ::Real, Rₑ::Real, Lₖ::Real,
 
     # nodes
     # fixed uᵢ
-    gmsh.model.addPhysicalGroup(dim_node, [9, 18], 1)
+    gmsh.model.addPhysicalGroup(dim_node, [9, 18, 7, 16], 1)
     gmsh.model.setPhysicalName(dim_node, 1, "_$(node_label)_$(uᵢ_bc_label)")
     # fixed uⱼ
-    gmsh.model.addPhysicalGroup(dim_node, [6, 15], 2)
+    gmsh.model.addPhysicalGroup(dim_node, [6, 15, 8, 17], 2)
     gmsh.model.setPhysicalName(dim_node, 2, "_$(node_label)_$(uⱼ_bc_label)")
     # surfaces
     # fixed uₖ
@@ -157,7 +157,6 @@ function create_cylinder_mesh(Rᵢ::Real, Rₑ::Real, Lₖ::Real,
     gmsh.model.addPhysicalGroup(dim_vol, [1], 5)
     gmsh.model.setPhysicalName(dim_vol, 5, "$(mat_label)_$(element_label)_")
 
-    # synchronize and write 
     gmsh.model.geo.synchronize()
     gmsh.model.mesh.generate(dim_vol)
     filename_msh = joinpath(dir, filename * ".msh")

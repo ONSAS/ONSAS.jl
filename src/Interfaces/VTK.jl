@@ -12,7 +12,6 @@ using ..Solutions
 using ..Structures
 using ..StructuralAnalyses
 
-export write_vtk
 @reexport import WriteVTK: write_vtk
 
 """

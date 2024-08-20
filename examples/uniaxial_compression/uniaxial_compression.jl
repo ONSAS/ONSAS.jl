@@ -182,7 +182,7 @@ function solve(case::AbstractCase)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    solve!(sa, nr)
+    ONSAS.solve(sa, nr)
 end;
 
 "Computes numeric solution
@@ -221,7 +221,7 @@ function numerical_solution(sol::AbstractSolution)
     P22 = getindex.(P, 2, 2)
     # P33 component:
     P33 = getindex.(P, 3, 3)
-    # Get the Right hand Cauchy strain tensor ℂ at a random state
+    # Get the Right hand Cauchy strain tensor C at a random state
     C_rand = rand(strain(sol, e))
 
     P11, P22, P33, α, β, γ, uᵢ, P
