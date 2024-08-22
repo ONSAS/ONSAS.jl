@@ -50,11 +50,11 @@ function structure(material::AbstractMaterial)
     # -------------------------------
     # Dirichlet boundary conditions
     bc1_label = "fixed-ui"
-    bc1 = FixedDof(:u, [1], bc1_label)
+    bc1 = FixedField(:u, [1], bc1_label)
     bc2_label = "fixed-uj"
-    bc2 = FixedDof(:u, [2], bc2_label)
+    bc2 = FixedField(:u, [2], bc2_label)
     bc3_label = "fixed-uk"
-    bc3 = FixedDof(:u, [3], bc3_label)
+    bc3 = FixedField(:u, [3], bc3_label)
     # Neumann boundary conditions
     bc4_label = "pressure"
     bc4 = Pressure(:u, pressure, bc4_label)

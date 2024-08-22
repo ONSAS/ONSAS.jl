@@ -46,8 +46,8 @@ function structure(strain_model::Type{<:AbstractStrainModel}=GreenStrain)
     # -------------------------------
     # Boundary conditions
     # -------------------------------
-    bc_fixed = FixedDof(:u, [1, 2, 3], "all_u_fixed")
-    bc_fixed_y = FixedDof(:u, [2], "fixed_uy")
+    bc_fixed = FixedField(:u, [1, 2, 3], "all_u_fixed")
+    bc_fixed_y = FixedField(:u, [2], "fixed_uy")
     bc_load = GlobalLoad(:u, t -> [0, 0, Fk * t], "load in j")
     s_boundary_conditions = StructuralBoundaryCondition(bc_fixed => [n1, n3], bc_fixed_y => [n2],
                                                         bc_load => [n2])

@@ -39,11 +39,11 @@ function structure()
     # -------------------------------
     # Fixed dofs
     bc1_label = "fixed-ux"
-    bc1 = FixedDof(:u, [1], bc1_label)
+    bc1 = FixedField(:u, [1], bc1_label)
     bc2_label = "fixed-uy"
-    bc2 = FixedDof(:u, [2], bc2_label)
+    bc2 = FixedField(:u, [2], bc2_label)
     bc3_label = "fixed-uz"
-    bc3 = FixedDof(:u, [3], bc3_label)
+    bc3 = FixedField(:u, [3], bc3_label)
     # Load
     bc4_label = "tension"
     bc4 = GlobalLoad(:u, t -> [tension_load(t), 0, 0], bc4_label)

@@ -76,7 +76,7 @@ function structure(N::Int;
     # -------------------------------
     # Boundary conditions
     # -------------------------------
-    fixed_bc = FixedDof(:u, [1], "fixed")
+    fixed_bc = FixedField(:u, [1], "fixed")
     gravity_bc_ramp = GlobalLoad(:u, t -> t * [density(material) * g], "gravity")
     node_bcs = Dictionary{AbstractBoundaryCondition,Vector{Node}}()
     insert!(node_bcs, fixed_bc, [first(nodes(m))])

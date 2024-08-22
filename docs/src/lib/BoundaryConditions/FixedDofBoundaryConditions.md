@@ -1,5 +1,5 @@
 # Fixed dof
 
 ```@autodocs
-Modules = [ONSAS.FixedDofBoundaryConditions]
+Modules = [ONSAS.FixedFieldBoundaryConditions]
 ```

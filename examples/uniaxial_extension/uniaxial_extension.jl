@@ -87,9 +87,9 @@ function structure(::FirstCase)
     # Boundary conditions
     # -------------------------------
     # Fixed dofs
-    bc1 = FixedDof(:u, [1])
-    bc2 = FixedDof(:u, [2])
-    bc3 = FixedDof(:u, [3])
+    bc1 = FixedField(:u, [1])
+    bc2 = FixedField(:u, [2])
+    bc3 = FixedField(:u, [3])
     # Load
     bc4 = GlobalLoad(:u, t -> [p * t, 0, 0])
     # Crete boundary conditions struct
@@ -224,11 +224,11 @@ function structure(::SecondCase)
     # -------------------------------
     # Fixed dofs
     bc1_label = "fixed-ux"
-    bc1 = FixedDof(:u, [1], bc1_label)
+    bc1 = FixedField(:u, [1], bc1_label)
     bc2_label = "fixed-uy"
-    bc2 = FixedDof(:u, [2], bc2_label)
+    bc2 = FixedField(:u, [2], bc2_label)
     bc3_label = "fixed-uz"
-    bc3 = FixedDof(:u, [3], bc3_label)
+    bc3 = FixedField(:u, [3], bc3_label)
     # Redefine the load boundary condition
     bc4_label = "tension"
     bc4 = Pressure(:u, t -> -p * t, bc4_label)
