@@ -1,4 +1,4 @@
-# Fixed dof
+# Fixed field
 
 ```@autodocs
 Modules = [ONSAS.FixedFieldBoundaryConditions]
