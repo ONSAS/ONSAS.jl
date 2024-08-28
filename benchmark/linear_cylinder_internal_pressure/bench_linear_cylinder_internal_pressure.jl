@@ -67,9 +67,9 @@ function linear_cylinder_structure(; ms::Real=0.5)
     # Boundary conditions
     # -------------------------------
     # Dirichlet boundary conditions
-    bc₁ = FixedDof(:u, [1], bc₁_label)
-    bc₂ = FixedDof(:u, [2], bc₂_label)
-    bc₃ = FixedDof(:u, [3], bc₃_label)
+    bc₁ = FixedField(:u, [1], bc₁_label)
+    bc₂ = FixedField(:u, [2], bc₂_label)
+    bc₃ = FixedField(:u, [3], bc₃_label)
     # Neumann boundary conditions
     bc₄ = Pressure(:u, pressure, bc₄_label)
     boundary_conditions = StructuralBoundaryCondition(bc₁, bc₂, bc₃, bc₄)

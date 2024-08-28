@@ -15,7 +15,7 @@ makedocs(;
          pages=["Home" => "index.md",
                 "Modules" => ["BoundaryConditions" => ["BoundaryConditions" => "lib/BoundaryConditions/BoundaryConditions.md",
                                                        "DirichletBoundaryConditions" => "lib/BoundaryConditions/DirichletBoundaryConditions.md",
-                                                       "FixedDofBoundaryConditions" => "lib/BoundaryConditions/FixedDofBoundaryConditions.md",
+                                                       "FixedFieldBoundaryConditions" => "lib/BoundaryConditions/FixedFieldBoundaryConditions.md",
                                                        "GlobalLoadBoundaryConditions" => "lib/BoundaryConditions/GlobalLoadBoundaryConditions.md",
                                                        "LocalLoadBoundaryConditions" => "lib/BoundaryConditions/LocalLoadBoundaryConditions.md"],
                               "CrossSections" => ["Circles" => "lib/CrossSections/Circles.md",

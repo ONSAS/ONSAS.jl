@@ -13,7 +13,7 @@ using Dictionaries: Dictionary, dictionary
 using ..Utils
 using ..Entities
 using ..BoundaryConditions
-using ..FixedDofBoundaryConditions
+using ..FixedFieldBoundaryConditions
 using ..Nodes
 using ..Meshes
 
@@ -155,14 +155,14 @@ end
 
 "Return fixed dofs boundary conditions."
 function fixed_dof_bcs(se::StructuralBoundaryCondition)
-    vbc = Vector{FixedDof}()
-    fixed_bcs = filter(bc -> bc isa FixedDof, all_bcs(se))
+    vbc = Vector{FixedField}()
+    fixed_bcs = filter(bc -> bc isa FixedField, all_bcs(se))
     push!(vbc, fixed_bcs...)
     unique!(vbc)
 end
 
 "Return the dofs that the boundary condition fixes."
-function apply(bcs::StructuralBoundaryCondition, fbc::FixedDof)
+function apply(bcs::StructuralBoundaryCondition, fbc::FixedField)
     # Extract nodes, faces and elements
     entities = bcs[fbc]
     dofs_to_delete = Dof[]
@@ -171,7 +171,7 @@ function apply(bcs::StructuralBoundaryCondition, fbc::FixedDof)
     end
     unique!(dofs_to_delete)
 end
-function apply(bcs::StructuralBoundaryCondition, f_bcs::Vector{<:FixedDof})
+function apply(bcs::StructuralBoundaryCondition, f_bcs::Vector{<:FixedField})
     dofs_to_delete = Dof[]
     for fbc in f_bcs
         push!(dofs_to_delete, apply(bcs, fbc)...)

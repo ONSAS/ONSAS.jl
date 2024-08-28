@@ -2,7 +2,7 @@ using Test, Dictionaries
 
 # Modules to test
 using ONSAS.BoundaryConditions
-using ONSAS.FixedDofBoundaryConditions
+using ONSAS.FixedFieldBoundaryConditions
 using ONSAS.DirichletBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.LocalLoadBoundaryConditions
@@ -28,12 +28,12 @@ n₄ = Node(2, 0, 1,
 t_face = TriangularFace(n₁, n₂, n₃)
 tetra = Tetrahedron(n₁, n₂, n₃, n₄)
 
-@testset "ONSAS.BoundaryConditions.FixedDof" begin
+@testset "ONSAS.BoundaryConditions.FixedField" begin
     # Generic labeled boundary condition.
     generic_fixed_dofs = :u
     fixed_components = [1, 3]
     generic_bc_label = :fixed_bc_generic
-    fixed_bc = FixedDof(generic_fixed_dofs, fixed_components, generic_bc_label)
+    fixed_bc = FixedField(generic_fixed_dofs, fixed_components, generic_bc_label)
 
     @test components(fixed_bc) == fixed_components
     @test label(fixed_bc) == generic_bc_label
@@ -46,7 +46,7 @@ tetra = Tetrahedron(n₁, n₂, n₃, n₄)
     generic_fixed_dofs = :θ
     fixed_components = [1, 3]
     generic_bc_label = :fixed_bc_generic
-    fixed_bc = FixedDof(generic_fixed_dofs, fixed_components, generic_bc_label)
+    fixed_bc = FixedField(generic_fixed_dofs, fixed_components, generic_bc_label)
 
     @test components(fixed_bc) == fixed_components
     @test label(fixed_bc) == generic_bc_label
