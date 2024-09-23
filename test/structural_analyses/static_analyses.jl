@@ -4,7 +4,7 @@ using Dictionaries: dictionary
 using ONSAS.StaticAnalyses
 using ONSAS.Circles
 using ONSAS.SVKMaterial
-using ONSAS.FixedDofBoundaryConditions
+using ONSAS.FixedFieldBoundaryConditions
 using ONSAS.GlobalLoadBoundaryConditions
 using ONSAS.StructuralAnalyses
 using ONSAS.Solvers
@@ -70,8 +70,8 @@ s_materials = StructuralMaterial(mat_dict)
 # Boundary conditions
 # -------------------------------
 # Fixed dofs
-bc₁ = FixedDof(:u, [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
-bc₂ = FixedDof(:u, [2], "fixed_uⱼ")
+bc₁ = FixedField(:u, [1, 2, 3], "fixed_uₓ_uⱼ_uₖ")
+bc₂ = FixedField(:u, [2], "fixed_uⱼ")
 # Load
 bc₃ = GlobalLoad(:u, t -> [0, 0, Fₖ * t], "load in k")
 bc₄ = GlobalLoad(:u, t -> [0, Fⱼ * t, 0.0], "load in j")

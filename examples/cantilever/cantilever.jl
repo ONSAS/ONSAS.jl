@@ -38,8 +38,8 @@ function structure()
     # -------------------------------
     # Boundary conditions
     # -------------------------------
-    bc1 = FixedDof(:u, [1, 2, 3])
-    bc2 = FixedDof(:θ, [1, 2, 3])
+    bc1 = FixedField(:u, [1, 2, 3])
+    bc2 = FixedField(:θ, [1, 2, 3])
     bc3 = GlobalLoad(:u, t -> [Px, -Py, 0])
     boundary_conditions = StructuralBoundaryCondition(bc1 => [nodes[1]], bc2 => [nodes[1]],
                                                       bc3 => [nodes[end]])

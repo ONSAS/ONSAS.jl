@@ -27,7 +27,7 @@ FILES = ["Utils.jl",
          "Entities/Frames.jl",
          # Boundary conditions
          "BoundaryConditions/BoundaryConditions.jl",
-         "BoundaryConditions/FixedDofBoundaryConditions.jl",
+         "BoundaryConditions/FixedFieldBoundaryConditions.jl",
          "BoundaryConditions/DirichletBoundaryConditions.jl",
          "BoundaryConditions/GlobalLoadBoundaryConditions.jl",
          "BoundaryConditions/LocalLoadBoundaryConditions.jl",
@@ -94,7 +94,7 @@ end
 
 ## Boundary conditions
 @reexport using .BoundaryConditions
-@reexport using .FixedDofBoundaryConditions
+@reexport using .FixedFieldBoundaryConditions
 @reexport using .DirichletBoundaryConditions
 @reexport using .LocalLoadBoundaryConditions
 @reexport using .GlobalLoadBoundaryConditions

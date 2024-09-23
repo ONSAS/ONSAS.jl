@@ -46,7 +46,7 @@ function structure()
     # -------------------------------
     # Boundary conditions
     # -------------------------------
-    bc₁ = FixedDof(:u, [1], "fixed_uₓ")
+    bc₁ = FixedField(:u, [1], "fixed_uₓ")
     bc₂ = GlobalLoad(:u, t -> [F * t], "load in j")
     # Apply bcs to the nodes
     boundary_conditions = StructuralBoundaryCondition(bc₁ => [first(nodes)], bc₂ => [last(nodes)])

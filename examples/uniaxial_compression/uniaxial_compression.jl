@@ -38,11 +38,11 @@ function boundary_conditions()
     (; p) = parameters()
 
     bc_fixed_x_label = "fixed-ux"
-    bc_fixed_x = FixedDof(:u, [1], bc_fixed_x_label)
+    bc_fixed_x = FixedField(:u, [1], bc_fixed_x_label)
     bc_fixed_y_label = "fixed-uj"
-    bc_fixed_y = FixedDof(:u, [2], bc_fixed_y_label)
+    bc_fixed_y = FixedField(:u, [2], bc_fixed_y_label)
     bc_fixed_k_label = "fixed-uk"
-    bc_fixed_k = FixedDof(:u, [3], bc_fixed_k_label)
+    bc_fixed_k = FixedField(:u, [3], bc_fixed_k_label)
     bc_load_label = "compression"
     bc_load = GlobalLoad(:u, t -> [-p * t, 0, 0], bc_load_label)
     bc_labels = [bc_fixed_x_label, bc_fixed_y_label, bc_fixed_k_label, bc_load_label]
