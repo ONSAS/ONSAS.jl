@@ -10,7 +10,7 @@ module Entities
 
 using Reexport, Dictionaries, StaticArrays
 
-using ..Nodes
+# using ..Nodes
 using ..Materials
 
 @reexport import ..Utils: label, apply!, dofs
@@ -95,7 +95,7 @@ abstract type AbstractFace{dim,T} <: AbstractEntity{dim,T} end
 "Return the `AbstractFace` `f` area."
 function area(f::AbstractFace) end
 
-"Return the `AbstractFace` `f` normal."
+"Return the `AbstractFace` `f` normal direction."
 function normal_direction(f::AbstractFace) end
 
 ## =================
