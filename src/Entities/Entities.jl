@@ -52,7 +52,7 @@ coordinates(ve::Vector{<:AbstractEntity}) = coordinates.(ve)
 # function create_entity(e::AbstractEntity, vn::AbstractVector{<:AbstractNode}) end
 
 "Return the `AbstractEntity` dimension."
-dimension(::AbstractEntity{dim}) where {dim} = dim
+# dimension(::AbstractEntity{dim}) where {dim} = dim
 
 "Return the dofs of an `AbstractEntity` `e`."
 function dofs(e::AbstractEntity)
