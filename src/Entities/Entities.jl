@@ -49,7 +49,7 @@ coordinates(e::AbstractEntity) = coordinates.(nodes(e))
 coordinates(ve::Vector{<:AbstractEntity}) = coordinates.(ve)
 
 "Return an `AbstractEntity` given an empty `AbstractEntity` `e` and a `Vector` of `Node`s `vn`."
-function create_entity(e::AbstractEntity, vn::AbstractVector{<:AbstractNode}) end
+# function create_entity(e::AbstractEntity, vn::AbstractVector{<:AbstractNode}) end
 
 "Return the `AbstractEntity` dimension."
 dimension(::AbstractEntity{dim}) where {dim} = dim
