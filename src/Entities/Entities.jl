@@ -109,6 +109,7 @@ An `AbstractElement` object facilitates the process of evaluating:
     - The mechanical stresses and strains.
 
 **Abstract Methods**
+* [`cross_section`](@ref)
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
