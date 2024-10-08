@@ -24,7 +24,7 @@ function structure()
     # Mesh
     # -------------
     x_coords = range(0, L, N + 1)
-    nodes = [Node(xi, 0.0, 0.0) for xi in x_coords]
+    nodes = [Node(promote(xi, 0, 0.0)) for xi in x_coords]
     S = Rectangle(h, b)
     frames = [Frame(nodes[j], nodes[j + 1], S) for j in 1:(length(nodes) - 1)]
     mesh = Mesh(; nodes=nodes, elements=frames)
