@@ -89,22 +89,6 @@ function Base.show(io::IO, ::MIME"text/plain", n::Node)
     println("• Node at $(n.x) and dofs $(n.dofs)")
 end
 
-"1D node constructor with one dim coordinates."
-function Node(x₁::T, dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) where {T<:Real}
-    Node(Point(x₁), dofs)
-end
-
-"2D node constructor with two coordinates."
-function Node(x₁::T, x₂::T, dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) where {T<:Real}
-    Node(Point(x₁, x₂), dofs)
-end
-
-"3D node constructor with coordinates."
-function Node(x₁::T, x₂::T, x₃::T,
-              dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) where {T<:Real}
-    Node(Point(x₁, x₂, x₃), dofs)
-end
-
 "Node constructor with a `NTuple`."
 function Node(t::NTuple{dim,T},
               dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) where {dim,T<:Real}
