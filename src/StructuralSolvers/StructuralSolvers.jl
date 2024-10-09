@@ -1,6 +1,6 @@
 """
 Module defining structural solvers that can be used to solved different analyses.
-Each solver consists of a data type with a convergence criterion and a the iteration status.
+Each solver consists of a data type with a convergence criterion and the iteration status.
 A step! method is used to perform a single iteration step.
 """
 module StructuralSolvers
