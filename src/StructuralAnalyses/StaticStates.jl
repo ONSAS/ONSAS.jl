@@ -77,7 +77,7 @@ end
 "Default constructor for static state given an structure and iteration state."
 function FullStaticState(s::AbstractStructure,
                          iter_state::ResidualsIterationStep=ResidualsIterationStep(),
-                         linear_solver=DEFAULT_LINEAR_SOLVER())
+                         linear_solver=DEFAULT_LINEAR_SOLVER)
     n_dofs = num_dofs(s)
     n_fdofs = num_free_dofs(s)
     Uᵏ = zeros(n_dofs)
