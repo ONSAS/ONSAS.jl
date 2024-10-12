@@ -216,7 +216,7 @@ By default `DEFAULT_LINEAR_SOLVER` is utilized.
 """
 function solve!(problem::AbstractStructuralAnalysis,
                 solver::Union{AbstractSolver,Nothing}=nothing,
-                linear_solve::LinearSolver=DEFAULT_LINEAR_SOLVER;
+                linear_solve::LinearSolver=DEFAULT_LINEAR_SOLVER();
                 linear_solve_inplace::Bool=false)
     _solve!(problem, solver, linear_solve; linear_solve_inplace)
 end
