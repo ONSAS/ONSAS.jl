@@ -10,7 +10,7 @@ module Entities
 
 using Reexport, Dictionaries, StaticArrays
 
-# using ..Nodes
+using ..Nodes
 using ..Materials
 
 @reexport import ..Utils: label, apply!, dofs
