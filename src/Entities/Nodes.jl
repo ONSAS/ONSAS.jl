@@ -96,7 +96,7 @@ function Node(t::NTuple{dim,T},
 end
 
 "`Node` constructor to promote types of coordinates of Point"
-Node(t) = Node(promote(t...))
+Node(t, dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) = Node(promote(t...), dofs)
 
 "`Node` constructor with an `AbstractVector` data type."
 function Node(v::AbstractVector{T},
