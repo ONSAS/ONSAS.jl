@@ -95,7 +95,7 @@ abstract type AbstractFace{dim,T} <: AbstractEntity{dim,T} end
 "Return the `AbstractFace` `f` area."
 function area(f::AbstractFace) end
 
-"Return the `AbstractFace` `f` normal."
+"Return the `AbstractFace` `f` normal direction."
 function normal_direction(f::AbstractFace) end
 
 ## =================
@@ -109,6 +109,7 @@ An `AbstractElement` object facilitates the process of evaluating:
     - The mechanical stresses and strains.
 
 **Abstract Methods**
+* [`cross_section`](@ref)
 * [`coordinates`](@ref)
 * [`dimension`](@ref)
 * [`dofs`](@ref)
@@ -196,7 +197,7 @@ Cache for internal forces computations.
 """
 abstract type AbstractElementCache end
 
-"Fallbaack cache for any element."
+"Fallback cache for any element."
 elements_cache(::Type{<:AbstractElement}) = nothing
 
 """
