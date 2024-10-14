@@ -96,7 +96,16 @@ function Node(t::NTuple{dim,T},
 end
 
 "`Node` constructor to promote types of coordinates of Point"
-Node(t::Union{Tuple, AbstractArray}, dofs::Dictionary=Dictionary{Field, Vector{Dof}}()) = Node(promote(t...), dofs)
+function Node(t)
+    dofs = if length(t) > 1 && t[end] isa Dictionary
+        t[end]
+    else
+        Dictionary{Field,Vector{Dof}}()
+    end
+    coords = t[1:(end - 1)]
+    Node(promote(coords)..., dofs)
+end
+
 
 "`Node` constructor with an `AbstractVector` data type."
 function Node(v::AbstractVector{T},
