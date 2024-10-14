@@ -102,7 +102,7 @@ function Node(t)
     else
         Dictionary{Field,Vector{Dof}}()
     end
-    coords = t[1:(end - 1)]
+    coords = length(t) > 1 ? t[1:(end - 1)] : (t)
     Node(promote(coords)..., dofs)
 end
 
