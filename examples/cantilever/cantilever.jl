@@ -7,7 +7,7 @@ function parameters()
     b = 0.2               # Cross-section Width
     h = 0.3               # Cross-section Height
     ρ = 2400              # Material density
-    q = b * h * ρ * 9.81 # Distributed load
+    q = b * h * ρ * 9.81  # Distributed load
     Px = 1e2              # Nodal load in x
     Py = 1e3              # Nodal load in y
     E = 210e9             # Elastic Young's modulus.
