@@ -106,7 +106,6 @@ function Node(t)
     Node(promote(coords)..., dofs)
 end
 
-
 "`Node` constructor with an `AbstractVector` data type."
 function Node(v::AbstractVector{T},
               dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) where {T<:Real}
