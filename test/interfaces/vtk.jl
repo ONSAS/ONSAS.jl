@@ -1,6 +1,57 @@
 using Test
 using ONSAS.VTK
+using ONSAS.Entities
+using ONSAS.TriangularFaces
+using ONSAS.Tetrahedrons
+using ONSAS.Meshes
+using ONSAS.Nodes
 
 @testset "Writing a tetrahedron mesh to a vtk file." begin
-    # Add tests here.
+    Lx = 10.0
+    Ly = 20.0
+    Lz = 30.0
+
+    # Mesh
+    n1 = Node(0.0, 0.0, 0.0)
+    n2 = Node(0.0, 0.0, Lz)
+    n3 = Node(0.0, Ly, Lz)
+    n4 = Node(0.0, Ly, 0.0)
+    n5 = Node(Lx, 0.0, 0.0)
+    n6 = Node(Lx, 0.0, Lz)
+    n7 = Node(Lx, Ly, Lz)
+    n8 = Node(Lx, Ly, 0.0)
+    vec_nodes = [n1, n2, n3, n4, n5, n6, n7, n8]
+    mesh = Mesh(; nodes=vec_nodes)
+
+    ## Faces
+    f1 = TriangularFace(n5, n8, n6)
+    f2 = TriangularFace(n6, n8, n7)
+    f3 = TriangularFace(n4, n1, n2)
+    f4 = TriangularFace(n4, n2, n3)
+    f5 = TriangularFace(n6, n2, n1)
+    f6 = TriangularFace(n6, n1, n5)
+    f7 = TriangularFace(n1, n4, n5)
+    f8 = TriangularFace(n4, n8, n5)
+    vec_faces = [f1, f2, f3, f4, f5, f6, f7, f8]
+    append!(faces(mesh), vec_faces)
+    ## Entities
+    t1 = Tetrahedron(n1, n4, n2, n6)
+    t2 = Tetrahedron(n6, n2, n3, n4)
+    t3 = Tetrahedron(n4, n3, n6, n7)
+    t4 = Tetrahedron(n4, n1, n5, n6)
+    t5 = Tetrahedron(n4, n6, n5, n8)
+    t6 = Tetrahedron(n4, n7, n6, n8)
+    vec_elems = [t1, t2, t3, t4, t5, t6]
+    append!(elements(mesh), vec_elems)
+
+    filename = "test"
+    vtk_mesh = VTKMeshFile(filename, mesh)
+    vtk_file = vtk_mesh.vtk
+    @test vtk_file.Ncls == num_elements(mesh)
+    @test vtk_file.Npts == num_nodes(mesh)
+    filenames = close(vtk_file)
+    @test only(filenames) == "$filename.vtu"
+
+    # # Sets
+    # TODO: Implement vtk handler for sets
 end
