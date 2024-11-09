@@ -42,15 +42,17 @@ function fill_symmetric_matrix!(S::Symmetric{T},
 end
 
 "Indexes to transform form Tensors.jl to Voigt nomenclature."
-const CONSTANT_INDICES_TO_VOIGT = [(1, 1), (2, 2), (3, 3)]
-const SCALED_INDICES_TO_VOIGT = [(2, 3), (1, 3), (1, 2)]
+const CONSTANT_INDICES_TO_VOIGT = [[1, 1], [2, 2], [3, 3]]
+const SCALED_INDICES_TO_VOIGT = [[2, 3], [1, 3], [1, 2]]
 
 #TODO: Replace indexes
 "Return the tensor `𝕋` in Voigt notation."
 function voigt(𝕋::AbstractMatrix, α::Real=1)
     @assert size(𝕋) == (3, 3) "Unexpected tensor dimensions"
-    v = [𝕋[idx] for idx in INDICES_TO_VOIGT]
-    push!(v, α * 𝕋[idx] for idx in SCALED_INDICES_TO_VOIGT)
+    v = [𝕋[idx...] for idx in CONSTANT_INDICES_TO_VOIGT]
+    for idx in SCALED_INDICES_TO_VOIGT
+        push!(v, α * 𝕋[idx]...)
+    end
     v
 end
 
