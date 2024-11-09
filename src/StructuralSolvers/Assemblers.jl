@@ -12,9 +12,7 @@ using ..Structures
 
 export Assembler, assemble!, reset_assembler!, end_assemble, end_assemble!, reset!
 
-""""
-Struct that stores column indexes, row indexes and values for the assemble process.
-"""
+"Struct that stores column indexes, row indexes and values for the assemble process."
 struct Assembler{T,DT}
     "Column indexes."
     I::Vector{Int}
@@ -44,7 +42,7 @@ function elements_cache(a::Assembler, e::AbstractElement)
     a.cache[nameof(typeof(e))]
 end
 
-"""Assembles the element matrix `Ke` into the `Assembler` struct `a`."""
+"Assembles the element matrix `Ke` into the `Assembler` struct `a`."
 function assemble!(a::Assembler{T}, dofs::AbstractVector{Dof}, Ke::AbstractMatrix{T}) where {T}
     return assemble!(a, dofs, dofs, Ke)
 end

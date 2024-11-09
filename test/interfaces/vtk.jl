@@ -1,4 +1,5 @@
 using Test
+using WriteVTK
 using ONSAS.VTK
 using ONSAS.Entities
 using ONSAS.TriangularFaces
@@ -21,7 +22,7 @@ using ONSAS.Nodes
     n7 = Node(Lx, Ly, Lz)
     n8 = Node(Lx, Ly, 0.0)
     vec_nodes = [n1, n2, n3, n4, n5, n6, n7, n8]
-    mesh = Mesh(; nodes=vec_nodes)
+    msh = Mesh(; nodes=vec_nodes)
 
     ## Faces
     f1 = TriangularFace(n5, n8, n6)
@@ -33,7 +34,7 @@ using ONSAS.Nodes
     f7 = TriangularFace(n1, n4, n5)
     f8 = TriangularFace(n4, n8, n5)
     vec_faces = [f1, f2, f3, f4, f5, f6, f7, f8]
-    append!(faces(mesh), vec_faces)
+    append!(faces(msh), vec_faces)
     ## Entities
     t1 = Tetrahedron(n1, n4, n2, n6)
     t2 = Tetrahedron(n6, n2, n3, n4)
@@ -42,16 +43,26 @@ using ONSAS.Nodes
     t5 = Tetrahedron(n4, n6, n5, n8)
     t6 = Tetrahedron(n4, n7, n6, n8)
     vec_elems = [t1, t2, t3, t4, t5, t6]
-    append!(elements(mesh), vec_elems)
+    append!(elements(msh), vec_elems)
 
-    filename = "test"
-    vtk_mesh = VTKMeshFile(filename, mesh)
+    u_dim = 3
+    set_dofs!(msh, :u, u_dim)
+    temp_dim = 1
+    set_dofs!(msh, :T, temp_dim)
+
+    filename = "unit_test_vtk"
+    vtk_mesh = VTKMeshFile(filename, msh)
     vtk_file = vtk_mesh.vtk
-    @test vtk_file.Ncls == num_elements(mesh)
-    @test vtk_file.Npts == num_nodes(mesh)
-    filenames = close(vtk_file)
-    @test only(filenames) == "$filename.vtu"
+    @test vtk_file.Ncls == num_elements(msh)
+    @test vtk_file.Npts == num_nodes(msh)
 
-    # # Sets
-    # TODO: Implement vtk handler for sets
+    vec_nodal_dof_data = collect(1:num_dofs(msh, :u))
+    scalar_nodal_dof_data = collect(1:num_dofs(msh, :T))
+
+    VTKMeshFile(filename, msh) do vtx
+        write_node_data(vtx, nodal_dof_data, "vectorial_nodal_data")
+        write_node_data(vtx, nodal_dof_data, "scalar_nodal_data")
+    end
+    fs = close(vtk_file)
+    @test only(fs) == "$filename.vtu"
 end

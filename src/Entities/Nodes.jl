@@ -15,12 +15,10 @@ using ..Utils
 
 export Dof, Point, AbstractNode, Node, dimension, coordinates, create_node, set_dofs!
 
-"""
-Scalar degree of freedom of the structure.
-"""
+"Scalar degree of freedom of the structure."
 const Dof = Int
 
-"the dof index of the `Dof` `d` "
+"Return the dof index of the `Dof` `d` "
 index(d::Dof) = d
 
 """

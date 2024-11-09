@@ -141,6 +141,14 @@ for f in [:displacements, :internal_forces, :external_forces]
     "Return the $f at a certain dof for every time step."
     @eval $f(st_sol::Solution, dof::Dof) = getindex.($f(st_sol), Utils.index(dof))
 
+    "Return the $f at a certain dof at `time_index` time step."
+    @eval $f(st_sol::Solution, dof::Dof, time_index::Integer) = getindex($f(st_sol)[time_index],
+                                                                         Utils.index(dof))
+    "Return the $f at a certain dof's vector at `time_index` time step."
+    @eval $f(st_sol::Solution, vdof::Vector{Dof}, time_index::Integer) = [getindex($f(st_sol)[time_index],
+                                                                                   Utils.index(dof))
+                                                                          for dof in vdof]
+
     "Return the $f at a certain dof's vector for every time step."
     @eval $f(st_sol::Solution, vdof::Vector{Dof}) = [$f(st_sol, dof) for dof in vdof]
 
@@ -161,6 +169,11 @@ for f in [:stress, :strain]
     "Return the $f at a certain element for every time step."
     @eval function $f(st_sol::Solution, e::AbstractElement)
         [getindex($f.(states(st_sol))[step], e) for step in 1:length(states(st_sol))]
+    end
+
+    "Return the $f at a certain element at `time_step`."
+    @eval function $f(st_sol::Solution, e::AbstractElement, time_index::Integer)
+        getindex($f.(states(st_sol))[time_index], e)
     end
 end
 
