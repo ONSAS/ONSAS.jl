@@ -259,3 +259,5 @@ function run()
     sol = solve()
     test(sol)
 end;
+
+run()

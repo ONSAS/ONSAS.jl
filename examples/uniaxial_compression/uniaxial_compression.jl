@@ -300,3 +300,5 @@ function run()
         test(sol)
     end
 end;
+
+run()

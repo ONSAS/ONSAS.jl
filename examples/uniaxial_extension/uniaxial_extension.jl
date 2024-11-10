@@ -338,18 +338,3 @@ function run()
 end;
 
 run()
-
-case = FirstCase()
-sol = solve(case)
-# Previous
-ONSAS.VTK.write_vtk(sol, "bla")
-# New
-s = ONSAS.structure(analysis(sol))
-ns = nodes(str)
-displacements(sol, 3)
-
-PointEvalHandler(str.mesh, ns[1].x)
-
-vtkfile = VTKMeshFile("bla", str.mesh)
-
-run()
