@@ -52,17 +52,23 @@ using ONSAS.Nodes
 
     filename = "unit_test_vtk"
     vtk_mesh = VTKMeshFile(filename, msh)
-    vtk_file = vtk_mesh.vtk
-    @test vtk_file.Ncls == num_elements(msh)
-    @test vtk_file.Npts == num_nodes(msh)
-
-    vec_nodal_dof_data = collect(1:num_dofs(msh, :u))
-    scalar_nodal_dof_data = collect(1:num_dofs(msh, :T))
-
-    VTKMeshFile(filename, msh) do vtx
-        write_node_data(vtx, nodal_dof_data, "vectorial_nodal_data")
-        write_node_data(vtx, nodal_dof_data, "scalar_nodal_data")
-    end
-    fs = close(vtk_file)
+    fs = close(vtk_mesh.vtk)
     @test only(fs) == "$filename.vtu"
+    @test vtk_mesh.vtk.Ncls == num_elements(msh)
+    @test vtk_mesh.vtk.Npts == num_nodes(msh)
+
+    vec_nodal_dof_data = to_vtk(collect(1:num_dofs(msh, :u)))
+    scalar_nodal_dof_data = to_vtk(collect(1:num_dofs(msh, :T)))
+    scalar_cell_data = to_vtk(rand(num_elements(msh)))
+
+    tensor_cell_data = [rand(3, 3) for _ in elements(msh)]
+    VTKMeshFile(filename, msh) do vtx
+        write_node_data(vtx, vec_nodal_dof_data, "vectorial_nodal_data";
+                        component_names=["sx", "sy", "sz"])
+        write_node_data(vtx, scalar_nodal_dof_data, "scalar_nodal_data"; component_names=["T"])
+        write_cell_data(vtx, scalar_cell_data, "scalar_cell_data"; component_names=["σ"])
+        write_cell_data(vtx, tensor_cell_data, "tensor_cell_data";
+                        component_names=["σxx", "σyy", "σzz", "τyz", "τxz", "τxy", "τzy", "τzx",
+                                         "τyx"])
+    end
 end

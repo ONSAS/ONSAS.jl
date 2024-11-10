@@ -22,7 +22,7 @@ using ..Utils
 
 export AbstractStructuralState, AbstractStaticState, AbstractDynamicState, Δ_displacements,
        Δ_displacements!, residual_forces!, structure, assembler, residual_forces_norms,
-       residual_displacements_norms, AbstractStructuralAnalysis, initial_time, current_time,
+       residual_displacements_norms, AbstractStructuralAnalysis, initial_time, current_time, times,
        final_time, is_done, current_state, current_iteration, displacements, external_forces,
        iteration_residuals, tangent_matrix, internal_cache, elements_cache, velocity, acceleration,
        viscous_forces, mass_matrix, damping_matrix, stiffness_matrix
@@ -197,6 +197,9 @@ initial_time(a::AbstractStructuralAnalysis) = a.t₁
 
 "Return the current time of structural analysis."
 current_time(a::AbstractStructuralAnalysis) = a.t
+
+"Return the time vector of a structural analysis."
+times(a::AbstractStructuralAnalysis) = a.t
 
 "Return the final time of structural analysis."
 final_time(a::AbstractStructuralAnalysis) = a.t₁

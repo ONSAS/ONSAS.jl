@@ -21,8 +21,8 @@ using ..Solutions
 using ..StaticStates
 using ..Assemblers
 
-@reexport import ..StructuralAnalyses: initial_time, current_time, final_time, iteration_residuals,
-                                       is_done
+@reexport import ..StructuralAnalyses: initial_time, current_time, final_time, times,
+                                       iteration_residuals, is_done
 @reexport import ..StructuralSolvers: next!
 @reexport import ..Assemblers: assemble!, reset!
 
@@ -40,6 +40,7 @@ and extends the following methods:
 * [`initial_time`](@ref)
 * [`current_time`](@ref)
 * [`final_time`](@ref)
+* [`times`](@ref)
 * [`load_factors`](@ref)
 * [`current_load_factor`](@ref)
 * [`next!`](@ref)
@@ -77,6 +78,7 @@ end
 
 "Return the final load factor vector of an structural analysis."
 load_factors(sa::AbstractStaticAnalysis) = sa.λᵥ
+times(sa::AbstractStaticAnalysis) = load_factors(sa)
 
 "Return the current load factor of an structural analysis."
 current_load_factor(sa::AbstractStaticAnalysis) = current_time(sa)
