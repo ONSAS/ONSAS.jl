@@ -11,6 +11,7 @@ using ..Nodes
 using ..Utils
 using ..Entities
 using ..Tetrahedrons
+using ..TriangularFaces
 using ..Solutions
 using ..Structures
 using ..StructuralAnalyses
@@ -26,6 +27,7 @@ struct VTKMeshFile{VTK<:WriteVTK.DatasetFile}
     vtk::VTK
 end
 function VTKMeshFile(filename::String, Mesh::AbstractMesh; kwargs...)
+    # Append `true` produces a bug when opening with PareView 5.11
     vtk = create_vtk_grid(filename, Mesh; kwargs...)
     VTKMeshFile(vtk)
 end
@@ -53,12 +55,13 @@ Create a VTK mesh grid from an `AbstractMesh`.
 Initializes the VTK grid with node coordinates and cell connectivity.
 """
 function create_vtk_grid(filename::String, mesh::AbstractMesh{dim}; kwargs...) where {dim}
-    cls = WriteVTK.MeshCell[]
-    for elem in elements(mesh)
+    cls = Vector{WriteVTK.MeshCell}(undef, num_elements(mesh))
+    for (i, elem) in enumerate(elements(mesh))
         VTK_elem_type = to_vtkcell_type(elem)
-        push!(cls, WriteVTK.MeshCell(VTK_elem_type, to_vtk_cell_nodes(elem, mesh)))
+        cls[i] = WriteVTK.MeshCell(VTK_elem_type, to_vtk_cell_nodes(elem, mesh))
     end
     coords = node_matrix(mesh)
+
     WriteVTK.vtk_grid(filename, coords, cls; kwargs...)
 end
 function Base.close(vtk::VTKMeshFile)
@@ -74,8 +77,8 @@ to_vtkcell_type(::Tetrahedron) = VTKCellTypes.VTK_TETRA
 Maps the nodes of an element within a mesh to its VTK cell node indices.
 Returns connectivity indices for the specified element in the mesh.
 """
-function to_vtk_cell_nodes(e::AbstractElement, msh::AbstractMesh)
-    connectivity(msh)[findfirst(==(e), elements(msh))]
+function to_vtk_cell_nodes(e::AbstractEntity, msh::AbstractMesh)
+    [findfirst(==(n), nodes(msh)) for n in nodes(e)]
 end
 
 function _vtk_write_node_data(vtk::WriteVTK.DatasetFile,
@@ -108,33 +111,31 @@ function write_cell_data(vtk::VTKMeshFile, celldata, name; kwargs...)
     vtk
 end
 
-"""
-Provides default component labels for matrices of size 3x3 or 2x2.
-Used to label stress and strain components for VTK output.
-"""
-function default_component_labels(x::AbstractMatrix{<:Real})
-    if size(x) == (3, 3)
-        labels = ["xx", "yy", "zz", "yz", "xz", "xy", "zy", "zx", "yx"]
-    elseif size(x) == (2, 2)
-        labels = ["xx", "yy", "xy", "yx"]
-    else
-        error("Unsupported matrix size $(size(x)). Only 3x3 and 2x2 matrices are supported.")
-    end
-    labels
-end
+INDEX_MAP = Dict("xx" => (1, 1), "yy" => (2, 2), "zz" => (3, 3),
+                 "xy" => (1, 2), "yz" => (2, 3), "zx" => (3, 1),
+                 "yx" => (2, 1), "zy" => (3, 2), "xz" => (1, 3))
 
 to_vtk(x::Vector) = x
-const VTX_VOIGT_ORDER = [1, 6, 5, 9, 2, 4, 8, 7, 3]
-to_vtk(x::AbstractMatrix) = view(x, VTX_VOIGT_ORDER)
+# const VTX_VOIGT_ORDER = [1, 6, 5, 9, 2, 4, 8, 7, 3]
+# to_vtk(x::AbstractMatrix) = view(x, VTX_VOIGT_ORDER)
+to_vtk(x::AbstractMatrix) = x
 
 function write_cell_data(vtk::VTKMeshFile, celldata::Vector{<:Matrix{<:Real}}, name;
-                         component_labels=(default_component_labels(first(celldata))),
+                         component_names,
                          kwargs...)
-    labels = component_labels
-    transformed_celldata = [to_vtk(celldata[j]) for j in 1:length(celldata)]
-    for (label, index) in zip(labels, 1:length(labels))
-        component_data = [transformed_celldata[j][index] for j in 1:length(transformed_celldata)]
-        write_cell_data(vtk, component_data, "$name" * "_" * "$label"; kwargs...)
+    for label in component_names
+        found = false
+        for (key, (i, j)) in INDEX_MAP
+            if occursin(key, label)
+                found = true
+                component_data = [celldata[k][i, j] for k in 1:length(celldata)]
+                @assert !any(isnan, component_data)
+                @assert !any(isinf, component_data)
+                write_cell_data(vtk, reshape(component_data, length(component_data), 1, 1),
+                                "$label")
+            end
+        end
+        !found && throw(ArgumentError("Unexpected label $label didnt match INDEX_MAP"))
     end
     vtk
 end
@@ -156,11 +157,11 @@ const FIELD_NAMES = Dict(:u => "Displacement" => ["ux", "uy", "uz"],
                          :ϵ => "Strain" => ["ϵxx", "ϵyy", "ϵzz", "γyz", "γxz", "γxy", "γzy", "γzx",
                                             "γyx"])
 
-function _extract_node_data(sol::AbstractSolution, vf::Vector{Field}, msh, time_index::Integer)
+function _extract_node_data(sol::AbstractSolution, fields::Vector{Field}, msh, time_index::Integer)
     nodal_data = Dict(field => zeros(num_dofs(msh, field))
-                      for field in vf if field ∈ POINT_FIELDS)
+                      for field in fields if field ∈ POINT_FIELDS)
     for node in nodes(msh)
-        for field in vf
+        for field in fields
             if field ∈ POINT_FIELDS
                 ndofs = dofs(node, field)
                 node_dof_data = displacements(sol, ndofs, time_index)
@@ -170,23 +171,19 @@ function _extract_node_data(sol::AbstractSolution, vf::Vector{Field}, msh, time_
     end
     nodal_data
 end
-function _extract_cell_data(sol::AbstractSolution, vf::Vector{Field},
+function _extract_cell_data(sol::AbstractSolution, fields::Vector{Field},
                             msh::AbstractMesh, time_index::Integer)
-    cell_data = Dict(field => zeros(prod(CELL_FIELDS[field]) * num_elements(msh))
-                     for field in vf if field ∈ keys(CELL_FIELDS))
-
+    cell_data = Dict(field => [zeros(CELL_FIELDS[field]...) for _ in 1:num_elements(msh)]
+                     for field in fields if field ∈ keys(CELL_FIELDS))
     for (i, elem) in enumerate(elements(msh))
-        for field in vf
+        for field in fields
             if haskey(CELL_FIELDS, field)
-                num_field_comps = prod(CELL_FIELDS[field])
-                start = (i - 1) * num_field_comps + 1
-                finish = start + num_field_comps - 1
                 if field == :σ
                     σ = stress(sol, elem, time_index)
-                    cell_data[field][start:finish] .= to_vtk(σ)
+                    cell_data[field][i] .= to_vtk(σ)
                 elseif field == :ϵ
                     ϵ = strain(sol, elem, time_index)
-                    cell_data[field][start:finish] .= to_vtk(ϵ)
+                    cell_data[field][i] .= to_vtk(ϵ)
                 end
             end
         end
@@ -208,16 +205,15 @@ The exported data typically includes:
 """
 function write_vtk(sol::AbstractSolution, filename::String,
                    time_index::Integer;
-                   fields::Vector{Field}=default_dof_fields(sol))
+                   fields::Vector{Field}=default_dof_fields(sol),
+                   kwargs...)
     msh = mesh(structure(analysis(sol)))
 
     # Extract node and cell data using helper functions
     nodal_data = _extract_node_data(sol, fields, msh, time_index)
     cell_data = _extract_cell_data(sol, fields, msh, time_index)
 
-    # Write VTK file
-    @info "VTK output written to $filename"
-    VTKMeshFile(filename, msh) do vtx
+    VTKMeshFile(filename, msh; kwargs...) do vtx
         for (field, data) in nodal_data
             field_name, component_names = FIELD_NAMES[field]
             write_node_data(vtx, data, field_name; component_names)
@@ -243,21 +239,22 @@ Each time step's VTK file is added to the collection for seamless visualization 
 Returns the path to the generated ParaView collection file.
 """
 function write_vtk(sol::AbstractSolution, base_filename::String;
-                   fields::Vector{Field}=default_dof_fields(sol))
+                   fields::Vector{Field}=default_dof_fields(sol),
+                   append=false)
     times_vector = times(analysis(sol))  # Extract the times from the solution analysis
     pvd = paraview_collection(base_filename)
 
     # Loop over each time index and generate VTK files
     for (time_index, time) in enumerate(times_vector)
         vtk_filename = "$(base_filename)_timestep_$time_index.vtu"
-        vtk = write_vtk(sol, vtk_filename, time_index; fields)
+        vtk = write_vtk(sol, vtk_filename, time_index; fields, append)
         pvd[time] = vtk
     end
 
     # Close the ParaView collection file
     close(pvd)
 
-    @info "ParaView collection file and time series data written to $base_filename.pvd"
+    @info "VTK file collection written to $base_filename.pvd"
     return "$base_filename.pvd"
 end
 

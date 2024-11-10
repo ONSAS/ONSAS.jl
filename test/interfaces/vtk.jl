@@ -60,7 +60,6 @@ using ONSAS.Nodes
     vec_nodal_dof_data = to_vtk(collect(1:num_dofs(msh, :u)))
     scalar_nodal_dof_data = to_vtk(collect(1:num_dofs(msh, :T)))
     scalar_cell_data = to_vtk(rand(num_elements(msh)))
-
     tensor_cell_data = [rand(3, 3) for _ in elements(msh)]
     VTKMeshFile(filename, msh) do vtx
         write_node_data(vtx, vec_nodal_dof_data, "vectorial_nodal_data";
