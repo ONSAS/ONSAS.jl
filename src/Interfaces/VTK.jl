@@ -17,6 +17,10 @@ using ..StructuralAnalyses
 
 export VTKMeshFile, create_vtk_grid, write_node_data, write_cell_data, write_vtk, to_vtk
 
+"""
+Represents a VTK file for mesh data export.
+This structure is compatible with the `WriteVTK` library.
+"""
 struct VTKMeshFile{VTK<:WriteVTK.DatasetFile}
     "`WriteVTK` `VTK` native file."
     vtk::VTK
@@ -44,6 +48,10 @@ function Base.show(io::IO, ::MIME"text/plain", (; vtk)::VTKMeshFile)
           "• VTKMeshFile file \"$(filename)\" is $open_str with $nnodes nodes and $ncells cells.")
 end
 
+"""
+Create a VTK mesh grid from an `AbstractMesh`.
+Initializes the VTK grid with node coordinates and cell connectivity.
+"""
 function create_vtk_grid(filename::String, mesh::AbstractMesh{dim}; kwargs...) where {dim}
     cls = WriteVTK.MeshCell[]
     for elem in elements(mesh)
@@ -53,12 +61,19 @@ function create_vtk_grid(filename::String, mesh::AbstractMesh{dim}; kwargs...) w
     coords = node_matrix(mesh)
     WriteVTK.vtk_grid(filename, coords, cls; kwargs...)
 end
-
 function Base.close(vtk::VTKMeshFile)
     WriteVTK.vtk_save(vtk.vtk)
 end
 
+"""
+Converts element types from `ONSAS` to VTK-compatible cell types for tetrahedral elements.
+"""
 to_vtkcell_type(::Tetrahedron) = VTKCellTypes.VTK_TETRA
+
+"""
+Maps the nodes of an element within a mesh to its VTK cell node indices.
+Returns connectivity indices for the specified element in the mesh.
+"""
 function to_vtk_cell_nodes(e::AbstractElement, msh::AbstractMesh)
     connectivity(msh)[findfirst(==(e), elements(msh))]
 end
@@ -75,16 +90,28 @@ function _vtk_write_node_data(vtk::WriteVTK.DatasetFile,
                               kwargs...)
     WriteVTK.vtk_point_data(vtk, nodal_data, name; kwargs...)
 end
+"""
+Write nodal data to a VTK file.
+Handles scalar or matrix data for each node in a mesh.
+"""
 function write_node_data(vtk::VTKMeshFile, nodedata, name; kwargs...)
     _vtk_write_node_data(vtk.vtk, nodedata, name; kwargs...)
     vtk
 end
 
+"""
+Write cell data to a VTK file.
+Handles scalar or matrix data for each cell in a mesh.
+"""
 function write_cell_data(vtk::VTKMeshFile, celldata, name; kwargs...)
     WriteVTK.vtk_cell_data(vtk.vtk, celldata, name; kwargs...)
     vtk
 end
 
+"""
+Provides default component labels for matrices of size 3x3 or 2x2.
+Used to label stress and strain components for VTK output.
+"""
 function default_component_labels(x::AbstractMatrix{<:Real})
     if size(x) == (3, 3)
         labels = ["xx", "yy", "zz", "yz", "xz", "xy", "zy", "zx", "yx"]
@@ -129,7 +156,7 @@ const FIELD_NAMES = Dict(:u => "Displacement" => ["ux", "uy", "uz"],
                          :ϵ => "Strain" => ["ϵxx", "ϵyy", "ϵzz", "γyz", "γxz", "γxy", "γzy", "γzx",
                                             "γyx"])
 
-function extract_node_data(sol::AbstractSolution, vf::Vector{Field}, msh, time_index::Integer)
+function _extract_node_data(sol::AbstractSolution, vf::Vector{Field}, msh, time_index::Integer)
     nodal_data = Dict(field => zeros(num_dofs(msh, field))
                       for field in vf if field ∈ POINT_FIELDS)
     for node in nodes(msh)
@@ -143,8 +170,8 @@ function extract_node_data(sol::AbstractSolution, vf::Vector{Field}, msh, time_i
     end
     nodal_data
 end
-
-function extract_cell_data(sol::AbstractSolution, vf::Vector{Field}, msh, time_index::Integer)
+function _extract_cell_data(sol::AbstractSolution, vf::Vector{Field},
+                            msh::AbstractMesh, time_index::Integer)
     cell_data = Dict(field => zeros(prod(CELL_FIELDS[field]) * num_elements(msh))
                      for field in vf if field ∈ keys(CELL_FIELDS))
 
@@ -168,8 +195,16 @@ function extract_cell_data(sol::AbstractSolution, vf::Vector{Field}, msh, time_i
 end
 
 """
-Generate a VTK file given a solution struct.
-Currently only `displacements`, `strain` and `stresses` are exported for node and element.
+Generate a VTK file from a solution structure, exporting simulation data such as displacements, strain, and stress.
+
+The `write_vtk` function creates a VTK file that captures nodal and elemental data at a specified time step, making it suitable for visualization in ParaView or other compatible tools. This function is part of the export pipeline for `ONSAS` solutions, allowing users to analyze and visualize time-dependent results in a structured format.
+
+The exported data typically includes:
+- **Displacements** (`:u`): Vector field data representing nodal displacements, with components labeled `ux`, `uy`, `uz`.
+- **Strain** (`:ϵ`): Second-order tensor field data for each element, representing deformation with components such as `ϵxx`, `ϵyy`, `ϵzz`, and shear components.
+- **Stress** (`:σ`): Second-order tensor field data for each element, representing internal forces with components such as `σxx`, `σyy`, `σzz`, and shear components.
+
+**DISCLAIMER:** The user is responsible for inspecting which strain and stress tensors are exported for each element formulation. It is essential to verify compatibility with the desired output before proceeding.
 """
 function write_vtk(sol::AbstractSolution, filename::String,
                    time_index::Integer;
@@ -177,8 +212,8 @@ function write_vtk(sol::AbstractSolution, filename::String,
     msh = mesh(structure(analysis(sol)))
 
     # Extract node and cell data using helper functions
-    nodal_data = extract_node_data(sol, fields, msh, time_index)
-    cell_data = extract_cell_data(sol, fields, msh, time_index)
+    nodal_data = _extract_node_data(sol, fields, msh, time_index)
+    cell_data = _extract_cell_data(sol, fields, msh, time_index)
 
     # Write VTK file
     @info "VTK output written to $filename"
@@ -202,6 +237,11 @@ function Base.setindex!(pvd::WriteVTK.CollectionFile, datfile::VTKMeshFile, time
     WriteVTK.collection_add_timestep(pvd, datfile, time)
 end
 
+"""
+Generate a time-series of VTK files for a solution struct and organize them into a ParaView collection.
+Each time step's VTK file is added to the collection for seamless visualization of the simulation over time.
+Returns the path to the generated ParaView collection file.
+"""
 function write_vtk(sol::AbstractSolution, base_filename::String;
                    fields::Vector{Field}=default_dof_fields(sol))
     times_vector = times(analysis(sol))  # Extract the times from the solution analysis
