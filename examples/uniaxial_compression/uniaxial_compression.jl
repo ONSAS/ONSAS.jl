@@ -296,7 +296,9 @@ function run()
     for case in (FirstCase(), SecondCase())
         sol = solve(case)
         # ParaView collection file and time series data written to uniaxial_compression.pvd
-        write_vtk(sol, "uniaxial_compression")
+        if case isa FirstCase
+            write_vtk(sol, "uniaxial_compression")
+        end
         test(sol)
     end
 end;
