@@ -57,7 +57,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: |
-          julia --project=docs -e '
+          julia --project -e '
             using Documenter: DocMeta, doctest
             using ONSAS
             DocMeta.setdocmeta!(ONSAS, :DocTestSetup, :(using ONSAS); recursive=true)
