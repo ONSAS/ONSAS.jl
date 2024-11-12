@@ -88,8 +88,9 @@ function Base.show(io::IO, ::MIME"text/plain", n::Node)
 end
 
 "Node constructor with a `NTuple`."
-function Node(t::NTuple{dim,T},
-              dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) where {dim,T<:Real}
+function Node(t::NTuple{dim,<:Real},
+              dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) where {dim}
+    @assert dim ≤ 3 "Unexpected point dimension $dim"
     Node(Point(t), dofs)
 end
 
