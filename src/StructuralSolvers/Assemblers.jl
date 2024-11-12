@@ -10,7 +10,7 @@ using ..Structures
 
 @reexport import ..Entities: elements_cache
 
-export Assembler, assemble!, reset_assembler!, end_assemble, end_assemble!, reset!
+export Assembler, assemble!, end_assemble, end_assemble!, reset!
 
 "Struct that stores column indexes, row indexes and values for the assemble process."
 struct Assembler{T,DT}

@@ -5,7 +5,6 @@ Each cross section consists of a data type with one or more geometric parameters
 module CrossSections
 
 export AbstractCrossSection, area, Ixx, Iyy, Izz, Ixy, Ixz, Iyz, I_tensor_xyz
-export Rectangle, Square, Circle, GenericCrossSection
 
 # ======================
 # Abstract Cross Section

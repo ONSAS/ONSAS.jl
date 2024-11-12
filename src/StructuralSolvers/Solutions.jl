@@ -26,7 +26,7 @@ using ..StructuralSolvers
 @reexport import ..StructuralSolvers: residual_forces_tol, displacement_tol, criterion, iterations
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 
-export AbstractSolution, Solution, stresses, strains, states, analysis, solver,
+export AbstractSolution, Solution, analysis, solver,
        displacements, external_forces, iteration_residuals, deformed_node_positions
 
 """

@@ -13,7 +13,7 @@ using ..Utils
 
 @reexport import ..Utils: label, dofs, index
 
-export Dof, Point, AbstractNode, Node, dimension, coordinates, create_node, set_dofs!
+export Dof, Point, AbstractNode, Node, dimension, coordinates, set_dofs!
 
 "Scalar degree of freedom of the structure."
 const Dof = Int

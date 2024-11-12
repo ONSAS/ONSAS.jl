@@ -20,9 +20,9 @@ using ..Entities
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet,
        ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol,
-       ResidualsIterationStep, iter, criterion, isconverged!,
+       ResidualsIterationStep, criterion, isconverged!,
        AbstractSolver, step_size, tolerances, step!, solve, solve!, _solve!,
-       AbstractSolution, iterations, update!, next!, LinearSolver, DEFAULT_LINEAR_SOLVER
+       iterations, update!, next!, LinearSolver, DEFAULT_LINEAR_SOLVER
 
 const INITIAL_Δ = 1e12
 "Default LinearSolve.jl solver"
