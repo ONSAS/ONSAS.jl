@@ -3,5 +3,8 @@ using ONSAS.Utils
 using LinearAlgebra
 
 @testset "Utils functions." begin
-    eye(3) == Diagonal([1, 1, 1])
+    @test eye(3) == Diagonal([1, 1, 1])
+    @test voigt([1 2 3;
+                 4 5 6;
+                 7 8 9]) == [1, 5, 9, 6, 3, 2]
 end

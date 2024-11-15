@@ -208,10 +208,6 @@ function analytic_solution(sol::AbstractSolution, p1::Point{dim}, p2::Point{dim}
     ui_1, uj_1, uk_1, ui_2, uj_2, uk_2, ϵ_1, ϵ_2, ϵ_3, σ_1, σ_2, σ_3
 end;
 
-function write_vtk(sol::AbstractSolution)
-    ONSAS.write_vtk(sol, joinpath(@__DIR__, "linear_extension"))
-end;
-
 function test(sol::AbstractSolution)
     (; RTOL, ATOL) = parameters()
     p1, p2, e = test_points(sol)
@@ -261,7 +257,6 @@ end;
 "Run the example"
 function run()
     sol = solve()
-    write_vtk(sol)
     test(sol)
 end;
 

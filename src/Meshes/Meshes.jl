@@ -68,6 +68,17 @@ function num_dofs(m::AbstractMesh)::Int
     end
     max_dof
 end
+function num_dofs(m::AbstractMesh, f::Field)::Int
+    dof_indices = Int[]
+
+    for n in nodes(m)
+        # Append the DOF indices for the specified field `f` for each node
+        append!(dof_indices, dofs(n, f))
+    end
+
+    # Use `unique` to remove duplicate DOF indices, then count them
+    return length(unique!(dof_indices))
+end
 
 "Set `dofs_per_node` degrees of freedom per node with the given symbol to all nodes of the mesh."
 function set_dofs!(m::AbstractMesh, dof_symbol::Field, dofs_per_node::Int)

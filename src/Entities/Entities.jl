@@ -140,9 +140,11 @@ function Base.:∈(p::AbstractVector, ::AbstractElement) end
 "Return the `AbstractElement` `e` cross_section."
 cross_section(e::AbstractElement) = e.cross_section
 
-"Return local dofs symbols of the `AbstractElement` `e` (for linear displacements `:u` is used) in a vector.
+"""
+Return local dofs symbols of the `AbstractElement` `e` (for linear displacements `:u` is used) in a vector.
 Since global degrees of freedom are for the assemble process this function is used to compute the global dofs of the element by
-extracting the node dofs with the symbol defined by the `AbstractElement` `e`."
+extracting the node dofs with the symbol defined by the `AbstractElement` `e`.
+"""
 function local_dof_symbol(e::AbstractElement) end
 
 """

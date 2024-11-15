@@ -19,7 +19,7 @@ function parameters()
     Lk = 1.0                    # Dimension in z of the box in m
     ms = 0.5                    # Mesh size parameter
     RTOL = 1e-4                 # Relative tolerance for tests
-    ATOL = 1e-8                # Absolute tolerance for tests
+    ATOL = 1e-8                 # Absolute tolerance for tests
     NSTEPS = 9                  # Number of steps for the test
     (; μ, G, K, p, Li, Lj, Lk, ms, RTOL, ATOL, NSTEPS)
 end;
@@ -295,6 +295,8 @@ end;
 function run()
     for case in (FirstCase(), SecondCase())
         sol = solve(case)
+        # ParaView collection file and time series data written to uniaxial_compression.pvd
+        write_vtk(sol, "uniaxial_compression")
         test(sol)
     end
 end;
