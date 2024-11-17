@@ -16,33 +16,34 @@ using ..Gmsh
 
 @reexport import ..Meshes: Mesh
 
-export StructuralEntity, all_entities, face_types_to_faces, face_types, elem_types_to_elements,
+export StructuralEntity, all_entities, face_types_to_faces, face_types,
+       elem_types_to_elements,
        elem_types
 
 """
 Struct used to define meshes via GMSH.
 Consists of a collection of element and face types, each assigned to a corresponding vector of `Face`s and `Element`s.
 """
-struct StructuralEntity{F<:AbstractFace,VF<:Vector,E<:AbstractElement,VE<:Vector}
+struct StructuralEntity{F <: AbstractFace, VF <: Vector, E <: AbstractElement, VE <: Vector}
     "Dictionary with `Element` types (`Element`s without assigned `Node`s) as keys and the corresponding elements created."
-    elem_types_to_elements::Dictionary{E,VE}
+    elem_types_to_elements::Dictionary{E, VE}
     "Dictionary with `Face` types (`Face`s without assigned `Node`s) as keys and the corresponding faces created."
-    face_types_to_faces::Dictionary{F,VF}
-    function StructuralEntity(elem_types_to_elements::Dictionary{E,VE},
-                              face_types_to_faces::Dictionary{F,VF}) where
-             {F<:AbstractFace,VF<:Vector,E<:AbstractElement,VE<:Vector}
+    face_types_to_faces::Dictionary{F, VF}
+    function StructuralEntity(elem_types_to_elements::Dictionary{E, VE},
+            face_types_to_faces::Dictionary{F, VF}) where
+            {F <: AbstractFace, VF <: Vector, E <: AbstractElement, VE <: Vector}
         velems = collect(keys(elem_types_to_elements))
         vfaces = collect(keys(face_types_to_faces))
         vlabels = vcat(label.(velems), label.(vfaces)) # mapreduce
-        @assert length(vlabels) == length(unique(vlabels)) "Every `Face` and `Element` type labels must be different" # allunique
-        new{F,VF,E,VE}(elem_types_to_elements, face_types_to_faces)
+        @assert length(vlabels)==length(unique(vlabels)) "Every `Face` and `Element` type labels must be different" # allunique
+        new{F, VF, E, VE}(elem_types_to_elements, face_types_to_faces)
     end
 end
 
 "Constructor for an empty `StructuralEntity` with a `Vector` of `Element`s `velems` and `Face`s `vfaces`."
 function StructuralEntity(velems::Vector{E},
-                          vfaces::Vector{F}=Vector{AbstractFace}()) where {E<:AbstractElement,
-                                                                           F<:AbstractFace}
+        vfaces::Vector{F} = Vector{AbstractFace}()) where {E <: AbstractElement,
+        F <: AbstractFace}
     elem_types_to_elements = dictionary(map(elem -> elem => Vector{typeof(elem)}(), velems))
     face_types_to_faces = dictionary(map(face -> face => Vector{typeof(face)}(), vfaces))
     StructuralEntity(elem_types_to_elements, face_types_to_faces)
@@ -66,7 +67,8 @@ function all_entities(entities::StructuralEntity)
 end
 
 "Return the `Entity` with the label `l` in the `StructuralEntity` `entities`."
-function Base.getindex(entities::StructuralEntity, l::L) where {L<:Union{Symbol,AbstractString}}
+function Base.getindex(
+        entities::StructuralEntity, l::L) where {L <: Union{Symbol, AbstractString}}
     first(filter(ent -> label(ent) == Symbol(l), all_entities(entities)))
 end
 

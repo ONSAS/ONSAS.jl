@@ -22,7 +22,7 @@ function parameters()
 end;
 
 "Return the problem structural model"
-function structure(strain_model::Type{<:AbstractStrainModel}=GreenStrain)
+function structure(strain_model::Type{<:AbstractStrainModel} = GreenStrain)
     (; H, a, d, V, E, ν, Fk) = parameters()
     # -------------
     # Mesh
@@ -41,7 +41,7 @@ function structure(strain_model::Type{<:AbstractStrainModel}=GreenStrain)
     # -------------------------------
     # Materials
     # -------------------------------
-    steel = SVK(; E=E, ν=ν, label="steel")
+    steel = SVK(; E = E, ν = ν, label = "steel")
     materials = StructuralMaterial(steel => [truss_left, truss_right])
     # -------------------------------
     # Boundary conditions
@@ -49,18 +49,19 @@ function structure(strain_model::Type{<:AbstractStrainModel}=GreenStrain)
     bc_fixed = FixedField(:u, [1, 2, 3], "all_u_fixed")
     bc_fixed_y = FixedField(:u, [2], "fixed_uy")
     bc_load = GlobalLoad(:u, t -> [0, 0, Fk * t], "load in j")
-    s_boundary_conditions = StructuralBoundaryCondition(bc_fixed => [n1, n3], bc_fixed_y => [n2],
-                                                        bc_load => [n2])
+    s_boundary_conditions = StructuralBoundaryCondition(
+        bc_fixed => [n1, n3], bc_fixed_y => [n2],
+        bc_load => [n2])
     Structure(mesh, materials, s_boundary_conditions)
 end;
 
 "Return the problem solution"
-function solve(strain_model::Type{<:AbstractStrainModel}=GreenStrain)
+function solve(strain_model::Type{<:AbstractStrainModel} = GreenStrain)
     # -------------------------------
     # Structural Analysis
     # -------------------------------
     s = structure(strain_model)
-    sa = NonLinearStaticAnalysis(s; NSTEPS=1)
+    sa = NonLinearStaticAnalysis(s; NSTEPS = 1)
     # -------------------------------
     # Solver
     # -------------------------------
@@ -76,7 +77,8 @@ function solve(strain_model::Type{<:AbstractStrainModel}=GreenStrain)
 end;
 
 "Test problem solution"
-function test(sol::AbstractSolution, strain_model::Type{<:AbstractStrainModel}=GreenStrain)
+function test(
+        sol::AbstractSolution, strain_model::Type{<:AbstractStrainModel} = GreenStrain)
     (; V, H, E, A, L, Fk, RTOL) = parameters()
     sa = analysis(sol)
     mesh = ONSAS.mesh(ONSAS.structure(sa))
@@ -97,15 +99,15 @@ function test(sol::AbstractSolution, strain_model::Type{<:AbstractStrainModel}=G
     ϵ_right_truss = strain(sol, right_truss)
     # Test stress and strain
     @testset "Stress and strain case: $strain_model" begin
-        @test σ_right_truss[1, 1] ≈ E * ϵ_right_truss[1, 1] rtol = RTOL skip = true
+        @test σ_right_truss[1, 1]≈E * ϵ_right_truss[1, 1] rtol=RTOL skip=true
     end
 
     # Analytic solution
     #-----------------------------
     "Analytic load factor solution for the displacement `uk` towards z axis at node `n2` `3otatedEngineeringStrain` "
     function load_factors_analytic(uk::Real, ::Type{RotatedEngineeringStrain},
-                                   E::Real=E, A::Real=A,
-                                   H::Real=H, V::Real=V, l0=L)
+            E::Real = E, A::Real = A,
+            H::Real = H, V::Real = V, l0 = L)
         -2 * E * A *
         ((H + uk)^2 + V^2 - l0^2) /
         (l0 * (l0 + sqrt((H + uk)^2 + V^2))) *
@@ -113,14 +115,14 @@ function test(sol::AbstractSolution, strain_model::Type{<:AbstractStrainModel}=G
     end
     "Analytic load factor solution for the displacement `uk` towards z axis at node `n2` `3otatedEngineeringStrain` "
     function load_factors_analytic(uk::Real, ::Type{GreenStrain},
-                                   E::Real=E, A::Real=A,
-                                   H::Real=H, V::Real=V, l0=L)
+            E::Real = E, A::Real = A,
+            H::Real = H, V::Real = V, l0 = L)
         -2 * E * A * ((H + uk) * (2 * H * uk + uk^2)) / (2.0 * L^3)
     end
     analytics_λ = load_factors_analytic.(numerical_uk, strain_model)
 
     @testset "Analytic and numeric load factors case: $strain_model" begin
-        @test analytics_λ ≈ numerical_λ rtol = RTOL
+        @test analytics_λ≈numerical_λ rtol=RTOL
     end
 end;
 

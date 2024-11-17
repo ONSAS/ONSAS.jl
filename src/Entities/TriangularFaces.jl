@@ -14,29 +14,29 @@ export TriangularFace
 """
 A `TriangularFace` represents an element composed by three `Node`s.
 """
-struct TriangularFace{dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N}} <:
-       AbstractFace{dim,T}
+struct TriangularFace{dim, T <: Real, N <: AbstractNode{dim, T}, VN <: AbstractVector{N}} <:
+       AbstractFace{dim, T}
     "Stores triangle nodes."
     nodes::VN
     "Stores the triangle label."
     label::Label
     function TriangularFace(nodes::VN,
-                            label::Label=NO_LABEL) where
-             {dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N}}
-        @assert 2 ≤ dim ≤ 3 "TriangularFace is only defined for 2 < dim ≤ 3"
-        new{dim,T,N,VN}(nodes, Symbol(label))
+            label::Label = NO_LABEL) where
+            {dim, T <: Real, N <: AbstractNode{dim, T}, VN <: AbstractVector{N}}
+        @assert 2≤dim≤3 "TriangularFace is only defined for 2 < dim ≤ 3"
+        new{dim, T, N, VN}(nodes, Symbol(label))
     end
 end
 
 "Constructor for a `TriangularFace` element considering the nodes `n₁` `n₂` and `n₃`."
 function TriangularFace(n₁::N, n₂::N, n₃::N,
-                        label::Label=NO_LABEL) where
-         {dim,T<:Real,N<:AbstractNode{dim,T}}
+        label::Label = NO_LABEL) where
+        {dim, T <: Real, N <: AbstractNode{dim, T}}
     TriangularFace(SVector(n₁, n₂, n₃), label)
 end
 
 "Constructor for a `TriangularFace` element without nodes and a `label`. This function is used to create meshes via GMSH."
-function TriangularFace(label::Label=NO_LABEL)
+function TriangularFace(label::Label = NO_LABEL)
     TriangularFace(SVector(Node(0, 0), Node(0, 0), Node(0, 0)), label)
 end
 

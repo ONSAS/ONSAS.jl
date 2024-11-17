@@ -11,7 +11,7 @@ export Circle
 """
 Circle cross-section.
 """
-struct Circle{T<:Real} <: AbstractCrossSection
+struct Circle{T <: Real} <: AbstractCrossSection
     "Circle's diameter."
     d::T
 end

@@ -51,7 +51,7 @@ using ONSAS.Meshes
 
     ## weights to interpolate each point
     node_to_w = [dictionary([n₁ => 1.0, n₄ => 0.0, n₂ => 0.0, n₆ => 0.0]),
-                 dictionary([n₆ => 0.0, n₂ => 0.0, n₃ => 1.0, n₄ => 0.0])]
+        dictionary([n₆ => 0.0, n₂ => 0.0, n₃ => 1.0, n₄ => 0.0])]
 
     ## Entities where each point is located
     point_to_elem = [t₁, t₂]
@@ -64,8 +64,8 @@ using ONSAS.Meshes
 
     ## Interpolate a scalar magnitude
     nodal_scalar_magnitude = dictionary([n₁ => 1.0, n₂ => 2.0, n₃ => 3.0,
-                                         n₄ => 4.0, n₅ => 5.0, n₆ => 6.0,
-                                         n₇ => 7.0, n₈ => 8.0])
+        n₄ => 4.0, n₅ => 5.0, n₆ => 6.0,
+        n₇ => 7.0, n₈ => 8.0])
 
     ## Manufactured interpolation
     interpolated_magnitude = zeros(length(vec_points))
@@ -78,13 +78,13 @@ using ONSAS.Meshes
 
     ## Interpolate a dim-dimensional magnitude
     nodal_magnitude = dictionary([n₁ => [1.0, 0.0, 0.0],
-                                  n₂ => [2.0, 0.0, 0.0],
-                                  n₃ => [3.0, 0.0, 0.0],
-                                  n₄ => [4.0, 0.0, 0.0],
-                                  n₅ => [5.0, 0.0, 0.0],
-                                  n₆ => [6.0, 0.0, 0.0],
-                                  n₇ => [7.0, 0.0, 0.0],
-                                  n₈ => [8.0, 0.0, 0.0]])
+        n₂ => [2.0, 0.0, 0.0],
+        n₃ => [3.0, 0.0, 0.0],
+        n₄ => [4.0, 0.0, 0.0],
+        n₅ => [5.0, 0.0, 0.0],
+        n₆ => [6.0, 0.0, 0.0],
+        n₇ => [7.0, 0.0, 0.0],
+        n₈ => [8.0, 0.0, 0.0]])
 
     # Manufactured interpolation
     nodal_mag_dim = length(first(values(nodal_magnitude)))

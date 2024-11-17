@@ -28,9 +28,9 @@ export FullDynamicState, DynamicState
 """
 Stores the relevant Dynamic variables of the structure during the displacements iteration.
 """
-struct FullDynamicState{DU<:AbstractVector,U<:AbstractVector,
-                        FE<:AbstractVector,FI<:AbstractVector,K<:AbstractMatrix,
-                        E<:Dictionary,S<:Dictionary} <: AbstractDynamicState
+struct FullDynamicState{DU <: AbstractVector, U <: AbstractVector,
+    FE <: AbstractVector, FI <: AbstractVector, K <: AbstractMatrix,
+    E <: Dictionary, S <: Dictionary} <: AbstractDynamicState
     "Free degrees of freedom."
     free_dofs::Vector{Dof}
     "Displacements vector increment."
@@ -70,13 +70,13 @@ struct FullDynamicState{DU<:AbstractVector,U<:AbstractVector,
     "Linear system cache"
     linear_system::LinearSolve.LinearCache
     function FullDynamicState(fdofs::Vector{Dof},
-                              ΔUᵏ::DU, Uᵏ::U, Udotᵏ::U, Udotdotᵏ::U,
-                              Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Fᵢₙₑᵏ::FI, Fᵥᵢₛᵏ::FI,
-                              Kᵏ::K, Mᵏ::K, Cᵏ::K, Kₛᵏ::K, res_forces::DU,
-                              ϵᵏ::E, σᵏ::S,
-                              assembler::Assembler,
-                              iter_state::ResidualsIterationStep,
-                              linear_system::LinearSolve.LinearCache) where {DU,U,FE,FI,K,E,S}
+            ΔUᵏ::DU, Uᵏ::U, Udotᵏ::U, Udotdotᵏ::U,
+            Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI, Fᵢₙₑᵏ::FI, Fᵥᵢₛᵏ::FI,
+            Kᵏ::K, Mᵏ::K, Cᵏ::K, Kₛᵏ::K, res_forces::DU,
+            ϵᵏ::E, σᵏ::S,
+            assembler::Assembler,
+            iter_state::ResidualsIterationStep,
+            linear_system::LinearSolve.LinearCache) where {DU, U, FE, FI, K, E, S}
         # Check dimensions
         @assert length(ΔUᵏ) == length(fdofs) == length(res_forces)
         @assert begin
@@ -85,17 +85,17 @@ struct FullDynamicState{DU<:AbstractVector,U<:AbstractVector,
             length(Uᵏ)
         end
         # Initialize linear system K.ΔU = R
-        new{DU,U,FE,FI,K,E,S}(fdofs,
-                              ΔUᵏ, Uᵏ, Udotᵏ, Udotdotᵏ,
-                              Fₑₓₜᵏ, Fᵢₙₜᵏ, Fᵢₙₑᵏ, Fᵥᵢₛᵏ,
-                              Kᵏ, Mᵏ, Cᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
-                              assembler, iter_state, linear_system)
+        new{DU, U, FE, FI, K, E, S}(fdofs,
+            ΔUᵏ, Uᵏ, Udotᵏ, Udotdotᵏ,
+            Fₑₓₜᵏ, Fᵢₙₜᵏ, Fᵢₙₑᵏ, Fᵥᵢₛᵏ,
+            Kᵏ, Mᵏ, Cᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
+            assembler, iter_state, linear_system)
     end
 end
 
 "Default constructor for Dynamic state given an structure and iteration state."
 function FullDynamicState(s::AbstractStructure,
-                          iter_state::ResidualsIterationStep=ResidualsIterationStep())
+        iter_state::ResidualsIterationStep = ResidualsIterationStep())
     n_dofs = num_dofs(s)
     n_fdofs = num_free_dofs(s)
 
@@ -117,7 +117,8 @@ function FullDynamicState(s::AbstractStructure,
     res_forces = zeros(n_fdofs)
 
     # Initialize pairs strains
-    ϵᵏ = dictionary([Pair(e, Symmetric(Matrix{Float64}(undef, (3, 3)))) for e in elements(s)])
+    ϵᵏ = dictionary([Pair(e, Symmetric(Matrix{Float64}(undef, (3, 3))))
+                     for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
 
     cache = dictionary(nameof(T) => elements_cache(T) for T in subtypes(AbstractElement))
@@ -127,10 +128,10 @@ function FullDynamicState(s::AbstractStructure,
     linear_system = init(LinearProblem(Kₛᵏ[fdofs, fdofs], res_forces))
 
     FullDynamicState(fdofs,
-                     ΔUᵏ, Uᵏ, Udotᵏ, Udotdotᵏ,
-                     Fₑₓₜᵏ, Fᵢₙₜᵏ, Fᵢₙₑᵏ, Fᵥᵢₛᵏ,
-                     Kᵏ, Mᵏ, Cᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
-                     assembler, iter_state, linear_system)
+        ΔUᵏ, Uᵏ, Udotᵏ, Udotdotᵏ,
+        Fₑₓₜᵏ, Fᵢₙₜᵏ, Fᵢₙₑᵏ, Fᵥᵢₛᵏ,
+        Kᵏ, Mᵏ, Cᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ,
+        assembler, iter_state, linear_system)
 end
 
 function Base.show(io::IO, sc::FullDynamicState)
@@ -171,7 +172,8 @@ function reset!(state::FullDynamicState)
     state
 end
 
-struct DynamicState{U<:AbstractVector,E<:Dictionary,S<:Dictionary} <: AbstractDynamicState
+struct DynamicState{U <: AbstractVector, E <: Dictionary, S <: Dictionary} <:
+       AbstractDynamicState
     "Displacements vector."
     Uᵏ::U
     "Velocity vector."
@@ -182,8 +184,8 @@ struct DynamicState{U<:AbstractVector,E<:Dictionary,S<:Dictionary} <: AbstractDy
     ϵᵏ::E
     "Vector with stresses for each element."
     σᵏ::S
-    function DynamicState(Uᵏ::U, Udotᵏ::U, Udotdotᵏ::U, ϵᵏ::E, σᵏ::S) where {U,E,S}
-        new{U,E,S}(Uᵏ, Udotᵏ, Udotdotᵏ, ϵᵏ, σᵏ)
+    function DynamicState(Uᵏ::U, Udotᵏ::U, Udotdotᵏ::U, ϵᵏ::E, σᵏ::S) where {U, E, S}
+        new{U, E, S}(Uᵏ, Udotᵏ, Udotdotᵏ, ϵᵏ, σᵏ)
     end
 end
 

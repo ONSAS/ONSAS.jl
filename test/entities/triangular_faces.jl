@@ -9,9 +9,12 @@ using ONSAS.TriangularFaces
     x₂ = [1, 0, 0]
     x₃ = [0, 1, 0]
 
-    n₁ = Node(x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
-    n₂ = Node(x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
-    n₃ = Node(x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
+    n₁ = Node(
+        x₁, dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)]]))
+    n₂ = Node(
+        x₂, dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)]]))
+    n₃ = Node(
+        x₃, dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)]]))
 
     face_label = "my_face"
     f_empty_nodes = TriangularFace(face_label)

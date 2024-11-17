@@ -32,13 +32,13 @@ mat_label = "steel"
     @test isnothing(density(linear_steel_no_density))
     @test label(linear_steel_no_density) == NO_LABEL
 
-    linear_steel = IsotropicLinearElastic(; λ=λ, G=G, ρ=ρ, label=mat_label)
+    linear_steel = IsotropicLinearElastic(; λ = λ, G = G, ρ = ρ, label = mat_label)
     @test label(linear_steel) == Symbol(mat_label)
     @test density(linear_steel) == ρ
-    @test elasticity_modulus(linear_steel) ≈ E rtol = RTOL
-    @test poisson_ratio(linear_steel) ≈ ν rtol = RTOL
-    @test shear_modulus(linear_steel) ≈ G rtol = RTOL
-    @test bulk_modulus(linear_steel) ≈ K rtol = RTOL
+    @test elasticity_modulus(linear_steel)≈E rtol=RTOL
+    @test poisson_ratio(linear_steel)≈ν rtol=RTOL
+    @test shear_modulus(linear_steel)≈G rtol=RTOL
+    @test bulk_modulus(linear_steel)≈K rtol=RTOL
 
     # Test constitutive driver
     ϵᵢ = 0.18375
@@ -49,7 +49,7 @@ mat_label = "steel"
     γₖᵢ = 0.51
 
     # Consitutive tensor
-    𝐶 = [ λ+2G λ λ 0 0 0
+    𝐶 = [λ+2G λ λ 0 0 0
          λ λ+2G λ 0 0 0
          λ λ λ+2G 0 0 0
          0 0 0 G 0 0
@@ -71,7 +71,7 @@ mat_label = "steel"
 
     σ, ∂σ∂ϵ = stress!(σ, ∂σ∂ϵ, linear_steel, ϵ)
 
-    @test σ ≈ σ_expected rtol = RTOL
+    @test σ≈σ_expected rtol=RTOL
 end
 
 # More soft hyperelastic material
@@ -90,19 +90,20 @@ Khyper = λhyper + 2 * Ghyper / 3
 
     @test lame_parameters(svk_static) == (λ, G)
     @test isnothing(density(svk_static))
-    @test elasticity_modulus(svk_static) ≈ E rtol = RTOL
+    @test elasticity_modulus(svk_static)≈E rtol=RTOL
     @test shear_modulus(svk_static) == G
-    @test bulk_modulus(svk_static) ≈ K rtol = RTOL
+    @test bulk_modulus(svk_static)≈K rtol=RTOL
     @test poisson_ratio(svk_static) == ν
 
     # SVK for dynamic analysis
-    svk_dynamic = SVK(; E=E, ν=ν, ρ=ρ, label=mat_label)
+    svk_dynamic = SVK(; E = E, ν = ν, ρ = ρ, label = mat_label)
     @test density(svk_dynamic) == ρ
-    @test collect(lame_parameters(svk_dynamic)) ≈ [λ, G] rtol = RTOL
+    @test collect(lame_parameters(svk_dynamic))≈[λ, G] rtol=RTOL
     @test label(svk_dynamic) == Symbol(mat_label)
     # SVK strain energy
     strain_energy_svk(𝔼, λ::Real, G::Real) = (λ / 2) * tr(𝔼)^2 + G * tr(𝔼^2)
-    @test strain_energy(svk_dynamic, 𝔼) == strain_energy_svk(𝔼, lame_parameters(svk_static)...)
+    @test strain_energy(svk_dynamic, 𝔼) ==
+          strain_energy_svk(𝔼, lame_parameters(svk_static)...)
 
     l = "svk_HyperElastic"
     svk_hyper = HyperElastic([λhyper, Ghyper], strain_energy_svk, l)
@@ -127,31 +128,31 @@ Khyper = λhyper + 2 * Ghyper / 3
     𝕊_svk = Symmetric(zeros(3, 3))
     ∂𝕊∂𝔼_svk = zeros(6, 6)
     cosserat_stress!(𝕊_svk, ∂𝕊∂𝔼_svk, svk, 𝔼)
-    @test 𝕊_svk ≈ 𝕊_test rtol = RTOL
-    @test ∂𝕊∂𝔼_svk ≈ ∂𝕊∂𝔼_test rtol = RTOL
+    @test 𝕊_svk≈𝕊_test rtol=RTOL
+    @test ∂𝕊∂𝔼_svk≈∂𝕊∂𝔼_test rtol=RTOL
     # Constitutive driver HyperElasticMateiral
     𝕊_hyper = Symmetric(zeros(3, 3))
     ∂𝕊∂𝔼_hyper = zeros(6, 6)
     cosserat_stress!(𝕊_hyper, ∂𝕊∂𝔼_hyper, svk_hyper, 𝔼)
-    @test 𝕊_hyper ≈ 𝕊_test rtol = RTOL
-    @test ∂𝕊∂𝔼_svk ≈ ∂𝕊∂𝔼_test rtol = RTOL
+    @test 𝕊_hyper≈𝕊_test rtol=RTOL
+    @test ∂𝕊∂𝔼_svk≈∂𝕊∂𝔼_test rtol=RTOL
 end
 
 @testset "ONSAS.SVKMaterial + ONSAS.NeoHookeanMaterial" begin
     neo = NeoHookean(K, G)
     @test bulk_modulus(neo) == K
     @test shear_modulus(neo) == G
-    @test collect(lame_parameters(neo)) ≈ [λ, G] rtol = RTOL
-    @test poisson_ratio(neo) ≈ ν rtol = RTOL
-    @test elasticity_modulus(neo) ≈ E rtol = RTOL
+    @test collect(lame_parameters(neo))≈[λ, G] rtol=RTOL
+    @test poisson_ratio(neo)≈ν rtol=RTOL
+    @test elasticity_modulus(neo)≈E rtol=RTOL
 
     # NeoHookean defined with ρ E and  ν
-    neo_withρ = NeoHookean(; E=E, ν=ν, ρ=ρ, label=mat_label)
-    @test bulk_modulus(neo_withρ) ≈ K rtol = RTOL
-    @test shear_modulus(neo_withρ) ≈ G rtol = RTOL
-    @test collect(lame_parameters(neo_withρ)) ≈ [λ, G] rtol = RTOL
-    @test poisson_ratio(neo_withρ) ≈ ν rtol = RTOL
-    @test elasticity_modulus(neo_withρ) ≈ E rtol = RTOL
+    neo_withρ = NeoHookean(; E = E, ν = ν, ρ = ρ, label = mat_label)
+    @test bulk_modulus(neo_withρ)≈K rtol=RTOL
+    @test shear_modulus(neo_withρ)≈G rtol=RTOL
+    @test collect(lame_parameters(neo_withρ))≈[λ, G] rtol=RTOL
+    @test poisson_ratio(neo_withρ)≈ν rtol=RTOL
+    @test elasticity_modulus(neo_withρ)≈E rtol=RTOL
     @test label(neo_withρ) == Symbol(mat_label)
 
     # More flexible noe-hookean to test strain and stresses
@@ -170,7 +171,7 @@ end
     end
 
     neo_hyper = HyperElastic([bulk_modulus(neo_flexible), shear_modulus(neo_flexible)],
-                             strain_energy_neo, l)
+        strain_energy_neo, l)
 
     𝕊_hyper = Symmetric(zeros(3, 3))
     ∂𝕊∂𝔼_hyper = zeros(6, 6)
@@ -180,6 +181,6 @@ end
     cosserat_stress!(𝕊_hyper, ∂𝕊∂𝔼_hyper, neo_hyper, 𝔼)
     cosserat_stress!(𝕊_neo, ∂𝕊∂𝔼_neo, neo_flexible, 𝔼)
 
-    @test 𝕊_hyper ≈ 𝕊_neo rtol = RTOL
-    @test ∂𝕊∂𝔼_hyper ≈ ∂𝕊∂𝔼_neo rtol = RTOL
+    @test 𝕊_hyper≈𝕊_neo rtol=RTOL
+    @test ∂𝕊∂𝔼_hyper≈∂𝕊∂𝔼_neo rtol=RTOL
 end

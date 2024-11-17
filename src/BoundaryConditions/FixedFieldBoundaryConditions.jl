@@ -27,7 +27,7 @@ struct FixedField <: AbstractDirichletBoundaryCondition
     components::Vector{Int64}
     "Boundary condition label."
     name::Label
-    function FixedField(field::Field, components::Vector{Int64}, name::Label=NO_LABEL)
+    function FixedField(field::Field, components::Vector{Int64}, name::Label = NO_LABEL)
         new(field, components, name)
     end
 end
@@ -42,7 +42,7 @@ function apply(bc::FixedField, n::AbstractNode)
 end
 
 "Return fixed `Dof`s of an `AbstractFace` or `AbstractElement` imposed in the `FixedField` `fbc`."
-function apply(bc::FixedField, e::E) where {E<:Union{AbstractFace,AbstractElement}}
+function apply(bc::FixedField, e::E) where {E <: Union{AbstractFace, AbstractElement}}
     # TODO Rename method to fixed_dofs ?
     reduce(vcat, apply(bc, n) for n in nodes(e))
 end

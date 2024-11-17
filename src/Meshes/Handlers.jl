@@ -21,10 +21,10 @@ export PointEvalHandler, not_in_mesh_points, interpolator, mesh
 A `PointEvalHandler` facilitates the process of evaluating a solution at a given vector of points
 obtained at the `Node`s `Dof`s in a `Mesh`.
 """
-struct PointEvalHandler{dim,T,PT<:Point{dim,T},VPT<:AbstractVector{PT},
-                        WT<:AbstractVector{T},
-                        M<:AbstractMesh,
-                        I<:AbstractInterpolator}
+struct PointEvalHandler{dim, T, PT <: Point{dim, T}, VPT <: AbstractVector{PT},
+    WT <: AbstractVector{T},
+    M <: AbstractMesh,
+    I <: AbstractInterpolator}
     "`Mesh` where the solution is obtained."
     mesh::M
     "Vector of test points."
@@ -44,7 +44,7 @@ struct PointEvalHandler{dim,T,PT<:Point{dim,T},VPT<:AbstractVector{PT},
     "`Interpolator` object used to evaluate the solution."
     interpolator::I
 end
-function PointEvalHandler(mesh::AbstractMesh, point::P) where {T,P<:Point{T}}
+function PointEvalHandler(mesh::AbstractMesh, point::P) where {T, P <: Point{T}}
     PointEvalHandler(mesh, [point])
 end
 function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{Vector{T}}) where {T}
@@ -65,19 +65,20 @@ interpolator(peh::PointEvalHandler) = peh.interpolator
 
 "Constructor of a `PointEvalHandler` given a mesh and an array of points."
 function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT};
-                          alg::AbstractSearchAlgorithm=Serial()) where {dim,T,PT<:Point{dim,T}}
-    @assert dim ≤ 3 "Points must be 1D, 2D or 3D"
+        alg::AbstractSearchAlgorithm = Serial()) where {dim, T, PT <: Point{dim, T}}
+    @assert dim≤3 "Points must be 1D, 2D or 3D"
 
     # For each point, obtain the element(s) that it belongs to.
     # If a point belongs to more than one element, keep only the first matching element.
     # This is valid since the interpolation result will be the same for both elements.
     # This case occurs when the point is located on the boundary of two elements, face or node.
-    in_mesh_points_idx, in_mesh_elements_idx = evaluate_points_in_mesh(mesh, vec_points, alg)
+    in_mesh_points_idx, in_mesh_elements_idx = evaluate_points_in_mesh(
+        mesh, vec_points, alg)
 
     # For each element found, compute the associated weight used for interpolation.
     # Assume that the mesh has a unique element type.
     nnodes = num_nodes(element(mesh, 1))
-    weights = Vector{SVector{nnodes,T}}()
+    weights = Vector{SVector{nnodes, T}}()
     @inbounds for (elem_idx, point_idx) in zip(in_mesh_elements_idx, in_mesh_points_idx)
         w = Entities.weights(element(mesh, elem_idx), vec_points[point_idx])
         push!(weights, w)
@@ -85,9 +86,9 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT};
     PointEvalHandler(mesh, vec_points, in_mesh_points_idx, in_mesh_elements_idx, weights)
 end
 function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT},
-                          in_mesh_points_idx::Vector{Int64},
-                          in_mesh_elements_idx::Vector{Int64},
-                          weights::Vector{WT}) where {dim,T,PT<:Point{dim,T},WT<:AbstractVector{T}}
+        in_mesh_points_idx::Vector{Int64},
+        in_mesh_elements_idx::Vector{Int64},
+        weights::Vector{WT}) where {dim, T, PT <: Point{dim, T}, WT <: AbstractVector{T}}
     # Subset of `vec_points` that belong to the mesh.
     in_mesh_points = view(vec_points, in_mesh_points_idx)
 
@@ -101,17 +102,18 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT},
 
     # Dictionary with nodes as keys and corresponding weights as values.
     num_in_mesh_points = length(in_mesh_elements_idx)
-    node_to_weights = Vector{Dictionary{Node,T}}(undef, num_in_mesh_points)
+    node_to_weights = Vector{Dictionary{Node, T}}(undef, num_in_mesh_points)
     @inbounds for (i, elem_idx) in enumerate(in_mesh_elements_idx)
         elem = element(mesh, elem_idx)
         dict = dictionary([n => weights[i][j] for (j, n) in enumerate(nodes(elem))])
         node_to_weights[i] = dict
     end
     interpolator = FEMInterpolator(view(vec_points, in_mesh_points_idx), node_to_weights,
-                                   points_to_element)
+        points_to_element)
 
-    PointEvalHandler(mesh, vec_points, in_mesh_points_idx, not_in_mesh_points_idx, in_mesh_points,
-                     not_in_mesh_points, in_mesh_elements_idx, weights, interpolator)
+    PointEvalHandler(
+        mesh, vec_points, in_mesh_points_idx, not_in_mesh_points_idx, in_mesh_points,
+        not_in_mesh_points, in_mesh_elements_idx, weights, interpolator)
 end
 
 end # module

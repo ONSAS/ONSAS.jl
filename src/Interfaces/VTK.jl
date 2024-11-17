@@ -22,7 +22,7 @@ export VTKMeshFile, create_vtk_grid, write_node_data, write_cell_data, write_vtk
 Represents a VTK file for mesh data export.
 This structure is compatible with the `WriteVTK` library.
 """
-struct VTKMeshFile{VTK<:WriteVTK.DatasetFile}
+struct VTKMeshFile{VTK <: WriteVTK.DatasetFile}
     "`WriteVTK` `VTK` native file."
     vtk::VTK
 end
@@ -47,7 +47,7 @@ function Base.show(io::IO, ::MIME"text/plain", (; vtk)::VTKMeshFile)
     ncells = vtk.Ncls
     nnodes = vtk.Npts
     print(io,
-          "• VTKMeshFile file \"$(filename)\" is $open_str with $nnodes nodes and $ncells cells.")
+        "• VTKMeshFile file \"$(filename)\" is $open_str with $nnodes nodes and $ncells cells.")
 end
 
 """
@@ -82,15 +82,15 @@ function to_vtk_cell_nodes(e::AbstractEntity, msh::AbstractMesh)
 end
 
 function _vtk_write_node_data(vtk::WriteVTK.DatasetFile,
-                              nodal_data::Vector{<:Real},
-                              name::AbstractString;
-                              kwargs...)
+        nodal_data::Vector{<:Real},
+        name::AbstractString;
+        kwargs...)
     WriteVTK.vtk_point_data(vtk, nodal_data, name; kwargs...)
 end
 function _vtk_write_node_data(vtk::WriteVTK.DatasetFile,
-                              nodal_data::Matrix{<:Real},
-                              name::AbstractString;
-                              kwargs...)
+        nodal_data::Matrix{<:Real},
+        name::AbstractString;
+        kwargs...)
     WriteVTK.vtk_point_data(vtk, nodal_data, name; kwargs...)
 end
 """
@@ -112,8 +112,8 @@ function write_cell_data(vtk::VTKMeshFile, celldata, name; kwargs...)
 end
 
 INDEX_MAP = Dict("xx" => (1, 1), "yy" => (2, 2), "zz" => (3, 3),
-                 "xy" => (1, 2), "yz" => (2, 3), "zx" => (3, 1),
-                 "yx" => (2, 1), "zy" => (3, 2), "xz" => (1, 3))
+    "xy" => (1, 2), "yz" => (2, 3), "zx" => (3, 1),
+    "yx" => (2, 1), "zy" => (3, 2), "xz" => (1, 3))
 
 to_vtk(x::Vector) = x
 # const VTX_VOIGT_ORDER = [1, 6, 5, 9, 2, 4, 8, 7, 3]
@@ -121,8 +121,8 @@ to_vtk(x::Vector) = x
 to_vtk(x::AbstractMatrix) = x
 
 function write_cell_data(vtk::VTKMeshFile, celldata::Vector{<:Matrix{<:Real}}, name;
-                         component_names,
-                         kwargs...)
+        component_names,
+        kwargs...)
     for label in component_names
         found = false
         for (key, (i, j)) in INDEX_MAP
@@ -132,7 +132,7 @@ function write_cell_data(vtk::VTKMeshFile, celldata::Vector{<:Matrix{<:Real}}, n
                 @assert !any(isnan, component_data)
                 @assert !any(isinf, component_data)
                 write_cell_data(vtk, reshape(component_data, length(component_data), 1, 1),
-                                "$label")
+                    "$label")
             end
         end
         !found && throw(ArgumentError("Unexpected label $label didnt match INDEX_MAP"))
@@ -151,15 +151,16 @@ end
 const POINT_FIELDS = [:u, :θ]
 const CELL_FIELDS = Dict(:σ => (3, 3), :ϵ => (3, 3))
 const FIELD_NAMES = Dict(:u => "Displacement" => ["ux", "uy", "uz"],
-                         :θ => "Rotation" => ["θx", "θy", "θz"],
-                         :σ => "Stress" => ["σxx", "σyy", "σzz", "τyz", "τxz", "τxy", "τzy", "τzx",
-                                            "τyx"],
-                         :ϵ => "Strain" => ["ϵxx", "ϵyy", "ϵzz", "γyz", "γxz", "γxy", "γzy", "γzx",
-                                            "γyx"])
+    :θ => "Rotation" => ["θx", "θy", "θz"],
+    :σ => "Stress" => ["σxx", "σyy", "σzz", "τyz", "τxz", "τxy", "τzy", "τzx",
+        "τyx"],
+    :ϵ => "Strain" => ["ϵxx", "ϵyy", "ϵzz", "γyz", "γxz", "γxy", "γzy", "γzx",
+        "γyx"])
 
-function _extract_node_data(sol::AbstractSolution, fields::Vector{Field}, msh, time_index::Integer)
+function _extract_node_data(
+        sol::AbstractSolution, fields::Vector{Field}, msh, time_index::Integer)
     nodal_data = Dict(field => zeros(num_dofs(msh, field))
-                      for field in fields if field ∈ POINT_FIELDS)
+    for field in fields if field ∈ POINT_FIELDS)
     for node in nodes(msh)
         for field in fields
             if field ∈ POINT_FIELDS
@@ -172,9 +173,9 @@ function _extract_node_data(sol::AbstractSolution, fields::Vector{Field}, msh, t
     nodal_data
 end
 function _extract_cell_data(sol::AbstractSolution, fields::Vector{Field},
-                            msh::AbstractMesh, time_index::Integer)
+        msh::AbstractMesh, time_index::Integer)
     cell_data = Dict(field => [zeros(CELL_FIELDS[field]...) for _ in 1:num_elements(msh)]
-                     for field in fields if field ∈ keys(CELL_FIELDS))
+    for field in fields if field ∈ keys(CELL_FIELDS))
     for (i, elem) in enumerate(elements(msh))
         for field in fields
             if haskey(CELL_FIELDS, field)
@@ -204,9 +205,9 @@ The exported data typically includes:
 **DISCLAIMER:** The user is responsible for inspecting which strain and stress tensors are exported for each element formulation. It is essential to verify compatibility with the desired output before proceeding.
 """
 function write_vtk(sol::AbstractSolution, filename::String,
-                   time_index::Integer;
-                   fields::Vector{Field}=default_dof_fields(sol),
-                   kwargs...)
+        time_index::Integer;
+        fields::Vector{Field} = default_dof_fields(sol),
+        kwargs...)
     msh = mesh(structure(analysis(sol)))
 
     # Extract node and cell data using helper functions
@@ -225,8 +226,9 @@ function write_vtk(sol::AbstractSolution, filename::String,
     end
 end
 
-function WriteVTK.collection_add_timestep(pvd::WriteVTK.CollectionFile, datfile::VTKMeshFile,
-                                          time::Real)
+function WriteVTK.collection_add_timestep(
+        pvd::WriteVTK.CollectionFile, datfile::VTKMeshFile,
+        time::Real)
     WriteVTK.collection_add_timestep(pvd, datfile.vtk, time)
 end
 function Base.setindex!(pvd::WriteVTK.CollectionFile, datfile::VTKMeshFile, time::Real)
@@ -239,8 +241,8 @@ Each time step's VTK file is added to the collection for seamless visualization 
 Returns the path to the generated ParaView collection file.
 """
 function write_vtk(sol::AbstractSolution, base_filename::String;
-                   fields::Vector{Field}=default_dof_fields(sol),
-                   append=false)
+        fields::Vector{Field} = default_dof_fields(sol),
+        append = false)
     times_vector = times(analysis(sol))  # Extract the times from the solution analysis
     pvd = paraview_collection(base_filename)
 

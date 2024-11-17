@@ -98,16 +98,16 @@ end
     @test a.I == [1, 2, 1, 2, 2, 3, 2, 3]
     @test a.J == [1, 1, 2, 2, 2, 2, 3, 3]
     @test a.V == [
-       # Element 1
-                  Ke[1, 1],
-                  Ke[2, 1],
-                  Ke[1, 2],
-                  Ke[2, 2],
-       # Element 2
-                  Ke[1, 1],
-                  Ke[2, 1],
-                  Ke[1, 2],
-                  Ke[2, 2]]
+        # Element 1
+        Ke[1, 1],
+        Ke[2, 1],
+        Ke[1, 2],
+        Ke[2, 2],
+        # Element 2
+        Ke[1, 1],
+        Ke[2, 1],
+        Ke[1, 2],
+        Ke[2, 2]]
 
     K_glob_assembler = end_assemble(a)
 
@@ -116,7 +116,8 @@ end
     end_assemble!(K_to_fill_assembler, a)
 
     @test all([K_glob_assembler[ind] == val for (ind, val) in enumerate(K_glob_assembler)])
-    @test all([K_glob_assembler[ind] == val for (ind, val) in enumerate(K_to_fill_assembler)])
+    @test all([K_glob_assembler[ind] == val
+               for (ind, val) in enumerate(K_to_fill_assembler)])
 
     reset!(a)
     @test isempty(a.I)

@@ -48,38 +48,38 @@ using ONSAS.Tetrahedrons
     # Search
     #--------------------------------
     points_to_check = [Point(coordinates(n₁)...),
-                       Point(n₁ .- SVector(1, 1, 1)),
-                       Point(n₇ .+ SVector(10, 10, 10)),
-                       Point(coordinates(n₇)...),
-                       Point(coordinates(n₄)...)]
+        Point(n₁ .- SVector(1, 1, 1)),
+        Point(n₇ .+ SVector(10, 10, 10)),
+        Point(coordinates(n₇)...),
+        Point(coordinates(n₄)...)]
 
     # Serial implementation
     in_mesh_points_idx, in_mesh_elements_idx = evaluate_points_in_mesh(mesh,
-                                                                       points_to_check,
-                                                                       Serial())
+        points_to_check,
+        Serial())
 
     @test all([p ∈ mesh for p in view(points_to_check, in_mesh_points_idx)])
     @test in_mesh_elements_idx == [1, 3, 1]
 
     # Parallel implementation
     in_mesh_points_idx, in_mesh_elements_idx = evaluate_points_in_mesh(mesh,
-                                                                       points_to_check,
-                                                                       Threaded())
+        points_to_check,
+        Threaded())
     @test all([p ∈ mesh for p in view(points_to_check, in_mesh_points_idx)])
     # the order can be altered
     @test all(index ∈ in_mesh_elements_idx for index in [1, 3, 1])
 
     # Partitioned implementation
     in_mesh_points_idx, in_mesh_elements_idx = evaluate_points_in_mesh(mesh,
-                                                                       points_to_check,
-                                                                       Partition())
+        points_to_check,
+        Partition())
     @test all([p ∈ mesh for p in view(points_to_check, in_mesh_points_idx)])
     @test in_mesh_elements_idx == [1, 3, 1]
 
     # Partitioned thread implementation
     in_mesh_points_idx, in_mesh_elements_idx = evaluate_points_in_mesh(mesh,
-                                                                       points_to_check,
-                                                                       PartitionThreaded())
+        points_to_check,
+        PartitionThreaded())
     @test all([p ∈ mesh for p in view(points_to_check, in_mesh_points_idx)])
     # the order can be altered
     @test all(index ∈ in_mesh_elements_idx for index in [1, 3, 1])

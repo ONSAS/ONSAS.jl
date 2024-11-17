@@ -105,8 +105,8 @@ end;
 
 "Return numerical results for testing"
 function numerical_solution(sol::AbstractSolution,
-                            p1::Point{dim}, p2::Point{dim},
-                            e::ONSAS.AbstractElement{dim}) where {dim}
+        p1::Point{dim}, p2::Point{dim},
+        e::ONSAS.AbstractElement{dim}) where {dim}
     s = ONSAS.structure(analysis(sol))
     ## Displacements
     # Evaluate the solution at p1, p2
@@ -138,14 +138,14 @@ end;
 
 "Return analytical results for testing"
 function analytic_solution(sol::AbstractSolution, p1::Point{dim}, p2::Point{dim},
-                           e::AbstractElement{dim}) where {dim}
+        e::AbstractElement{dim}) where {dim}
     (; E, ν, λ, G, tension_load) = parameters()
     sa = analysis(sol)
     ## Displacements
     "Compute displacements νmeric solution ui, uj and uk for analytic validation."
     function u_ijk_analytic(λv::Vector{<:Real},
-                            x0::Real, y0::Real, z0::Real,
-                            ν::Real=ν, E::Real=E)
+            x0::Real, y0::Real, z0::Real,
+            ν::Real = ν, E::Real = E)
         C(t) = tension_load(t) * (1 - ν - 2ν^2) / (1 - ν)
 
         ui(t) = C(t) / E * x0
@@ -166,8 +166,8 @@ function analytic_solution(sol::AbstractSolution, p1::Point{dim}, p2::Point{dim}
     uk_2 = u_2[3]
     ## Strains
     "Compute strains νmeric solution ϵi, ϵj and ϵk for analytic validation."
-    function ϵ_ijk_analytic(λv::Vector{<:Real}, x0::Real, y0::Real, z0::Real, ν::Real=ν,
-                            E::Real=E)
+    function ϵ_ijk_analytic(λv::Vector{<:Real}, x0::Real, y0::Real, z0::Real, ν::Real = ν,
+            E::Real = E)
         C(t) = tension_load(t) * (1 - ν - 2ν^2) / (1 - ν)
 
         ϵi(t) = C(t) / E
@@ -178,7 +178,8 @@ function analytic_solution(sol::AbstractSolution, p1::Point{dim}, p2::Point{dim}
     end
     ## Stresses
     "Compute strains νmeric solution ϵi, ϵj and ϵk for analytic validation."
-    function σ_ijk_analytic(λv::Vector{<:Real}, x0::Real, y0::Real, z0::Real, λ::Real, G::Real)
+    function σ_ijk_analytic(
+            λv::Vector{<:Real}, x0::Real, y0::Real, z0::Real, λ::Real, G::Real)
         C(t) = tension_load(t) * (1 - ν - 2ν^2) / (1 - ν)
 
         ϵi(t) = C(t) / E
@@ -224,33 +225,33 @@ function test(sol::AbstractSolution)
     # Test booleans for CI
     #-----------------------------
     @testset "Linear Extension example displacements Point 1" begin
-        @test ui_1_num ≈ ui_1_analy rtol = RTOL
-        @test uj_1_num ≈ uj_1_analy atol = ATOL
-        @test norm(uj_1_analy) ≈ 0 atol = ATOL
-        @test uk_1_num ≈ uk_1_analy atol = ATOL
-        @test norm(uk_1_analy) ≈ 0 atol = ATOL
+        @test ui_1_num≈ui_1_analy rtol=RTOL
+        @test uj_1_num≈uj_1_analy atol=ATOL
+        @test norm(uj_1_analy)≈0 atol=ATOL
+        @test uk_1_num≈uk_1_analy atol=ATOL
+        @test norm(uk_1_analy)≈0 atol=ATOL
     end
 
     @testset "Linear Extension example displacements Point 2" begin
-        @test ui_2_num ≈ ui_2_analy rtol = RTOL
-        @test uj_2_num ≈ uj_2_analy atol = ATOL
-        @test norm(uj_2_analy) ≈ 0 atol = ATOL
-        @test uk_2_num ≈ uk_2_analy atol = ATOL
-        @test norm(uk_2_analy) ≈ 0 atol = ATOL
+        @test ui_2_num≈ui_2_analy rtol=RTOL
+        @test uj_2_num≈uj_2_analy atol=ATOL
+        @test norm(uj_2_analy)≈0 atol=ATOL
+        @test uk_2_num≈uk_2_analy atol=ATOL
+        @test norm(uk_2_analy)≈0 atol=ATOL
     end
 
     @testset "Linear Extension example strains random Point " begin
-        @test ϵi_num ≈ ϵi_analy rtol = RTOL
-        @test ϵj_num ≈ ϵj_analy atol = ATOL
-        @test norm(ϵj_analy) ≈ 0 atol = ATOL
-        @test ϵk_num ≈ ϵk_analy atol = ATOL
-        @test norm(ϵk_num) ≈ 0 atol = ATOL
+        @test ϵi_num≈ϵi_analy rtol=RTOL
+        @test ϵj_num≈ϵj_analy atol=ATOL
+        @test norm(ϵj_analy)≈0 atol=ATOL
+        @test ϵk_num≈ϵk_analy atol=ATOL
+        @test norm(ϵk_num)≈0 atol=ATOL
     end
 
     @testset "Linear Extension example stress random Point " begin
-        @test σi_num ≈ σi_analy rtol = RTOL
-        @test σj_num ≈ σj_analy rtol = RTOL skip = true
-        @test σk_num ≈ σk_analy rtol = RTOL skip = true
+        @test σi_num≈σi_analy rtol=RTOL
+        @test σj_num≈σj_analy rtol=RTOL skip=true
+        @test σk_num≈σk_analy rtol=RTOL skip=true
     end
 end;
 

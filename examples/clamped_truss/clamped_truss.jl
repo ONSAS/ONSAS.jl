@@ -41,7 +41,7 @@ function structure()
     # -------------------------------
     # Materials
     # -------------------------------
-    steel = SVK(; E=E, ν=ν, ρ=ρ, label="steel")
+    steel = SVK(; E = E, ν = ν, ρ = ρ, label = "steel")
     materials = StructuralMaterial(steel => elements)
     # -------------------------------
     # Boundary conditions
@@ -49,7 +49,8 @@ function structure()
     bc₁ = FixedField(:u, [1], "fixed_uₓ")
     bc₂ = GlobalLoad(:u, t -> [F * t], "load in j")
     # Apply bcs to the nodes
-    boundary_conditions = StructuralBoundaryCondition(bc₁ => [first(nodes)], bc₂ => [last(nodes)])
+    boundary_conditions = StructuralBoundaryCondition(
+        bc₁ => [first(nodes)], bc₂ => [last(nodes)])
 
     Structure(mesh, materials, boundary_conditions)
 end;
@@ -61,7 +62,7 @@ function solve()
     # Structural Analysis
     # -------------------------------
     (; NSTEPS) = parameters()
-    sa = NonLinearStaticAnalysis(s; NSTEPS=NSTEPS)
+    sa = NonLinearStaticAnalysis(s; NSTEPS = NSTEPS)
     # -------------------------------
     # Numerical solution
     # -------------------------------
@@ -81,7 +82,8 @@ function test(sol::AbstractSolution)
     #-----------------------------
     # Compute the analytic values for the strain, stress and force at the tip
     "Analytic force given `uᵢ` towards x axis at the tip node"
-    function analytic_P(::Type{GreenStrain}, uᵢ::Real, E::Real=E, l₀::Real=L, A₀::Real=A)
+    function analytic_P(
+            ::Type{GreenStrain}, uᵢ::Real, E::Real = E, l₀::Real = L, A₀::Real = A)
         ϵ_green = 0.5 * ((l₀ + uᵢ)^2 - l₀^2) / (l₀^2)
         # Cosserat stress
         𝐒₁₁ = E * ϵ_green
@@ -92,7 +94,7 @@ function test(sol::AbstractSolution)
     #
     analytic_P_tip = analytic_P.(Ref(ϵ_model), numeric_uᵢ)
     @testset "Piola-Kirchoff tensor at the right-most node" begin
-        @test analytic_P_tip ≈ numeric_P_tip rtol = 1e-3
+        @test analytic_P_tip≈numeric_P_tip rtol=1e-3
     end
 end
 

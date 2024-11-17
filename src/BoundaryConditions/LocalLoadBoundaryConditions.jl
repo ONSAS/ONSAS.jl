@@ -25,7 +25,7 @@ struct Pressure <: AbstractNeumannBoundaryCondition
     values::Function
     "Boundary condition label."
     name::Label
-    function Pressure(field::Field, values::Function, name::Label=NO_LABEL)
+    function Pressure(field::Field, values::Function, name::Label = NO_LABEL)
         # Check values is real function.
         @assert values(rand()) isa Real
         new(field, values, name)
@@ -48,9 +48,9 @@ function apply(bc::Pressure, f::AbstractFace, t::Real)
     dofs_bc = reduce(vcat, values(dofs(n)[bc.field]) for n in nodes(f))
 
     # Repeat the values and build the tension vector for all dofs
-    p_vec = repeat(p_nodal; outer=Int(length(dofs_bc) / length(p_nodal)))
+    p_vec = repeat(p_nodal; outer = Int(length(dofs_bc) / length(p_nodal)))
 
-    @assert length(p_vec) == length(dofs_bc) "The length of the tension vector must be equal to the length of the dofs vector."
+    @assert length(p_vec)==length(dofs_bc) "The length of the tension vector must be equal to the length of the dofs vector."
 
     dofs_bc, p_vec
 end

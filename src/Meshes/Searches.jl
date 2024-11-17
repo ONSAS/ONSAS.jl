@@ -52,8 +52,8 @@ end
 
 "Return indexes checking if points are inside the mesh."
 function evaluate_points_in_mesh(mesh::AbstractMesh{dim}, vec_points::Vector{P},
-                                 alg::A=Serial()) where {dim,P<:Point{dim},
-                                                         A<:Union{Serial,Threaded}}
+        alg::A = Serial()) where {dim, P <: Point{dim},
+        A <: Union{Serial, Threaded}}
     evaluate_points_in_elements(elements(mesh), vec_points, alg)
 end
 
@@ -62,7 +62,7 @@ elements with a serial searching algorithm. Two integer vectors are returned,
 the first one contains the indexes of the points inside the mesh, the second one
 contains the indexes of the elements containing the points."
 function evaluate_points_in_elements(elements::Vector{E}, vec_points::Vector{P},
-                                     ::Serial) where {dim,T,E<:AbstractElement,P<:Point{dim,T}}
+        ::Serial) where {dim, T, E <: AbstractElement, P <: Point{dim, T}}
     in_mesh_points_idx = Vector{Int64}()
     in_mesh_elements_idx = Vector{Int64}()
     @inbounds for (point_idx, point) in enumerate(vec_points)
@@ -83,8 +83,8 @@ elements with a serial searching algorithm. Two vector of integers are returned,
 the first one contains the indexes of the points inside the mesh, the second one
 contains the indexes of the elements containing the points."
 function evaluate_points_in_elements(elements::Vector{E}, vec_points::Vector{P},
-                                     ::Threaded) where {dim,E<:AbstractElement{dim},
-                                                        P<:Point{dim}}
+        ::Threaded) where {dim, E <: AbstractElement{dim},
+        P <: Point{dim}}
     numthreads = Threads.nthreads()
     in_mesh_points_idx = [Vector{Int64}() for _ in 1:numthreads]
     in_mesh_elements_idx = [Vector{Int64}() for _ in 1:numthreads]
@@ -119,7 +119,7 @@ end
 # end
 
 "Return a box approximation of a node's vector transforming them to LazySets singletons."
-function bounding_box(nodes::Vector{N}) where {N<:AbstractNode}
+function bounding_box(nodes::Vector{N}) where {N <: AbstractNode}
     # Allocates, but sufficiently fast for now.
     box_approximation(UnionSetArray([Singleton(n) for n in nodes]))
 end
@@ -129,8 +129,8 @@ with a partitioned searching algorithm. Two integers vectors are returned,
 the first one contains the indexes of the points inside the mesh, the second one
 contains the indexes of the elements containing the points."
 function evaluate_points_in_mesh(mesh::AbstractMesh{dim},
-                                 vec_points::Vector{P},
-                                 alg::Partition) where {dim,T,P<:Point{dim,T}}
+        vec_points::Vector{P},
+        alg::Partition) where {dim, T, P <: Point{dim, T}}
     # Array of hyperrectangles inside the bounding box.
     H = bounding_box(nodes(mesh))
     (; Nx, Ny, Nz) = alg
@@ -177,13 +177,14 @@ with a threaded partitioned searching algorithm. Two integers vectors are return
 the first one contains the indexes of the points inside the mesh, the second one
 contains the indexes of the elements containing the points."
 function evaluate_points_in_mesh(mesh::AbstractMesh,
-                                 vec_points::Vector{P},
-                                 alg::PartitionThreaded) where {dim,T,P<:Point{dim,T}}
+        vec_points::Vector{P},
+        alg::PartitionThreaded) where {dim, T, P <: Point{dim, T}}
     # Array of hyperrectangles inside the bounding box.
     H = bounding_box(nodes(mesh))
     (; Nx, Ny, Nz) = alg
     Hpart = split(H, [Nx, Ny, Nz])
-    Tboxes = [box_approximation(convert(LazySets.Tetrahedron, elem)) for elem in elements(mesh)]
+    Tboxes = [box_approximation(convert(LazySets.Tetrahedron, elem))
+              for elem in elements(mesh)]
 
     # Mapping of elements with non-empty intersection with each hyperrectangle.
     elems_idx_in_box = [Vector{Int64}() for _ in 1:length(Hpart)]

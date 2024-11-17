@@ -2,10 +2,10 @@ using Gmsh
 
 "Creates a mesh for a cube with a loaded face and a fixed origin."
 function create_linear_extension_mesh(Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
-                                      labels::Vector,
-                                      filename::String,
-                                      ms::Real=0.5,
-                                      dir::String=@__DIR__)
+        labels::Vector,
+        filename::String,
+        ms::Real = 0.5,
+        dir::String = @__DIR__)
 
     # Get Labels
     mat_label = labels[1]
@@ -86,10 +86,10 @@ function create_linear_extension_mesh(Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
     gmsh.model.addPhysicalGroup(dim_surface, [left_surface_index], fixed_ux_surfaces_index)
     fixed_uy_surfaces_index = 2
     gmsh.model.addPhysicalGroup(dim_surface, [bottom_surface_index, top_surface_index],
-                                fixed_uy_surfaces_index)
+        fixed_uy_surfaces_index)
     fixed_uz_surfaces_index = 3
     gmsh.model.addPhysicalGroup(dim_surface, [front_surface_index, back_surface_index],
-                                fixed_uz_surfaces_index)
+        fixed_uz_surfaces_index)
     load_surfaces_index = 4
     gmsh.model.addPhysicalGroup(dim_surface, [right_surface_index], load_surfaces_index)
 
@@ -98,12 +98,13 @@ function create_linear_extension_mesh(Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
     gmsh.model.addPhysicalGroup(dim_vol, [1], 5)
 
     gmsh.model.setPhysicalName(dim_surface, fixed_ux_surfaces_index,
-                               "_$(face_label)_$(ux_bc_label)")
+        "_$(face_label)_$(ux_bc_label)")
     gmsh.model.setPhysicalName(dim_surface, fixed_uy_surfaces_index,
-                               "_$(face_label)_$(uy_bc_label)")
+        "_$(face_label)_$(uy_bc_label)")
     gmsh.model.setPhysicalName(dim_surface, fixed_uz_surfaces_index,
-                               "_$(face_label)_$(uz_bc_label)")
-    gmsh.model.setPhysicalName(dim_surface, load_surfaces_index, "_$(face_label)_$(load_label)")
+        "_$(face_label)_$(uz_bc_label)")
+    gmsh.model.setPhysicalName(
+        dim_surface, load_surfaces_index, "_$(face_label)_$(load_label)")
     gmsh.model.setPhysicalName(dim_vol, 5, "$(mat_label)_$(element_label)_")
 
     gmsh.model.geo.synchronize()

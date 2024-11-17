@@ -20,7 +20,7 @@ samples = 2;
 # Static analysis benchmarks
 # =======================================
 # Alg to solve static problems
-tols = ConvergenceSettings(; rel_U_tol=1e-8, rel_res_force_tol=1e-6, max_iter=20);
+tols = ConvergenceSettings(; rel_U_tol = 1e-8, rel_res_force_tol = 1e-6, max_iter = 20);
 alg = NewtonRaphson(tols);
 # Static analysis number of steps to reach the final load factor value
 NSTEPS = 8;
@@ -43,9 +43,10 @@ if uniaxial_extension
             structure = uniaxial_extension_structure(; ms)
         end
         nnodes, nelems = num_nodes(structure), num_elements(structure)
-        problem = NonLinearStaticAnalysis(structure; NSTEPS=NSTEPS)
-        SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem,
-                                                                                                           $alg) evals = evals samples = samples
+        problem = NonLinearStaticAnalysis(structure; NSTEPS = NSTEPS)
+        SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!(
+            $problem,
+            $alg) evals=evals samples=samples
     end
 
     # Remove all .msh files from the example_folder 
@@ -68,9 +69,10 @@ if uniaxial_compression
         end
         # Extract the number of elements as an integer.
         nnodes, nelems = num_nodes(structure), num_elements(structure)
-        problem = NonLinearStaticAnalysis(structure; NSTEPS=NSTEPS)
-        SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem,
-                                                                                                           $alg) evals = evals samples = samples
+        problem = NonLinearStaticAnalysis(structure; NSTEPS = NSTEPS)
+        SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!(
+            $problem,
+            $alg) evals=evals samples=samples
     end
 
     # Remove all .msh files from the example_folder 
@@ -93,8 +95,8 @@ if linear_extension
         end
         # Extract the number of elements as an integer.
         nnodes, nelems = num_nodes(structure), num_elements(structure)
-        problem = LinearStaticAnalysis(structure; NSTEPS=NSTEPS)
-        SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem) evals = evals samples = samples
+        problem = LinearStaticAnalysis(structure; NSTEPS = NSTEPS)
+        SUITE[example_name]["solve, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem) evals=evals samples=samples
     end
 
     # Remove all .msh files from the example_folder 
@@ -120,17 +122,18 @@ if linear_cylinder_internal_pressure
             structure = linear_cylinder_structure(; ms)
 
             nnodes, nelems = num_nodes(structure), num_elements(structure)
-            SUITE[example_name]["structure, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable linear_cylinder_structure(ms=$ms) evals = evals samples = samples
+            SUITE[example_name]["structure, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable linear_cylinder_structure(ms = $ms) evals=evals samples=samples
 
             problem = LinearStaticAnalysis(structure; NSTEPS)
 
             solution = solve!(problem)
             reset!(problem)
-            SUITE[example_name]["solve!, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem) evals = evals samples = samples
+            SUITE[example_name]["solve!, ms = $ms, nelems = $nelems, nnodes = $nnodes"] = @benchmarkable solve!($problem) evals=evals samples=samples
 
             ph = point_eval_handler(structure; NPOINTS)
-            SUITE[example_name]["point_eval_handler, ms = $ms, nelems = $nelems, nnodes = $nnodes, npoints = $(NPOINTS^3)"] = @benchmarkable point_eval_handler($structure,
-                                                                                                                                                                NPOINTS=$NPOINTS) evals = evals samples = samples
+            SUITE[example_name]["point_eval_handler, ms = $ms, nelems = $nelems, nnodes = $nnodes, npoints = $(NPOINTS^3)"] = @benchmarkable point_eval_handler(
+                $structure,
+                NPOINTS = $NPOINTS) evals=evals samples=samples
             eval_solution = displacements(solution, ph)
         end
     end

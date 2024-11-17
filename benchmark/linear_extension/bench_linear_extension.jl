@@ -6,7 +6,7 @@ Linear extension  GMSH mesh and `IsotropicLinearElastic` material.
 
 `ms` is the refinement factor of the mesh.
 """
-function linear_extension_structure(; ms=0.5)
+function linear_extension_structure(; ms = 0.5)
 
     # x, y and z dimensions of the box in the mesh respectively.
     Lᵢ = 2.0                         # Dimension in x of the box in m

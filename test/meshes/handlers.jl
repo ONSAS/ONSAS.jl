@@ -28,7 +28,7 @@ const RTOL = 1e-5
     n₈ = Node(Lᵢ, Lⱼ, 0.0)
     vec_nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
     # nothing is a placeholder for extra data
-    mesh = Mesh(; nodes=vec_nodes)
+    mesh = Mesh(; nodes = vec_nodes)
     ## Faces
     f₁ = TriangularFace(n₅, n₈, n₆)
     f₂ = TriangularFace(n₆, n₈, n₇)
@@ -63,7 +63,7 @@ const RTOL = 1e-5
     vec_points = coordinates.(nodes_to_interpolate)
 
     # Create point eval handler and tests
-    ph_nodes = PointEvalHandler(mesh, vec_points; alg=Partition())
+    ph_nodes = PointEvalHandler(mesh, vec_points; alg = Partition())
 
     @test ph_nodes.mesh == mesh
     in_mesh_indexes = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -88,5 +88,5 @@ const RTOL = 1e-5
     node_to_interpolate_p₉ = first(node_2_weights)
     node_value_weighted = [weight * vec_linear_scalar_field[node]
                            for (node, weight) in pairs(node_to_interpolate_p₉)]
-    @test linear_scalar_field(p₉...) ≈ reduce(+, node_value_weighted) rtol = RTOL
+    @test linear_scalar_field(p₉...)≈reduce(+, node_value_weighted) rtol=RTOL
 end

@@ -22,11 +22,11 @@ export MshFile, material_label, entity_label, bc_label, physical_index, gmsh_pri
 """
 Collection of `Node`s.
 """
-struct MshFile{dim,T,S,I1<:Integer,I2<:Integer}
+struct MshFile{dim, T, S, I1 <: Integer, I2 <: Integer}
     "Path to the `.geo` file."
     filename::String
     "Nodes of the mesh."
-    vec_nodes::Vector{Node{dim,T}}
+    vec_nodes::Vector{Node{dim, T}}
     "Connectivity of the mesh."
     connectivity::Vector{Vector{I1}}
     "Physical names."
@@ -37,18 +37,18 @@ struct MshFile{dim,T,S,I1<:Integer,I2<:Integer}
     entities_labels::Vector{S}
     "Boundary condition type labels."
     bc_labels::Vector{S}
-    function MshFile(filename::String, vec_nodes::Vector{Node{dim,T}},
-                     connectivity::Vector{Vector{I1}}, physical_index::Vector{I2},
-                     material_labels::Vector{S}, entities_labels::Vector{S},
-                     bc_labels::Vector{S}) where {dim,T,S,I1<:Integer,I2<:Integer}
-        @assert length(physical_index) == length(connectivity) "The number of physical
-        indexes = $(length(physical_index)) must be equal to the number of elements = $(length(connectivity))."
-        @assert length(material_labels) == length(entities_labels) == length(bc_labels) "The
-        number of material labels = $(length(material_labels)), entities labels = $(length(entities_labels))
-        and boundary conditions labels = $(length(bc_labels)) must be equal."
+    function MshFile(filename::String, vec_nodes::Vector{Node{dim, T}},
+            connectivity::Vector{Vector{I1}}, physical_index::Vector{I2},
+            material_labels::Vector{S}, entities_labels::Vector{S},
+            bc_labels::Vector{S}) where {dim, T, S, I1 <: Integer, I2 <: Integer}
+        @assert length(physical_index)==length(connectivity) "The number of physical
+      indexes = $(length(physical_index)) must be equal to the number of elements = $(length(connectivity))."
+        @assert length(material_labels)==length(entities_labels)==length(bc_labels) "The
+    number of material labels = $(length(material_labels)), entities labels = $(length(entities_labels))
+    and boundary conditions labels = $(length(bc_labels)) must be equal."
 
-        return new{dim,T,S,I1,I2}(filename, vec_nodes, connectivity, physical_index,
-                                  material_labels, entities_labels, bc_labels)
+        return new{dim, T, S, I1, I2}(filename, vec_nodes, connectivity, physical_index,
+            material_labels, entities_labels, bc_labels)
     end
 end
 
@@ -60,9 +60,12 @@ function _getlabels(physical_names::Vector{String})
 
     # Entities material, types and boundary conditions
     length_labels_elements = 3
-    material_labels = getindex.(filter(l -> length(l) == length_labels_elements, physical_names), 1)
-    entity_labels = getindex.(filter(l -> length(l) == length_labels_elements, physical_names), 2)
-    bcs_labels = getindex.(filter(l -> length(l) == length_labels_elements, physical_names), 3)
+    material_labels = getindex.(
+        filter(l -> length(l) == length_labels_elements, physical_names), 1)
+    entity_labels = getindex.(
+        filter(l -> length(l) == length_labels_elements, physical_names), 2)
+    bcs_labels = getindex.(
+        filter(l -> length(l) == length_labels_elements, physical_names), 3)
 
     return material_labels, entity_labels, bcs_labels
 end
@@ -76,7 +79,7 @@ function MshFile(filename::String)
     vec_nodes = [Node(n) for n in eachrow(nodes_coords)]
 
     MshFile(filename, vec_nodes, connectivity,
-            physical_index, material_labels, entities_labels, bcs_labels)
+        physical_index, material_labels, entities_labels, bcs_labels)
 end
 
 "Return the connectivity defined in the MSH file."

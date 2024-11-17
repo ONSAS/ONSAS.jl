@@ -51,7 +51,7 @@ function structure(::FirstCase)
     n7 = Node(Lx, Ly, Lz)
     n8 = Node(Lx, Ly, 0.0)
     vec_nodes = [n1, n2, n3, n4, n5, n6, n7, n8]
-    m = Mesh(; nodes=vec_nodes)
+    m = Mesh(; nodes = vec_nodes)
     ## Faces
     f1 = TriangularFace(n5, n8, n6, "loaded_face_1")
     f2 = TriangularFace(n6, n8, n7, "loaded_face_2")
@@ -81,7 +81,7 @@ function structure(::FirstCase)
     # -------------------------------
     # Materials
     # -------------------------------
-    svk = SVK(; E=E, ν=ν, label="svk")
+    svk = SVK(; E = E, ν = ν, label = "svk")
     mat = StructuralMaterial(svk => [t1, t2, t3, t4, t5, t6])
     # -------------------------------
     # Boundary conditions
@@ -94,7 +94,7 @@ function structure(::FirstCase)
     bc4 = GlobalLoad(:u, t -> [p * t, 0, 0])
     # Crete boundary conditions struct
     bcs = StructuralBoundaryCondition(bc1 => [f3, f4], bc2 => [f5, f6],
-                                      bc3 => [f7, f8], bc4 => [f1, f2])
+        bc3 => [f7, f8], bc4 => [f1, f2])
     # -------------------------------
     # Structure
     # -------------------------------
@@ -143,7 +143,7 @@ end;
 
 "Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
 function u_ijk_numeric(α::Vector{<:Real}, β::Vector{<:Real}, γ::Vector{<:Real},
-                       x::Real, y::Real, z::Real)
+        x::Real, y::Real, z::Real)
     x * (α .- 1), y * (β .- 1), z * (γ .- 1)
 end;
 
@@ -197,11 +197,11 @@ function test(::FirstCase, sol::AbstractSolution)
     # Test solution
     # -------------------------------
     @testset "Case 1 Uniaxial Extension Example" begin
-        @test λ_analytic ≈ λ_numeric rtol = RTOL
-        @test α_analytic ≈ last(α_numeric) rtol = RTOL
-        @test β_analytic ≈ last(β_numeric) rtol = RTOL
-        @test C_analytic ≈ C_numeric rtol = RTOL
-        @test P_analytic ≈ P_numeric rtol = RTOL
+        @test λ_analytic≈λ_numeric rtol=RTOL
+        @test α_analytic≈last(α_numeric) rtol=RTOL
+        @test β_analytic≈last(β_numeric) rtol=RTOL
+        @test C_analytic≈C_numeric rtol=RTOL
+        @test P_analytic≈P_numeric rtol=RTOL
     end
 end
 
@@ -304,12 +304,12 @@ function test(::SecondCase, sol::AbstractSolution)
     # Test solution
     # -------------------------------
     @testset "Case 2 Uniaxial Extension Example" begin
-        @test λ_analytic ≈ λ_numeric rtol = RTOL
+        @test λ_analytic≈λ_numeric rtol=RTOL
         @test J > 0
-        @test α_analytic ≈ last(α_numeric) rtol = RTOL
-        @test β_analytic ≈ last(β_numeric) rtol = RTOL
-        @test C_analytic ≈ C_numeric rtol = RTOL
-        @test P_analytic ≈ P_numeric rtol = RTOL
+        @test α_analytic≈last(α_numeric) rtol=RTOL
+        @test β_analytic≈last(β_numeric) rtol=RTOL
+        @test C_analytic≈C_numeric rtol=RTOL
+        @test P_analytic≈P_numeric rtol=RTOL
     end
     # -------------------------------
     # Interpolator tests
@@ -318,14 +318,14 @@ function test(::SecondCase, sol::AbstractSolution)
     ph = PointEvalHandler(mesh(s), rand_point)
     # Compute analytic solution at a random point
     uie, uje, uke = u_ijk_numeric(α_numeric, β_numeric, γ_numeric,
-                                  rand_point[]...)
+        rand_point[]...)
     r_ui = displacements(sol, ph, 1)
     r_uj = displacements(sol, ph, 2)
     r_uk = displacements(sol, ph, 3)
     @testset "Case 2 Uniaxial Extension Example Interpolation" begin
-        @test uie ≈ r_ui rtol = RTOL
-        @test uje ≈ r_uj rtol = RTOL
-        @test uke ≈ r_uk rtol = RTOL
+        @test uie≈r_ui rtol=RTOL
+        @test uje≈r_uj rtol=RTOL
+        @test uke≈r_uk rtol=RTOL
     end
 end
 

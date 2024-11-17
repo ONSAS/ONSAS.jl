@@ -30,9 +30,9 @@ export FullStaticState, StaticState
 """
 Stores the relevant static variables of the structure during the displacements iteration.
 """
-struct FullStaticState{DU<:AbstractVector,U<:AbstractVector,
-                       FE<:AbstractVector,FI<:AbstractVector,K<:AbstractMatrix,
-                       E<:Dictionary,S<:Dictionary} <: AbstractStaticState
+struct FullStaticState{DU <: AbstractVector, U <: AbstractVector,
+    FE <: AbstractVector, FI <: AbstractVector, K <: AbstractMatrix,
+    E <: Dictionary, S <: Dictionary} <: AbstractStaticState
     "Free degrees of freedom."
     free_dofs::Vector{Dof}
     "Displacements vector increment."
@@ -58,26 +58,27 @@ struct FullStaticState{DU<:AbstractVector,U<:AbstractVector,
     "Linear system cache"
     linear_system::LinearSolve.LinearCache
     function FullStaticState(fdofs::Vector{Dof},
-                             ΔUᵏ::DU, Uᵏ::U,
-                             Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI,
-                             Kₛᵏ::K, res_forces::DU,
-                             ϵᵏ::E, σᵏ::S,
-                             assembler::Assembler,
-                             iter_state::ResidualsIterationStep,
-                             linear_system::LinearSolve.LinearCache) where {DU,U,FE,FI,K,E,S}
+            ΔUᵏ::DU, Uᵏ::U,
+            Fₑₓₜᵏ::FE, Fᵢₙₜᵏ::FI,
+            Kₛᵏ::K, res_forces::DU,
+            ϵᵏ::E, σᵏ::S,
+            assembler::Assembler,
+            iter_state::ResidualsIterationStep,
+            linear_system::LinearSolve.LinearCache) where {DU, U, FE, FI, K, E, S}
         # Check dimensions
         @assert length(ΔUᵏ) == length(fdofs) == length(res_forces)
         @assert size(Kₛᵏ, 1) == size(Kₛᵏ, 2) == length(Fᵢₙₜᵏ) == length(Fₑₓₜᵏ) == length(Uᵏ)
         # Initialize linear system K.ΔU = R
-        new{DU,U,FE,FI,K,E,S}(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assembler,
-                              iter_state, linear_system)
+        new{DU, U, FE, FI, K, E, S}(
+            fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assembler,
+            iter_state, linear_system)
     end
 end
 
 "Default constructor for static state given an structure and iteration state."
 function FullStaticState(s::AbstractStructure,
-                         iter_state::ResidualsIterationStep=ResidualsIterationStep(),
-                         linear_solver=DEFAULT_LINEAR_SOLVER)
+        iter_state::ResidualsIterationStep = ResidualsIterationStep(),
+        linear_solver = DEFAULT_LINEAR_SOLVER)
     n_dofs = num_dofs(s)
     n_fdofs = num_free_dofs(s)
     Uᵏ = zeros(n_dofs)
@@ -87,14 +88,16 @@ function FullStaticState(s::AbstractStructure,
     Kₛᵏ = spzeros(n_dofs, n_dofs)
     res_forces = zeros(n_fdofs)
     # Initialize pairs strains
-    ϵᵏ = dictionary([Pair(e, Symmetric(Matrix{Float64}(undef, (3, 3)))) for e in elements(s)])
+    ϵᵏ = dictionary([Pair(e, Symmetric(Matrix{Float64}(undef, (3, 3))))
+                     for e in elements(s)])
     σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
     cache = dictionary(nameof(T) => elements_cache(T) for T in subtypes(AbstractElement))
     assemblerᵏ = Assembler(s, cache)
     fdofs = free_dofs(s)
     linear_system = init(LinearProblem(Kₛᵏ[fdofs, fdofs], res_forces), linear_solver)
-    FullStaticState(fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state,
-                    linear_system)
+    FullStaticState(
+        fdofs, ΔUᵏ, Uᵏ, Fₑₓₜᵏ, Fᵢₙₜᵏ, Kₛᵏ, res_forces, ϵᵏ, σᵏ, assemblerᵏ, iter_state,
+        linear_system)
 end
 
 function Base.show(io::IO, sc::FullStaticState)
@@ -136,15 +139,16 @@ function reset!(state::FullStaticState)
     state
 end
 
-struct StaticState{U<:AbstractVector,E<:Dictionary,S<:Dictionary} <: AbstractStaticState
+struct StaticState{U <: AbstractVector, E <: Dictionary, S <: Dictionary} <:
+       AbstractStaticState
     "Displacements vector."
     Uᵏ::U
     "Vector with strains for each element."
     ϵᵏ::E
     "Vector with stresses for each element."
     σᵏ::S
-    function StaticState(Uᵏ::U, ϵᵏ::E, σᵏ::S) where {U,E,S}
-        new{U,E,S}(Uᵏ, ϵᵏ, σᵏ)
+    function StaticState(Uᵏ::U, ϵᵏ::E, σᵏ::S) where {U, E, S}
+        new{U, E, S}(Uᵏ, ϵᵏ, σᵏ)
     end
 end
 

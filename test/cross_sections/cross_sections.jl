@@ -16,7 +16,8 @@ const TOLERANCE = 1e-4
     a = rand_dim_1
     square = Square(a)
     @test area(square) == a^2
-    @test Ixx(square) ≈ a / 2 * (a / 2)^3 * (16 / 3 - 3.36 * (1 - (a / 2)^4 / (12 * (a / 2)^4))) rtol = TOLERANCE
+    @test Ixx(square)≈a / 2 * (a / 2)^3 *
+                      (16 / 3 - 3.36 * (1 - (a / 2)^4 / (12 * (a / 2)^4))) rtol=TOLERANCE
     @test Iyy(square) == Izz(square) == a^4 / 12
     @test Ixy(square) == Ixz(square) == Iyz(square) == 0
 end

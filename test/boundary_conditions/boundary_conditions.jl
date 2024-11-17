@@ -13,17 +13,17 @@ using ONSAS.Tetrahedrons
 
 # Entities
 n₁ = Node(0, 0, 0,
-          dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)],
-                      :T => [Dof(25)]]))
+    dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)],
+        :T => [Dof(25)]]))
 n₂ = Node(0, 1, 0,
-          dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)],
-                      :T => [Dof(26)]]))
+    dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)],
+        :T => [Dof(26)]]))
 n₃ = Node(0, 0, 1,
-          dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)],
-                      :T => [Dof(27)]]))
+    dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)],
+        :T => [Dof(27)]]))
 n₄ = Node(2, 0, 1,
-          dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)],
-                      :T => [Dof(28)]]))
+    dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)],
+        :T => [Dof(28)]]))
 
 t_face = TriangularFace(n₁, n₂, n₃)
 tetra = Tetrahedron(n₁, n₂, n₃, n₄)

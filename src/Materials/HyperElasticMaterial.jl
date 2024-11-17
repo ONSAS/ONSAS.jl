@@ -15,7 +15,7 @@ Material with hyperelastic properties.
 
 For context see the wikipedia article on [Hyperelastic_material](https://en.wikipedia.org/wiki/Hyperelastic_material).
 """
-struct HyperElastic{T<:Real,F<:Function} <: AbstractHyperElasticMaterial
+struct HyperElastic{T <: Real, F <: Function} <: AbstractHyperElasticMaterial
     "Strain energy material parameters."
     params::Vector{T}
     "Strain energy function given `params` and the Green-Lagrange strain tensor `𝔼`."
@@ -25,13 +25,14 @@ struct HyperElastic{T<:Real,F<:Function} <: AbstractHyperElasticMaterial
     "Material label."
     label::Label
     function HyperElastic(params::Vector{T}, Ψ::F, ρ::Density,
-                          label::Label=NO_LABEL) where {T<:Real,F<:Function}
-        new{T,F}(params, Ψ, ρ, Symbol(label))
+            label::Label = NO_LABEL) where {T <: Real, F <: Function}
+        new{T, F}(params, Ψ, ρ, Symbol(label))
     end
 end
 
 "Constructor for `HyperElastic` material with no density."
-function HyperElastic(params::Vector{T}, Ψ::F, label::Label=NO_LABEL) where {T<:Real,F<:Function}
+function HyperElastic(
+        params::Vector{T}, Ψ::F, label::Label = NO_LABEL) where {T <: Real, F <: Function}
     HyperElastic(params, Ψ, nothing, label)
 end
 
@@ -45,9 +46,9 @@ parameters(m::HyperElastic) = m.params
 considering a `SVK` material `m` and the Lagrangian Green
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
 function cosserat_stress!(S::AbstractMatrix{<:Real}, ∂S∂E::AbstractMatrix{<:Real},
-                          m::HyperElastic, E::AbstractMatrix)
+        m::HyperElastic, E::AbstractMatrix)
     # Transform 𝔼 to a Tenor
-    𝔼 = SymmetricTensor{2,3}(E)
+    𝔼 = SymmetricTensor{2, 3}(E)
     # Closure strain energy function
     Ψ = E -> strain_energy(m)(E, parameters(m)...)
 

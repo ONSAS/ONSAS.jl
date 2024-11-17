@@ -8,7 +8,7 @@ end
 
 "Delete files with `extension` in a folder with `example_folder` path."
 function delete_files(example_folder::String, extension::String)
-    return foreach(rm, filter(endswith(extension), readdir(example_folder; join=true)))
+    return foreach(rm, filter(endswith(extension), readdir(example_folder; join = true)))
 end
 
 "Creates example folders paths from the example name. This assumes that the example folder 

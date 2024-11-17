@@ -6,7 +6,8 @@ using ForwardDiff, LinearAlgebra, Reexport
 using ..HyperElasticMaterials
 using ..Utils
 
-@reexport import ..LinearElasticMaterials: lame_parameters, elasticity_modulus, shear_modulus,
+@reexport import ..LinearElasticMaterials: lame_parameters, elasticity_modulus,
+                                           shear_modulus,
                                            bulk_modulus, poisson_ratio
 @reexport import ..HyperElasticMaterials: cosserat_stress!, strain_energy
 
@@ -21,7 +22,7 @@ For context see the wikipedia article on [Neo-Hookean_solid](https://en.wikipedi
 It is also possible to construct a `NeoHookean` material given its elasticity and shear modulus `E`, `ν` respectively and its density `ρ`.
 For context see the wikipedia article on [Lamé parameters](https://en.wikipedia.org/wiki/Lam%C3%A9_parameters).
 """
-struct NeoHookean{T<:Real} <: AbstractHyperElasticMaterial
+struct NeoHookean{T <: Real} <: AbstractHyperElasticMaterial
     "Bulk modulus."
     K::T
     "Shear modulus `G` or second Lamé parameter `μ`."
@@ -30,23 +31,23 @@ struct NeoHookean{T<:Real} <: AbstractHyperElasticMaterial
     ρ::Density
     "Material label."
     label::Label
-    function NeoHookean(K::T, G::T, ρ::Density, label::Label=NO_LABEL) where {T<:Real}
+    function NeoHookean(K::T, G::T, ρ::Density, label::Label = NO_LABEL) where {T <: Real}
         if ρ isa Real
             ρ > 0 || error("Density must be positive.")
         end
-        @assert K ≥ 0 "The bulk modulus `K` must be positive."
-        @assert G ≥ 0 "The shear modulus or second Lamé parameter `μ` must be positive."
+        @assert K≥0 "The bulk modulus `K` must be positive."
+        @assert G≥0 "The shear modulus or second Lamé parameter `μ` must be positive."
         new{T}(K, G, ρ, Symbol(label))
     end
 end
 
 "Constructor for `NeoHookean` material with no density."
-function NeoHookean(K::T, G::T, label::Label=NO_LABEL) where {T<:Real}
+function NeoHookean(K::T, G::T, label::Label = NO_LABEL) where {T <: Real}
     NeoHookean(K, G, nothing, label)
 end
 
 "Constructor for `NeoHookean` material given its elasticity and shear modulus `E`, `ν` respectively and its density `ρ`."
-function NeoHookean(; E::Real, ν::Real, ρ::Density=nothing, label::Label=NO_LABEL)
+function NeoHookean(; E::Real, ν::Real, ρ::Density = nothing, label::Label = NO_LABEL)
     # Compute λ, μ and K (μ = G) given E and ν.
     λ = E * ν / ((1 + ν) * (1 - 2 * ν))
     G = E / (2 * (1 + ν))
@@ -90,7 +91,8 @@ end
 bulk_modulus(m::NeoHookean) = m.K
 
 "Return the Cosserat stress tensor `𝕊` given the Green-Lagrange `𝔼` strain tensor."
-function _S_analytic(m::NeoHookean, E::AbstractMatrix; eye_cache::AbstractMatrix{<:Real}=eye(3))
+function _S_analytic(
+        m::NeoHookean, E::AbstractMatrix; eye_cache::AbstractMatrix{<:Real} = eye(3))
     # Right hand Cauchy strain tensor
     C = Symmetric(2 * E + eye_cache)
     C⁻¹ = inv(C)
@@ -101,7 +103,7 @@ end
 
 "Return the Cosserat stress tensor `𝕊` given the Green-Lagrange `𝔼` strain tensor."
 function _S_analytic!(S::AbstractMatrix, m::NeoHookean, E::AbstractMatrix;
-                      eye_cache::AbstractMatrix{<:Real}=eye(3))
+        eye_cache::AbstractMatrix{<:Real} = eye(3))
     S .= Symmetric(_S_analytic(m, E; eye_cache))
 end
 
@@ -110,13 +112,16 @@ const aux_gradients = zeros(3, 3)
 
 "Return the `∂𝕊∂𝔼` for a material `m`, the Gree-Lagrange strain tensor `𝔼` and a
 function to compute 𝕊 analytically."
-function _∂S∂E!(∂S∂E::Matrix, m::NeoHookean, 𝔼::AbstractMatrix, S_analytic::Function=_S_analytic)
+function _∂S∂E!(
+        ∂S∂E::Matrix, m::NeoHookean, 𝔼::AbstractMatrix, S_analytic::Function = _S_analytic)
     row = 1
     for index in INDEXES_TO_VOIGT
         i, j = index
-        ∂S∂E[row, :] .= voigt(ForwardDiff.gradient!(aux_gradients,
-                                                    E -> S_analytic(m, E)[i, j],
-                                                    collect(𝔼)), 0.5)
+        ∂S∂E[row, :] .= voigt(
+            ForwardDiff.gradient!(aux_gradients,
+                E -> S_analytic(m, E)[i, j],
+                collect(𝔼)),
+            0.5)
         row += 1
     end
     ∂S∂E
@@ -126,7 +131,7 @@ end
 considering a `SVK` material `m` and the Green-Lagrange
 strain tensor `𝔼`.Also this function provides `∂𝕊∂𝔼` for the iterative method."
 function cosserat_stress!(S::AbstractMatrix{<:Real}, ∂S∂E::Matrix{<:Real},
-                          m::NeoHookean, E::AbstractMatrix; eye_cache=eye(3)) # Is used in a different method
+        m::NeoHookean, E::AbstractMatrix; eye_cache = eye(3)) # Is used in a different method
     _S_analytic!(S, m, E; eye_cache)
     _∂S∂E!(∂S∂E, m, E, _S_analytic)
 end

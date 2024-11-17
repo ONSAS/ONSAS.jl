@@ -14,7 +14,8 @@ using ..Entities
 using ..CrossSections
 using ..Utils
 
-@reexport import ..Entities: nodes, create_entity, cross_section, internal_forces, local_dof_symbol,
+@reexport import ..Entities: nodes, create_entity, cross_section, internal_forces,
+                             local_dof_symbol,
                              strain, stress, volume
 
 export Truss, strain_model
@@ -50,9 +51,10 @@ A `Truss` represents an element composed by two `Node`s that transmits axial for
 ### References
 See [[ANLE]](@ref).
 """
-struct Truss{dim,E<:AbstractStrainModel,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N},
-             G<:AbstractCrossSection} <:
-       AbstractElement{dim,T}
+struct Truss{dim, E <: AbstractStrainModel, T <: Real,
+    N <: AbstractNode{dim, T}, VN <: AbstractVector{N},
+    G <: AbstractCrossSection} <:
+       AbstractElement{dim, T}
     "Stores the truss nodes."
     nodes::VN
     "Stores the truss cross-section properties."
@@ -60,37 +62,39 @@ struct Truss{dim,E<:AbstractStrainModel,T<:Real,N<:AbstractNode{dim,T},VN<:Abstr
     "Stores the truss label."
     label::Label
     function Truss(nodes::VN, g::G, ::Type{E},
-                   label::Label) where
-             {dim,E<:AbstractStrainModel,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N},
-              G<:AbstractCrossSection}
-        @assert 1 ≤ dim ≤ 3 "Nodes of a truss element must comply  1 < dim < 3 ."
-        new{dim,E,T,N,VN,G}(nodes, g, Symbol(label))
+            label::Label) where
+            {dim, E <: AbstractStrainModel, T <: Real,
+            N <: AbstractNode{dim, T}, VN <: AbstractVector{N},
+            G <: AbstractCrossSection}
+        @assert 1≤dim≤3 "Nodes of a truss element must comply  1 < dim < 3 ."
+        new{dim, E, T, N, VN, G}(nodes, g, Symbol(label))
     end
 end
 
 "Constructor for a `Truss` element considering the nodes `n₁` and `n₂` and the cross-section `g` and
 strain model."
 function Truss(n₁::N, n₂::N, g::G, strain::Type{E},
-               label::Label=NO_LABEL) where
-         {dim,E<:AbstractStrainModel,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
+        label::Label = NO_LABEL) where
+        {dim, E <: AbstractStrainModel, T <: Real,
+        N <: AbstractNode{dim, T}, G <: AbstractCrossSection}
     Truss(SVector(n₁, n₂), g, strain, label)
 end
 
 "Constructor for a `Truss` element considering the nodes `n₁` and `n₂` and the cross-section `g`."
 function Truss(n₁::N, n₂::N, g::G,
-               label::Label=NO_LABEL) where
-         {dim,T<:Real,N<:AbstractNode{dim,T},G<:AbstractCrossSection}
+        label::Label = NO_LABEL) where
+        {dim, T <: Real, N <: AbstractNode{dim, T}, G <: AbstractCrossSection}
     Truss(SVector(n₁, n₂), g, DEFAULT_STRAIN_MODEL, label)
 end
 
 "Constructor for a `Truss` element without nodes a `label` and `strain`. This function is used to create meshes via GMSH."
 function Truss(g::AbstractCrossSection, ::Type{E},
-               label::Label=NO_LABEL) where {E<:AbstractStrainModel}
+        label::Label = NO_LABEL) where {E <: AbstractStrainModel}
     Truss(Node(0, 0, 0), Node(0, 0, 0), g, E, label)
 end
 
 "Constructor for a `Truss` element without nodes. This function is used to create meshes via GMSH."
-function Truss(g::AbstractCrossSection, label::Label=NO_LABEL)
+function Truss(g::AbstractCrossSection, label::Label = NO_LABEL)
     Truss(Node(0, 0, 0), Node(0, 0, 0), g, DEFAULT_STRAIN_MODEL, label)
 end
 
@@ -106,7 +110,7 @@ end
 cross_section(t::Truss) = t.cross_section
 
 "Return the strain model used"
-strain_model(::Truss{dim,E}) where {dim,E<:AbstractStrainModel} = E
+strain_model(::Truss{dim, E}) where {dim, E <: AbstractStrainModel} = E
 
 "Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
 function create_entity(t::Truss, vn::AbstractVector{<:AbstractNode})
@@ -118,8 +122,9 @@ local_dof_symbol(::Truss) = [:u]
 
 "Return the internal force of a `Truss` element `t` formed by an `AbstractHyperElasticMaterial` `m`
 an element displacement vector `u_e` and `RotatedEngineeringStrain`."
-function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,RotatedEngineeringStrain},
-                         u_e::AbstractVector) where {dim}
+function internal_forces(
+        m::AbstractHyperElasticMaterial, e::Truss{dim, RotatedEngineeringStrain},
+        u_e::AbstractVector) where {dim}
     E = elasticity_modulus(m)
     A = area(cross_section(e))
     X_ref, X_def = _X_rows(e, u_e)
@@ -150,8 +155,8 @@ end
 
 "Return the internal force of a `Truss` element `t` formed by an `AbstractHyperElasticMaterial` `m`
 an element displacement vector `u_e` and `GreenStrain`."
-function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim,GreenStrain},
-                         u_e::AbstractVector) where {dim}
+function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim, GreenStrain},
+        u_e::AbstractVector) where {dim}
     E = elasticity_modulus(m)
     A = area(cross_section(e))
     X_ref, X_def = _X_rows(e, u_e)
@@ -188,7 +193,7 @@ function _strain(l_ini::Real, l_def::Real, ::Type{GreenStrain})
 end
 
 "Return the strain of given `Truss` element `t` with a element displacement vector `u_e`. "
-function strain(t::Truss{dim,E}, u_e::AbstractVector) where {dim,E<:AbstractStrainModel}
+function strain(t::Truss{dim, E}, u_e::AbstractVector) where {dim, E <: AbstractStrainModel}
     X_ref, X_def = _X_rows(t, u_e)
     l_ref, l_def = _lengths(X_ref, X_def, dim)
     _strain(l_ref, l_def, E)
@@ -213,7 +218,7 @@ end
 
 "Return auxiliar vectors b_ref and b_def of a truss element."
 function _aux_b(X_ref_row::AbstractVector, X_def_row::AbstractVector, u_e::AbstractVector,
-                G::AbstractMatrix, dim::Integer)
+        G::AbstractMatrix, dim::Integer)
     l_ref, l_def = _lengths(X_ref_row, X_def_row, dim)
 
     b_ref = 1 / (l_ref^2) * X_ref_row' * G

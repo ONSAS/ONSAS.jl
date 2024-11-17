@@ -43,7 +43,7 @@ function bulk_modulus(m::AbstractLinearElasticMaterial) end
 "Return the stress tensor `σ` and the constitutive driver `∂σ∂ϵ`
 considering a `IsotropicLinearElastic` material `m`."
 function stress!(σ::AbstractMatrix, ∂σ∂ϵ::AbstractMatrix,
-                 m::AbstractLinearElasticMaterial,
-                 ϵ::AbstractMatrix) end
+        m::AbstractLinearElasticMaterial,
+        ϵ::AbstractMatrix) end
 
 end

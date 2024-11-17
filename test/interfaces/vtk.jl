@@ -22,7 +22,7 @@ using ONSAS.Nodes
     n7 = Node(Lx, Ly, Lz)
     n8 = Node(Lx, Ly, 0.0)
     vec_nodes = [n1, n2, n3, n4, n5, n6, n7, n8]
-    msh = Mesh(; nodes=vec_nodes)
+    msh = Mesh(; nodes = vec_nodes)
 
     ## Faces
     f1 = TriangularFace(n5, n8, n6)
@@ -63,11 +63,12 @@ using ONSAS.Nodes
     tensor_cell_data = [rand(3, 3) for _ in elements(msh)]
     VTKMeshFile(filename, msh) do vtx
         write_node_data(vtx, vec_nodal_dof_data, "vectorial_nodal_data";
-                        component_names=["sx", "sy", "sz"])
-        write_node_data(vtx, scalar_nodal_dof_data, "scalar_nodal_data"; component_names=["T"])
-        write_cell_data(vtx, scalar_cell_data, "scalar_cell_data"; component_names=["σ"])
+            component_names = ["sx", "sy", "sz"])
+        write_node_data(
+            vtx, scalar_nodal_dof_data, "scalar_nodal_data"; component_names = ["T"])
+        write_cell_data(vtx, scalar_cell_data, "scalar_cell_data"; component_names = ["σ"])
         write_cell_data(vtx, tensor_cell_data, "tensor_cell_data";
-                        component_names=["σxx", "σyy", "σzz", "τyz", "τxz", "τxy", "τzy", "τzx",
-                                         "τyx"])
+            component_names = ["σxx", "σyy", "σzz", "τyz", "τxz", "τxy", "τzy", "τzx",
+                "τyx"])
     end
 end

@@ -22,7 +22,8 @@ using ..Utils
                            elements, num_elements
 @reexport import ..Handlers: PointEvalHandler, mesh
 
-export AbstractStructure, Structure, materials, boundary_conditions, num_free_dofs, free_dofs
+export AbstractStructure, Structure, materials, boundary_conditions, num_free_dofs,
+       free_dofs
 
 # ==========
 # Structure
@@ -60,7 +61,7 @@ structural analysis.
 * [`materials`](@ref)
 
 """
-abstract type AbstractStructure{dim,M,E} end
+abstract type AbstractStructure{dim, M, E} end
 
 # Mesh methods
 "Return the structure mesh."
@@ -107,27 +108,27 @@ materials(s::AbstractStructure) = s.materials
 """
 An `Structure` object facilitates the process of assembling and creating the structural analysis.
 """
-struct Structure{dim,MESH,MAT,E,NB,LB} <: AbstractStructure{dim,MAT,E}
+struct Structure{dim, MESH, MAT, E, NB, LB} <: AbstractStructure{dim, MAT, E}
     "Stores the structure's mesh."
     mesh::MESH
     "Stores the structure's materials and elements assignments."
-    materials::StructuralMaterial{MAT,E}
+    materials::StructuralMaterial{MAT, E}
     "Stores the structure's boundary conditions and elements assignments."
-    bcs::StructuralBoundaryCondition{NB,LB}
+    bcs::StructuralBoundaryCondition{NB, LB}
     "Stores the structure's free degrees of freedom."
     free_dofs::Vector{Dof}
     function Structure(mesh::MESH,
-                       materials::StructuralMaterial{MAT,E},
-                       bcs::StructuralBoundaryCondition{NB,LB},
-                       free_dofs::Vector{Dof}) where {dim,MESH<:AbstractMesh{dim},MAT,E,NB,LB}
-        new{dim,MESH,MAT,E,NB,LB}(mesh, materials, bcs, free_dofs)
+            materials::StructuralMaterial{MAT, E},
+            bcs::StructuralBoundaryCondition{NB, LB},
+            free_dofs::Vector{Dof}) where {dim, MESH <: AbstractMesh{dim}, MAT, E, NB, LB}
+        new{dim, MESH, MAT, E, NB, LB}(mesh, materials, bcs, free_dofs)
     end
 end
 
 "Constructor for a structure with mesh, materials and boundary conditions."
 function Structure(mesh::AbstractMesh{dim},
-                   materials::StructuralMaterial{M,E},
-                   bcs::StructuralBoundaryCondition{NB,LB}) where {dim,M,E,NB,LB}
+        materials::StructuralMaterial{M, E},
+        bcs::StructuralBoundaryCondition{NB, LB}) where {dim, M, E, NB, LB}
     # Retrieve all (free) dofs in the mesh.
     default_free_dofs = Vector{Dof}()
     for n in nodes(mesh)
@@ -143,9 +144,9 @@ end
 "Constructor for a structure given a mesh file, and their corresponding structural materials,
 structural elements and structural boundary conditions."
 function Structure(msh_file::MshFile,
-                   materials::StructuralMaterial, bcs::StructuralBoundaryCondition,
-                   s_entities::StructuralEntity,
-                   dofs_to_dim::Dictionary{Field,<:Integer}=dictionary([:u => 3]))
+        materials::StructuralMaterial, bcs::StructuralBoundaryCondition,
+        s_entities::StructuralEntity,
+        dofs_to_dim::Dictionary{Field, <:Integer} = dictionary([:u => 3]))
     nodes = msh_file.vec_nodes
     mesh = Mesh(; nodes)
 
@@ -194,15 +195,16 @@ function Base.show(io::IO, s::Structure)
 end
 
 "Constructor of a point eval handler from a structure and a vector of points ."
-function PointEvalHandler(s::Structure, vec_points::AbstractVector{P}) where {T,P<:Point{T}}
+function PointEvalHandler(
+        s::Structure, vec_points::AbstractVector{P}) where {T, P <: Point{T}}
     PointEvalHandler(mesh(s), vec_points)
 end
 
 "Replace a material with the a label for the new material in the structure.
 The previous material element's are assigned to the new."
 function Base.replace!(s::Structure,
-                       new_material::AbstractMaterial,
-                       label::Label=label(new_material))
+        new_material::AbstractMaterial,
+        label::Label = label(new_material))
     replace!(materials(s), new_material, label)
 end
 

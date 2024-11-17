@@ -24,17 +24,17 @@ E = 2e9
 ν = 0.3
 # Nodes
 n₁ = Node(0, 0, 0,
-          dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)],
-                      :T => [Dof(25)]]))
+    dictionary([:u => [Dof(1), Dof(2), Dof(3)], :θ => [Dof(13), Dof(14), Dof(15)],
+        :T => [Dof(25)]]))
 n₂ = Node(0, 1, 0,
-          dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)],
-                      :T => [Dof(26)]]))
+    dictionary([:u => [Dof(4), Dof(5), Dof(6)], :θ => [Dof(16), Dof(17), Dof(18)],
+        :T => [Dof(26)]]))
 n₃ = Node(0, 0, 1,
-          dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)],
-                      :T => [Dof(27)]]))
+    dictionary([:u => [Dof(7), Dof(8), Dof(9)], :θ => [Dof(19), Dof(20), Dof(21)],
+        :T => [Dof(27)]]))
 n₄ = Node(1, 1, 1,
-          dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)],
-                      :T => [Dof(28)]]))
+    dictionary([:u => [Dof(10), Dof(11), Dof(12)], :θ => [Dof(22), Dof(23), Dof(24)],
+        :T => [Dof(28)]]))
 # Faces
 face₁ = TriangularFace(n₁, n₂, n₃)
 face₂ = TriangularFace(n₃, n₄, n₃)
@@ -54,7 +54,7 @@ mat_dict = dictionary([steel => [truss₁, truss₃], aluminum => [truss₂]])
 s_materials = StructuralMaterial(mat_dict)
 
 empty_mat_dict = dictionary([steel => Vector{AbstractElement}(),
-                             aluminum => Vector{AbstractElement}()])
+    aluminum => Vector{AbstractElement}()])
 empty_materials = StructuralMaterial(empty_mat_dict)
 
 @testset "ONSAS.StructuralMaterial" begin
@@ -86,9 +86,9 @@ node_bc = dictionary([bc₁ => [n₁, n₃], bc₂ => [n₂], bc₃ => [n₂, n�
 face_bc = dictionary([bc₃ => [face₁], bc₅ => [face₁]])
 elem_bc = dictionary([bc₄ => [truss₁, truss₂]])
 
-s_boundary_conditions_only_nodes = StructuralBoundaryCondition(; node_bcs=node_bc)
-s_boundary_conditions_only_faces = StructuralBoundaryCondition(; face_bcs=face_bc)
-s_boundary_conditions_only_elements = StructuralBoundaryCondition(; element_bcs=elem_bc)
+s_boundary_conditions_only_nodes = StructuralBoundaryCondition(; node_bcs = node_bc)
+s_boundary_conditions_only_faces = StructuralBoundaryCondition(; face_bcs = face_bc)
+s_boundary_conditions_only_elements = StructuralBoundaryCondition(; element_bcs = elem_bc)
 s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
 
 @testset "ONSAS.StructuralBoundaryCondition" begin
@@ -199,7 +199,7 @@ end
     n₂ = Node(0, 1, 0)
     n₃ = Node(0, 0, 1)
 
-    s_mesh = Mesh(; nodes=[n₁, n₂, n₃], elements=[truss₁, truss₂, truss₃])
+    s_mesh = Mesh(; nodes = [n₁, n₂, n₃], elements = [truss₁, truss₂, truss₃])
     set_dofs!(s_mesh, :u, dof_dim)
     s = Structure(s_mesh, s_materials, s_boundary_conditions)
 

@@ -21,7 +21,8 @@ using ..Utils
 @reexport import ..Entities: dimension, dofs, nodes, num_nodes
 @reexport import ..Nodes: set_dofs!
 
-export AbstractMesh, Mesh, EntitySet, connectivity, faces, face_set, node, element, elements,
+export AbstractMesh, Mesh, EntitySet, connectivity, faces, face_set, node, element,
+       elements,
        element_set, num_dofs, num_elements, node_set, add_node_to_set!, add_element_to_set!,
        add_face_to_set!, add_entity_to_set!, node_matrix
 
@@ -63,7 +64,7 @@ function num_dofs(m::AbstractMesh)::Int
     max_dof = 0
     for n in nodes(m)
         # For each node, obtain the maximum dof over each field, then reduce over all fields.
-        max_n = mapreduce(maximum, max, dofs(n); init=0)
+        max_n = mapreduce(maximum, max, dofs(n); init = 0)
         max_dof = max(max_dof, max_n)
     end
     max_dof
@@ -139,7 +140,7 @@ Base.length(m::AbstractMesh, ::AbstractElement) = length(elements(m))
 Base.length(m::AbstractMesh, ::AbstractFace) = length(faces(m))
 
 "Used to designate node, element and face sets mapping an entity string to a set of indices."
-const EntitySet = Dictionary{String,Set{Int}}
+const EntitySet = Dictionary{String, Set{Int}}
 
 """
 A `Mesh` is a collection of `Element`s, `Face`s and `Node`s that cover the discretized domain,
@@ -154,7 +155,8 @@ together with Sets of elements and nodes.
 * [`face_set`](@ref)
 * [`add_face_to_set!`](@ref)
 """
-struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace,EX} <: AbstractMesh{dim}
+struct Mesh{dim, N <: AbstractNode{dim}, E <: AbstractElement, F <: AbstractFace, EX} <:
+       AbstractMesh{dim}
     "`Node`s of the mesh with dimension `dim`."
     nodes::Vector{N}
     "`Element`s of the mesh."
@@ -170,19 +172,19 @@ struct Mesh{dim,N<:AbstractNode{dim},E<:AbstractElement,F<:AbstractFace,EX} <: A
     "Additional data or mesh info."
     extra::EX
 end
-function Mesh(; nodes::Vector{N}=Vector{AbstractNode}(),
-              elements::Vector{E}=Vector{AbstractElement}(),
-              faces::Vector{F}=Vector{AbstractFace}(),
-              node_sets::EntitySet=EntitySet(),
-              face_sets::EntitySet=EntitySet(),
-              element_sets::EntitySet=EntitySet(),
-              extra::EX=nothing) where
-         {N<:AbstractNode,F<:AbstractFace,E<:AbstractElement,EX}
+function Mesh(; nodes::Vector{N} = Vector{AbstractNode}(),
+        elements::Vector{E} = Vector{AbstractElement}(),
+        faces::Vector{F} = Vector{AbstractFace}(),
+        node_sets::EntitySet = EntitySet(),
+        face_sets::EntitySet = EntitySet(),
+        element_sets::EntitySet = EntitySet(),
+        extra::EX = nothing) where
+        {N <: AbstractNode, F <: AbstractFace, E <: AbstractElement, EX}
     Mesh(nodes, elements, faces, node_sets, element_sets, face_sets, extra)
 end
 
 "Return the mesh node coordinates matrix. Each row is a node, each column a coordinate."
-function node_matrix(mesh::Mesh{dim,T}) where {dim,T}
+function node_matrix(mesh::Mesh{dim, T}) where {dim, T}
     nodes_coords_matrix = Matrix{eltype(T)}(undef, (dim, num_nodes(mesh)))
     for (i, n) in enumerate(nodes(mesh))
         nodes_coords_matrix[:, i] = coordinates(n)
@@ -191,14 +193,14 @@ function node_matrix(mesh::Mesh{dim,T}) where {dim,T}
 end
 
 "Return the mesh connectivity."
-function connectivity(mesh::Mesh{dim,T}) where {dim,T}
+function connectivity(mesh::Mesh{dim, T}) where {dim, T}
 
     # Check if a already contains the connectivity
     hasproperty(mesh.extra, :connectivity) && return mesh.extra.connectivity
 
     connectivity = Vector{Vector{Int}}(undef, num_elements(mesh))
 
-    enumerate_nodes = Dictionary{AbstractNode,Int}()
+    enumerate_nodes = Dictionary{AbstractNode, Int}()
     for (i, n) in enumerate(nodes(mesh))
         get!(enumerate_nodes, n, i)
     end
@@ -312,25 +314,25 @@ end
 
 "Add an entity to a set, dispatching on the entity type."
 function add_entity_to_set!(mesh::AbstractMesh, entity_type_label::AbstractString,
-                            entity_position::Int,
-                            ::AbstractNode)
+        entity_position::Int,
+        ::AbstractNode)
     add_node_to_set!(mesh, entity_type_label, entity_position)
 end
 function add_entity_to_set!(mesh::AbstractMesh, entity_type_label::AbstractString,
-                            entity_position::Int,
-                            ::AbstractFace)
+        entity_position::Int,
+        ::AbstractFace)
     add_face_to_set!(mesh, entity_type_label, entity_position)
 end
 function add_entity_to_set!(mesh::AbstractMesh, entity_type_label::AbstractString,
-                            entity_position::Int,
-                            ::AbstractElement)
+        entity_position::Int,
+        ::AbstractElement)
     add_element_to_set!(mesh, entity_type_label, entity_position)
 end
 
 "Replace a node in the mesh."
 function Base.replace!(mesh::AbstractMesh{dim},
-                       node_idx::Int,
-                       node_coordinates::Point{dim}) where {dim}
+        node_idx::Int,
+        node_coordinates::Point{dim}) where {dim}
     mesh_nodes = nodes(mesh)
     old_node = mesh_nodes[node_idx]
     new_node = Node(node_coordinates, dofs(old_node))

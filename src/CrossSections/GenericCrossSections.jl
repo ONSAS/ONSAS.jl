@@ -7,7 +7,7 @@ export GenericCrossSection
 """
 This generic cross-section struct can be used to define a cross-section not belonging to the existing categories. 
 """
-struct GenericCrossSection{T<:Real} <: AbstractCrossSection
+struct GenericCrossSection{T <: Real} <: AbstractCrossSection
     "Cross section area."
     area::T
     "Moment of inertia respect to `x` axis."
