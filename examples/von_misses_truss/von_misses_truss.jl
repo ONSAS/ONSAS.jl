@@ -130,6 +130,7 @@ end;
 function run()
     for strain_model in (RotatedEngineeringStrain, GreenStrain)
         sol = solve(strain_model)
+        write_vtk(sol, "von_misses")
         test(sol, strain_model)
     end
 end;

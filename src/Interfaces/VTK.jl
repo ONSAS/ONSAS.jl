@@ -10,6 +10,7 @@ using ..Meshes
 using ..Nodes
 using ..Utils
 using ..Entities
+using ..Trusses
 using ..Tetrahedrons
 using ..TriangularFaces
 using ..Solutions
@@ -72,6 +73,8 @@ end
 Converts element types from `ONSAS` to VTK-compatible cell types for tetrahedral elements.
 """
 to_vtkcell_type(::Tetrahedron) = VTKCellTypes.VTK_TETRA
+# Fallback for generic cross-section
+to_vtkcell_type(::Truss) = VTKCellTypes.VTK_LINE
 
 """
 Maps the nodes of an element within a mesh to its VTK cell node indices.
@@ -257,7 +260,7 @@ function write_vtk(sol::AbstractSolution, base_filename::String;
     close(pvd)
 
     @info "VTK file collection written to $base_filename.pvd"
-    return "$base_filename.pvd"
+    "$base_filename.pvd"
 end
 
 end

@@ -4,6 +4,10 @@ using ONSAS.VTK
 using ONSAS.Entities
 using ONSAS.TriangularFaces
 using ONSAS.Tetrahedrons
+using ONSAS.Trusses
+using ONSAS.CrossSections
+using ONSAS.Circles
+using ONSAS.Squares
 using ONSAS.Meshes
 using ONSAS.Nodes
 
@@ -50,7 +54,7 @@ using ONSAS.Nodes
     temp_dim = 1
     set_dofs!(msh, :T, temp_dim)
 
-    filename = "unit_test_vtk"
+    filename = "tetrahedron_unit_test_vtk"
     vtk_mesh = VTKMeshFile(filename, msh)
     fs = close(vtk_mesh.vtk)
     @test only(fs) == "$filename.vtu"
@@ -71,4 +75,33 @@ using ONSAS.Nodes
             component_names = ["σxx", "σyy", "σzz", "τyz", "τxz", "τxy", "τzy", "τzx",
                 "τyx"])
     end
+end
+
+@testset "Writing a truss mesh to a vtk file." begin
+    V = 1.0
+    H = 1.0
+    d = 0.1
+    a = d
+    n1 = Node(0.0, 0.0, 0.0)
+    n2 = Node(V, 0.0, H)
+    n3 = Node(2V, 0.0, 0.0)
+    ns = [n1, n2, n3]
+    s1 = Circle(d)
+    s2 = Square(a)
+    truss_left = Truss(n1, n2, s1)
+    truss_right = Truss(n2, n3, s2)
+    es = [truss_left, truss_right]
+    m = Mesh(; nodes = ns, elements = es)
+
+    u_dim = 3
+    set_dofs!(m, :u, u_dim)
+    temp_dim = 1
+    set_dofs!(m, :T, temp_dim)
+
+    filename = "truss_test_vtk"
+    vtk_mesh = VTKMeshFile(filename, m)
+    fs = close(vtk_mesh.vtk)
+    @test only(fs) == "$filename.vtu"
+    @test vtk_mesh.vtk.Ncls == num_elements(msh)
+    @test vtk_mesh.vtk.Npts == num_nodes(msh)
 end
