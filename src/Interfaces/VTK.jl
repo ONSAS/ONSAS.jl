@@ -75,6 +75,7 @@ Converts element types from `ONSAS` to VTK-compatible cell types for tetrahedral
 to_vtkcell_type(::Tetrahedron) = VTKCellTypes.VTK_TETRA
 # Fallback for generic cross-section
 to_vtkcell_type(::Truss) = VTKCellTypes.VTK_LINE
+to_vtkcell_type(::Frame) = VTKCellTypes.VTK_LAGRANGE_LINE
 
 """
 Maps the nodes of an element within a mesh to its VTK cell node indices.

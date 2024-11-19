@@ -76,7 +76,6 @@ using ONSAS.Nodes
                 "τyx"])
     end
 end
-
 @testset "Writing a truss mesh to a vtk file." begin
     V = 1.0
     H = 1.0
@@ -104,6 +103,42 @@ end
     tensor_cell_data = [rand(3, 3) for _ in elements(m)]
 
     filename = "truss_test_vtk"
+    vtk_mesh = VTKMeshFile(filename, m)
+    fs = close(vtk_mesh.vtk)
+    @test only(fs) == "$filename.vtu"
+    @test vtk_mesh.vtk.Ncls == num_elements(m)
+    @test vtk_mesh.vtk.Npts == num_nodes(m)
+
+    VTKMeshFile(filename, m) do vtx
+        write_node_data(vtx, vec_nodal_dof_data, "vectorial_nodal_data";
+            component_names = ["sx", "sy", "sz"])
+        write_node_data(
+            vtx, scalar_nodal_dof_data, "scalar_nodal_data"; component_names = ["T"])
+        write_cell_data(vtx, scalar_cell_data, "scalar_cell_data"; component_names = ["σ"])
+        write_cell_data(vtx, tensor_cell_data, "tensor_cell_data";
+            component_names = ["σxx", "σyy", "σzz", "τyz", "τxz", "τxy", "τzy", "τzx",
+                "τyx"])
+    end
+end
+
+@testset "Writing a frame mesh to a vtk file." begin
+    L = 10.0
+    N = 10
+    d = 0.01
+    x_coords = range(0, L, N + 1)
+    nodes = [Node(promote(xi, 0, 0.0)) for xi in x_coords]  # to be safe when arguments supplied to Node command are not of  same types
+    S = Circle(d)
+    frames = [Frame(nodes[j], nodes[j + 1], S) for j in 1:(length(nodes) - 1)]
+    m = Mesh(; nodes = nodes, elements = frames)
+    set_dofs!(m, :u, 3)
+    set_dofs!(m, :θ, 3)
+
+    vec_nodal_dof_data = to_vtk(collect(1:num_dofs(m, :u)))
+    scalar_nodal_dof_data = to_vtk(collect(1:num_dofs(m, :T)))
+    scalar_cell_data = to_vtk(rand(num_elements(m)))
+    tensor_cell_data = [rand(3, 3) for _ in elements(m)]
+
+    filename = "frame_test_vtk"
     vtk_mesh = VTKMeshFile(filename, m)
     fs = close(vtk_mesh.vtk)
     @test only(fs) == "$filename.vtu"
