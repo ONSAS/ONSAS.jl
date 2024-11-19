@@ -18,7 +18,7 @@ struct Dirichlet <: AbstractDirichletBoundaryCondition
     values::Function
     "Boundary condition label."
     name::Label
-    function Dirichlet(field::Field, values::Function, name::Label=NO_LABEL)
+    function Dirichlet(field::Field, values::Function, name::Label = NO_LABEL)
         new(field, values, name)
     end
 end

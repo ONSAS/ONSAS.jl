@@ -10,37 +10,40 @@ using ..Materials
 using ..IsotropicLinearElasticMaterial
 using ..HyperElasticMaterials
 
-@reexport import ..Entities: create_entity, internal_forces, local_dof_symbol, strain, stress,
+@reexport import ..Entities: create_entity, internal_forces, local_dof_symbol, strain,
+                             stress,
                              weights, volume, elements_cache
 
-export Tetrahedron, reference_coordinates
+export Tetrahedron
 
 """
 A `Tetrahedron` represents a 3D volume element with four nodes.
 
 See [[Belytschko]](@ref) and [[Gurtin]](@ref) for more details.
 """
-struct Tetrahedron{dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N}} <:
-       AbstractElement{dim,T}
+struct Tetrahedron{dim, T <: Real, N <: AbstractNode{dim, T}, VN <: AbstractVector{N}} <:
+       AbstractElement{dim, T}
     "Tetrahedron nodes."
     nodes::VN
     "Tetrahedron label."
     label::Label
     function Tetrahedron(nodes::VN,
-                         label::Label=NO_LABEL) where
-             {dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N}}
-        @assert dim == 3 "Nodes of a tetrahedron element must be 3D."
-        new{dim,T,N,VN}(nodes, Symbol(label))
+            label::Label = NO_LABEL) where
+            {dim, T <: Real, N <: AbstractNode{dim, T}, VN <: AbstractVector{N}}
+        @assert dim==3 "Nodes of a tetrahedron element must be 3D."
+        new{dim, T, N, VN}(nodes, Symbol(label))
     end
 end
-function Tetrahedron(n₁::N, n₂::N, n₃::N, n₄::N, label::Label=NO_LABEL) where {N<:AbstractNode}
+function Tetrahedron(
+        n₁::N, n₂::N, n₃::N, n₄::N, label::Label = NO_LABEL) where {N <: AbstractNode}
     Tetrahedron(SVector(n₁, n₂, n₃, n₄), label)
 end
-function Tetrahedron(nodes::AbstractVector{N}, label::Label=NO_LABEL) where {N<:AbstractNode}
+function Tetrahedron(
+        nodes::AbstractVector{N}, label::Label = NO_LABEL) where {N <: AbstractNode}
     Tetrahedron(SVector(nodes...), label)
 end
 "Constructor for a `Tetrahedron` element without nodes and a `label`. This function is used to create meshes via GMSH."
-function Tetrahedron(label::Label=NO_LABEL)
+function Tetrahedron(label::Label = NO_LABEL)
     Tetrahedron(SVector(Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0), Node(0, 0, 0)), label)
 end
 
@@ -50,7 +53,7 @@ function create_entity(t::Tetrahedron, vn::AbstractVector{<:AbstractNode})
 end
 
 "Contains the cache to compute the element internal forces and stiffness matrix."
-struct TetrahedronCache{T,ST<:Symmetric{T}} <: AbstractElementCache
+struct TetrahedronCache{T, ST <: Symmetric{T}} <: AbstractElementCache
     "Internal forces."
     fint::Vector{T}
     "Stiffness matrix."
@@ -100,8 +103,8 @@ struct TetrahedronCache{T,ST<:Symmetric{T}} <: AbstractElementCache
         E = Symmetric(zeros(3, 3))
         I₃₃ = eye(3)
         ones₃₃ = ones(3, 3)
-        new{Float64,Symmetric{Float64}}(fint, Ks, S, ∂S∂E, P, ε, F, H, X, J,
-                                        funder, B, aux_geometric_Ks, E, I₃₃, ones₃₃)
+        new{Float64, Symmetric{Float64}}(fint, Ks, S, ∂S∂E, P, ε, F, H, X, J,
+            funder, B, aux_geometric_Ks, E, I₃₃, ones₃₃)
     end
 end
 
@@ -130,7 +133,7 @@ end
 "Computes volume element of a tetrahedron given J = det(F)."
 function _volume(jacobian_mat::Matrix)
     volume = det(jacobian_mat) / 6.0
-    @assert volume > 0 throw(ArgumentError("Element with negative volume, check connectivity."))
+    @assert volume>0 throw(ArgumentError("Element with negative volume, check connectivity."))
     volume
 end
 
@@ -154,7 +157,7 @@ end
 
 "Return the geometric stiffness."
 function geometric_stiffness!(Ks::Symmetric, aux_geometric_Ks::Matrix,
-                              𝕊::AbstractMatrix, funder::Matrix{<:Real}, vol::Real)
+        𝕊::AbstractMatrix, funder::Matrix{<:Real}, vol::Real)
     aux_geometric_Ks .= funder' * 𝕊 * funder * vol
     for i in 1:4
         for j in i:4
@@ -178,8 +181,9 @@ end
 
 "Return the internal force of a `Tetrahedron` element `t` doted with an `AbstractHyperElasticMaterial` `m` +
 and a an element displacement vector `u_e`. This function modifies the cache to avoid memory allocations."
-function internal_forces(m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector,
-                         cache::TetrahedronCache)
+function internal_forces(
+        m::AbstractHyperElasticMaterial, t::Tetrahedron, u_e::AbstractVector,
+        cache::TetrahedronCache)
     (; fint, Ks, P, S, ∂S∂E, ε, F, H, X, J, funder, B, aux_geometric_Ks, E, I₃₃) = cache
 
     # Kinematics
@@ -232,7 +236,7 @@ A 4-tuple containing:
 - `strain`: `Symmetric` type, the strain tensor of the tetrahedron element.
 "
 function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::AbstractVector,
-                         cache::TetrahedronCache)
+        cache::TetrahedronCache)
     (; fint, Ks, S, ∂S∂E, ε, F, H, X, J, funder, B, I₃₃, ones₃₃) = cache
 
     # Kinematics
@@ -249,7 +253,7 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
 
     # Stresses (due to stresses are all the same for linear elastic materials cosserat
     # is used as cache)
-    stress!(S, ∂S∂E, m, ε; cache_ones=ones₃₃, cache_eye=I₃₃)
+    stress!(S, ∂S∂E, m, ε; cache_ones = ones₃₃, cache_eye = I₃₃)
 
     # Stiffness matrix
     Ks .= Symmetric(B' * ∂S∂E * B * vol)
@@ -260,27 +264,27 @@ function internal_forces(m::IsotropicLinearElastic, t::Tetrahedron, u_e::Abstrac
 end
 
 "Shape function derivatives."
-const ∂X∂ζ_1 = [1.0  -1.0  0.0  0.0
-                0.0  -1.0  0.0  1.0
-                0.0  -1.0  1.0  0.0]
+const ∂X∂ζ_1 = [1.0 -1.0 0.0 0.0
+                0.0 -1.0 0.0 1.0
+                0.0 -1.0 1.0 0.0]
 
 "Return the shape functions derivatives of a `Tetrahedron` element."
-function _shape_functions_derivatives(::Tetrahedron, order::Int=1)
+function _shape_functions_derivatives(::Tetrahedron, order::Int = 1)
     ∂X∂ζ = if order == 1
         ∂X∂ζ_1
     end
 end
 
 "Indices for computing the minors of the interpolation matrix, implemented as a hash table."
-const MINOR_INDICES = [([2, 3, 4], [2, 3, 4])    ([2, 3, 4], [1, 3, 4])    ([2, 3, 4], [1, 2, 4])    ([2, 3, 4], [1, 2, 3])
-                       ([1, 3, 4], [2, 3, 4])    ([1, 3, 4], [1, 3, 4])    ([1, 3, 4], [1, 2, 4])    ([1, 3, 4], [1, 2, 3])
-                       ([1, 2, 4], [2, 3, 4])    ([1, 2, 4], [1, 3, 4])    ([1, 2, 4], [1, 2, 4])    ([1, 2, 4], [1, 2, 3])
-                       ([1, 2, 3], [2, 3, 4])    ([1, 2, 3], [1, 3, 4])    ([1, 2, 3], [1, 2, 4])    ([1, 2, 3], [1, 2, 3])]
+const MINOR_INDICES = [([2, 3, 4], [2, 3, 4]) ([2, 3, 4], [1, 3, 4]) ([2, 3, 4], [1, 2, 4]) ([2, 3, 4], [1, 2, 3])
+                       ([1, 3, 4], [2, 3, 4]) ([1, 3, 4], [1, 3, 4]) ([1, 3, 4], [1, 2, 4]) ([1, 3, 4], [1, 2, 3])
+                       ([1, 2, 4], [2, 3, 4]) ([1, 2, 4], [1, 3, 4]) ([1, 2, 4], [1, 2, 4]) ([1, 2, 4], [1, 2, 3])
+                       ([1, 2, 3], [2, 3, 4]) ([1, 2, 3], [1, 3, 4]) ([1, 2, 3], [1, 2, 4]) ([1, 2, 3], [1, 2, 3])]
 
 "Return the interpolation matrix `𝑀` for a `Tetrahedron` element `t`."
-function interpolation_matrix(t::Tetrahedron{3,T}) where {T<:Real}
+function interpolation_matrix(t::Tetrahedron{3, T}) where {T <: Real}
     # Node coordinates matrix 𝐴.
-    𝐴 = MMatrix{4,4,T}(undef)
+    𝐴 = MMatrix{4, 4, T}(undef)
 
     @inbounds for (node_index, node) in enumerate(nodes(t))
         𝐴[node_index, 1] = one(T)
@@ -288,7 +292,7 @@ function interpolation_matrix(t::Tetrahedron{3,T}) where {T<:Real}
     end
 
     # 𝑀 matrix.
-    𝑀 = MMatrix{4,4,T}(undef)
+    𝑀 = MMatrix{4, 4, T}(undef)
     V = det(𝐴)
 
     # Compute minors.

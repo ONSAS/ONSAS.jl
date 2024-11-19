@@ -1,12 +1,13 @@
 # Include `create_mesh` function.
-include(joinpath(pkgdir(ONSAS), "examples", "cylinder_internal_pressure", "cylinder_mesh.jl"))
+include(joinpath(
+    pkgdir(ONSAS), "examples", "cylinder_internal_pressure", "cylinder_mesh.jl"))
 
 """
 Cylinder with internal pressure GMSH mesh and `IsotropicLinearElastic` material.
 
 `ms` is the refinement factor of the mesh.
 """
-function linear_cylinder_structure(; ms::Real=0.5)
+function linear_cylinder_structure(; ms::Real = 0.5)
 
     ## scalar parameters (dimensions in mm an MPa)
     Lₖ = 30.0       # cylinder length in 𝐞ₖ mm
@@ -93,13 +94,13 @@ end;
 Hyper rectangle starting at `O` pint and + [Lᵢ,Lⱼ,Lₖ] to evaluate the solution with `NPOINTS` in each axis.
 """
 function point_eval_handler(structure::Structure;
-                            NPOINTS::Int=10)
+        NPOINTS::Int = 10)
 
     ## scalar parameters (dimensions in mm an MPa)
     Lₖ = 30.0                         # cylinder length in 𝐞ₖ mm
     Rₑ = 200.0                       # outer radius in mm
     Lᵢ = Lⱼ = 2.25Rₑ                # hyper rectangle origin in 𝐞ᵢ,𝐞ⱼ and  𝐞ₖ in mm
-    O = (x=-Lᵢ / 2, y=-Lⱼ / 2, z=0.0)    # hyper rectangle origin in 𝐞ᵢ,𝐞ⱼ and  𝐞ₖ in mm
+    O = (x = -Lᵢ / 2, y = -Lⱼ / 2, z = 0.0)    # hyper rectangle origin in 𝐞ᵢ,𝐞ⱼ and  𝐞ₖ in mm
 
     # Create an hyper rectangle Lᵢ x Lⱼ x Lₖ
     x = LinRange(O.x, O.x + Lᵢ, NPOINTS)

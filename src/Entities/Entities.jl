@@ -19,8 +19,10 @@ using ..Materials
 
 export AbstractEntity, nodes, create_entity
 export AbstractFace, normal_direction, volume
-export AbstractElement, AbstractElementCache, cross_section, internal_forces, inertial_forces,
-       local_dof_symbol, local_dofs, nodes, strain, stress, weights, num_nodes, elements_cache
+export AbstractElement, AbstractElementCache, cross_section, internal_forces,
+       inertial_forces,
+       local_dof_symbol, local_dofs, nodes, strain, stress, weights, num_nodes,
+       elements_cache
 
 # =================
 # Abstract Entity
@@ -40,7 +42,7 @@ An `AbstractEntity` object is an entity defined by dofs and node/s with certain 
 * nodes
 * label
 """
-abstract type AbstractEntity{dim,T} end
+abstract type AbstractEntity{dim, T} end
 
 "Return the `AbstractEntity` `e` coordinates."
 coordinates(e::AbstractEntity) = coordinates.(nodes(e))
@@ -56,7 +58,7 @@ dimension(::AbstractEntity{dim}) where {dim} = dim
 
 "Return the dofs of an `AbstractEntity` `e`."
 function dofs(e::AbstractEntity)
-    mapfoldl(dofs, mergewith!(vcat), nodes(e); init=Dictionary{Symbol,Vector{Dof}}())
+    mapfoldl(dofs, mergewith!(vcat), nodes(e); init = Dictionary{Symbol, Vector{Dof}}())
 end
 
 "Return the dofs of a `Vector` `ve` with `AbstractEntity`es."
@@ -90,7 +92,7 @@ An `AbstractFace` object facilitates the process of adding boundary conditions o
 * nodes
 * label
 """
-abstract type AbstractFace{dim,T} <: AbstractEntity{dim,T} end
+abstract type AbstractFace{dim, T} <: AbstractEntity{dim, T} end
 
 "Return the `AbstractFace` `f` area."
 function area(f::AbstractFace) end
@@ -132,7 +134,7 @@ This method is a hard contract and for dynamic analysis must be implemented to d
 * nodes
 * label
 """
-abstract type AbstractElement{dim,T} <: AbstractEntity{dim,T} end
+abstract type AbstractElement{dim, T} <: AbstractEntity{dim, T} end
 
 "Return true if a point `p` is inside the `AbstractElement` `e`."
 function Base.:∈(p::AbstractVector, ::AbstractElement) end
@@ -206,11 +208,12 @@ elements_cache(::Type{<:AbstractElement}) = nothing
 Concrete subtypes of `AbstractElement` should implement either the three-arg version (no cache)
 or the four-arg version (use the cache).
 """
-function internal_forces(mat::AbstractMaterial, e::AbstractElement, u_e::AbstractVector, ::Nothing)
+function internal_forces(
+        mat::AbstractMaterial, e::AbstractElement, u_e::AbstractVector, ::Nothing)
     internal_forces(mat, e, u_e)
 end
 function internal_forces(mat::AbstractMaterial, e::AbstractElement, u_e::AbstractVector,
-                         cache::AbstractElementCache)
+        cache::AbstractElementCache)
     error("Not implemented.")
 end
 

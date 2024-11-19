@@ -26,30 +26,32 @@ by the element's shape functions. The index of each `Vector` is the index
 in the `Vector` of `Point`s where the magnitude is evaluated.
 """
 struct FEMInterpolator{dim,
-                       P<:Point{dim},
-                       VP<:AbstractVector{P},
-                       N<:AbstractNode,
-                       TW<:Real,
-                       E<:AbstractElement,
-                       VE<:AbstractVector{E}} <: AbstractInterpolator
+    P <: Point{dim},
+    VP <: AbstractVector{P},
+    N <: AbstractNode,
+    TW <: Real,
+    E <: AbstractElement,
+    VE <: AbstractVector{E}} <: AbstractInterpolator
     "Vector of points where the solution is interpolated."
     points_interpolated::VP
     "Node`s as keys and the corresponding weights as values."
-    node_to_weights::Vector{Dictionary{N,TW}}
+    node_to_weights::Vector{Dictionary{N, TW}}
     "Elements where each point is located."
     points_to_element::VE
     # Check the lengths
     function FEMInterpolator(points_interpolated::VP,
-                             node_to_weights::Vector{Dictionary{N,TW}},
-                             points_to_element::VE) where {dim,
-                                                           P<:Point{dim},
-                                                           VP<:AbstractVector{P},
-                                                           N<:AbstractNode,
-                                                           TW<:Real,
-                                                           E<:AbstractElement,
-                                                           VE<:AbstractVector{E}}
-        @assert length(points_interpolated) == length(node_to_weights) == length(points_to_element) "All FEMInterpolator inputs must have the same length"
-        new{dim,P,VP,N,TW,E,VE}(points_interpolated, node_to_weights, points_to_element)
+            node_to_weights::Vector{Dictionary{N, TW}},
+            points_to_element::VE) where {dim,
+            P <: Point{dim},
+            VP <: AbstractVector{P},
+            N <: AbstractNode,
+            TW <: Real,
+            E <: AbstractElement,
+            VE <: AbstractVector{E}}
+        @assert length(points_interpolated)==length(node_to_weights)==
+                length(points_to_element) "All FEMInterpolator inputs must have the same length"
+        new{dim, P, VP, N, TW, E, VE}(
+            points_interpolated, node_to_weights, points_to_element)
     end
 end
 
@@ -65,8 +67,8 @@ node_to_weights(fem_interpolator::FEMInterpolator) = fem_interpolator.node_to_we
 points_to_element(fem_interpolator::FEMInterpolator) = fem_interpolator.points_to_element
 
 "Return the interpolated nodal scalar magnitude in the points defined into the interpolator."
-function interpolate(nodal_magnitude::Dictionary{<:AbstractNode{dim},<:Real},
-                     fem_interpolator::FEMInterpolator{dim}) where {dim}
+function interpolate(nodal_magnitude::Dictionary{<:AbstractNode{dim}, <:Real},
+        fem_interpolator::FEMInterpolator{dim}) where {dim}
     # Weights for each node
     node_to_w = node_to_weights(fem_interpolator)
     num_points_to_interpolate = length(points(fem_interpolator))
@@ -82,8 +84,9 @@ function interpolate(nodal_magnitude::Dictionary{<:AbstractNode{dim},<:Real},
 end
 
 "Return the interpolated nodal vectorial magnitude in the points defined into the interpolator."
-function interpolate(nodal_magnitude::Dictionary{<:AbstractNode{dim},<:AbstractVector{<:Real}},
-                     fem_interpolator::FEMInterpolator{dim}) where {dim}
+function interpolate(
+        nodal_magnitude::Dictionary{<:AbstractNode{dim}, <:AbstractVector{<:Real}},
+        fem_interpolator::FEMInterpolator{dim}) where {dim}
     # Weights for each node
     node_to_w = node_to_weights(fem_interpolator)
     num_points_to_interpolate = length(points(fem_interpolator))
@@ -107,8 +110,8 @@ end
 evaluated at each node in the points defined. The accessor function will be evaluated
 in the nodes defined in the node_to_weights dictionary."
 function interpolate(solution::SOL,
-                     accessor::Function,
-                     fem_interpolator::FEMInterpolator{dim}) where {dim,SOL}
+        accessor::Function,
+        fem_interpolator::FEMInterpolator{dim}) where {dim, SOL}
     # Weights for each node
     node_to_w = node_to_weights(fem_interpolator)
     num_points_to_interpolate = length(points(fem_interpolator))

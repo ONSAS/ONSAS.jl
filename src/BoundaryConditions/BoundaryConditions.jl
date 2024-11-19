@@ -11,7 +11,8 @@ using ..Entities, ..Utils
 
 @reexport import ..Utils: dofs, label
 
-export AbstractBoundaryCondition, AbstractNeumannBoundaryCondition, AbstractLoadBoundaryCondition,
+export AbstractBoundaryCondition, AbstractNeumannBoundaryCondition,
+       AbstractLoadBoundaryCondition,
        AbstractDirichletBoundaryCondition, AbstractDisplacementBoundaryCondition, apply
 
 """ Abstract supertype for all elements.

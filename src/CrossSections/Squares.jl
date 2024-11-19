@@ -9,7 +9,7 @@ export Square
 """
 Square cross-section.
 """
-struct Square{T<:Real} <: AbstractCrossSection
+struct Square{T <: Real} <: AbstractCrossSection
     "Width in `y` and `z` axes."
     width::T
 end
@@ -18,7 +18,8 @@ area(s::Square) = s.width^2
 
 "Return the moment of inertia of a `Square` cross-section `s` with respect to the local x axis."
 function Ixx(s::Square)
-    return (0.5 * s.width)^4 * (16 / 3 - 3.36 * (1 - (0.5 * s.width)^4 / (12 * (0.5 * s.width)^4)))
+    return (0.5 * s.width)^4 *
+           (16 / 3 - 3.36 * (1 - (0.5 * s.width)^4 / (12 * (0.5 * s.width)^4)))
 end
 
 "Return the moment of inertia of a `Square` cross-section `s` with respect to the local y axis."

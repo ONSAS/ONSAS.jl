@@ -11,15 +11,17 @@ using ..Nodes
 using ..Utils
 using ..IsotropicLinearElasticMaterial
 
-@reexport import ..Entities: nodes, cross_section, create_entity, local_dof_symbol, internal_forces
+@reexport import ..Entities: nodes, cross_section, create_entity, local_dof_symbol,
+                             internal_forces
 
 export Frame, Consistent, Lumped
 
 "Type of mass matrix."
 @enum MassMatrix Consistent Lumped
 
-struct Frame{dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N},G<:AbstractCrossSection} <:
-       AbstractElement{dim,T}
+struct Frame{dim, T <: Real, N <: AbstractNode{dim, T},
+    VN <: AbstractVector{N}, G <: AbstractCrossSection} <:
+       AbstractElement{dim, T}
     "Nodes of the frame."
     nodes::VN
     "Cross section properties."
@@ -28,16 +30,16 @@ struct Frame{dim,T<:Real,N<:AbstractNode{dim,T},VN<:AbstractVector{N},G<:Abstrac
     mass_matrix::MassMatrix
     "Label of the frame."
     label::Label
-    function Frame(nodes::VN, cross_section::G, mass_matrix::MassMatrix=Consistent,
-                   label::Label=NO_LABEL) where {dim,T<:Real,N<:AbstractNode{dim,T},
-                                                 VN<:AbstractVector{N},G<:AbstractCrossSection}
+    function Frame(nodes::VN, cross_section::G, mass_matrix::MassMatrix = Consistent,
+            label::Label = NO_LABEL) where {dim, T <: Real, N <: AbstractNode{dim, T},
+            VN <: AbstractVector{N}, G <: AbstractCrossSection}
         @assert length(nodes) == 2 ||
                 throw(ArgumentError("Expected two nodes, got $(length(nodes))"))
-        new{dim,T,N,VN,G}(nodes, cross_section, mass_matrix, Symbol(label))
+        new{dim, T, N, VN, G}(nodes, cross_section, mass_matrix, Symbol(label))
     end
 end
-function Frame(n₁::N, n₂::N, g::G, mass_matrix::MassMatrix=Consistent,
-               label::Label=NO_LABEL) where {N<:AbstractNode,G<:AbstractCrossSection}
+function Frame(n₁::N, n₂::N, g::G, mass_matrix::MassMatrix = Consistent,
+        label::Label = NO_LABEL) where {N <: AbstractNode, G <: AbstractCrossSection}
     Frame(SVector(n₁, n₂), g, mass_matrix, label)
 end
 
@@ -82,10 +84,10 @@ function internal_forces(m::IsotropicLinearElastic, f::Frame, u_e::AbstractVecto
     Ks = zeros(12, 12)
     fint = zeros(12)
 
-    Kbend = [12     6*l    -12     6*l
-             6*l   4*l^2   -6*l   2*l^2
-             -12    -6*l     12    -6*l
-             6*l   2*l^2   -6*l   4*l^2]
+    Kbend = [12 6*l -12 6*l
+             6*l 4*l^2 -6*l 2*l^2
+             -12 -6*l 12 -6*l
+             6*l 2*l^2 -6*l 4*l^2]
 
     # Bending along x-y.
     Ks[ind_bend_xy, ind_bend_xy] .+= E * Izz / l^3 * Kbend

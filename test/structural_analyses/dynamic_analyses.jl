@@ -41,13 +41,13 @@ iter_state = ResidualsIterationStep()
 linear_system = init(LinearProblem(Kₛᵏ, res_forces))
 
 sst_rand = FullDynamicState(free_dofs,
-                            ΔUᵏ, Uᵏ, Udotᵏ, Udotdotᵏ,
-                            Fₑₓₜᵏ, Fᵢₙₜᵏ, Fᵢₙₑᵏ, Fᵥᵢₛᵏ,
-                            Kᵏ, Mᵏ, Cᵏ, Kₛᵏ, res_forces,
-                            ϵᵏ, σᵏ,
-                            assembler,
-                            iter_state,
-                            linear_system)
+    ΔUᵏ, Uᵏ, Udotᵏ, Udotdotᵏ,
+    Fₑₓₜᵏ, Fᵢₙₜᵏ, Fᵢₙₑᵏ, Fᵥᵢₛᵏ,
+    Kᵏ, Mᵏ, Cᵏ, Kₛᵏ, res_forces,
+    ϵᵏ, σᵏ,
+    assembler,
+    iter_state,
+    linear_system)
 
 sst_rand_sol = DynamicState(Uᵏ, Udotᵏ, Udotdotᵏ, ϵᵏ, σᵏ)
 

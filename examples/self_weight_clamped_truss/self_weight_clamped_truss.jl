@@ -47,7 +47,7 @@ end
 
 "Analytic displacement uᵢ at the tip"
 function analytic_u(x::Real; F::Real, E::Real,
-                    A::Real, L::Real, g::Real, ρ::Real)
+        A::Real, L::Real, g::Real, ρ::Real)
     b = ρ * g
     C = F / (E * A) + b * L / (E * A)
     -b / (2 * E * A) * x^2 + C * x
@@ -55,7 +55,7 @@ end
 
 "Compute the analytical external force for a given node index `i`"
 function analytical_force(c::AbstractCase, i::Int;
-                          F::Real, N::Int, ρ::Real, g::Real, A::Real, ΔL::Real)
+        F::Real, N::Int, ρ::Real, g::Real, A::Real, ΔL::Real)
     body_load = if i == 1 || i == N + 1
         ρ * g * A * ΔL / 2
     else
@@ -88,7 +88,7 @@ end;
 
 "Return structure"
 function structure(N::Int;
-                   E::Real, ν::Real, ρ::Real, L::Real, A::Real, g::Real, ϵ_model)
+        E::Real, ν::Real, ρ::Real, L::Real, A::Real, g::Real, ϵ_model)
     # -------------
     # Mesh
     # -------------
@@ -96,14 +96,14 @@ function structure(N::Int;
     # -------------------------------
     # Materials
     # -------------------------------
-    material = SVK(; E, ν, ρ, label="material")
+    material = SVK(; E, ν, ρ, label = "material")
     materials = StructuralMaterial(material => elements(m))
     # -------------------------------
     # Boundary conditions
     # -------------------------------
     fixed_bc = FixedField(:u, [1], "fixed")
     gravity_bc_ramp = GlobalLoad(:u, t -> t * [density(material) * g], "gravity")
-    node_bcs = Dictionary{AbstractBoundaryCondition,Vector{Node}}()
+    node_bcs = Dictionary{AbstractBoundaryCondition, Vector{Node}}()
     insert!(node_bcs, fixed_bc, [first(nodes(m))])
     element_bcs = dictionary([gravity_bc_ramp => elements(m)])
     boundary_conditions = StructuralBoundaryCondition(; node_bcs, element_bcs)
@@ -116,7 +116,7 @@ end;
 function solve(::FirstCase)
     (; g, N, E, ν, ρ, L, A, F, ϵ_model) = parameters()
     s = structure(N; E, ν, ρ, L, A, g, ϵ_model)
-    a = LinearStaticAnalysis(s; NSTEPS=10)
+    a = LinearStaticAnalysis(s; NSTEPS = 10)
     ONSAS.solve(a)
 end;
 
@@ -130,11 +130,11 @@ function test(c::FirstCase, sol::AbstractSolution)
     analytical_Fext[1] = analytical_Fext[end] = ρ * g * A / 2 * L / N
     # Displacement
     numerical_disp = last(displacements(sol, last(nodes(s)), 1))
-    analytic_disp = analytic_u(L; F=0.0, E, A, L, g, ρ)
+    analytic_disp = analytic_u(L; F = 0.0, E, A, L, g, ρ)
 
     @testset "Displacements and external forces test $c" begin
-        @test numerical_Fext ≈ analytical_Fext atol = ATOL
-        @test numerical_disp ≈ analytic_disp atol = ATOL
+        @test numerical_Fext≈analytical_Fext atol=ATOL
+        @test numerical_disp≈analytic_disp atol=ATOL
     end
 end
 
@@ -152,8 +152,8 @@ function solve(::SecondCase)
     insert!(boundary_conditions(s), tip_load_bc, last(nodes(s)))
     # Analysis
     load_analysis = LinearStaticAnalysis(s;
-                                         NSTEPS,
-                                         initial_state=last_state_analysis_self_weight)
+        NSTEPS,
+        initial_state = last_state_analysis_self_weight)
     solve!(load_analysis)
 end;
 
@@ -163,7 +163,7 @@ function test(c::SecondCase, sol::AbstractSolution)
     s = ONSAS.structure(a)
     initial_state = first(sol.states)
     # Check displacement at the initial state
-    analytic_initial_disp = analytic_u(L; F=0.0, E, A, L, g, ρ)
+    analytic_initial_disp = analytic_u(L; F = 0.0, E, A, L, g, ρ)
     numeric_initial_disp = last(displacements(initial_state))
     # TODO: The first state of the second analysis is not the initial state as it is mutated
     # along the resolution process. Hence, we need to store also the initial state of the
@@ -177,9 +177,9 @@ function test(c::SecondCase, sol::AbstractSolution)
     analytic_disp = analytic_u(L; F, E, A, L, g, ρ)
 
     @testset "Displacements and external forces test $c" begin
-        @test_broken numeric_initial_disp ≈ analytic_initial_disp atol = ATOL
-        @test numerical_Fext ≈ analytical_Fext atol = ATOL
-        @test numerical_disp ≈ analytic_disp atol = ATOL
+        @test_broken numeric_initial_disp≈analytic_initial_disp atol=ATOL
+        @test numerical_Fext≈analytical_Fext atol=ATOL
+        @test numerical_disp≈analytic_disp atol=ATOL
     end
 end
 

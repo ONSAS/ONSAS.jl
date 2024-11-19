@@ -4,61 +4,61 @@ using Reexport: @reexport
 using CommonSolve
 
 FILES = ["Utils.jl",
-         # Materials
-         "Materials/Materials.jl",
-         "Materials/LinearElasticMaterials.jl",
-         "Materials/HyperElasticMaterials.jl",
-         "Materials/IsotropicLinearElasticMaterial.jl",
-         "Materials/SVKMaterial.jl",
-         "Materials/NeoHookeanMaterial.jl",
-         "Materials/HyperElasticMaterial.jl",
-         # Cross-sections
-         "CrossSections/CrossSections.jl",
-         "CrossSections/Circles.jl",
-         "CrossSections/Rectangles.jl",
-         "CrossSections/Squares.jl",
-         "CrossSections/GenericCrossSections.jl",
-         # Entities
-         "Entities/Nodes.jl",
-         "Entities/Entities.jl",
-         "Entities/Trusses.jl",
-         "Entities/Tetrahedrons.jl",
-         "Entities/TriangularFaces.jl",
-         "Entities/Frames.jl",
-         # Boundary conditions
-         "BoundaryConditions/BoundaryConditions.jl",
-         "BoundaryConditions/FixedFieldBoundaryConditions.jl",
-         "BoundaryConditions/DirichletBoundaryConditions.jl",
-         "BoundaryConditions/GlobalLoadBoundaryConditions.jl",
-         "BoundaryConditions/LocalLoadBoundaryConditions.jl",
-         # Meshes
-         "Meshes/Meshes.jl",
-         "Meshes/Searches.jl",
-         "Meshes/Interpolators.jl",
-         "Meshes/Handlers.jl",
-         # Interface Gmsh
-         "Interfaces/Gmsh.jl",
-         # Structural Model
-         "StructuralModel/StructuralEntities.jl",
-         "StructuralModel/StructuralBoundaryConditions.jl",
-         "StructuralModel/StructuralMaterials.jl",
-         "StructuralModel/Structures.jl",
-         # Structural Solvers
-         "StructuralSolvers/Assemblers.jl",
-         "StructuralAnalyses/StructuralAnalyses.jl",
-         "StructuralSolvers/StructuralSolvers.jl",
-         "StructuralSolvers/Solvers.jl",
-         # Structural States
-         "StructuralAnalyses/StaticStates.jl",
-         "StructuralAnalyses/DynamicStates.jl",
-         # Structural Solutions
-         "StructuralSolvers/Solutions.jl",
-         # Structural Analyses
-         "StructuralAnalyses/StaticAnalyses.jl",
-         "StructuralAnalyses/LinearStaticAnalyses.jl",
-         "StructuralAnalyses/NonLinearStaticAnalyses.jl",
-         # Interface VTK
-         "Interfaces/VTK.jl"]
+    # Materials
+    "Materials/Materials.jl",
+    "Materials/LinearElasticMaterials.jl",
+    "Materials/HyperElasticMaterials.jl",
+    "Materials/IsotropicLinearElasticMaterial.jl",
+    "Materials/SVKMaterial.jl",
+    "Materials/NeoHookeanMaterial.jl",
+    "Materials/HyperElasticMaterial.jl",
+    # Cross-sections
+    "CrossSections/CrossSections.jl",
+    "CrossSections/Circles.jl",
+    "CrossSections/Rectangles.jl",
+    "CrossSections/Squares.jl",
+    "CrossSections/GenericCrossSections.jl",
+    # Entities
+    "Entities/Nodes.jl",
+    "Entities/Entities.jl",
+    "Entities/Trusses.jl",
+    "Entities/Tetrahedrons.jl",
+    "Entities/TriangularFaces.jl",
+    "Entities/Frames.jl",
+    # Boundary conditions
+    "BoundaryConditions/BoundaryConditions.jl",
+    "BoundaryConditions/FixedFieldBoundaryConditions.jl",
+    "BoundaryConditions/DirichletBoundaryConditions.jl",
+    "BoundaryConditions/GlobalLoadBoundaryConditions.jl",
+    "BoundaryConditions/LocalLoadBoundaryConditions.jl",
+    # Meshes
+    "Meshes/Meshes.jl",
+    "Meshes/Searches.jl",
+    "Meshes/Interpolators.jl",
+    "Meshes/Handlers.jl",
+    # Interface Gmsh
+    "Interfaces/Gmsh.jl",
+    # Structural Model
+    "StructuralModel/StructuralEntities.jl",
+    "StructuralModel/StructuralBoundaryConditions.jl",
+    "StructuralModel/StructuralMaterials.jl",
+    "StructuralModel/Structures.jl",
+    # Structural Solvers
+    "StructuralSolvers/Assemblers.jl",
+    "StructuralAnalyses/StructuralAnalyses.jl",
+    "StructuralSolvers/StructuralSolvers.jl",
+    "StructuralSolvers/Solvers.jl",
+    # Structural States
+    "StructuralAnalyses/StaticStates.jl",
+    "StructuralAnalyses/DynamicStates.jl",
+    # Structural Solutions
+    "StructuralSolvers/Solutions.jl",
+    # Structural Analyses
+    "StructuralAnalyses/StaticAnalyses.jl",
+    "StructuralAnalyses/LinearStaticAnalyses.jl",
+    "StructuralAnalyses/NonLinearStaticAnalyses.jl",
+    # Interface VTK
+    "Interfaces/VTK.jl"]
 
 foreach(FILES) do m
     include(m)

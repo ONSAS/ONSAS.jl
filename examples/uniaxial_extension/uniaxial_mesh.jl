@@ -3,10 +3,10 @@ using Gmsh
 "Creates a mesh for a cube with a loaded face and a fixed origin at (0,0,0)
 and (Lᵢ,Lⱼ,Lₖ) given some `labels` a `filename` and refinement factor `ms`."
 function create_uniaxial_mesh(Lᵢ::Real, Lⱼ::Real, Lₖ::Real,
-                              labels::Vector,
-                              filename::String,
-                              ms::Real=0.5,
-                              dir=@__DIR__)
+        labels::Vector,
+        filename::String,
+        ms::Real = 0.5,
+        dir = @__DIR__)
 
     # Get Labels
     mat_label = labels[1]

@@ -6,22 +6,27 @@ PKG_NAME = ONSAS
 
 # Update dependecies
 update:
-	$(JULIA) --project=. -e 'import Pkg; Pkg.update()'  && $(JULIA) --project=./docs/ -e 'import Pkg; Pkg.update()'
+	$(JULIA) --project=. -e 'import Pkg; Pkg.update()'  &&
+	$(JULIA) --project=./docs/ -e 'import Pkg; Pkg.update()' &&
+	&& $(JULIA) --project=./test/ -e 'import Pkg; Pkg.update()'
 
 # Update dependecies
 instantiate:
-	$(JULIA) --project=. -e 'import Pkg; Pkg.instantiate()'
+	$(JULIA) --project=. -e 'import Pkg; Pkg.instantiate()'  &&
+	$(JULIA) --project=./docs/ -e 'import Pkg; Pkg.instantiate()' &&
+	&& $(JULIA) --project=./test/ -e 'import Pkg; Pkg.instantiate()'
 
 # Run all tests
 tests:
-	$(JULIA) --project=. -e 'include("test/runtests.jl")'
+	$(JULIA) --project=. -e 'import Pkg; Pkg.test(;coverage=false, julia_args=["--check-bounds=yes", "--compiled-modules=yes"], force_latest_compatible_version=false, allow_reresolve=true)'
 
 # Make docs
-pages: 
+pages:
 	$(JULIA) --project=./docs/ -e 'import Pkg; Pkg.instantiate(); include("./docs/make.jl")'
 
 # Remove generated files
 clean:
+	find . -name "*.cov" -type f -exec rm -f {} +
 	find . -name "*.msh" -type f -exec rm -f {} +
 	find . -name "*.vti" -type f -exec rm -f {} +
 	find . -name "*.vtu" -type f -exec rm -f {} +

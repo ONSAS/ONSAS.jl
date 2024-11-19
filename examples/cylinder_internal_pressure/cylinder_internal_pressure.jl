@@ -113,7 +113,7 @@ function solve(::FirstCase)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    ONSAS.solve(sa; linear_solve_inplace=false)
+    ONSAS.solve(sa; linear_solve_inplace = false)
 end;
 
 "Return the problem solution"
@@ -122,7 +122,7 @@ function solve(::SecondCase)
     # The material is replaced just to test the replace method
     liner_elastic = IsotropicLinearElastic(E, ν, material_label)
     s = structure(liner_elastic)
-    svk_material = SVK(; E=E, ν=ν, label=material_label)
+    svk_material = SVK(; E = E, ν = ν, label = material_label)
     replace!(s, svk_material)
     # -------------------------------
     # Structural Analysis
@@ -178,23 +178,23 @@ function booleans_solution_at_slice(sol::AbstractSolution)
     point_evaluator = PointEvalHandler(mesh(structure), vec_points)
     U = displacements(sol, point_evaluator)
     # Check uₖ = 0 ∀ p ∈ s
-    zero_uz = all([≈(norm(u[3]), 0.0; atol=ATOL) for u in U])
+    zero_uz = all([≈(norm(u[3]), 0.0; atol = ATOL) for u in U])
     # Check uᵢ = 0 ∀ p ∈ s & ∈ axis y
     index_p_rand_in_axis_y = findall([p == p_rand_in_axis_y for p in vec_points])
     Uᵢ_in_axis_y = getindex(displacements(sol, point_evaluator, 1), index_p_rand_in_axis_y)
-    zero_ui_axis_y = all([≈(norm(ui_p_in_axis_y), 0.0; atol=ATOL)
+    zero_ui_axis_y = all([≈(norm(ui_p_in_axis_y), 0.0; atol = ATOL)
                           for ui_p_in_axis_y in Uᵢ_in_axis_y])
     # Check uⱼ = 0 ∀ p ∈ s & ∈ axis x
     index_p_rand_in_axis_x = findall([p == p_rand_in_axis_x for p in vec_points])
     Uⱼ_in_axis_x = getindex(displacements(sol, point_evaluator, 2), index_p_rand_in_axis_x)
-    zero_uj_axis_x = all([≈(norm(uj_p_in_axis_y), 0.0; atol=ATOL)
+    zero_uj_axis_x = all([≈(norm(uj_p_in_axis_y), 0.0; atol = ATOL)
                           for uj_p_in_axis_y in Uⱼ_in_axis_x])
     # Check ur(r,θ₁) =  ur(r,θ₁)  at last time
     rand_index_1 = 3
     u_rand_1 = sum(last.(U[rand_index_1][1:2]) .^ 2)
     rand_index_2 = 4
     u_rand_2 = sum(last.(U[rand_index_2][1:2]) .^ 2)
-    ur_not_depends_on_θ = ≈(u_rand_1, u_rand_2; atol=ATOL)
+    ur_not_depends_on_θ = ≈(u_rand_1, u_rand_2; atol = ATOL)
 
     ur_not_depends_on_θ, zero_uz, zero_ui_axis_y, zero_uj_axis_x
 end;
@@ -214,7 +214,7 @@ function ur(r::Real, t::Real)
 end;
 
 "Return analytic solution"
-function analytic_solution(sol::AbstractSolution, p::Point{3,<:Real}, ur::Function=ur)
+function analytic_solution(sol::AbstractSolution, p::Point{3, <:Real}, ur::Function = ur)
     rand_R, _, _ = p
     (; Ri, Re) = parameters()
     λvec = load_factors(analysis(sol))
@@ -226,7 +226,7 @@ function analytic_solution(sol::AbstractSolution, p::Point{3,<:Real}, ur::Functi
 end;
 
 "Return numercial solution"
-function numerical_solution(sol::AbstractSolution, p::Point{3,<:Real}, ::FirstCase)
+function numerical_solution(sol::AbstractSolution, p::Point{3, <:Real}, ::FirstCase)
     # Unwarp a random point
     rand_R, rand_θ, rand_z = p
     s = ONSAS.structure(analysis(sol))
@@ -262,9 +262,9 @@ function test(sol::AbstractSolution, case::FirstCase)
     end
     @testset "Radial displacement analytic solution case: $case" begin
         # A relaxed tolerace is defined, is normal to have a greater error interpolation
-        @test ur_numeric_p_rand ≈ ur_analytic_p_rand atol = ATOL
-        @test ur_numeric_ni ≈ ur_analytic_ni atol = ATOL
-        @test ur_numeric_ne ≈ -ur_analytic_ne atol = ATOL
+        @test ur_numeric_p_rand≈ur_analytic_p_rand atol=ATOL
+        @test ur_numeric_ni≈ur_analytic_ni atol=ATOL
+        @test ur_numeric_ne≈-ur_analytic_ne atol=ATOL
     end
 end;
 

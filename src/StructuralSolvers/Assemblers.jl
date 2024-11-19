@@ -10,10 +10,10 @@ using ..Structures
 
 @reexport import ..Entities: elements_cache
 
-export Assembler, assemble!, reset_assembler!, end_assemble, end_assemble!, reset!
+export Assembler, assemble!, end_assemble, end_assemble!, reset!
 
 "Struct that stores column indexes, row indexes and values for the assemble process."
-struct Assembler{T,DT}
+struct Assembler{T, DT}
     "Column indexes."
     I::Vector{Int}
     "Row indexes."
@@ -25,7 +25,7 @@ struct Assembler{T,DT}
 end
 
 "Constructor of an `Assembler` with size of the sparse matrix `N` ."
-function Assembler(N::Integer, cache=nothing)
+function Assembler(N::Integer, cache = nothing)
     I = Int[]
     J = Int[]
     V = Float64[]
@@ -36,25 +36,26 @@ function Assembler(N::Integer, cache=nothing)
     return Assembler(I, J, V, cache)
 end
 
-Assembler(s::AbstractStructure, cache=nothing) = Assembler(num_free_dofs(s), cache)
+Assembler(s::AbstractStructure, cache = nothing) = Assembler(num_free_dofs(s), cache)
 
 function elements_cache(a::Assembler, e::AbstractElement)
     a.cache[nameof(typeof(e))]
 end
 
 "Assembles the element matrix `Ke` into the `Assembler` struct `a`."
-function assemble!(a::Assembler{T}, dofs::AbstractVector{Dof}, Ke::AbstractMatrix{T}) where {T}
+function assemble!(
+        a::Assembler{T}, dofs::AbstractVector{Dof}, Ke::AbstractMatrix{T}) where {T}
     return assemble!(a, dofs, dofs, Ke)
 end
 
 "Assembles the matrix `Ke` into `Assembler` `a` according to the dofs specified by `row_dof_indexes` and `col_dof_indexes`."
 function assemble!(a::Assembler{T},
-                   row_dof_indexes::AbstractVector{Int},
-                   col_dof_indexes::AbstractVector{Int},
-                   Ke::AbstractMatrix{T}) where {T}
+        row_dof_indexes::AbstractVector{Int},
+        col_dof_indexes::AbstractVector{Int},
+        Ke::AbstractMatrix{T}) where {T}
     nrows = length(row_dof_indexes)
     ncols = length(col_dof_indexes)
-    @assert size(Ke) == (nrows, ncols) "The size of the element matrix Ke does not match the number of dofs."
+    @assert size(Ke)==(nrows, ncols) "The size of the element matrix Ke does not match the number of dofs."
 
     append!(a.V, Ke)
     @inbounds for i in 1:ncols

@@ -37,7 +37,7 @@ const RTOL = 1e-5
     vec_elements = [t₁, t₂, t₃]
 
     # Constructors
-    mesh = Mesh(; nodes=vec_nodes, elements=vec_elements)
+    mesh = Mesh(; nodes = vec_nodes, elements = vec_elements)
 
     @test dimension(mesh) == dimension(n₁)
     @test all(isempty.(dofs(mesh)))
@@ -74,7 +74,7 @@ const RTOL = 1e-5
 end
 
 uniaxial_mesh_path = joinpath(@__DIR__, "..", "..", "examples", "uniaxial_extension",
-                              "uniaxial_mesh.jl")
+    "uniaxial_mesh.jl")
 include(uniaxial_mesh_path)
 
 @testset "ONSAS.Meshes.GMSH.MshFile " begin
@@ -105,7 +105,7 @@ include(uniaxial_mesh_path)
     end
     msh_path = joinpath(dir, file_name)
     msh_file = MshFile(msh_path)
-    rm(file_name; force=true)
+    rm(file_name; force = true)
 
     @test nodes(msh_file) == msh_file.vec_nodes
     @test length(physical_index(msh_file)) == length(connectivity(msh_file))
@@ -150,7 +150,7 @@ end
     n₈ = Node(Lᵢ, Lⱼ, 0.0)
     vec_nodes = [n₁, n₂, n₃, n₄, n₅, n₆, n₇, n₈]
     # nothing is a placeholder for extra data
-    mesh = Mesh(; nodes=vec_nodes)
+    mesh = Mesh(; nodes = vec_nodes)
     ## Faces
     f₁ = TriangularFace(n₅, n₈, n₆)
     f₂ = TriangularFace(n₆, n₈, n₇)

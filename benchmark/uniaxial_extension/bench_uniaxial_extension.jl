@@ -11,7 +11,7 @@ Uniaxial extension Case 2 - GMSH mesh and `SVK` material.
 
 `ms` is the refinement factor of the mesh.
 """
-function uniaxial_extension_structure(; ms=0.5)
+function uniaxial_extension_structure(; ms = 0.5)
     # x, y and z dimensions of the box in the mesh respectively.
     Lᵢ = 2.0
     Lⱼ = 1.0

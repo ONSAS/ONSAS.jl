@@ -23,10 +23,11 @@ using ..StaticStates
 using ..StructuralSolvers
 
 @reexport import ..StructuralAnalyses: displacements, external_forces, iteration_residuals
-@reexport import ..StructuralSolvers: residual_forces_tol, displacement_tol, criterion, iterations
+@reexport import ..StructuralSolvers: residual_forces_tol, displacement_tol, criterion,
+                                      iterations
 @reexport import ..Entities: internal_forces, inertial_forces, strain, stress
 
-export AbstractSolution, Solution, stresses, strains, states, analysis, solver,
+export AbstractSolution, Solution, analysis, solver, states,
        displacements, external_forces, iteration_residuals, deformed_node_positions
 
 """
@@ -54,9 +55,9 @@ solver(sol::AbstractSolution) = sol.solver
 """
 Solution that stores all intermediate arrays during the analysis.
 """
-struct Solution{ST<:AbstractStaticState,
-                A<:AbstractStructuralAnalysis,
-                SS<:Union{AbstractSolver,LinearSolver}} <: AbstractSolution
+struct Solution{ST <: AbstractStaticState,
+    A <: AbstractStructuralAnalysis,
+    SS <: Union{AbstractSolver, LinearSolver}} <: AbstractSolution
     "Vector containing the converged structural states at each step."
     states::Vector{ST}
     "Analysis solved."
@@ -67,8 +68,8 @@ end
 
 "Constructor with empty `AbstractStructuralState`s `Vector` and type `S`."
 function Solution(analysis::A,
-                  solver::SS) where {A<:AbstractStructuralAnalysis,
-                                     SS<:Union{AbstractSolver,LinearSolver}}
+        solver::SS) where {A <: AbstractStructuralAnalysis,
+        SS <: Union{AbstractSolver, LinearSolver}}
 
     # TODO Use concrete types.
     state = current_state(analysis)
@@ -86,12 +87,12 @@ function Solution(analysis::A,
         states[i] = StaticState(sol_Uᵏ, sol_ϵᵏ, sol_σᵏ)
     end
 
-    Solution{StaticState,A,SS}(states, analysis, solver)
+    Solution{StaticState, A, SS}(states, analysis, solver)
 end
 
 "Generic minimal show method for a generic `solution`"
 function Base.show(io::IO, ::MIME"text/plain",
-                   solution::Solution)
+        solution::Solution)
     println("Analysis solved:")
     println("----------------\n")
     show(io, analysis(solution))
@@ -104,31 +105,32 @@ end
 "Print the solution table"
 function _print_table(solution::AbstractSolution)
     header = ["iter", "time", "||Uᵏ||", "||ΔUᵏ||/||Uᵏ||", "||ΔRᵏ||", "||ΔRᵏ||/||Fₑₓₜ||",
-              "convergence criterion", "iterations"]
+        "convergence criterion", "iterations"]
 
     ΔU_rel = getindex.(displacement_tol(solution), 1)
     ΔU = getindex.(displacement_tol(solution), 2)
     ΔR_rel = getindex.(residual_forces_tol(solution), 1)
     ΔR = getindex.(residual_forces_tol(solution), 2)
     t = analysis(solution).λᵥ
-    criterions = [string(criterion_step)[1:(end - 2)] for criterion_step in criterion(solution)]
+    criterions = [string(criterion_step)[1:(end - 2)]
+                  for criterion_step in criterion(solution)]
     iters = iterations(solution)
     num_times = length(t)
     data = hcat(collect(1:num_times), t, ΔU, ΔU_rel, ΔR, ΔR_rel, criterions, iters)
 
     hl = Highlighter(;
-                     f=(data, i, j) -> i % 2 == 0,
-                     crayon=Crayon(; foreground=:white, background=:black, bold=:true))
+        f = (data, i, j) -> i % 2 == 0,
+        crayon = Crayon(; foreground = :white, background = :black, bold = :true))
 
     pretty_table(data;
-                 highlighters=hl,
-                 header=header,
-                 display_size=(20, 1000),
-                 vcrop_mode=:middle,
-                 formatters=(ft_printf("%i", [1]),
-                             ft_printf("%.2f", [2]),
-                             ft_printf("%e", [3, 4, 5, 6])),
-                 alignment=:c)
+        highlighters = hl,
+        header = header,
+        display_size = (20, 1000),
+        vcrop_mode = :middle,
+        formatters = (ft_printf("%i", [1]),
+            ft_printf("%.2f", [2]),
+            ft_printf("%e", [3, 4, 5, 6])),
+        alignment = :c)
 end
 
 "Return the solved states."
@@ -142,11 +144,13 @@ for f in [:displacements, :internal_forces, :external_forces]
     @eval $f(st_sol::Solution, dof::Dof) = getindex.($f(st_sol), Utils.index(dof))
 
     "Return the $f at a certain dof at `time_index` time step."
-    @eval $f(st_sol::Solution, dof::Dof, time_index::Integer) = getindex($f(st_sol)[time_index],
-                                                                         Utils.index(dof))
+    @eval $f(st_sol::Solution, dof::Dof, time_index::Integer) = getindex(
+        $f(st_sol)[time_index],
+        Utils.index(dof))
     "Return the $f at a certain dof's vector at `time_index` time step."
-    @eval $f(st_sol::Solution, vdof::Vector{Dof}, time_index::Integer) = [getindex($f(st_sol)[time_index],
-                                                                                   Utils.index(dof))
+    @eval $f(st_sol::Solution, vdof::Vector{Dof}, time_index::Integer) = [getindex(
+                                                                              $f(st_sol)[time_index],
+                                                                              Utils.index(dof))
                                                                           for dof in vdof]
 
     "Return the $f at a certain dof's vector for every time step."

@@ -13,7 +13,7 @@ using ..Utils
 
 @reexport import ..Utils: label, dofs, index
 
-export Dof, Point, AbstractNode, Node, dimension, coordinates, create_node, set_dofs!
+export Dof, Point, AbstractNode, Node, dimension, coordinates, set_dofs!
 
 "Scalar degree of freedom of the structure."
 const Dof = Int
@@ -27,7 +27,7 @@ Construct a point given its coordinates.
 It is a type alias for a statically sized array of dimension `dim` and element type `T`.
 Use either as a vararg function, `Point(1, 2, 3)`, or by splatting `Point(x...)` if `x` is an (abstract) vector.
 """
-const Point{dim,T} = SVector{dim,T} where {dim,T<:Real}
+const Point{dim, T} = SVector{dim, T} where {dim, T <: Real}
 
 """
 An `AbstractNode` object is a point in space with degrees of freedom.
@@ -42,7 +42,7 @@ An `AbstractNode` object is a point in space with degrees of freedom.
 * `dofs`: mapping from field labels to degrees of freedom
 
 """
-abstract type AbstractNode{dim,T} <: StaticArray{Tuple{dim},T,1} end
+abstract type AbstractNode{dim, T} <: StaticArray{Tuple{dim}, T, 1} end
 
 "Return node coordinates."
 coordinates(n::AbstractNode) = n.x
@@ -71,14 +71,15 @@ end
 A `Node` is a point in space.
 The coordinates of the node are stored using a static array.
 """
-struct Node{dim,T} <: AbstractNode{dim,T}
+struct Node{dim, T} <: AbstractNode{dim, T}
     "Coordinates of the node."
-    x::Point{dim,T}
+    x::Point{dim, T}
     "Mapping from field labels to degrees of freedom."
-    dofs::Dictionary{Field,Vector{Dof}}
-    function Node(x::Point{dim,T}, dofs::Dictionary{Field,Vector{Dof}}) where {dim,T<:Real}
-        @assert dim ≤ 3 "Only 1D, 2D or 3D nodes are supported."
-        new{dim,T}(x, dofs)
+    dofs::Dictionary{Field, Vector{Dof}}
+    function Node(
+            x::Point{dim, T}, dofs::Dictionary{Field, Vector{Dof}}) where {dim, T <: Real}
+        @assert dim≤3 "Only 1D, 2D or 3D nodes are supported."
+        new{dim, T}(x, dofs)
     end
 end
 
@@ -88,8 +89,9 @@ function Base.show(io::IO, ::MIME"text/plain", n::Node)
 end
 
 "Node constructor with a `NTuple`."
-function Node(t::NTuple{dim,T},
-              dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) where {dim,T<:Real}
+function Node(t::NTuple{dim, <:Real},
+        dofs::Dictionary = Dictionary{Field, Vector{Dof}}()) where {dim}
+    @assert dim≤3 "Unexpected point dimension $dim"
     Node(Point(t), dofs)
 end
 
@@ -98,7 +100,7 @@ function Node(t)
     dofs = if length(t) > 1 && t[end] isa Dictionary
         t[end]
     else
-        Dictionary{Field,Vector{Dof}}()
+        Dictionary{Field, Vector{Dof}}()
     end
     coords = length(t) > 1 ? t[1:(end - 1)] : (t)
     Node(promote(coords)..., dofs)
@@ -106,12 +108,13 @@ end
 
 "`Node` constructor with an `AbstractVector` data type."
 function Node(v::AbstractVector{T},
-              dofs::Dictionary=Dictionary{Field,Vector{Dof}}()) where {T<:Real}
+        dofs::Dictionary = Dictionary{Field, Vector{Dof}}()) where {T <: Real}
     Node(Point(v...), dofs)
 end
 
 "Method to inherit from StaticArrays for a node."
-StaticArrays.similar_type(::Type{Node{dim,T}}, ::Type{T}, s::Size{dim}) where {dim,T} = Node{dim,T}
-Base.length(::Type{Node{dim,T}}) where {dim,T} = dim
+StaticArrays.similar_type(::Type{Node{dim, T}}, ::Type{T}, s::Size{dim}) where {dim, T} = Node{
+    dim, T}
+Base.length(::Type{Node{dim, T}}) where {dim, T} = dim
 
 end

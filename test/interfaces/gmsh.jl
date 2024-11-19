@@ -41,13 +41,14 @@ include(path)
     end
     msh_path = joinpath(dir, file_name)
     msh_file = MshFile(msh_path)
-    rm(file_name; force=true)
+    rm(file_name; force = true)
 
     @test nodes(msh_file) == msh_file.vec_nodes
     @test length(physical_index(msh_file)) == length(connectivity(msh_file))
     @test dimension(msh_file) == dimension(first(nodes(msh_file)))
     @test material_label(msh_file) == ["", "", "", "", "svkHyper"]
-    @test entity_label(msh_file) == ["triangle", "triangle", "triangle", "triangle", "tetrahedron"]
+    @test entity_label(msh_file) ==
+          ["triangle", "triangle", "triangle", "triangle", "tetrahedron"]
     @test bc_label(msh_file) == ["fixed-ux", "fixed-uj", "fixed-uk", "tension", ""]
 
     entity_index = 100

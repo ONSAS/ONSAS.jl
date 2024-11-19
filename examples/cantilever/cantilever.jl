@@ -27,7 +27,7 @@ function structure()
     nodes = [Node(promote(xi, 0, 0.0)) for xi in x_coords]  # to be safe when arguments supplied to Node command are not of  same types
     S = Rectangle(h, b)
     frames = [Frame(nodes[j], nodes[j + 1], S) for j in 1:(length(nodes) - 1)]
-    mesh = Mesh(; nodes=nodes, elements=frames)
+    mesh = Mesh(; nodes = nodes, elements = frames)
     set_dofs!(mesh, :u, 3)
     set_dofs!(mesh, :θ, 3)
     # ------------------------
@@ -42,7 +42,7 @@ function structure()
     bc2 = FixedField(:θ, [1, 2, 3])
     bc3 = GlobalLoad(:u, t -> [Px, -Py, 0])
     boundary_conditions = StructuralBoundaryCondition(bc1 => [nodes[1]], bc2 => [nodes[1]],
-                                                      bc3 => [nodes[end]])
+        bc3 => [nodes[end]])
 
     Structure(mesh, materials, boundary_conditions)
 end
@@ -70,9 +70,9 @@ function test(sol::AbstractSolution)
     @testset "Displacements at the right-most node" begin
         Izz = b * h^3 / 12
         A = b * h
-        @test displacements(sol, right_most_node, 2)[1] ≈ -Py * L^3 / (3 * E * Izz) rtol = RTOL
-        @test displacements(sol, right_most_node, 6)[1] ≈ -Py * L^2 / (2 * E * Izz) rtol = RTOL
-        @test displacements(sol, right_most_node, 1)[1] ≈ Px * L / (E * A) rtol = RTOL
+        @test displacements(sol, right_most_node, 2)[1]≈-Py * L^3 / (3 * E * Izz) rtol=RTOL
+        @test displacements(sol, right_most_node, 6)[1]≈-Py * L^2 / (2 * E * Izz) rtol=RTOL
+        @test displacements(sol, right_most_node, 1)[1]≈Px * L / (E * A) rtol=RTOL
     end
 end
 

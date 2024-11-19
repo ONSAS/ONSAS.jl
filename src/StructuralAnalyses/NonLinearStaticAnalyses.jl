@@ -29,7 +29,8 @@ A non linear static analysis is a collection of parameters for defining the stat
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 As this analysis is nonlinear the stiffness of the structure is updated at each iteration.
 """
-mutable struct NonLinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}} <:
+mutable struct NonLinearStaticAnalysis{
+    S <: AbstractStructure, R <: Real, LFV <: Vector{R}} <:
                AbstractStaticAnalysis
     "Structure to be analyzed."
     const s::S
@@ -42,16 +43,17 @@ mutable struct NonLinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{
 end
 "Constructor for a non linear analysis with load factors, optional initial step and initial state."
 function NonLinearStaticAnalysis(s::S, λᵥ::LFV;
-                                 initial_state::FullStaticState=FullStaticState(s),
-                                 initial_step::Int=1) where {S<:AbstractStructure,
-                                                             LFV<:AbstractVector{<:Real}}
+        initial_state::FullStaticState = FullStaticState(s),
+        initial_step::Int = 1) where {S <: AbstractStructure,
+        LFV <: AbstractVector{<:Real}}
     !(1 ≤ initial_step ≤ length(λᵥ)) &&
         throw(ArgumentError("initial_step must be in [1, $(length(λᵥ))] but is: $initial_step."))
     NonLinearStaticAnalysis(s, initial_state, λᵥ, initial_step)
 end
 
 "Constructor for non linear static analysis given a final time (or load factor) and the number of steps."
-function NonLinearStaticAnalysis(s::AbstractStructure, t₁::Real=1.0; NSTEPS=10, initial_step::Int=1)
+function NonLinearStaticAnalysis(
+        s::AbstractStructure, t₁::Real = 1.0; NSTEPS = 10, initial_step::Int = 1)
     t₀ = t₁ / NSTEPS
     λᵥ = collect(LinRange(t₀, t₁, NSTEPS))
     NonLinearStaticAnalysis(s, λᵥ; initial_step)
@@ -66,9 +68,9 @@ end
 
 "Solves an non linear static analysis problem with a given solver."
 function _solve!(sa::NonLinearStaticAnalysis,
-                 alg::AbstractSolver,
-                 linear_solver::LinearSolver;
-                 linear_solve_inplace::Bool)
+        alg::AbstractSolver,
+        linear_solver::LinearSolver;
+        linear_solve_inplace::Bool)
     s = structure(sa)
     # Initialize solution.
     sol = Solution(sa, alg)
@@ -103,8 +105,8 @@ end
 
 "Computes ΔU for solving the non linear static analysis with a Newton Raphson method."
 function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson,
-               linear_solver::SciMLBase.AbstractLinearAlgorithm;
-               linear_solve_inplace::Bool)
+        linear_solver::SciMLBase.AbstractLinearAlgorithm;
+        linear_solve_inplace::Bool)
     # Extract state info
     state = current_state(sa)
     free_dofs_idx = free_dofs(state)
@@ -118,8 +120,9 @@ function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson,
     linear_system.A .= view(tangent_matrix(state), free_dofs_idx, free_dofs_idx)
 
     # Define tolerances
-    abstol, reltol, maxiter = StructuralSolvers._default_linear_solver_tolerances(linear_system.A,
-                                                                                  linear_system.b)
+    abstol, reltol, maxiter = StructuralSolvers._default_linear_solver_tolerances(
+        linear_system.A,
+        linear_system.b)
 
     # Compute ΔU
     sol = if linear_solve_inplace
@@ -145,17 +148,18 @@ end
 
 "Show the solution when solved with an in-house algorithm."
 function Base.show(io::IO, ::MIME"text/plain",
-                   solution::Solution{<:FullStaticState})
+        solution::Solution{<:FullStaticState})
     show(io, solution)
 
     println("\nStats:")
     println("----------")
     # Check convergence
-    is_any_step_not_converged = any([criterion_step isa Union{NotConvergedYet,MaxIterCriterion}
+    is_any_step_not_converged = any([criterion_step isa
+                                     Union{NotConvergedYet, MaxIterCriterion}
                                      for criterion_step in criterion(solution)])
 
     num_iterations = reduce(+, iterations(solution))
-    avg_iterations = round(num_iterations / length(states(solution)); digits=1)
+    avg_iterations = round(num_iterations / length(states(solution)); digits = 1)
     println("• Number of linear systems solved: $num_iterations")
     println("• Average of iterations per step : $avg_iterations")
     println("• Convergence success            : $(!is_any_step_not_converged)")

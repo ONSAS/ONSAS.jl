@@ -23,8 +23,9 @@ using ..Solutions
 @reexport import ..StructuralSolvers: _solve!, step!
 
 # Since linear analysis do not iterate, the iteration state is:
-const LinearResidualsIterationStep = ResidualsIterationStep(nothing, nothing, nothing, nothing, 1,
-                                                            ΔU_and_ResidualForce_Criteria())
+const LinearResidualsIterationStep = ResidualsIterationStep(
+    nothing, nothing, nothing, nothing, 1,
+    ΔU_and_ResidualForce_Criteria())
 
 export LinearStaticAnalysis
 
@@ -33,7 +34,7 @@ A linear analysis is a collection of parameters for defining the static analysis
 In the static analysis, the structure is analyzed at a given load factor (this variable is analog to time).
 As this analysis is linear the stiffness of the structure remains constant at each displacements iteration step.
 """
-mutable struct LinearStaticAnalysis{S<:AbstractStructure,R<:Real,LFV<:Vector{R}} <:
+mutable struct LinearStaticAnalysis{S <: AbstractStructure, R <: Real, LFV <: Vector{R}} <:
                AbstractStaticAnalysis
     "Structure to be analyzed."
     const s::S
@@ -47,20 +48,20 @@ end
 
 "Constructor for linear analysis with load factors, optional initial step and initial state."
 function LinearStaticAnalysis(s::S, λᵥ::LFV;
-                              initial_state::FullStaticState=FullStaticState(s,
-                                                                             LinearResidualsIterationStep),
-                              initial_step::Int=1) where {S<:AbstractStructure,
-                                                          LFV<:Vector{<:Real}}
+        initial_state::FullStaticState = FullStaticState(s,
+            LinearResidualsIterationStep),
+        initial_step::Int = 1) where {S <: AbstractStructure,
+        LFV <: Vector{<:Real}}
     !(1 ≤ initial_step ≤ length(λᵥ)) &&
         throw(ArgumentError("initial_step must be in [1, $(length(λᵥ))] but is: $initial_step."))
     LinearStaticAnalysis(s, initial_state, λᵥ, initial_step)
 end
 
 "Constructor for linear analysis given a final time (or load factor) and the number of steps."
-function LinearStaticAnalysis(s::AbstractStructure, final_time::Real=1.0; NSTEPS=10,
-                              initial_state::FullStaticState=FullStaticState(s,
-                                                                             LinearResidualsIterationStep),
-                              initial_step::Int=1)
+function LinearStaticAnalysis(s::AbstractStructure, final_time::Real = 1.0; NSTEPS = 10,
+        initial_state::FullStaticState = FullStaticState(s,
+            LinearResidualsIterationStep),
+        initial_step::Int = 1)
     t₀ = final_time / NSTEPS
     λᵥ = collect(LinRange(t₀, final_time, NSTEPS))
     LinearStaticAnalysis(s, λᵥ; initial_state, initial_step)
@@ -75,9 +76,9 @@ end
 
 "Solves a linear analysis problem mutating the state."
 function _solve!(sa::LinearStaticAnalysis,
-                 alg::Nothing,
-                 linear_solver::LinearSolver;
-                 linear_solve_inplace::Bool)
+        alg::Nothing,
+        linear_solver::LinearSolver;
+        linear_solve_inplace::Bool)
     s = structure(sa)
 
     # Initialize solution.
@@ -114,8 +115,8 @@ end
 
 "Computes ΔU for solving the linear analysis."
 function step!(sa::LinearStaticAnalysis,
-               linear_solver::LinearSolver;
-               linear_solve_inplace::Bool)
+        linear_solver::LinearSolver;
+        linear_solve_inplace::Bool)
     # Extract state info
     state = current_state(sa)
     free_dofs_idx = free_dofs(state)
@@ -132,17 +133,17 @@ function step!(sa::LinearStaticAnalysis,
 
     # Define tolerances
     abstol, reltol, maxiter = _default_linear_solver_tolerances(linear_system.A,
-                                                                linear_system.b)
+        linear_system.b)
 
     # Compute ΔU
     # TODO: Solve it inplace
     sol = if linear_solve_inplace
         LinearSolve.solve!(linear_system,
-                           linear_solver; abstol, reltol, maxiter)
+            linear_solver; abstol, reltol, maxiter)
     else
         lp = LinearProblem(linear_system.A, linear_system.b)
         LinearSolve.solve!(init(lp, linear_solver),
-                           linear_solver; abstol, reltol, maxiter)
+            linear_solver; abstol, reltol, maxiter)
     end
     ΔU = Δ_displacements!(state, sol.u)
 

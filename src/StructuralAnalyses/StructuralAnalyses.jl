@@ -16,15 +16,19 @@ using ..Structures
 using ..Utils
 
 @reexport import ..Utils: apply!
-@reexport import ..Entities: internal_forces, inertial_forces, strain, stress, elements_cache
+@reexport import ..Entities: internal_forces, inertial_forces, strain, stress,
+                             elements_cache
 @reexport import ..Structures: free_dofs
 @reexport import ..Assemblers: assemble!, end_assemble!
 
 export AbstractStructuralState, AbstractStaticState, AbstractDynamicState, Δ_displacements,
        Δ_displacements!, residual_forces!, structure, assembler, residual_forces_norms,
-       residual_displacements_norms, AbstractStructuralAnalysis, initial_time, current_time, times,
-       final_time, is_done, current_state, current_iteration, displacements, external_forces,
-       iteration_residuals, tangent_matrix, internal_cache, elements_cache, velocity, acceleration,
+       residual_displacements_norms, AbstractStructuralAnalysis, initial_time, current_time,
+       times,
+       final_time, is_done, current_state, current_iteration, displacements,
+       external_forces,
+       iteration_residuals, tangent_matrix, internal_cache, elements_cache, velocity,
+       acceleration,
        viscous_forces, mass_matrix, damping_matrix, stiffness_matrix
 
 """ Abstract supertype to define a new structural state.
@@ -109,14 +113,15 @@ end
 
 "Assembles the element `e` stress σₑ and strain ϵₑ into the structural state."
 function assemble!(st::AbstractStructuralState, σₑ::ST, ϵₑ::ET,
-                   e::AbstractElement) where {ST<:Union{Real,AbstractMatrix},
-                                              ET<:Union{Real,AbstractMatrix}}
+        e::AbstractElement) where {ST <: Union{Real, AbstractMatrix},
+        ET <: Union{Real, AbstractMatrix}}
     stress(st)[e] .= σₑ
     strain(st)[e] .= ϵₑ
 end
 
 "Fill the system tangent matrix in the structural state once the assembler object is built."
-end_assemble!(st::AbstractStructuralState) = end_assemble!(tangent_matrix(st), assembler(st))
+end_assemble!(st::AbstractStructuralState) = end_assemble!(
+    tangent_matrix(st), assembler(st))
 
 "Return relative residual forces for the current structural state."
 function residual_forces_norms(st::AbstractStructuralState)
@@ -226,7 +231,8 @@ function apply!(sa::AbstractStructuralAnalysis, lbc::AbstractNeumannBoundaryCond
 end
 
 "Apply a vector of load boundary conditions to the structure."
-function apply!(sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractNeumannBoundaryCondition})
+function apply!(
+        sa::AbstractStructuralAnalysis, l_bcs::Vector{<:AbstractNeumannBoundaryCondition})
     for lbc in l_bcs
         apply!(sa, lbc)
     end

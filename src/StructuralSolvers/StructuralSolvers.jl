@@ -20,15 +20,15 @@ using ..Entities
 export AbstractConvergenceCriterion, ResidualForceCriterion, ΔUCriterion,
        MaxIterCriterion, ΔU_and_ResidualForce_Criteria, MaxIterCriterion, NotConvergedYet,
        ConvergenceSettings, residual_forces_tol, displacement_tol, max_iter_tol,
-       ResidualsIterationStep, iter, criterion, isconverged!,
+       ResidualsIterationStep, criterion, isconverged!,
        AbstractSolver, step_size, tolerances, step!, solve, solve!, _solve!,
-       AbstractSolution, iterations, update!, next!, LinearSolver, DEFAULT_LINEAR_SOLVER
+       iterations, update!, next!, LinearSolver, DEFAULT_LINEAR_SOLVER
 
 const INITIAL_Δ = 1e12
 "Default LinearSolve.jl solver"
 const DEFAULT_LINEAR_SOLVER = IterativeSolversJL_CG
 "LinearSolve solver object. If is `nothing`  default algorithm by `LinearSolve.jl`` is used."
-const LinearSolver = Union{SciMLBase.AbstractLinearAlgorithm,Nothing}
+const LinearSolver = Union{SciMLBase.AbstractLinearAlgorithm, Nothing}
 
 """
 Facilitates the process of defining and checking numerical convergence.
@@ -112,8 +112,9 @@ residual_forces_tol(ri_step::ResidualsIterationStep) = (ri_step.Δr_rel, ri_step
 displacement_tol(ri_step::ResidualsIterationStep) = (ri_step.ΔU_rel, ri_step.ΔU_norm)
 
 "Sets the iteration step to 0."
-function reset!(ri_step::ResidualsIterationStep{T}) where {T<:Real}
-    ri_step.ΔU_norm = ri_step.Δr_norm = ri_step.ΔU_rel = ri_step.Δr_rel = INITIAL_Δ * ones(T)[1]
+function reset!(ri_step::ResidualsIterationStep{T}) where {T <: Real}
+    ri_step.ΔU_norm = ri_step.Δr_norm = ri_step.ΔU_rel = ri_step.Δr_rel = INITIAL_Δ *
+                                                                          ones(T)[1]
     ri_step.iter = 0
     ri_step.criterion = NotConvergedYet()
     ri_step
@@ -132,8 +133,9 @@ function update!(ri_step::ResidualsIterationStep, criterion::AbstractConvergence
 end
 
 "Updates the iteration step with the current values of the displacement and forces residuals."
-function update!(ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real, Δr_norm::Real,
-                 Δr_rel::Real)
+function update!(
+        ri_step::ResidualsIterationStep, ΔU_norm::Real, ΔU_rel::Real, Δr_norm::Real,
+        Δr_rel::Real)
     ri_step.ΔU_norm = ΔU_norm
     ri_step.ΔU_rel = ΔU_rel
     ri_step.Δr_norm = Δr_norm
@@ -147,8 +149,8 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
     ΔU_relᵏ, ΔU_normᵏ = displacement_tol(ri_step)
     Δr_relᵏ, Δr_normᵏ = residual_forces_tol(ri_step)
 
-    @assert ΔU_relᵏ > 0 "Residual displacements norm must be greater than 0."
-    @assert Δr_relᵏ > 0 "Residual forces norm must be greater than 0."
+    @assert ΔU_relᵏ>0 "Residual displacements norm must be greater than 0."
+    @assert Δr_relᵏ>0 "Residual forces norm must be greater than 0."
 
     ΔU_rel_tol = displacement_tol(cs)
     Δr_rel_tol = residual_forces_tol(cs)
@@ -185,7 +187,7 @@ tolerances(solver::AbstractSolver) = solver.tol
 
 "Computes a step in time on the `analysis` considering the numerical `AbstractSolver` `solver`."
 function step!(solver::AbstractSolver,
-               analysis::AbstractStructuralAnalysis) end
+        analysis::AbstractStructuralAnalysis) end
 
 "Increment the time step given of a structural analysis. Dispatch is done for different
 solvers."
@@ -199,9 +201,9 @@ function tangent_matrix(st::AbstractStructuralState, alg::AbstractSolver) end
 # ===============
 
 function solve(problem::AbstractStructuralAnalysis,
-               solver::Union{AbstractSolver,Nothing}=nothing,
-               args...;
-               kwargs...)
+        solver::Union{AbstractSolver, Nothing} = nothing,
+        args...;
+        kwargs...)
     solve!(deepcopy(problem), solver, args...; kwargs...)
 end
 
@@ -215,16 +217,16 @@ to be provided. Also a linear solver form LinearSolve.jl package can by provided
 By default `DEFAULT_LINEAR_SOLVER` is utilized.
 """
 function solve!(problem::AbstractStructuralAnalysis,
-                solver::Union{AbstractSolver,Nothing}=nothing,
-                linear_solve::LinearSolver=DEFAULT_LINEAR_SOLVER();
-                linear_solve_inplace::Bool=false)
+        solver::Union{AbstractSolver, Nothing} = nothing,
+        linear_solve::LinearSolver = DEFAULT_LINEAR_SOLVER();
+        linear_solve_inplace::Bool = false)
     _solve!(problem, solver, linear_solve; linear_solve_inplace)
 end
 
 "Internal solve function to be overloaded by each analysis"
 function _solve!(problem::AbstractStructuralAnalysis,
-                 solver::Union{AbstractSolver,Nothing},
-                 args...; kwargs...) end
+        solver::Union{AbstractSolver, Nothing},
+        args...; kwargs...) end
 
 function _default_linear_solver_tolerances(A::AbstractMatrix{<:Real}, b::Vector{<:Real})
     abstol = zero(real(eltype(b)))

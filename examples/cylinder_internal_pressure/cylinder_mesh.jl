@@ -5,10 +5,10 @@ and fixed in k at (0,0,0) and (0,0,Lₖ), the boundary conditions and physical
 properties are passed into as `labels`. The .msh file is generated at `filename`
 at a given `dir`ectory  with a refinement factor `ms`."
 function create_cylinder_mesh(Rᵢ::Real, Rₑ::Real, Lₖ::Real,
-                              labels::Vector,
-                              filename::String,
-                              ms::Real=1,
-                              dir=@__DIR__)
+        labels::Vector,
+        filename::String,
+        ms::Real = 1,
+        dir = @__DIR__)
 
     # Refinement factors for internal and external faces
     factorₑ = 0.015

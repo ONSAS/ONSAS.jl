@@ -14,19 +14,19 @@ end
 
 "Runs the experiment and prints the times."
 function run_experiment(build_structure::Function,
-                        analysis,
-                        alg::AbstractSolver;
-                        ms, NSTEPS, N_POINTS_EVAL)
+        analysis,
+        alg::AbstractSolver;
+        ms, NSTEPS, N_POINTS_EVAL)
     structure, t_structure, _ = @timed build_structure(; ms)
 
-    problem, t_problem = @timed analysis(structure, NSTEPS=NSTEPS)
+    problem, t_problem = @timed analysis(structure, NSTEPS = NSTEPS)
     reset!(problem)
 
     solution, t_solve, _ = @timed solve!(problem, alg)
 
     ph, t_point_eval_handler, _ = @timed PointEvalHandler(structure,
-                                                          [Point(rand(3)...)
-                                                           for i in 1:N_POINTS_EVAL])
+        [Point(rand(3)...)
+         for i in 1:N_POINTS_EVAL])
 
     _, t_eval_sol, _ = @timed displacements(solution, ph)
 
@@ -34,7 +34,7 @@ function run_experiment(build_structure::Function,
 end
 
 # Alg to solve static problems
-tols = ConvergenceSettings(; rel_U_tol=1e-8, rel_res_force_tol=1e-6, max_iter=20);
+tols = ConvergenceSettings(; rel_U_tol = 1e-8, rel_res_force_tol = 1e-6, max_iter = 20);
 alg = NewtonRaphson(tols);
 # Static analysis number of steps to reach the final load factor value
 NSTEPS = 8;
@@ -51,20 +51,21 @@ example_folder, bench_path = joinpath_example_folder(example_name);
 include(bench_path);
 
 # Compilation time 
-times_compilation = run_experiment(uniaxial_compression_structure, NonLinearStaticAnalysis, alg;
-                                   ms=ms, NSTEPS=NSTEPS, N_POINTS_EVAL=N_POINTS_EVAL);
+times_compilation = run_experiment(
+    uniaxial_compression_structure, NonLinearStaticAnalysis, alg;
+    ms = ms, NSTEPS = NSTEPS, N_POINTS_EVAL = N_POINTS_EVAL);
 println("Compiling 🚧:")
 print_times(times_compilation...)
 
 # First experiment
 times₁ = run_experiment(uniaxial_compression_structure, NonLinearStaticAnalysis, alg;
-                        ms=ms, NSTEPS=NSTEPS, N_POINTS_EVAL=N_POINTS_EVAL);
+    ms = ms, NSTEPS = NSTEPS, N_POINTS_EVAL = N_POINTS_EVAL);
 println("Experiment 1 🔨:")
 print_times(times₁...)
 
 # Second experiment
 times₂ = run_experiment(uniaxial_compression_structure, NonLinearStaticAnalysis, alg;
-                        ms=ms, NSTEPS=NSTEPS, N_POINTS_EVAL=N_POINTS_EVAL);
+    ms = ms, NSTEPS = NSTEPS, N_POINTS_EVAL = N_POINTS_EVAL);
 println("Experiment 2 🔨:")
 print_times(times₂...)
 

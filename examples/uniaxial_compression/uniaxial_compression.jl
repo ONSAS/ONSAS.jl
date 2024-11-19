@@ -51,7 +51,7 @@ function boundary_conditions()
 end;
 
 "Return the first case structural model"
-function structure(::FirstCase=FirstCase())
+function structure(::FirstCase = FirstCase())
     (; μ, K, Li, Lj, Lk) = parameters()
     # -------------
     # Mesh
@@ -65,7 +65,7 @@ function structure(::FirstCase=FirstCase())
     n7 = Node(Li, Lj, Lk)
     n8 = Node(Li, Lj, 0.0)
     vec_nodes = [n1, n2, n3, n4, n5, n6, n7, n8]
-    mesh = Mesh(; nodes=vec_nodes)
+    mesh = Mesh(; nodes = vec_nodes)
     f1 = TriangularFace(n5, n8, n6, "loaded_face_1")
     f2 = TriangularFace(n6, n8, n7, "loaded_face_2")
     f3 = TriangularFace(n4, n1, n2, "x=0_face_1")
@@ -97,9 +97,9 @@ function structure(::FirstCase=FirstCase())
     # -------------------------------
     (; bc_fixed_x, bc_fixed_y, bc_fixed_k, bc_load) = boundary_conditions()
     face_bc = [bc_fixed_x => [f3, f4],
-               bc_fixed_y => [f5, f6],
-               bc_fixed_k => [f7, f8],
-               bc_load => [f1, f2]]
+        bc_fixed_y => [f5, f6],
+        bc_fixed_k => [f7, f8],
+        bc_load => [f1, f2]]
     bcs = StructuralBoundaryCondition(face_bc)
 
     Structure(mesh, materials, bcs)
@@ -229,9 +229,9 @@ end;
 
 "Computes displacements numeric solution uᵢ, uⱼ and uₖ for analytic validation."
 function u_ijk_numeric(numerical_α::Vector{<:Real},
-                       numerical_β::Vector{<:Real},
-                       numerical_γ::Vector{<:Real},
-                       x::Real, y::Real, z::Real)
+        numerical_β::Vector{<:Real},
+        numerical_γ::Vector{<:Real},
+        x::Real, y::Real, z::Real)
     x * (numerical_α .- 1), y * (numerical_β .- 1), z * (numerical_γ .- 1)
 end;
 
@@ -242,15 +242,15 @@ function analytic_P(sol::AbstractSolution)
 
     # Test with Second Piola-Kirchoff stress tensor `P`.
     "Computes P(1,1) given α, β and γ."
-    function analytic_P11(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
+    function analytic_P11(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real = μ, K::Real = K)
         μ * α - μ * (α .^ (-1)) + K * (β .^ 2) .* (α .* (β .^ 2) .- 1)
     end
     "Computes P(2,2) given α, β and γ."
-    function analytic_P22(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
+    function analytic_P22(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real = μ, K::Real = K)
         μ * β - μ * (β .^ (-1)) + K * β .* ((α .^ 2) .* (β .^ 2) - α)
     end
     "Computes P(2,2) given α, β and γ."
-    function analytic_P33(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real=μ, K::Real=K)
+    function analytic_P33(α::Vector{<:Real}, β::Vector{<:Real}, μ::Real = μ, K::Real = K)
         analytic_P22(α, β, μ, K)
     end
     P11_analytic = analytic_P11(numeric_α, numeric_β)
@@ -266,12 +266,12 @@ function test(sol::AbstractSolution)
     a = analysis(sol)
     P11_numeric, P22_numeric, P33_numeric, _, _ = numerical_solution(sol)
     P11_analytic, P22_analytic, P33_analytic = analytic_P(sol)
-    @test P11_analytic ≈ P11_numeric rtol = RTOL
-    @test P22_analytic ≈ P22_numeric atol = ATOL
-    @test P33_analytic ≈ P33_numeric atol = ATOL
-    @test -p * load_factors(a) ≈ P11_analytic rtol = RTOL
-    @test norm(P22_numeric) ≈ 0 atol = ATOL
-    @test norm(P33_numeric) ≈ 0 atol = ATOL
+    @test P11_analytic≈P11_numeric rtol=RTOL
+    @test P22_analytic≈P22_numeric atol=ATOL
+    @test P33_analytic≈P33_numeric atol=ATOL
+    @test -p * load_factors(a)≈P11_analytic rtol=RTOL
+    @test norm(P22_numeric)≈0 atol=ATOL
+    @test norm(P33_numeric)≈0 atol=ATOL
 
     rand_point = [rand() * [Li, Lj, Lk]]
     ph = PointEvalHandler(mesh(ONSAS.structure(a)), rand_point)
@@ -280,15 +280,15 @@ function test(sol::AbstractSolution)
     _, _, _, numeric_α, numeric_β, numeric_γ, _ = numerical_solution(sol)
 
     u1_case, u2_case, u3_case = u_ijk_numeric(numeric_α, numeric_β, numeric_γ,
-                                              rand_point[]...)
+        rand_point[]...)
     rand_point_u1 = displacements(sol, ph, 1)
     rand_point_u2 = displacements(sol, ph, 2)
     rand_point_u3 = displacements(sol, ph, 3)
     stress_point = stress(sol, ph)[]
-    @test u1_case ≈ rand_point_u1 rtol = RTOL
-    @test u2_case ≈ rand_point_u2 rtol = RTOL
-    @test u3_case ≈ rand_point_u3 rtol = RTOL
-    @test getindex.(stress_point, 1) ≈ P11_analytic rtol = RTOL
+    @test u1_case≈rand_point_u1 rtol=RTOL
+    @test u2_case≈rand_point_u2 rtol=RTOL
+    @test u3_case≈rand_point_u3 rtol=RTOL
+    @test getindex.(stress_point, 1)≈P11_analytic rtol=RTOL
 end;
 
 "Run the example"
