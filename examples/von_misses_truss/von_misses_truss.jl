@@ -12,13 +12,14 @@ function parameters()
     A = 2.5e-3                # Cross-section area in m²
     d = sqrt(4 * A / pi)      # Diameter in m
     a = sqrt(A)               # Side in m
-    θ = 65                      # truss angle in degrees
+    θ = 65                    # Truss angle in degrees
     L = 2                     # Length in m
-    V = L * cos(deg2rad(θ)) # vertical distance in m
-    H = L * sin(deg2rad(θ)) # horizontal distance in m
-    Fk = -3e8                 # Vertical load in N
+    V = L * cos(deg2rad(θ))   # vertical distance in m
+    H = L * sin(deg2rad(θ))   # horizontal distance in m
+    Fk = -1e8                 # Vertical load in N
     RTOL = 1e-4               # Relative tolerance for tests
-    (; E, ν, A, a, d, θ, L, V, H, Fk, RTOL)
+    NSTEPS = 5               # Number of steps for the analysis
+    (; E, ν, A, a, d, θ, L, V, H, Fk, RTOL, NSTEPS)
 end;
 
 "Return the problem structural model"
@@ -57,11 +58,12 @@ end;
 
 "Return the problem solution"
 function solve(strain_model::Type{<:AbstractStrainModel} = GreenStrain)
+    (; NSTEPS) = parameters()
     # -------------------------------
     # Structural Analysis
     # -------------------------------
     s = structure(strain_model)
-    sa = NonLinearStaticAnalysis(s; NSTEPS = 1)
+    sa = NonLinearStaticAnalysis(s; NSTEPS)
     # -------------------------------
     # Solver
     # -------------------------------

@@ -26,7 +26,7 @@ using ONSAS.Nodes
     n7 = Node(Lx, Ly, Lz)
     n8 = Node(Lx, Ly, 0.0)
     vec_nodes = [n1, n2, n3, n4, n5, n6, n7, n8]
-    msh = Mesh(; nodes = vec_nodes)
+    m = Mesh(; nodes = vec_nodes)
 
     ## Faces
     f1 = TriangularFace(n5, n8, n6)
@@ -38,7 +38,7 @@ using ONSAS.Nodes
     f7 = TriangularFace(n1, n4, n5)
     f8 = TriangularFace(n4, n8, n5)
     vec_faces = [f1, f2, f3, f4, f5, f6, f7, f8]
-    append!(faces(msh), vec_faces)
+    append!(faces(m), vec_faces)
     ## Entities
     t1 = Tetrahedron(n1, n4, n2, n6)
     t2 = Tetrahedron(n6, n2, n3, n4)
@@ -47,24 +47,24 @@ using ONSAS.Nodes
     t5 = Tetrahedron(n4, n6, n5, n8)
     t6 = Tetrahedron(n4, n7, n6, n8)
     vec_elems = [t1, t2, t3, t4, t5, t6]
-    append!(elements(msh), vec_elems)
+    append!(elements(m), vec_elems)
 
     u_dim = 3
-    set_dofs!(msh, :u, u_dim)
+    set_dofs!(m, :u, u_dim)
     temp_dim = 1
-    set_dofs!(msh, :T, temp_dim)
+    set_dofs!(m, :T, temp_dim)
 
     filename = "tetrahedron_unit_test_vtk"
-    vtk_mesh = VTKMeshFile(filename, msh)
+    vtk_mesh = VTKMeshFile(filename, m)
     fs = close(vtk_mesh.vtk)
     @test only(fs) == "$filename.vtu"
-    @test vtk_mesh.vtk.Ncls == num_elements(msh)
-    @test vtk_mesh.vtk.Npts == num_nodes(msh)
+    @test vtk_mesh.vtk.Ncls == num_elements(m)
+    @test vtk_mesh.vtk.Npts == num_nodes(m)
 
-    vec_nodal_dof_data = to_vtk(collect(1:num_dofs(msh, :u)))
-    scalar_nodal_dof_data = to_vtk(collect(1:num_dofs(msh, :T)))
-    scalar_cell_data = to_vtk(rand(num_elements(msh)))
-    tensor_cell_data = [rand(3, 3) for _ in elements(msh)]
+    vec_nodal_dof_data = to_vtk(collect(1:num_dofs(m, :u)))
+    scalar_nodal_dof_data = to_vtk(collect(1:num_dofs(m, :T)))
+    scalar_cell_data = to_vtk(rand(num_elements(m)))
+    tensor_cell_data = [rand(3, 3) for _ in elements(m)]
     VTKMeshFile(filename, msh) do vtx
         write_node_data(vtx, vec_nodal_dof_data, "vectorial_nodal_data";
             component_names = ["sx", "sy", "sz"])
@@ -98,10 +98,26 @@ end
     temp_dim = 1
     set_dofs!(m, :T, temp_dim)
 
+    vec_nodal_dof_data = to_vtk(collect(1:num_dofs(m, :u)))
+    scalar_nodal_dof_data = to_vtk(collect(1:num_dofs(m, :T)))
+    scalar_cell_data = to_vtk(rand(num_elements(m)))
+    tensor_cell_data = [rand(3, 3) for _ in elements(m)]
+
     filename = "truss_test_vtk"
     vtk_mesh = VTKMeshFile(filename, m)
     fs = close(vtk_mesh.vtk)
     @test only(fs) == "$filename.vtu"
-    @test vtk_mesh.vtk.Ncls == num_elements(msh)
-    @test vtk_mesh.vtk.Npts == num_nodes(msh)
+    @test vtk_mesh.vtk.Ncls == num_elements(m)
+    @test vtk_mesh.vtk.Npts == num_nodes(m)
+
+    VTKMeshFile(filename, m) do vtx
+        write_node_data(vtx, vec_nodal_dof_data, "vectorial_nodal_data";
+            component_names = ["sx", "sy", "sz"])
+        write_node_data(
+            vtx, scalar_nodal_dof_data, "scalar_nodal_data"; component_names = ["T"])
+        write_cell_data(vtx, scalar_cell_data, "scalar_cell_data"; component_names = ["σ"])
+        write_cell_data(vtx, tensor_cell_data, "tensor_cell_data";
+            component_names = ["σxx", "σyy", "σzz", "τyz", "τxz", "τxy", "τzy", "τzx",
+                "τyx"])
+    end
 end
