@@ -1,7 +1,7 @@
 name = "ONSAS"
 uuid = "7d8da659-23aa-453a-9a19-a3d1f6c795f5"
 authors = ["M.C. Vanzulli <mvanzulli@fing.edu.uy>", "M. Forets <mforets@gmail.com>", "J. M. Pérez Zerpa <jorgepz@fing.edu.uy>"]
-version = "0.4.5"
+version = "0.4.6"
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
