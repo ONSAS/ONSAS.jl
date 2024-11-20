@@ -54,11 +54,11 @@ function solve()
     # Structural Analysis
     # -------------------------------
     (; NSTEPS) = parameters()
-    sa = NonLinearStaticAnalysis(s; NSTEPS)
+    sa = LinearStaticAnalysis(s; NSTEPS)
     # -------------------------------
     # Numerical solution
     # -------------------------------
-    ONSAS.solve(sa, NewtonRaphson())
+    ONSAS.solve(sa)
 end;
 
 "Test problem solution"
@@ -79,6 +79,7 @@ end
 "Run the example."
 function run()
     sol = solve()
+    write_vtk(sol, "cantilever")
     test(sol)
 end
 
