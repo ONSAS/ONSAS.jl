@@ -11,6 +11,7 @@ using ..Nodes
 using ..Utils
 using ..Entities
 using ..Trusses
+using ..Frames
 using ..Tetrahedrons
 using ..TriangularFaces
 using ..Solutions
@@ -75,7 +76,7 @@ Converts element types from `ONSAS` to VTK-compatible cell types for tetrahedral
 to_vtkcell_type(::Tetrahedron) = VTKCellTypes.VTK_TETRA
 # Fallback for generic cross-section
 to_vtkcell_type(::Truss) = VTKCellTypes.VTK_LINE
-to_vtkcell_type(::Frame) = VTKCellTypes.VTK_LAGRANGE_LINE
+to_vtkcell_type(::Frame) = VTKCellTypes.VTK_POLY_LINE
 
 """
 Maps the nodes of an element within a mesh to its VTK cell node indices.
@@ -163,14 +164,17 @@ const FIELD_NAMES = Dict(:u => "Displacement" => ["ux", "uy", "uz"],
 
 function _extract_node_data(
         sol::AbstractSolution, fields::Vector{Field}, msh, time_index::Integer)
-    nodal_data = Dict(field => zeros(num_dofs(msh, field))
+    # TODO: Initialize empty vectors for each field
+    nodal_data = Dict(field => Float64[]
     for field in fields if field ∈ POINT_FIELDS)
+
     for node in nodes(msh)
         for field in fields
             if field ∈ POINT_FIELDS
                 ndofs = dofs(node, field)
                 node_dof_data = displacements(sol, ndofs, time_index)
-                nodal_data[field][ndofs] .= to_vtk(node_dof_data)
+                vtk_data = to_vtk(node_dof_data)
+                append!(nodal_data[field], vtk_data)
             end
         end
     end
