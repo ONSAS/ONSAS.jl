@@ -113,9 +113,8 @@ cross_section(t::Truss) = t.cross_section
 strain_model(::Truss{dim, E}) where {dim, E <: AbstractStrainModel} = E
 
 "Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
-function create_entity(t::Truss, vn::AbstractVector{<:AbstractNode})
-    Truss(vn, cross_section(t), strain_model(t), label(t))
-end
+create_entity(t::Truss, vn::AbstractVector{<:AbstractNode}) = Truss(
+    vn, cross_section(t), strain_model(t), label(t))
 
 "Return the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]
@@ -144,8 +143,8 @@ function internal_forces(
     K_geo = 𝐒₁₁ * A / l_def * (B_dif' * B_dif - TTcl * (TTcl'))
     Kᵢₙₜ_e = Kₘ + K_geo
 
-    σ_e = Symmetric(Matrix{Float64}(undef, (3, 3)))
-    ϵ_e = Symmetric(Matrix{Float64}(undef, (3, 3)))
+    σ_e = Symmetric(zeros(Float64, (3, 3)))
+    ϵ_e = Symmetric(zeros(Float64, (3, 3)))
     # Piola stress
     σ_e[1, 1] = 𝐒₁₁ * l_def / l_ref
     ϵ_e[1, 1] = ϵ
@@ -174,8 +173,8 @@ function internal_forces(m::AbstractHyperElasticMaterial, e::Truss{dim, GreenStr
     Kᵢₙₜ_e = 𝐒₁₁ * A / l_ref * Ge + E * A * l_ref * (b_sum' * b_sum)
 
     # Frist Piola stress
-    σ_e = Symmetric(Matrix{Float64}(undef, (3, 3)))
-    ϵ_e = Symmetric(Matrix{Float64}(undef, (3, 3)))
+    σ_e = Symmetric(zeros(Float64, (3, 3)))
+    ϵ_e = Symmetric(zeros(Float64, (3, 3)))
     σ_e[1, 1] = 𝐒₁₁ * l_def / l_ref
     ϵ_e[1, 1] = ϵ
 
@@ -224,7 +223,7 @@ function _aux_b(X_ref_row::AbstractVector, X_def_row::AbstractVector, u_e::Abstr
     b_ref = 1 / (l_ref^2) * X_ref_row' * G
     b_def = 1 / (l_ref^2) * u_e' * G
 
-    return b_ref, b_def
+    b_ref, b_def
 end
 
 "Return deformed and reference lengths of a truss element."

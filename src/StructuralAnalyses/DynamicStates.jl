@@ -117,9 +117,9 @@ function FullDynamicState(s::AbstractStructure,
     res_forces = zeros(n_fdofs)
 
     # Initialize pairs strains
-    ϵᵏ = dictionary([Pair(e, Symmetric(Matrix{Float64}(undef, (3, 3))))
+    ϵᵏ = dictionary([Pair(e, Symmetric(zeros(Float64, (3, 3))))
                      for e in elements(s)])
-    σᵏ = dictionary([Pair(e, Matrix{Float64}(undef, (3, 3))) for e in elements(s)])
+    σᵏ = dictionary([Pair(e, Symmetric(zeros(Float64, (3, 3)))) for e in elements(s)])
 
     cache = dictionary(nameof(T) => elements_cache(T) for T in subtypes(AbstractElement))
     assemblerᵏ = Assembler(s, cache)
