@@ -90,7 +90,8 @@ function FullStaticState(s::AbstractStructure,
     # Initialize pairs strains
     ϵᵏ = dictionary([Pair(e, Symmetric(zeros(Float64, (3, 3))))
                      for e in elements(s)])
-    σᵏ = dictionary([Pair(e, Symmetric(zeros(Float64, (3, 3)))) for e in elements(s)])
+    # Stresses are not granted to be symmetric
+    σᵏ = dictionary([Pair(e, zeros(Float64, (3, 3))) for e in elements(s)])
     cache = dictionary(nameof(T) => elements_cache(T) for T in subtypes(AbstractElement))
     assemblerᵏ = Assembler(s, cache)
     fdofs = free_dofs(s)
