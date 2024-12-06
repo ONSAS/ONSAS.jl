@@ -97,13 +97,14 @@ end
 
 "`Node` constructor to promote types of coordinates of Point"
 function Node(t)
-    dofs = if length(t) > 1 && t[end] isa Dictionary
-        t[end]
+    if length(t) > 1 && t[end] isa Dictionary
+        dofs = t[end]
+        coords = t[1:(end - 1)]
     else
-        Dictionary{Field, Vector{Dof}}()
+        dofs = Dictionary{Field, Vector{Dof}}()
+        coords = t
     end
-    coords = length(t) > 1 ? t[1:(end - 1)] : (t)
-    Node(promote(coords)..., dofs)
+    Node(promote(coords...), dofs)
 end
 
 "`Node` constructor with an `AbstractVector` data type."
