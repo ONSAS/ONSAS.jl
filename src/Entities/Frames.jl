@@ -38,9 +38,12 @@ struct Frame{dim, T <: Real, N <: AbstractNode{dim, T},
         new{dim, T, N, VN, G}(nodes, cross_section, mass_matrix, Symbol(label))
     end
 end
-function Frame(n₁::N, n₂::N, g::G, mass_matrix::MassMatrix = Consistent,
-        label::Label = NO_LABEL) where {N <: AbstractNode, G <: AbstractCrossSection}
-    Frame(SVector(n₁, n₂), g, mass_matrix, label)
+function Frame(n₁::N1, n₂::N2, g::G, mass_matrix::MassMatrix = Consistent,
+        label::Label = NO_LABEL) where {N1 <: AbstractNode, N2 <: AbstractNode, G <: AbstractCrossSection}
+        temp = promote(n₁.x,n₂.x)
+        n1r = Node(temp[1],n₁.dofs)
+        n2r = Node(temp[2],n₂.dofs)
+        Frame(SVector(n1r, n2r), g, mass_matrix, label)
 end
 
 nodes(f::Frame) = f.nodes
