@@ -22,4 +22,11 @@ using ONSAS.Frames
 
     f2 = Frame(n1, n2, R, Lumped)
     @test f2.mass_matrix == Lumped
+
+    # Constructor with different types
+    n1 = Node(1.2, 2.3, 3.4)
+    n2 = Node(2, 3, 4)
+    S = Rectangle(0.6, 0.3)
+    f = Frame(n1, n2, S)
+    @test coordinates.(nodes(f)) == coordinates.([n1, n2])
 end
