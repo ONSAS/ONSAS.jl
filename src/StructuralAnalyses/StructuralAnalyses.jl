@@ -120,8 +120,10 @@ function assemble!(st::AbstractStructuralState, σₑ::ST, ϵₑ::ET,
 end
 
 "Fill the system tangent matrix in the structural state once the assembler object is built."
-end_assemble!(st::AbstractStructuralState) = end_assemble!(
-    tangent_matrix(st), assembler(st))
+function end_assemble!(st::AbstractStructuralState)
+    end_assemble!(
+        tangent_matrix(st), assembler(st))
+end
 
 "Return relative residual forces for the current structural state."
 function residual_forces_norms(st::AbstractStructuralState)

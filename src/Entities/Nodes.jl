@@ -114,8 +114,11 @@ function Node(v::AbstractVector{T},
 end
 
 "Method to inherit from StaticArrays for a node."
-StaticArrays.similar_type(::Type{Node{dim, T}}, ::Type{T}, s::Size{dim}) where {dim, T} = Node{
-    dim, T}
+function StaticArrays.similar_type(
+        ::Type{Node{dim, T}}, ::Type{T}, s::Size{dim}) where {dim, T}
+    Node{
+        dim, T}
+end
 Base.length(::Type{Node{dim, T}}) where {dim, T} = dim
 
 end

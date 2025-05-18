@@ -97,13 +97,13 @@ s_boundary_conditions = StructuralBoundaryCondition(node_bc, face_bc, elem_bc)
     @test node_bcs(s_boundary_conditions) == node_bc
     @test face_bcs(s_boundary_conditions) == face_bc
     @test element_bcs(s_boundary_conditions) == elem_bc
-    @test all(bc ∈ all_bcs(s_boundary_conditions) for bc in [bc₁, bc₂, bc₃, bc₄, bc₅])
+    @test all(bc in all_bcs(s_boundary_conditions) for bc in [bc₁, bc₂, bc₃, bc₄, bc₅])
     @test length(all_bcs(s_boundary_conditions)) == 5
 
     @test length(load_bcs(s_boundary_conditions)) == 2
     @test bc₃ ∈ load_bcs(s_boundary_conditions) && bc₄ ∈ load_bcs(s_boundary_conditions)
     @test length(fixed_dof_bcs(s_boundary_conditions)) == 3
-    @test all(bc ∈ fixed_dof_bcs(s_boundary_conditions) for bc in [bc₁, bc₂, bc₅])
+    @test all(bc in fixed_dof_bcs(s_boundary_conditions) for bc in [bc₁, bc₂, bc₅])
 
     @test s_boundary_conditions["fixed_uⱼ"] == bc₂
     @test truss₁ ∈ s_boundary_conditions[bc₄]
@@ -189,7 +189,7 @@ end
     @test face_types_to_faces(s_entities) == s_entities.face_types_to_faces
     @test elem_types(s_entities) == velems
     @test face_types(s_entities) == vfaces
-    @test all([e ∈ all_entities(s_entities) for e in vcat(velems, vfaces)])
+    @test all([e in all_entities(s_entities) for e in vcat(velems, vfaces)])
     @test s_entities[tetra_label] == velems[1]
     @test s_entities[truss_label] == velems[2]
 end

@@ -170,9 +170,7 @@ function isconverged!(ri_step::ResidualsIterationStep, cs::ConvergenceSettings)
     update!(ri_step, criterion)
 end
 
-#==========#
 # Solvers
-#==========#
 
 """
 Abstract supertype for all direct integration methods.

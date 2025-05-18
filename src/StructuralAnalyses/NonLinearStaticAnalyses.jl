@@ -120,7 +120,8 @@ function step!(sa::NonLinearStaticAnalysis, ::NewtonRaphson,
     linear_system.A .= view(tangent_matrix(state), free_dofs_idx, free_dofs_idx)
 
     # Define tolerances
-    abstol, reltol, maxiter = StructuralSolvers._default_linear_solver_tolerances(
+    abstol, reltol,
+    maxiter = StructuralSolvers._default_linear_solver_tolerances(
         linear_system.A,
         linear_system.b)
 

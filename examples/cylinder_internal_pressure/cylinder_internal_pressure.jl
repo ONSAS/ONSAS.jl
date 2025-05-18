@@ -253,7 +253,8 @@ function test(sol::AbstractSolution, case::FirstCase)
     p = Point(rand_point_cylinder()...)
     ur_analytic_ni, ur_analytic_ne, ur_analytic_p_rand = analytic_solution(sol, p)
     ur_numeric_ni, ur_numeric_ne, ur_numeric_p_rand = numerical_solution(sol, p, case)
-    ur_not_depends_on_θ, zero_uz, zero_ui_axis_y, zero_uj_axis_x = booleans_solution_at_slice(sol)
+    ur_not_depends_on_θ, zero_uz, zero_ui_axis_y,
+    zero_uj_axis_x = booleans_solution_at_slice(sol)
     @testset "Solution symmetry case: $case" begin
         @test ur_not_depends_on_θ
         @test zero_uz
@@ -269,7 +270,8 @@ function test(sol::AbstractSolution, case::FirstCase)
 end;
 
 function test(sol::AbstractSolution, case::SecondCase)
-    ur_not_depends_on_θ, zero_uz, zero_ui_axis_y, zero_uj_axis_x = booleans_solution_at_slice(sol)
+    ur_not_depends_on_θ, zero_uz, zero_ui_axis_y,
+    zero_uj_axis_x = booleans_solution_at_slice(sol)
     @testset "Solution symmetry case: $case" begin
         @test ur_not_depends_on_θ
         @test zero_uz

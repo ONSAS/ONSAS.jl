@@ -52,20 +52,21 @@ n₄ = Node(2.0, 0.0, 1.0,
     tetra = create_entity(tetra_empty_nodes, [n₁, n₂, n₃, n₄])
 
     @test length(nodes(tetra)) == 4
-    @test all([n ∈ nodes(tetra) for n in [n₁, n₂, n₃, n₄]])
-    @test all([n ∈ coordinates(tetra) for n in coordinates([n₁, n₂, n₃, n₄])])
+    @test all([n in nodes(tetra) for n in [n₁, n₂, n₃, n₄]])
+    @test all([n in coordinates(tetra) for n in coordinates([n₁, n₂, n₃, n₄])])
     tetra_dofs = dofs(tetra)
-    @test all([d ∈ tetra_dofs[:u] for d in Dof.(1:12)])
+    @test all([d in tetra_dofs[:u] for d in Dof.(1:12)])
     @test length(tetra_dofs[:u]) == 12
-    @test all([d ∈ tetra_dofs[:θ] for d in Dof.(13:24)])
+    @test all([d in tetra_dofs[:θ] for d in Dof.(13:24)])
     @test length(tetra_dofs[:θ]) == 12
     @test local_dof_symbol(tetra) == [:u]
     local_dofs(tetra)
-    @test all([d ∈ local_dofs(tetra) for d in Dof.(1:12)])
+    @test all([d in local_dofs(tetra) for d in Dof.(1:12)])
 
     @test volume(tetra) == 2 * 1 / 6
 
-    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_svk_mat, tetra,
+    fᵢₙₜ_e, Kᵢₙₜ_e,
+    σ_e, ϵ_e = internal_forces(my_svk_mat, tetra,
         u_global_structure[local_dofs(tetra)])
 
     # Values from ONSAS.m
@@ -122,7 +123,8 @@ end
     my_lin_mat = IsotropicLinearElastic(
         elasticity_modulus(my_svk_mat), shear_modulus(my_svk_mat))
 
-    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(my_lin_mat, tetra,
+    fᵢₙₜ_e, Kᵢₙₜ_e,
+    σ_e, ϵ_e = internal_forces(my_lin_mat, tetra,
         u_global_structure[local_dofs(tetra)])
 
     # Test internal forces with an HyperElastic material model and zero 𝑢

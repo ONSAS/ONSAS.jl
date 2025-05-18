@@ -101,7 +101,7 @@ function test(
     ϵ_right_truss = strain(sol, right_truss)
     # Test stress and strain
     @testset "Stress and strain case: $strain_model" begin
-        @test σ_right_truss[1, 1]≈E * ϵ_right_truss[1, 1] rtol=RTOL skip=true
+        @test σ_right_truss[1, 1]≈E*ϵ_right_truss[1, 1] rtol=RTOL skip=true
     end
 
     # Analytic solution

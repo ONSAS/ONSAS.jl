@@ -5,9 +5,8 @@ using LinearAlgebra
 export label, eye, row_vector, @debugtime, voigt, Label, NO_LABEL, Density, Field, index,
        fill_symmetric_matrix!, INDEXES_TO_VOIGT
 
-#================================#
 # Generic functions to overload  #
-#================================#
+
 "Return the index of an object "
 function index end
 
@@ -20,9 +19,7 @@ function label end
 "Apply one object to the other."
 function apply! end
 
-#==================#
 # Utils functions  #
-#==================#
 
 "Return an eye matrix of size m and type T."
 eye(m::Integer, T = Bool) = Diagonal(ones(T, m))
@@ -63,9 +60,7 @@ macro debugtime(msg, expr)
     end
 end
 
-#==================#
 # Type aliases     #
-#==================#
 
 "Used to assign labels to geometric or physical entities."
 const Label = Union{String, Symbol}

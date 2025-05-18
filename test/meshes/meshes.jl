@@ -181,8 +181,8 @@ end
     [add_node_to_set!(mesh, node_set_label, i) for i in node_ids_in_vec[1:3]]
     # add using the node itself
     add_node_to_set!(mesh, node_set_label, last(nodes_set))
-    @test all([i ∈ node_set(mesh, node_set_label) for i in node_ids_in_vec])
-    @test all([n ∈ nodes(mesh, node_set_label) for n in nodes_set])
+    @test all([i in node_set(mesh, node_set_label) for i in node_ids_in_vec])
+    @test all([n in nodes(mesh, node_set_label) for n in nodes_set])
 
     # faces
     face_ids_in_vec = [6, 5]
@@ -192,8 +192,8 @@ end
     add_face_to_set!(mesh, face_set_label, first(face_ids_in_vec))
     # add using the face itself
     add_face_to_set!(mesh, face_set_label, last(faces_set))
-    @test all([i ∈ face_set(mesh, face_set_label) for i in face_ids_in_vec])
-    @test all([n ∈ faces(mesh, face_set_label) for n in faces_set])
+    @test all([i in face_set(mesh, face_set_label) for i in face_ids_in_vec])
+    @test all([n in faces(mesh, face_set_label) for n in faces_set])
 
     elem_ids_in_vec = [5, 6]
     element_set_label = "elems-with-node8"
@@ -202,6 +202,6 @@ end
     add_element_to_set!(mesh, element_set_label, first(elem_ids_in_vec))
     # add using the element itself
     add_element_to_set!(mesh, element_set_label, last(elements_set))
-    @test all([i ∈ element_set(mesh, element_set_label) for i in elem_ids_in_vec])
-    @test all([n ∈ elements(mesh, element_set_label) for n in elements_set])
+    @test all([i in element_set(mesh, element_set_label) for i in elem_ids_in_vec])
+    @test all([n in elements(mesh, element_set_label) for n in elements_set])
 end

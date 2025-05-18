@@ -138,13 +138,15 @@ function _volume(jacobian_mat::Matrix)
 end
 
 function _B_mat!(B::Matrix, deriv::Matrix, F::Matrix)
-    B[1:3, :] = [diagm(deriv[:, 1]) * F' diagm(deriv[:, 2]) *
-                                         F' diagm(deriv[:, 3]) * F' diagm(deriv[:, 4]) * F']
+    B[1:3,
+        :] = [diagm(deriv[:, 1]) * F' diagm(deriv[:, 2]) *
+                                      F' diagm(deriv[:, 3]) * F' diagm(deriv[:, 4]) * F']
 
     for k in 1:4
-        B[4:6, (k - 1) * 3 .+ (1:3)] = [deriv[2, k] * F[:, 3]' + deriv[3, k] * F[:, 2]'
-                                        deriv[1, k] * F[:, 3]' + deriv[3, k] * F[:, 1]'
-                                        deriv[1, k] * F[:, 2]' + deriv[2, k] * F[:, 1]']
+        B[4:6,
+            (k - 1) * 3 .+ (1:3)] = [deriv[2, k] * F[:, 3]' + deriv[3, k] * F[:, 2]'
+                                     deriv[1, k] * F[:, 3]' + deriv[3, k] * F[:, 1]'
+                                     deriv[1, k] * F[:, 2]' + deriv[2, k] * F[:, 1]']
     end
     B
 end
@@ -297,6 +299,7 @@ function interpolation_matrix(t::Tetrahedron{3, T}) where {T <: Real}
 
     # Compute minors.
     @inbounds for J in 1:4, I in 1:4
+
         ridx, cidx = MINOR_INDICES[I, J]
         Â = det(𝐴[ridx, cidx])
         𝑀[I, J] = Â / V * (-1)^(I + J)

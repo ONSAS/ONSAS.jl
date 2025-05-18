@@ -72,7 +72,8 @@ function PointEvalHandler(mesh::AbstractMesh, vec_points::Vector{PT};
     # If a point belongs to more than one element, keep only the first matching element.
     # This is valid since the interpolation result will be the same for both elements.
     # This case occurs when the point is located on the boundary of two elements, face or node.
-    in_mesh_points_idx, in_mesh_elements_idx = evaluate_points_in_mesh(
+    in_mesh_points_idx,
+    in_mesh_elements_idx = evaluate_points_in_mesh(
         mesh, vec_points, alg)
 
     # For each element found, compute the associated weight used for interpolation.

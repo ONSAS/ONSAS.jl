@@ -279,7 +279,8 @@ function test(sol::AbstractSolution)
     # Compute analytic solution at a random point
     _, _, _, numeric_α, numeric_β, numeric_γ, _ = numerical_solution(sol)
 
-    u1_case, u2_case, u3_case = u_ijk_numeric(numeric_α, numeric_β, numeric_γ,
+    u1_case, u2_case,
+    u3_case = u_ijk_numeric(numeric_α, numeric_β, numeric_γ,
         rand_point[]...)
     rand_point_u1 = displacements(sol, ph, 1)
     rand_point_u2 = displacements(sol, ph, 2)
