@@ -113,8 +113,10 @@ cross_section(t::Truss) = t.cross_section
 strain_model(::Truss{dim, E}) where {dim, E <: AbstractStrainModel} = E
 
 "Return a `Tetrahedron` given an empty `Tetrahedron` `t` and a `Vector` of `Node`s `vn`."
-create_entity(t::Truss, vn::AbstractVector{<:AbstractNode}) = Truss(
-    vn, cross_section(t), strain_model(t), label(t))
+function create_entity(t::Truss, vn::AbstractVector{<:AbstractNode})
+    Truss(
+        vn, cross_section(t), strain_model(t), label(t))
+end
 
 "Return the local dof symbol of a `Truss` element."
 local_dof_symbol(::Truss) = [:u]

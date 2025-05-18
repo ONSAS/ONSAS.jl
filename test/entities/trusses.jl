@@ -39,17 +39,18 @@ const RTOL = 1e-3
     t = create_entity(t_empty_nodes, [n₁, n₂])
 
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
-    @test all([n ∈ coordinates(t) for n in coordinates([n₁, n₂])])
+    @test all([n in coordinates(t) for n in coordinates([n₁, n₂])])
     @test cross_section(t) == circle_cross_section
     truss_dofs = dofs(t)
-    @test all([d ∈ truss_dofs[:u] for d in [Dof(1), Dof(3)]])
-    @test all([d ∈ truss_dofs[:T] for d in [Dof(2), Dof(4)]])
+    @test all([d in truss_dofs[:u] for d in [Dof(1), Dof(3)]])
+    @test all([d in truss_dofs[:T] for d in [Dof(2), Dof(4)]])
     @test local_dof_symbol(t) == [:u]
     @test local_dofs(t) == [Dof(1), Dof(3)]
     @test string(label(t)) == my_label
     @test strain_model(t) == strain
 
-    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(
+    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e,
+    ϵ_e = internal_forces(
         my_svk_mat, t, u_global_structure[local_dofs(t)])
     ϵ_rot_ing = (l_def^2 - l_ref^2) / (l_ref * (l_ref + l_def))
 
@@ -94,18 +95,19 @@ end
     @test strain_model(t_empty_nodes) == strain_model_t
 
     @test n₁ ∈ nodes(t) && n₂ ∈ nodes(t)
-    @test all([n ∈ coordinates(t) for n in coordinates([n₁, n₂])])
+    @test all([n in coordinates(t) for n in coordinates([n₁, n₂])])
     @test cross_section(t) == square_cross_section
     truss_dofs = dofs(t)
-    @test all([d ∈ truss_dofs[:u]
+    @test all([d in truss_dofs[:u]
                for d in [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]])
-    @test all([d ∈ truss_dofs[:θ]
+    @test all([d in truss_dofs[:θ]
                for d in [Dof(2), Dof(4), Dof(6), Dof(8), Dof(10), Dof(12)]])
     @test local_dof_symbol(t) == [:u]
     @test local_dofs(t) == [Dof(1), Dof(3), Dof(5), Dof(7), Dof(9), Dof(11)]
     @test string(label(t)) == my_label
 
-    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e, ϵ_e = internal_forces(
+    fᵢₙₜ_e, Kᵢₙₜ_e, σ_e,
+    ϵ_e = internal_forces(
         my_svk_mat, t, u_global_structure[local_dofs(t)])
     strain(t, u_global_structure[local_dofs(t)]) == ϵ_e
     stress(t, u_global_structure[local_dofs(t)]) == σ_e

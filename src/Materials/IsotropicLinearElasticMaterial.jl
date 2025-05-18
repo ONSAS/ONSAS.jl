@@ -55,12 +55,16 @@ elasticity_modulus(m::IsotropicLinearElastic) = m.E
 poisson_ratio(m::IsotropicLinearElastic) = m.ν
 
 "Return the shear modulus `G` from a `IsotropicLinearElastic` material `m`."
-shear_modulus(m::IsotropicLinearElastic) = elasticity_modulus(m) /
-                                           (2 * (1 + poisson_ratio(m)))
+function shear_modulus(m::IsotropicLinearElastic)
+    elasticity_modulus(m) /
+    (2 * (1 + poisson_ratio(m)))
+end
 
 "Return the bulk modulus `K` from a `IsotropicLinearElastic` material `m`."
-bulk_modulus(m::IsotropicLinearElastic) = elasticity_modulus(m) /
-                                          (3 * (1 - 2 * poisson_ratio(m)))
+function bulk_modulus(m::IsotropicLinearElastic)
+    elasticity_modulus(m) /
+    (3 * (1 - 2 * poisson_ratio(m)))
+end
 
 "Return Lamé parameters `λ` and `G` from a `IsotropicLinearElastic` material `m`."
 function lame_parameters(m::IsotropicLinearElastic)

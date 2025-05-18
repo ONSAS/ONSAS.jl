@@ -74,7 +74,7 @@ const RTOL = 1e-5
     @test length(point_elements) == length(points(ph_nodes)) == length(in_mesh_indexes)
 
     # If the point is at two elements then the first element will be reported
-    @test all([p ∈ point_elements[index_p] for (index_p, p) in enumerate(points(ph_nodes))])
+    @test all([p in point_elements[index_p] for (index_p, p) in enumerate(points(ph_nodes))])
 
     # Test interpolation for a linear scalar field
     linear_scalar_field(x, y, z) = 10x - 2y + 3z + 12

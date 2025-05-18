@@ -132,7 +132,8 @@ function step!(sa::LinearStaticAnalysis,
     end
 
     # Define tolerances
-    abstol, reltol, maxiter = _default_linear_solver_tolerances(linear_system.A,
+    abstol, reltol,
+    maxiter = _default_linear_solver_tolerances(linear_system.A,
         linear_system.b)
 
     # Compute ΔU

@@ -24,7 +24,8 @@ function run_experiment(build_structure::Function,
 
     solution, t_solve, _ = @timed solve!(problem, alg)
 
-    ph, t_point_eval_handler, _ = @timed PointEvalHandler(structure,
+    ph, t_point_eval_handler,
+    _ = @timed PointEvalHandler(structure,
         [Point(rand(3)...)
          for i in 1:N_POINTS_EVAL])
 

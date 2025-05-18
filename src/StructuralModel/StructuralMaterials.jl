@@ -55,7 +55,9 @@ function Base.getindex(sm::StructuralMaterial, l::Label)
 end
 
 "Return the `Vector` of `Element`s that are conformed by the `Material `m`."
-Base.getindex(sm::StructuralMaterial, m::M) where {M <: AbstractMaterial} = element_materials(sm)[m]
+function Base.getindex(sm::StructuralMaterial, m::M) where {M <: AbstractMaterial}
+    element_materials(sm)[m]
+end
 
 "Return the `Vector` of `Material` of the element `e`."
 function Base.getindex(sm::StructuralMaterial, e::E) where {E <: AbstractElement}

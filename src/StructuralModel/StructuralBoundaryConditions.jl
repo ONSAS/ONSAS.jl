@@ -37,7 +37,8 @@ Base.@kwdef struct StructuralBoundaryCondition{NB <: AbstractBoundaryCondition,
     "Maps each boundary conditions for a vector of faces."
     face_bcs::BCtoEntities{FB, F} = BCtoEntities{AbstractBoundaryCondition, AbstractFace}()
     "Maps each boundary conditions for a vector of elements. "
-    element_bcs::BCtoEntities{EB, E} = BCtoEntities{
+    element_bcs::BCtoEntities{
+        EB, E} = BCtoEntities{
         AbstractBoundaryCondition, AbstractElement}()
 end
 function StructuralBoundaryCondition(pairs::Pair...)

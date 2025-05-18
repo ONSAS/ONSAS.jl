@@ -44,18 +44,15 @@ label(bc::AbstractBoundaryCondition) = bc.name
 This should be a function of time returning a vector with the same size as the `Node` or `Element` `Dof`s."
 Base.values(bc::AbstractBoundaryCondition) = bc.values
 
-#================================#
 # Dirichlet boundary conditions  #
-#================================#
 
 """ Abstract supertype for all Dirichlet boundary conditions."""
 abstract type AbstractDirichletBoundaryCondition <: AbstractBoundaryCondition end
 
 const AbstractDisplacementBoundaryCondition = AbstractDirichletBoundaryCondition
 
-#================================#
 # Neumann boundary conditions  #
-#================================#
+
 """ Abstract supertype for all Neumann boundary conditions."""
 abstract type AbstractNeumannBoundaryCondition <: AbstractBoundaryCondition end
 

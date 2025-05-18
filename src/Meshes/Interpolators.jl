@@ -48,7 +48,7 @@ struct FEMInterpolator{dim,
             TW <: Real,
             E <: AbstractElement,
             VE <: AbstractVector{E}}
-        @assert length(points_interpolated)==length(node_to_weights)==
+        @assert length(points_interpolated) == length(node_to_weights) ==
                 length(points_to_element) "All FEMInterpolator inputs must have the same length"
         new{dim, P, VP, N, TW, E, VE}(
             points_interpolated, node_to_weights, points_to_element)
